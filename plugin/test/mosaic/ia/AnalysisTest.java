@@ -38,15 +38,9 @@ public class AnalysisTest extends CommonBase {
         }
         Point3d[] y = yl.toArray(new Point3d[0]);
 
-        Analysis analysis = new Analysis(x, y);
+        Analysis analysis = new Analysis(x, y, 0, 5, 0, 5, 0, 0);
         analysis.setKernelWeightq(0.001);
         analysis.setKernelWeightp(2.974);
-        analysis.setX1(0);
-        analysis.setX2(5);
-        analysis.setY1(0);
-        analysis.setY2(5);
-        analysis.setZ1(0);
-        analysis.setZ2(0);
         analysis.calcDist(0.5);
         
         double epsilon = 1e-10;
@@ -90,15 +84,9 @@ public class AnalysisTest extends CommonBase {
         copyTestResources("Endosome.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
         Point3d[] y = ImageProcessUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
         
-        Analysis analysis = new Analysis(x, y);
+        Analysis analysis = new Analysis(x, y, 0, 385, 0, 511, 0, 0);
         analysis.setKernelWeightq(0.001);
         analysis.setKernelWeightp(35.9);
-        analysis.setX1(0);
-        analysis.setX2(385);
-        analysis.setY1(0);
-        analysis.setY2(511);
-        analysis.setZ1(0);
-        analysis.setZ2(0);
         analysis.calcDist(0.5);
         return analysis;
     }
@@ -148,7 +136,7 @@ public class AnalysisTest extends CommonBase {
         System.out.println(results);
         
         // Results may vary quite a lot - change epsilon to relax expectations
-        epsilon = 0.1;
+        epsilon = 0.5;
         assertEquals(2.411145, results.get(0).iStrength, epsilon);
         assertEquals(6.472193, results.get(0).iThresholdScale, epsilon);
         assertEquals(0.002122, results.get(0).iResidual, epsilon);

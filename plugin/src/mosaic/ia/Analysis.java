@@ -3,8 +3,6 @@ package mosaic.ia;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -14,19 +12,18 @@ import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Plot;
-import ij.gui.PlotWindow;
-import ij.measure.ResultsTable;
+import mosaic.ia.gui.PlotHistogram;
+import mosaic.ia.gui.PlotQP;
+import mosaic.ia.gui.PlotQPNN;
 import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
-import mosaic.ia.utils.PlotUtils;
 import weka.estimators.KernelEstimator;
 
 
 public class Analysis {
-
     private final ImagePlus iImageX, iImageY;
     private ImagePlus mask, genMask;
     private final Point3d[] particleXSetCoordUnfiltered;
@@ -57,12 +54,20 @@ public class Analysis {
         this.particleYSetCoordUnfiltered = null;
     }
 
-    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords) {
+    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords, 
+            double x1,double x2,double y1,double y2,double z1,double z2) {
         this.particleXSetCoordUnfiltered = Xcoords;
         this.particleYSetCoordUnfiltered = Ycoords;
         this.iImageX = null;
         this.iImageY = null;
         isImage = false;
+        
+        this.x1 = x1;
+        this.x2 = x2;
+        this.y1 = y1;
+        this.y2 = y2;
+        this.z1 = z1;
+        this.z2 = z2;
     }
 
     public boolean calcDist(double gridSize) {
@@ -91,8 +96,12 @@ public class Analysis {
             NN_D_grid[i1] = kernelEstimatorNN.getProbability(dgrid[i1]);
         }
         nnObserved = IAPUtils.normalize(NN_D_grid);
-        plotQP(dgrid, q, nnObserved);
-        PlotUtils.plotHistogram("ObservedDistances", iDistances, IAPUtils.getOptimBins(iDistances, 8, iDistances.length / 8));
+        String xlabel = "Distance";
+        if (isImage) {
+            xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
+        }
+        PlotQP.plot(xlabel, dgrid, q, nnObserved);
+        PlotHistogram.plot("ObservedDistances", iDistances, IAPUtils.getOptimBins(iDistances, 8, iDistances.length / 8));
         final double[] minMaxMean = IAPUtils.getMinMaxMeanD(iDistances);
         minD = minMaxMean[0];
         maxD = minMaxMean[1];
@@ -329,7 +338,11 @@ public class Analysis {
             
             double[] P_grid = fitfun.getPGrid();
             P_grid = IAPUtils.normalize(P_grid);
-            plotQPNN(dgrid, P_grid, q, nnObserved);
+            String xlabel = "Distance";
+            if (isImage) {
+                xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
+            }
+            PlotQPNN.plot(xlabel, dgrid, P_grid, q, nnObserved, potentialType, best, allFitness, bestFitnessindex);
         }
     
         return true;
@@ -398,30 +411,6 @@ public class Analysis {
         return true;
     }
 
-    public void setX1(double x1) {
-        this.x1 = x1;
-    }
-
-    public void setY1(double y1) {
-        this.y1 = y1;
-    }
-
-    public void setX2(double x2) {
-        this.x2 = x2;
-    }
-
-    public void setY2(double y2) {
-        this.y2 = y2;
-    }
-
-    public void setZ1(double z1) {
-        this.z1 = z1;
-    }
-
-    public void setZ2(double z2) {
-        this.z2 = z2;
-    }
-
     public double getMinD() {
         return minD;
     }
@@ -456,107 +445,5 @@ public class Analysis {
 
     public void setKernelWeightp(double kernelWeightp) {
         this.kernelWeightp = kernelWeightp;
-    }
-
-    private void plotQP(double[] d, double[] q, double[] nn) {
-        String xlabel = "Distance";
-        if (isImage) {
-            xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
-        }
-        final Plot plot = new Plot("Result: Estimated distance distributions", xlabel, "Probability density", d, nn);
-        double max = 0;
-        for (int i = 0; i < q.length; i++) {
-            if (q[i] > max) {
-                max = q[i];
-            }
-        }
-        for (int i = 0; i < nn.length; i++) {
-            if (nn[i] > max) {
-                max = nn[i];
-            }
-        }
-        plot.setLimits(d[0], d[d.length - 1], 0, max);
-        plot.setColor(Color.BLUE);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .2, "----  ");
-    
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .2, "Observed dist");
-        plot.draw();
-    
-        plot.setColor(Color.red);
-        plot.addPoints(d, q, PlotWindow.LINE);
-        plot.addLabel(.7, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.75, .3, "q(d): Context");
-    
-        plot.show();
-    }
-
-    private void plotQPNN(double[] d, double[] p, double[] q, double[] nn) {
-        String xlabel = "Distance";
-        if (isImage) {
-            xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
-        }
-        final Plot plot = new Plot("Distance distributions", xlabel, "Probability density", d, nn);
-    
-        double max = 0;
-        for (int i = 0; i < q.length; i++) {
-            if (q[i] > max) {
-                max = q[i];
-            }
-        }
-        for (int i = 0; i < nn.length; i++) {
-            if (nn[i] > max) {
-                max = nn[i];
-            }
-        }
-        for (int i = 0; i < p.length; i++) {
-            if (p[i] > max) {
-                max = p[i];
-            }
-        }
-        plot.setLimits(d[0], d[d.length - 1], 0, max);
-        plot.setColor(Color.BLUE);
-        plot.setLineWidth(2);
-        plot.addLabel(.65, .2, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.7, .2, "Observed dist");
-        plot.draw();
-    
-        plot.setColor(Color.red);
-        plot.addPoints(d, q, PlotWindow.LINE);
-        plot.addLabel(.65, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.7, .3, "q(d): Context");
-    
-        plot.setColor(Color.green);
-        plot.addPoints(d, p, PlotWindow.LINE);
-        plot.addLabel(.65, .4, "----  ");
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.7, .4, "p(d): Model fit");
-        final DecimalFormat format = new DecimalFormat("#.####E0");
-        if (potentialType == PotentialFunctions.STEP) {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else if (potentialType == PotentialFunctions.NONPARAM) {
-            plot.addLabel(.65, .6, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Scale: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-    
-        plot.show();
     }
 }

@@ -1,4 +1,4 @@
-package mosaic.ia.utils;
+package mosaic.ia.gui;
 
 
 import ij.ImagePlus;
@@ -6,7 +6,7 @@ import ij.gui.HistogramWindow;
 import ij.process.FloatProcessor;
 
 
-public class PlotUtils {
+public class PlotHistogram {
 
     /**
      * Plots histogram for provided values using aNumOfBins
@@ -15,7 +15,7 @@ public class PlotUtils {
      * @param aNumOfBins
      * @return number of elements in each bin
      */
-    public static HistogramWindow plotHistogram(String aTitle, double[] aValues, int aNumOfBins) {
+    public static HistogramWindow plot(String aTitle, double[] aValues, int aNumOfBins) {
         final FloatProcessor hist = new FloatProcessor(aValues.length, 1, aValues);
         return new ij.gui.HistogramWindow(aTitle, new ImagePlus(aTitle, hist), aNumOfBins);
     }

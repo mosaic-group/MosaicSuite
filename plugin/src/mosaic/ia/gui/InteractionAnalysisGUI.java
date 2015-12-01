@@ -36,7 +36,7 @@ import mosaic.ia.Analysis.Result;
 import mosaic.ia.utils.ImageProcessUtils;
 
 
-public class GUIDesign implements ActionListener {
+public class InteractionAnalysisGUI implements ActionListener {
 
     private JFrame frmInteractionAnalysis;
     private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
@@ -58,7 +58,7 @@ public class GUIDesign implements ActionListener {
     private JFormattedTextField mCRuns, numSupport, smoothnessNP, gridSizeInp, reRuns, kernelWeightq, kernelWeightp;
 
     private JFormattedTextField alphaField;
-
+    private JTabbedPane tabbedPane;
     private JButton browseY, browseX, btnCalculateDistances, estimate, test, genMask, loadMask, resetMask, btnLoadCsvFileX, btnLoadCsvFileY;
     private Border blackBorder;
     private JTextArea textArea;
@@ -76,7 +76,7 @@ public class GUIDesign implements ActionListener {
     /**
      * Create the application.
      */
-    public GUIDesign() {
+    public InteractionAnalysisGUI() {
         initialize();
         frmInteractionAnalysis.setVisible(true);
     }
@@ -239,7 +239,7 @@ public class GUIDesign implements ActionListener {
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(estimate).addContainerGap()));
         panel_5.setLayout(gl_panel_5);
 
-        final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
+        tabbedPane = new JTabbedPane(SwingConstants.TOP);
         final JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
 
         final JPanel panel_3 = new JPanel();
@@ -453,7 +453,7 @@ public class GUIDesign implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == help) {
-            new HelpInteractionAnalysis(0, 0);
+            new InteractionAnalysisHelpGUI(0, 0);
         }
         else if (e.getSource() == browseX) {
             imgx = ImageProcessUtils.openImage();
@@ -463,9 +463,6 @@ public class GUIDesign implements ActionListener {
             }
             imgx.show("Image X");
             browseX.setText(imgx.getTitle());
-            if (imgy != null && imgx != null) {
-                initializeImages();
-            }
         }
         else if (e.getSource() == browseY) {
             imgy = ImageProcessUtils.openImage();
@@ -475,21 +472,14 @@ public class GUIDesign implements ActionListener {
             }
             imgy.show("Image Y");
             browseY.setText(imgy.getTitle());
-            if (imgy != null && imgx != null) {
-                initializeImages();
-            }
         }
         else if (e.getSource() == btnLoadCsvFileX) {
             Xcoords = ImageProcessUtils.openCsvFile("Open CSV file for image X");
-            if (Xcoords != null && Ycoords != null) {
-                initializeAnalysis(Xcoords, Ycoords);
-            }
+            setMinMaxCoordinates();
         }
         else if (e.getSource() == btnLoadCsvFileY) {
             Ycoords = ImageProcessUtils.openCsvFile("Open CSV file for image Y");
-            if (Xcoords != null && Ycoords != null) {
-                initializeAnalysis(Xcoords, Ycoords);
-            }
+            setMinMaxCoordinates();
         }
         else if (e.getSource() == potentialComboBox) {
             final String selected = (String) potentialComboBox.getSelectedItem();
@@ -527,35 +517,65 @@ public class GUIDesign implements ActionListener {
             iAnalysis.setPotentialType(potentialType);
         }
         else if (e.getSource() == btnCalculateDistances) {
+            
+            
+            
+            
+            
             gridSize = Double.parseDouble(gridSizeInp.getText());
-            iAnalysis.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
-            iAnalysis.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
-
-            if (!iAnalysis.getIsImage()) {
+            double qkernel = Double.parseDouble(kernelWeightq.getText());
+            double pkernel = Double.parseDouble(kernelWeightp.getText());
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            iAnalysis = null;
+            if (selectedIndex == 1) {
+                // coordinates
                 xmin = Double.parseDouble(txtXmin.getText());
                 ymin = Double.parseDouble(txtYmin.getText());
                 zmin = Double.parseDouble(txtZmin.getText());
                 xmax = Double.parseDouble(txtXmax.getText());
                 ymax = Double.parseDouble(txtYmax.getText());
                 zmax = Double.parseDouble(txtZmax.getText());
-
-                if (xmin > Double.MAX_VALUE - 1 || xmax > Double.MAX_VALUE - 1 || ymin > Double.MAX_VALUE - 1 || ymax > Double.MAX_VALUE - 1 || zmin > Double.MAX_VALUE - 1
-                        || zmax > Double.MAX_VALUE - 1 || xmax < xmin || ymax < ymin || zmax < zmin) {
+                if (xmin > Double.MAX_VALUE - 1 || xmax > Double.MAX_VALUE - 1 ||
+                    ymin > Double.MAX_VALUE - 1 || ymax > Double.MAX_VALUE - 1 || 
+                    zmin > Double.MAX_VALUE - 1 || zmax > Double.MAX_VALUE - 1 || 
+                    xmax < xmin || ymax < ymin || zmax < zmin) 
+                {
                     IJ.showMessage("Error: boundary values are not correct");
                     return;
                 }
-                iAnalysis.setX1(xmin);
-                iAnalysis.setX2(xmax);
-                iAnalysis.setY1(ymin);
-                iAnalysis.setY2(ymax);
-                iAnalysis.setZ1(zmin);
-                iAnalysis.setZ2(zmax);
+                
+                if (Xcoords != null && Ycoords != null) {
+                    iAnalysis = new Analysis(Xcoords, Ycoords, 0, 0, 0, 0, 0, 0);
+                    iAnalysis.setKernelWeightq(qkernel);
+                    iAnalysis.setKernelWeightp(pkernel);
+                    System.out.println("[Point3d] p set to:" + pkernelWeight);
+                }
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
             }
+            else {
+                // image
+                if (imgy != null && imgx != null) {
+                    if (!checkIfImagesAreRightSize()) {
+                        System.out.println("Distance calc: different image sizes");
+                        IJ.showMessage("Error: Image sizes/scale/unit do not match");
+                    }
+                    else {
+                        iAnalysis = new Analysis(imgx, imgy);
+                        iAnalysis.setKernelWeightq(qkernel);
+                        iAnalysis.setKernelWeightp(pkernel);
+                        System.out.println("[ImagePlus] p set to:" + pkernelWeight);
+                    }
+                }
+            }
 
-            if (!iAnalysis.calcDist(gridSize)) {
+            if (iAnalysis == null || !iAnalysis.calcDist(gridSize)) {
                 IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
             }
+            
+            
+            
+            
+            
         }
         else if (e.getSource() == estimate) {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
@@ -639,30 +659,37 @@ public class GUIDesign implements ActionListener {
         }
     }
 
-    private void initializeImages() {
-        if (!checkIfImagesAreRightSize()) {
-            System.out.println("Distance calc: different image sizes");
-            IJ.showMessage("Error: Image sizes/scale/unit do not match");
-        }
-        else {
-            initializeAnalysis(imgx, imgy);
-        }
-    }
-
-    private void initializeAnalysis(ImagePlus X, ImagePlus Y) {
-        iAnalysis = new Analysis(X, Y);
-        iAnalysis.setCmaReRunTimes(numReRuns);
-        iAnalysis.setKernelWeightq(qkernelWeight);
-        iAnalysis.setKernelWeightp(pkernelWeight);
-        System.out.println("[ImagePlus] p set to:" + pkernelWeight);
-    }
-    
-    private void initializeAnalysis(Point3d[] X, Point3d[] Y) {
-        iAnalysis = new Analysis(X, Y);
-        iAnalysis.setCmaReRunTimes(numReRuns);
-        iAnalysis.setKernelWeightq(qkernelWeight);
-        iAnalysis.setKernelWeightp(pkernelWeight);
-        System.out.println("[Point3d] p set to:" + pkernelWeight);
+    private void setMinMaxCoordinates() {
+            double x1 = Double.MAX_VALUE;
+            double y1 = Double.MAX_VALUE;
+            double z1 = Double.MAX_VALUE;
+            double x2 = Double.MIN_VALUE; 
+            double y2 = Double.MIN_VALUE;
+            double z2 = Double.MIN_VALUE;
+            boolean isSet = false;
+            
+            Point3d[][] coordinates = {Xcoords, Ycoords}; 
+            for (Point3d[] coords : coordinates) {
+                if (coords != null) {
+                    for (Point3d p : coords) {
+                        if (p.x < x1) x1 = p.x;
+                        if (p.x > x2) x2 = p.x;
+                        if (p.y < y1) y1 = p.y;
+                        if (p.y > y2) y2 = p.y;
+                        if (p.z < z1) z1 = p.z;
+                        if (p.z > z2) z2 = p.z;
+                    }
+                    isSet = true;
+                }
+            }
+            if (isSet) {
+                txtXmin.setText(Math.floor(x1) + "");
+                txtXmax.setText(Math.ceil(x2) + "");
+                txtYmin.setText(Math.floor(y1) + "");
+                txtYmax.setText(Math.ceil(y2) + "");
+                txtZmin.setText(Math.floor(z1) + "");
+                txtZmax.setText(Math.ceil(z2) + "");
+            }
     }
 
     private boolean checkIfImagesAreRightSize() {

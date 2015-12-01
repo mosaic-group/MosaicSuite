@@ -11,12 +11,12 @@ import javax.swing.JPanel;
 import mosaic.core.GUI.HelpGUI;
 
 
-class HelpInteractionAnalysis extends HelpGUI {
+class InteractionAnalysisHelpGUI extends HelpGUI {
 
     private final JFrame frame;
     private final JPanel panel;
 
-    public HelpInteractionAnalysis(int x, int y) {
+    public InteractionAnalysisHelpGUI(int x, int y) {
         frame = new JFrame("Interaction Analysis Help");
         frame.setSize(555, 780);
         frame.setLocation(x + 500, y - 50);

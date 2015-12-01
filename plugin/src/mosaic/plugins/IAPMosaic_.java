@@ -1,7 +1,7 @@
 package mosaic.plugins;
 
 import ij.plugin.PlugIn;
-import mosaic.ia.gui.GUIDesign;
+import mosaic.ia.gui.InteractionAnalysisGUI;
 
 
 /**
@@ -22,6 +22,6 @@ public class IAPMosaic_ implements PlugIn { // NO_UCD
     
     @Override
     public void run(String arg0) {
-        new GUIDesign();
+        new InteractionAnalysisGUI();
     }
 }
