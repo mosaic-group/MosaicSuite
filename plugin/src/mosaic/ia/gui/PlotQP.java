@@ -4,22 +4,17 @@ import java.awt.Color;
 
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
+import net.sf.javaml.utils.ArrayUtils;
 
 public class PlotQP {
-    public static void plot(String aName, double[] d, double[] q, double[] nn) {
-        final Plot plot = new Plot("Result: Estimated distance distributions", aName, "Probability density", d, nn);
-        double max = 0;
-        for (int i = 0; i < q.length; i++) {
-            if (q[i] > max) {
-                max = q[i];
-            }
-        }
-        for (int i = 0; i < nn.length; i++) {
-            if (nn[i] > max) {
-                max = nn[i];
-            }
-        }
-        plot.setLimits(d[0], d[d.length - 1], 0, max);
+    public static void plot(String aName, double[] aX, double[] aQ, double[] aObservedDistance) {
+        final Plot plot = new Plot("Result: Estimated distance distributions", aName, "Probability density", aX, aObservedDistance);
+        
+        double max = ArrayUtils.max(aQ);
+        double max2 = ArrayUtils.max(aObservedDistance);
+        max = max2 > max ? max2 : max;
+        plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
+        
         plot.setColor(Color.BLUE);
         plot.setLineWidth(2);
         plot.addLabel(.7, .2, "----  ");
@@ -30,7 +25,7 @@ public class PlotQP {
         plot.draw();
     
         plot.setColor(Color.red);
-        plot.addPoints(d, q, PlotWindow.LINE);
+        plot.addPoints(aX, aQ, PlotWindow.LINE);
         plot.addLabel(.7, .3, "----  ");
         plot.draw();
         plot.setColor(Color.black);

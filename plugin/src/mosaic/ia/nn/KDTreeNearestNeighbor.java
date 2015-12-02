@@ -49,12 +49,12 @@ public class KDTreeNearestNeighbor {
         }
     }
 
-    public double[] getNNDistances(Point3d[] pointsX) {
+    public double[] getNearestNeighborDistances(Point3d[] pointsX) {
         final double[] D = new double[pointsX.length];
 
         for (int i = 0; i < pointsX.length; i++) {
             try {
-                D[i] = getNNDistance(pointsX[i]);
+                D[i] = getNearestNeighborDistance(pointsX[i]);
             }
             catch (final Exception e) {
                 e.printStackTrace();
@@ -63,7 +63,7 @@ public class KDTreeNearestNeighbor {
         return D;
     }
 
-    double getNNDistance(Point3d p) throws Exception {
+    double getNearestNeighborDistance(Point3d p) throws Exception {
         final Attribute x = pointsYinstances.attribute(0);
         final Attribute y = pointsYinstances.attribute(1);
         final Attribute z = pointsYinstances.attribute(2);

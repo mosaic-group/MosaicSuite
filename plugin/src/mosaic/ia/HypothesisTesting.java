@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import ij.IJ;
-import mosaic.ia.utils.IAPUtils;
 
 
 class HypothesisTesting {
@@ -117,6 +116,12 @@ class HypothesisTesting {
 
             }
         }
-        return IAPUtils.linearInterpolation(DGrid[i], CDFGrid[i], DGrid[i + 1], CDFGrid[i + 1], R);
+        return linearInterpolation(DGrid[i], CDFGrid[i], DGrid[i + 1], CDFGrid[i + 1], R);
+    }
+    
+    private static double linearInterpolation(double yl, double xl, double yr, double xr, double x) {
+        final double m = (yl - yr) / (xl - xr);
+        final double c = yl - m * xl;
+        return m * x + c;
     }
 }

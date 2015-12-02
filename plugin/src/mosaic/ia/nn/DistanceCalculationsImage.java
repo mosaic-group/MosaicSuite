@@ -36,6 +36,8 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         super(mask, gridSize, kernelWeightq, discretizationSize);
         this.X = X;
         this.Y = Y;
+        
+        calcDistances();
     }
 
     private Point3d[] extractParticles(ImagePlus image) {
@@ -51,15 +53,14 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
         Vector<Particle> particle = detectParticlesinStack(image);
         System.out.println("NUM OF PARTICLES: " + particle.size());
-        return applyMaskandgetCoordinates(getCoordinates(particle));
+        return getFilteredViaMaskCoordinates(getCoordinates(particle));
     }
 
-    @Override
-    public void calcDistances() {
-        particleXSetCoord = extractParticles(X);
-        particleYSetCoord = extractParticles(Y);
+    private void calcDistances() {
+        iparticlesX = extractParticles(X);
+        iParticlesY = extractParticles(Y);
         stateDensity(0, 0, 0, X.getHeight() - 1, X.getWidth() - 1, X.getNSlices() - 1);
-        calcD();
+        calcDistancesOfX();
     }
     
     /**

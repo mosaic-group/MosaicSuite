@@ -25,7 +25,7 @@ public class ImageProcessFileUtils {
     // Wrapper used for reading data for Point3d class, it provides 'interface' methods for CSV reader
     public static class Point3dCsvReadWrapper extends Point3d {
         private static final long serialVersionUID = 1L;
-        Point3dCsvReadWrapper() {x = 0; y = 0; z = 0;}
+        
         public void setXX(double v) {this.x = v;}
         public double getXX() {return this.x;}
         public void setYY(double v) {this.y = v;}

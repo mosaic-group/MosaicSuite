@@ -617,9 +617,9 @@ public class InteractionAnalysisGUI implements ActionListener {
             double x1 = Double.MAX_VALUE;
             double y1 = Double.MAX_VALUE;
             double z1 = Double.MAX_VALUE;
-            double x2 = Double.MIN_VALUE; 
-            double y2 = Double.MIN_VALUE;
-            double z2 = Double.MIN_VALUE;
+            double x2 = -Double.MAX_VALUE; 
+            double y2 = -Double.MAX_VALUE;
+            double z2 = -Double.MAX_VALUE;
             boolean isSet = false;
             
             Point3d[][] coordinates = {Xcoords, Ycoords}; 

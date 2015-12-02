@@ -253,7 +253,7 @@ public class ImgUtils {
 
         // Find min and max value of image
         float min = Float.MAX_VALUE;
-        float max = Float.MIN_VALUE;
+        float max = -Float.MAX_VALUE;
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
                 final float pix = aImgArray[y][x];
@@ -274,25 +274,14 @@ public class ImgUtils {
      * @param aImgArray
      */
     static void normalize(final float[][] aImgArray) {
-        final int arrayW = aImgArray[0].length;
-        final int arrayH = aImgArray.length;
-
         // Find min and max value of image
-        float min = Float.MAX_VALUE;
-        float max = Float.MIN_VALUE;
-        for (int y = 0; y < arrayH; ++y) {
-            for (int x = 0; x < arrayW; ++x) {
-                final float pix = aImgArray[y][x];
-                if (pix < min) {
-                    min = pix;
-                }
-                if (pix > max) {
-                    max = pix;
-                }
-            }
-        }
+        MinMax<Float> minMax = findMinMax(aImgArray);
+        float min = minMax.getMin();
+        float max = minMax.getMax();
 
         // Normalize with found values
+        final int arrayW = aImgArray[0].length;
+        final int arrayH = aImgArray.length;
         if (max != min) {
             for (int y = 0; y < arrayH; ++y) {
                 for (int x = 0; x < arrayW; ++x) {
@@ -312,7 +301,7 @@ public class ImgUtils {
 
         // Find min and max value of image
         double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
+        double max = -Double.MAX_VALUE;
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
                 final double pix = aImgArray[y][x];

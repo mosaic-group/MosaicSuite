@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessFileUtils;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
@@ -54,7 +53,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, IAPUtils.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.HERNQUIST);
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
@@ -62,8 +61,8 @@ public class AnalysisTest extends CommonBase {
         
         // Results may vary quite a lot - change epsilon to relax expectations
         epsilon = 0.01;
-        assertEquals(36.791485, results.get(0).iStrength, epsilon);
-        assertEquals(242.056460, results.get(0).iThresholdScale, epsilon);
+        assertEquals(36.723190, results.get(0).iStrength, epsilon);
+        assertEquals(241.636178, results.get(0).iThresholdScale, epsilon);
         assertEquals(0.001399, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
@@ -93,7 +92,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, IAPUtils.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.NONPARAM);
         
         PotentialFunctions.NONPARAM_WEIGHT_SIZE = 41;
@@ -121,7 +120,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, IAPUtils.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.STEP);
 
         List<Result> results = new ArrayList<Result>();

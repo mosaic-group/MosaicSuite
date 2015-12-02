@@ -17,16 +17,17 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
         y2 = ymax;
         x2 = xmax;
         z2 = zmax;
+        
+        calcDistances();
     }
 
     private final Point3d[] X, Y; // unfiltered points
     private final double x1, x2, y1, y2, z1, z2; // ask for users input, if no mask. currently, force mask for csv.
 
-    @Override
-    public void calcDistances() {
-        particleXSetCoord = applyMaskandgetCoordinates(X);
-        particleYSetCoord = applyMaskandgetCoordinates(Y);
+    private void calcDistances() {
+        iparticlesX = getFilteredViaMaskCoordinates(X);
+        iParticlesY = getFilteredViaMaskCoordinates(Y);
         stateDensity(x1, y1, z1, x2, y2, z2);
-        calcD();
+        calcDistancesOfX();
     }
 }
