@@ -1,14 +1,12 @@
 package mosaic.ia.nn;
 
 
-import ij.ImagePlus;
-
 import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+import ij.ImagePlus;
 import mosaic.ia.utils.IAPUtils;
-import mosaic.ia.utils.ImageProcessUtils;
 import weka.estimators.KernelEstimator;
 
 
@@ -159,7 +157,10 @@ public abstract class DistanceCalculations {
     public abstract void calcDistances();
 
     protected void calcD() {
-        D = ImageProcessUtils.KDTreeDistCalc(particleXSetCoord, particleYSetCoord);
+        System.out.println("Size of X:" + particleXSetCoord.length);
+        System.out.println("Size of Y:" + particleYSetCoord.length);
+        final KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor(particleYSetCoord);
+        D = kdtnn.getNNDistances(particleXSetCoord);
     }
 
     protected Point3d[] applyMaskandgetCoordinates(Point3d[] points) // if mask==null, dont use this. this is used to filter the point3d array with the mask.

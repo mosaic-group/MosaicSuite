@@ -1,12 +1,6 @@
 package mosaic.ia.gui;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.macro.Interpreter;
-import ij.measure.Calibration;
-import ij.measure.ResultsTable;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,10 +24,17 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.vecmath.Point3d;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.macro.Interpreter;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
+import ij.plugin.Duplicator;
+import ij.plugin.Macro_Runner;
 import mosaic.ia.Analysis;
-import mosaic.ia.PotentialFunctions;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.utils.ImageProcessUtils;
+import mosaic.ia.PotentialFunctions;
+import mosaic.ia.utils.ImageProcessFileUtils;
 
 
 public class InteractionAnalysisGUI implements ActionListener {
@@ -47,30 +48,23 @@ public class InteractionAnalysisGUI implements ActionListener {
     private JButton btnLoadCsvFileX, btnLoadCsvFileY;
     private Point3d[] Xcoords, Ycoords;
     private JFormattedTextField txtXmin, txtYmin, txtZmin, txtXmax,txtYmax, txtZmax;
-    private double xmin = Double.MAX_VALUE, ymin = Double.MAX_VALUE, zmin = Double.MAX_VALUE, xmax = Double.MAX_VALUE, ymax = Double.MAX_VALUE, zmax = Double.MAX_VALUE;
     private JButton genMask, loadMask, resetMask;
     private ImagePlus genMaskIP;
 
     private JFormattedTextField gridSizeInp;
-    private double gridSize = .5;
     private JFormattedTextField  kernelWeightq;
-    private double qkernelWeight = .001;
     private JFormattedTextField  kernelWeightp;
-    private double pkernelWeight = 1;
     private JButton btnCalculateDistances;
     
     private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
     private JComboBox<String> potentialComboBox;
     private int potentialType = PotentialFunctions.HERNQUIST;
     private JFormattedTextField reRuns;
-    private int numReRuns = 10;
     private JFormattedTextField numSupport, smoothnessNP;
     private JButton estimate;
     
     private JFormattedTextField mCRuns;
-    private int monteCarloRunsForTest = 1000;
     private JFormattedTextField alphaField;
-    private double alpha = .05;
     private JButton test;
     
     private JTabbedPane tabbedPane;
@@ -82,8 +76,6 @@ public class InteractionAnalysisGUI implements ActionListener {
     public InteractionAnalysisGUI() {
         JFrame frmInteractionAnalysis = new JFrame("Interaction Analysis");
         Border blackBorder = BorderFactory.createLineBorder(Color.black);
-        browseX = new JButton("Open");
-        browseY = new JButton("Open");
         help = new JButton("help");
         help.addActionListener(this);
         
@@ -120,14 +112,14 @@ public class InteractionAnalysisGUI implements ActionListener {
         
         mCRuns = new JFormattedTextField();
         mCRuns.setHorizontalAlignment(SwingConstants.CENTER);
-        mCRuns.setText("" + monteCarloRunsForTest);
+        mCRuns.setText("1000");
         mCRuns.setColumns(10);
         
         final JLabel lblSignificanceLevel = new JLabel("Significance level");
         
         alphaField = new JFormattedTextField();
         alphaField.setHorizontalAlignment(SwingConstants.CENTER);
-        alphaField.setText("" + alpha);
+        alphaField.setText("0.05");
         alphaField.setColumns(10);
         alphaField.addActionListener(this);
         
@@ -205,7 +197,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         reRuns = new JFormattedTextField();
         reRuns.setColumns(10);
         reRuns.setHorizontalAlignment(SwingConstants.CENTER);
-        reRuns.setText(numReRuns + "");
+        reRuns.setText("10");
         reRuns.addActionListener(this);
         
         final GroupLayout gl_panel_5 = new GroupLayout(panel_5);
@@ -263,24 +255,23 @@ public class InteractionAnalysisGUI implements ActionListener {
         gridSizeInp = new JFormattedTextField();
         gridSizeInp.setHorizontalAlignment(SwingConstants.CENTER);
         
-        gridSizeInp.setText("" + gridSize);
+        gridSizeInp.setText("0.5");
         gridSizeInp.setColumns(6);
         
         final JLabel lblGridSize = new JLabel("Grid spacing:");
         
         JLabel lblKernelWeightq = new JLabel("Kernel wt(q):");
-        
         kernelWeightq = new JFormattedTextField();
         kernelWeightq.setHorizontalAlignment(SwingConstants.CENTER);
-        kernelWeightq.setText(qkernelWeight + "");
+        kernelWeightq.setText("0.001");
         kernelWeightq.setColumns(6);
         
         JLabel lblKernelWeightp = new JLabel("Kernel wt(p):");
-        
         kernelWeightp = new JFormattedTextField();
         kernelWeightp.setHorizontalAlignment(SwingConstants.CENTER);
         kernelWeightp.setText("35.9");
         kernelWeightp.setColumns(6);
+        
         final GroupLayout gl_panel_4 = new GroupLayout(panel_4);
         gl_panel_4.setHorizontalGroup(gl_panel_4.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_4
@@ -334,80 +325,66 @@ public class InteractionAnalysisGUI implements ActionListener {
                                 .addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_2.createSequentialGroup().addGap(5).addComponent(label_1)).addComponent(browseY))));
         panel_2.setLayout(gl_panel_2);
         
-        final JPanel panel_8 = new JPanel();
-        tabbedPane.addTab("Load coordinates", null, panel_8, null);
-        
+        final JPanel panelCsvCoordinates = new JPanel();
+        tabbedPane.addTab("Load coordinates", null, panelCsvCoordinates, null);
+        final GroupLayout glCsvCoordinates = new GroupLayout(panelCsvCoordinates);
+        final JLabel lblCsvFileX = new JLabel("X Coordinates");
+        lblCsvFileX.setHorizontalAlignment(SwingConstants.LEFT);
+        final JLabel lblCsvFileY = new JLabel("Y (reference) Coordinates");
         btnLoadCsvFileX = new JButton("Open");
         btnLoadCsvFileX.setHorizontalAlignment(SwingConstants.RIGHT);
         btnLoadCsvFileX.addActionListener(this);
-        
-        final JLabel lblCsvFileOf = new JLabel("X Coordinates");
-        lblCsvFileOf.setHorizontalAlignment(SwingConstants.LEFT);
-        
-        final JLabel label_2 = new JLabel("Y (reference) Coordinates");
-        
         btnLoadCsvFileY = new JButton("Open");
         btnLoadCsvFileY.addActionListener(this);
+        txtXmin = createTextField("0");
+        txtYmin = createTextField("0");
+        txtZmin = createTextField("0");
+        txtXmax = createTextField("10");
+        txtYmax = createTextField("10");
+        txtZmax = createTextField("10");
+        JLabel empty = new JLabel("");
+        JLabel x = new JLabel("x");
+        JLabel y = new JLabel("y");
+        JLabel z = new JLabel("z");
+        JLabel min = new JLabel("min");
+        JLabel max = new JLabel("max");
+        glCsvCoordinates.setHorizontalGroup(glCsvCoordinates.createSequentialGroup()
+                .addGap(11)
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(empty)
+                        .addComponent(lblCsvFileX)
+                        .addComponent(lblCsvFileY))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(empty)
+                        .addComponent(btnLoadCsvFileX)
+                        .addComponent(btnLoadCsvFileY))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addComponent(x)
+                        .addComponent(txtXmin)
+                        .addComponent(txtXmax))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addComponent(y)
+                        .addComponent(txtYmin)
+                        .addComponent(txtYmax))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addComponent(z)
+                        .addComponent(txtZmin)
+                        .addComponent(txtZmax))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(empty)
+                        .addComponent(min)
+                        .addComponent(max))
+                .addGap(11));
+        glCsvCoordinates.setVerticalGroup(glCsvCoordinates.createSequentialGroup()
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(empty).addComponent(empty).addComponent(x).addComponent(y).addComponent(z).addComponent(empty))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(lblCsvFileX).addComponent(btnLoadCsvFileX).addComponent(txtXmin).addComponent(txtYmin).addComponent(txtZmin).addComponent(min))
+                .addGroup(glCsvCoordinates.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(lblCsvFileY).addComponent(btnLoadCsvFileY).addComponent(txtXmax).addComponent(txtYmax).addComponent(txtZmax).addComponent(max))
+        );
+        panelCsvCoordinates.setLayout(glCsvCoordinates);
         
-        txtXmin = new JFormattedTextField();
-        txtXmin.setText("xmin");
-        txtXmin.setColumns(6);
-        txtXmin.addActionListener(this);
-        
-        txtYmin = new JFormattedTextField();
-        txtYmin.setText("ymin");
-        txtYmin.setColumns(6);
-        txtYmin.addActionListener(this);
-        
-        txtZmin = new JFormattedTextField();
-        txtZmin.setText("zmin");
-        txtZmin.setColumns(6);
-        txtZmin.addActionListener(this);
-        
-        txtXmax = new JFormattedTextField();
-        txtXmax.setText("xmax");
-        txtXmax.setColumns(6);
-        txtXmax.addActionListener(this);
-        
-        txtYmax = new JFormattedTextField();
-        txtYmax.setText("ymax");
-        txtYmax.setColumns(6);
-        txtYmax.addActionListener(this);
-        
-        txtZmax = new JFormattedTextField();
-        txtZmax.setText("zmax");
-        txtZmax.setColumns(6);
-        txtZmax.addActionListener(this);
-        final GroupLayout gl_panel_8 = new GroupLayout(panel_8);
-        gl_panel_8.setHorizontalGroup(gl_panel_8.createParallelGroup(Alignment.LEADING).addGroup(
-                gl_panel_8
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(gl_panel_8.createParallelGroup(Alignment.LEADING).addComponent(lblCsvFileOf).addComponent(label_2))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                                gl_panel_8.createParallelGroup(Alignment.LEADING, false)
-                                        .addGroup(gl_panel_8.createSequentialGroup().addComponent(btnLoadCsvFileY).addPreferredGap(ComponentPlacement.RELATED).addComponent(txtXmax))
-                                        .addGroup(gl_panel_8.createSequentialGroup().addComponent(btnLoadCsvFileX).addPreferredGap(ComponentPlacement.RELATED).addComponent(txtXmin)))
-                        .addGroup(
-                                gl_panel_8.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_8.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED).addComponent(txtYmin))
-                                        .addGroup(Alignment.TRAILING, gl_panel_8.createSequentialGroup().addPreferredGap(ComponentPlacement.RELATED).addComponent(txtYmax)))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                                gl_panel_8.createParallelGroup(Alignment.TRAILING).addGroup(gl_panel_8.createSequentialGroup().addComponent(txtZmin).addContainerGap())
-                                        .addGroup(gl_panel_8.createSequentialGroup().addComponent(txtZmax).addGap(11)))));
-        gl_panel_8.setVerticalGroup(gl_panel_8.createParallelGroup(Alignment.LEADING).addGroup(
-                gl_panel_8
-                        .createSequentialGroup()
-                        .addGap(5)
-                        .addGroup(
-                                gl_panel_8.createParallelGroup(Alignment.BASELINE).addComponent(lblCsvFileOf).addComponent(btnLoadCsvFileX).addComponent(txtXmin).addComponent(txtYmin)
-                                        .addComponent(txtZmin))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(
-                                gl_panel_8.createParallelGroup(Alignment.BASELINE).addComponent(label_2).addComponent(btnLoadCsvFileY).addComponent(txtXmax).addComponent(txtYmax)
-                                        .addComponent(txtZmax)).addGap(13)));
-        panel_8.setLayout(gl_panel_8);
         final GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
         groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
                 groupLayout
@@ -445,13 +422,21 @@ public class InteractionAnalysisGUI implements ActionListener {
         frmInteractionAnalysis.setVisible(true);
     }
 
+    private JFormattedTextField createTextField(String aValue) {
+        JFormattedTextField ftf = new JFormattedTextField();
+        ftf.setText(aValue);
+        ftf.setColumns(6);
+        ftf.addActionListener(this);
+        return ftf;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == help) {
             new InteractionAnalysisHelpGUI(0, 0);
         }
         else if (e.getSource() == browseX) {
-            imgx = ImageProcessUtils.openImage();
+            imgx = ImageProcessFileUtils.openImage();
             if (imgx == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -460,7 +445,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             browseX.setText(imgx.getTitle());
         }
         else if (e.getSource() == browseY) {
-            imgy = ImageProcessUtils.openImage();
+            imgy = ImageProcessFileUtils.openImage();
             if (imgy == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -469,29 +454,23 @@ public class InteractionAnalysisGUI implements ActionListener {
             browseY.setText(imgy.getTitle());
         }
         else if (e.getSource() == btnLoadCsvFileX) {
-            Xcoords = ImageProcessUtils.openCsvFile("Open CSV file for image X");
+            Xcoords = ImageProcessFileUtils.openCsvFile("Open CSV file for image X");
             setMinMaxCoordinates();
         }
         else if (e.getSource() == btnLoadCsvFileY) {
-            Ycoords = ImageProcessUtils.openCsvFile("Open CSV file for image Y");
+            Ycoords = ImageProcessFileUtils.openCsvFile("Open CSV file for image Y");
             setMinMaxCoordinates();
         }
         else if (e.getSource() == potentialComboBox) {
             final String selected = (String) potentialComboBox.getSelectedItem();
             System.out.println("Selected: " + selected);
             if (selected == items[5]) {
+                enableNoparamControls(true);
                 potentialType = PotentialFunctions.NONPARAM;
-                numSupport.setEnabled(true);
-                smoothnessNP.setEnabled(true);
-                lblSmoothness.setEnabled(true);
-                lblsupportPts.setEnabled(true);
 
             }
             else {
-                numSupport.setEnabled(false);
-                smoothnessNP.setEnabled(false);
-                lblSmoothness.setEnabled(false);
-                lblsupportPts.setEnabled(false);
+                enableNoparamControls(false);
                 if (selected == items[0]) {
                     potentialType = PotentialFunctions.HERNQUIST;
                 }
@@ -510,19 +489,19 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
         }
         else if (e.getSource() == btnCalculateDistances) {
-            gridSize = Double.parseDouble(gridSizeInp.getText());
-            qkernelWeight = Double.parseDouble(kernelWeightq.getText());
-            pkernelWeight = Double.parseDouble(kernelWeightp.getText());
+            double gridSize = Double.parseDouble(gridSizeInp.getText());
+            double qkernelWeight = Double.parseDouble(kernelWeightq.getText());
+            double pkernelWeight = Double.parseDouble(kernelWeightp.getText());
             iAnalysis = new Analysis();
             boolean result = false;
             if (tabbedPane.getSelectedIndex() == 1) {
                 // coordinates
-                xmin = Double.parseDouble(txtXmin.getText());
-                ymin = Double.parseDouble(txtYmin.getText());
-                zmin = Double.parseDouble(txtZmin.getText());
-                xmax = Double.parseDouble(txtXmax.getText());
-                ymax = Double.parseDouble(txtYmax.getText());
-                zmax = Double.parseDouble(txtZmax.getText());
+                double xmin = Double.parseDouble(txtXmin.getText());
+                double ymin = Double.parseDouble(txtYmin.getText());
+                double zmin = Double.parseDouble(txtZmin.getText());
+                double xmax = Double.parseDouble(txtXmax.getText());
+                double ymax = Double.parseDouble(txtYmax.getText());
+                double zmax = Double.parseDouble(txtZmax.getText());
                 if (xmax < xmin || ymax < ymin || zmax < zmin) {
                     IJ.showMessage("Error: boundary values are not correct");
                     return;
@@ -557,7 +536,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         else if (e.getSource() == estimate) {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
             PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothnessNP.getText());
-            numReRuns = Integer.parseInt(reRuns.getText());
+            int numReRuns = Integer.parseInt(reRuns.getText());
 
             System.out.println("Estimating with potential type:" + potentialType);
             iAnalysis.setPotentialType(potentialType); // for the first time
@@ -582,8 +561,8 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
         }
         else if (e.getSource() == test) {
-            monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
-            alpha = Double.parseDouble(alphaField.getText());
+            int monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
+            double alpha = Double.parseDouble(alphaField.getText());
 
             if (!iAnalysis.hypothesisTesting(monteCarloRunsForTest, alpha)) {
                 IJ.showMessage("Error: Run estimation first");
@@ -625,6 +604,13 @@ public class InteractionAnalysisGUI implements ActionListener {
         else if (iAnalysis == null) {
             IJ.showMessage("Load images/coordinates first");
         }
+    }
+
+    private void enableNoparamControls(boolean aShow) {
+        numSupport.setEnabled(aShow);
+        smoothnessNP.setEnabled(aShow);
+        lblSmoothness.setEnabled(aShow);
+        lblsupportPts.setEnabled(aShow);
     }
 
     private void setMinMaxCoordinates() {
@@ -685,7 +671,10 @@ public class InteractionAnalysisGUI implements ActionListener {
     public boolean generateMask() {
         genMaskIP = new ImagePlus();
         if (imgy != null) {
-            genMaskIP = ImageProcessUtils.generateMask(imgy);
+            final ImagePlus genMaskIP = new Duplicator().run(imgy);
+            genMaskIP.show();
+            new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
+            genMaskIP.changes = false;
             System.out.println("Generated mask: " + genMaskIP.getType());
             return true;
         }
@@ -693,7 +682,7 @@ public class InteractionAnalysisGUI implements ActionListener {
     }
 
     public boolean loadMask() {
-        ImagePlus tempMask = ImageProcessUtils.openImage();
+        ImagePlus tempMask = ImageProcessFileUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
             return false;
