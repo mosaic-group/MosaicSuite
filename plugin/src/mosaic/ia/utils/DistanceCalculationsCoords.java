@@ -1,4 +1,4 @@
-package mosaic.ia.nn;
+package mosaic.ia.utils;
 
 
 import javax.vecmath.Point3d;

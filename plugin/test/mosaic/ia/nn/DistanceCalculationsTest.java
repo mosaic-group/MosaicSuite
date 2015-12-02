@@ -6,6 +6,9 @@ import javax.vecmath.Point3d;
 
 import org.junit.Test;
 
+import mosaic.ia.utils.DistanceCalculations;
+import mosaic.ia.utils.DistanceCalculationsCoords;
+
 public class DistanceCalculationsTest {
 
     @Test

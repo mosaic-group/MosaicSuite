@@ -13,12 +13,11 @@ import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Plot;
+import mosaic.ia.gui.DistributionsPlot;
 import mosaic.ia.gui.PlotHistogram;
-import mosaic.ia.gui.PlotQP;
-import mosaic.ia.gui.PlotQPNN;
-import mosaic.ia.nn.DistanceCalculations;
-import mosaic.ia.nn.DistanceCalculationsCoords;
-import mosaic.ia.nn.DistanceCalculationsImage;
+import mosaic.ia.utils.DistanceCalculations;
+import mosaic.ia.utils.DistanceCalculationsCoords;
+import mosaic.ia.utils.DistanceCalculationsImage;
 import mosaic.ia.utils.StatisticsUtils;
 import weka.estimators.KernelEstimator;
 
@@ -63,7 +62,7 @@ public class Analysis {
         }
         nnObserved = normalize(NN_D_grid);
         
-        PlotQP.plot("Distance", dgrid, q_D_grid, nnObserved);
+        new DistributionsPlot("Distance", dgrid, q_D_grid, nnObserved).show();
         PlotHistogram.plot("ObservedDistances", iDistances, getOptimBins(iDistances, 8, iDistances.length / 8));
 
         final double[] minMaxMean = StatisticsUtils.getMinMaxMean(iDistances);
@@ -296,7 +295,7 @@ public class Analysis {
             double[] P_grid = fitfun.getPGrid();
             P_grid = normalize(P_grid);
 
-            PlotQPNN.plot("Distance", dgrid, P_grid, q_D_grid, nnObserved, potentialType, best, allFitness, bestFitnessindex);
+            new DistributionsPlot("Distance", dgrid, P_grid, q_D_grid, nnObserved, potentialType, best, allFitness, bestFitnessindex).show();
         }
     
         return true;
