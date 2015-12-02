@@ -66,7 +66,7 @@ public class Analysis {
         PlotQP.plot("Distance", dgrid, q_D_grid, nnObserved);
         PlotHistogram.plot("ObservedDistances", iDistances, getOptimBins(iDistances, 8, iDistances.length / 8));
 
-        final double[] minMaxMean = StatisticsUtils.getMinMaxMeanD(iDistances);
+        final double[] minMaxMean = StatisticsUtils.getMinMaxMean(iDistances);
         minDistance = minMaxMean[0];
         maxDistance = minMaxMean[1];
         meanDistance = minMaxMean[2];
@@ -242,7 +242,7 @@ public class Analysis {
             final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
             fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
             final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
-            final double[] minMaxMean = StatisticsUtils.getMinMaxMeanD(fitPotential);
+            final double[] minMaxMean = StatisticsUtils.getMinMaxMean(fitPotential);
             plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], minMaxMean[0], minMaxMean[1]);
             plot.setColor(Color.BLUE);
             plot.setLineWidth(2);
@@ -365,7 +365,7 @@ public class Analysis {
         final double q3 = getPercentile(values, 0.75);
         final double interQRange = q3 - q1;
         final double binWidth = 2 * interQRange * Math.pow(size, -0.33);
-        final double[] range = StatisticsUtils.getMinMaxMeanD(values);
+        final double[] range = StatisticsUtils.getMinMaxMean(values);
 
         int noBins = (int) ((range[1] - range[0]) / binWidth + 1);
         if (noBins > maxBinNumber) {
@@ -424,7 +424,7 @@ public class Analysis {
     
     public static double calcWekaWeights(double[] distances) {
 
-        final double[] minmaxmean = StatisticsUtils.getMinMaxMeanD(distances);
+        final double[] minmaxmean = StatisticsUtils.getMinMaxMean(distances);
         final double range = minmaxmean[1] - minmaxmean[0];
         final double bw = calcSilvermanBandwidth(distances);
 
