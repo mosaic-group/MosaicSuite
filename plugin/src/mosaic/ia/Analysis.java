@@ -19,6 +19,7 @@ import mosaic.ia.utils.DistanceCalculations;
 import mosaic.ia.utils.DistanceCalculationsCoords;
 import mosaic.ia.utils.DistanceCalculationsImage;
 import mosaic.ia.utils.StatisticsUtils;
+import mosaic.ia.utils.StatisticsUtils.MinMaxMean;
 import weka.estimators.KernelEstimator;
 
 
@@ -51,7 +52,7 @@ public class Analysis {
         iDistances = dci.getDistancesOfX();
     
         dgrid = dci.getProbabilityDistribution()[0];
-        q_D_grid = normalize(dci.getProbabilityDistribution()[1]);
+        q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution()[1], true);
         System.out.println("p set to:" + kernelWeightp);
         KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iDistances, kernelWeightp);
     
@@ -60,17 +61,17 @@ public class Analysis {
         for (int i = 0; i < dgrid.length; i++) {
             NN_D_grid[i] = kernelEstimatorNN.getProbability(dgrid[i]);
         }
-        nnObserved = normalize(NN_D_grid);
+        nnObserved = StatisticsUtils.normalizePdf(NN_D_grid, true);
         
-        new DistributionsPlot("Distance", dgrid, q_D_grid, nnObserved).show();
+        new DistributionsPlot(dgrid, q_D_grid, nnObserved).show();
         PlotHistogram.plot("ObservedDistances", iDistances, getOptimBins(iDistances, 8, iDistances.length / 8));
 
-        final double[] minMaxMean = StatisticsUtils.getMinMaxMean(iDistances);
-        minDistance = minMaxMean[0];
-        maxDistance = minMaxMean[1];
-        meanDistance = minMaxMean[2];
-        System.out.println("Min/Max/Mean distance of X to Y: " + minDistance + " / " + maxDistance + " / " + meanDistance);
-    
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(iDistances);
+        System.out.println("Min/Max/Mean distance of X to Y: " + mmm.min + " / " + mmm.max + " / " + mmm.mean);
+        minDistance = mmm.min;
+        maxDistance = mmm.max;
+        meanDistance = mmm.mean;
+        
         IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iDistances));
     
         return true;
@@ -94,7 +95,7 @@ public class Analysis {
     }
     
     public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
-        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, normalize(NN_D_grid));
+        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, StatisticsUtils.normalizePdf(NN_D_grid, true));
         if (potentialType == PotentialFunctions.NONPARAM) {
             PotentialFunctions.initializeNonParamWeights(minDistance, maxDistance);
             best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
@@ -241,8 +242,8 @@ public class Analysis {
             final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
             fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
             final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
-            final double[] minMaxMean = StatisticsUtils.getMinMaxMean(fitPotential);
-            plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], minMaxMean[0], minMaxMean[1]);
+            MinMaxMean mmm = StatisticsUtils.getMinMaxMean(fitPotential);
+            plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], mmm.min, mmm.max);
             plot.setColor(Color.BLUE);
             plot.setLineWidth(2);
             final DecimalFormat format = new DecimalFormat("#.####E0");
@@ -293,32 +294,14 @@ public class Analysis {
             plot.show();
             
             double[] P_grid = fitfun.getPGrid();
-            P_grid = normalize(P_grid);
+            P_grid = StatisticsUtils.normalizePdf(P_grid, false);
 
-            new DistributionsPlot("Distance", dgrid, P_grid, q_D_grid, nnObserved, potentialType, best, allFitness, bestFitnessindex).show();
+            new DistributionsPlot(dgrid, P_grid, q_D_grid, nnObserved, potentialType, best, allFitness, bestFitnessindex).show();
         }
     
         return true;
     }
-
-    public static double[] calculateCDF(double[] qofD) {
-        final double[] QofD = new double[qofD.length];
-        double sum = 0;
-
-        for (int i = 0; i < qofD.length; i++) {
-            QofD[i] = sum + qofD[i];
-            sum = sum + qofD[i];
-        }
-
-        System.out.println("QofD before norm:" + QofD[QofD.length - 1]);
-        for (int i = 0; i < qofD.length; i++) {
-            QofD[i] = QofD[i] / QofD[QofD.length - 1];
-        }
-        System.out.println("QofD after norm:" + QofD[QofD.length - 1]);
-
-        return QofD;
-    }
-    
+ 
     public boolean hypothesisTesting(int monteCarloRunsForTest, double alpha) {
         if (best == null) {
             IJ.showMessage("Error: Run estimation first");
@@ -330,7 +313,7 @@ public class Analysis {
         }
     
         System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        final HypothesisTesting ht = new HypothesisTesting(calculateCDF(q_D_grid), dgrid, iDistances, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
+        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(q_D_grid, true), dgrid, iDistances, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
         ht.rankTest();
         return true;
     }
@@ -364,9 +347,9 @@ public class Analysis {
         final double q3 = getPercentile(values, 0.75);
         final double interQRange = q3 - q1;
         final double binWidth = 2 * interQRange * Math.pow(size, -0.33);
-        final double[] range = StatisticsUtils.getMinMaxMean(values);
+        MinMaxMean range = StatisticsUtils.getMinMaxMean(values);
 
-        int noBins = (int) ((range[1] - range[0]) / binWidth + 1);
+        int noBins = (int) ((range.max - range.min) / binWidth + 1);
         if (noBins > maxBinNumber) {
             noBins = maxBinNumber;
         }
@@ -422,11 +405,9 @@ public class Analysis {
     }
     
     public static double calcWekaWeights(double[] distances) {
-
-        final double[] minmaxmean = StatisticsUtils.getMinMaxMean(distances);
-        final double range = minmaxmean[1] - minmaxmean[0];
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(distances);
+        final double range = mmm.max - mmm.min;
         final double bw = calcSilvermanBandwidth(distances);
-
         return ((1.0d / distances.length) * (range / bw) * (range / bw));
     }
     
@@ -445,18 +426,6 @@ public class Analysis {
         final double var = temp / (distances.length - 1);
 
         return Math.sqrt(var);
-    }
-    
-    public static double[] normalize(double[] array) {
-        double sum = 0;
-        final double[] retarray = new double[array.length];
-        for (int i = 0; i < array.length; i++) {
-            sum = sum + array[i];
-        }
-        for (int i = 0; i < array.length; i++) {
-            retarray[i] = array[i] / sum;
-        }
-        return retarray;
     }
     
     public double getMinD() {

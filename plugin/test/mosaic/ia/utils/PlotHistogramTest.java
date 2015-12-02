@@ -17,5 +17,4 @@ public class PlotHistogramTest {
         // Expected ranges are: [1, 7) [7, 13) [13, 19)
         assertArrayEquals(new double[] {1, 7, 13}, hist.getXValues(), 0.01);
     }
-
 }

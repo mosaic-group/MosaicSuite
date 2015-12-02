@@ -3,6 +3,7 @@ package mosaic.ia;
 
 import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
 import mosaic.ia.utils.StatisticsUtils;
+import mosaic.ia.utils.StatisticsUtils.MinMaxMean;
 
 
 class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
@@ -94,10 +95,10 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
             return true;
         }
         else {
-            final double[] minmaxmeanDg = StatisticsUtils.getMinMaxMean(D_grid);
-            final double[] minmaxmeanD = StatisticsUtils.getMinMaxMean(D);
+            MinMaxMean minmaxmeanDg = StatisticsUtils.getMinMaxMean(D_grid);
+            MinMaxMean minmaxmeanD = StatisticsUtils.getMinMaxMean(D);
 
-            if (x[0] >= MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) {
+            if (x[0] >= MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg.min, minmaxmeanD.min), MACHEPS) && x[1] <= Math.max(minmaxmeanDg.max, minmaxmeanD.max)) {
                 // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
                 return true;
             }

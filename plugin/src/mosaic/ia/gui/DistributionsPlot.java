@@ -9,29 +9,36 @@ import mosaic.ia.PotentialFunctions;
 import net.sf.javaml.utils.ArrayUtils;
 
 public class DistributionsPlot {
-    final Plot plot;
+    private final Plot plot;
     
-    public DistributionsPlot(String aName, double[] aX, double[] aQ, double[] aObservedDistance) {
+    public DistributionsPlot(double[] aX, double[] aQ, double[] aObservedDistance) {
         double max = Math.max(ArrayUtils.max(aQ), ArrayUtils.max(aObservedDistance));
-        plot = new Plot("Result: Estimated distance distributions", aName, "Probability density", aX, aObservedDistance);
+        plot = new Plot("Result: Estimated distance distributions", "Distance", "Probability density");
         plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
+        plot.setLineWidth(2);
         
-        drawObservedDistances();
+        drawObservedDistances(aX, aObservedDistance);
         drawQ(aX, aQ);
     }
     
-    public DistributionsPlot(String aName, double[] aX, double[] aModelFit, double[] aQ, double[] aObservedDistance, int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
+    public DistributionsPlot(double[] aX, double[] aModelFit, double[] aQ, double[] aObservedDistance, int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
         double max = Math.max(ArrayUtils.max(aQ), Math.max(ArrayUtils.max(aObservedDistance), ArrayUtils.max(aModelFit)));
-        plot = new Plot("Distance distributions", aName, "Probability density", aX, aObservedDistance);
+        plot = new Plot("Distance distributions", "Distance", "Probability density");
         plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
+        plot.setLineWidth(2);
 
-        drawObservedDistances();
+        drawObservedDistances(aX, aObservedDistance);
         drawQ(aX, aQ);
         drawModelFit(aX, aModelFit);
-        addDescrition(potentialType, best, allFitness, bestFitnessindex);
+        addDescription(potentialType, best, allFitness, bestFitnessindex);
     }
 
-    private void addDescrition(int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
+    public void show() {
+        plot.draw();
+        plot.show();
+    }
+    
+    private void addDescription(int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
         final DecimalFormat format = new DecimalFormat("#.####E0");
         if (potentialType == PotentialFunctions.STEP) {
             plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
@@ -53,7 +60,6 @@ public class DistributionsPlot {
         plot.addPoints(aX, aModelFit, PlotWindow.LINE);
         plot.addLabel(.65, .4, "----  ");
         plot.setColor(Color.black);
-        plot.draw();
         plot.addLabel(.7, .4, "p(d): Model fit");
     }
 
@@ -61,23 +67,15 @@ public class DistributionsPlot {
         plot.setColor(Color.red);
         plot.addPoints(aX, aQ, PlotWindow.LINE);
         plot.addLabel(.65, .3, "----  ");
-        plot.draw();
         plot.setColor(Color.black);
-        plot.draw();
         plot.addLabel(.7, .3, "q(d): Context");
     }
 
-    private void drawObservedDistances() {
+    private void drawObservedDistances(double[] aX, double[] aObservedDistance) {
         plot.setColor(Color.BLUE);
-        plot.setLineWidth(2);
+        plot.addPoints(aX, aObservedDistance, PlotWindow.LINE);
         plot.addLabel(.65, .2, "----  ");
-        plot.draw();
         plot.setColor(Color.black);
         plot.addLabel(.7, .2, "Observed dist");
-        plot.draw();
-    }
-    
-    public void show() {
-        plot.show();
     }
 }
