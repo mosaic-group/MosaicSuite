@@ -26,16 +26,17 @@ import javax.vecmath.Point3d;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
+import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
 import mosaic.ia.Analysis.Result;
 import mosaic.ia.PotentialFunctions;
 import mosaic.ia.utils.ImageProcessFileUtils;
-
 
 public class InteractionAnalysisGUI implements ActionListener {
 
@@ -494,6 +495,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             double pkernelWeight = Double.parseDouble(kernelWeightp.getText());
             iAnalysis = new Analysis();
             boolean result = false;
+            float[][][] mask3d = genMaskIP != null ? imageTo3Darray(genMaskIP) : null;
             if (tabbedPane.getSelectedIndex() == 1) {
                 // coordinates
                 double xmin = Double.parseDouble(txtXmin.getText());
@@ -512,7 +514,7 @@ public class InteractionAnalysisGUI implements ActionListener {
                     System.out.println("[Point3d] p set to:" + pkernelWeight);
                 }
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
-                result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, genMaskIP, Xcoords, Ycoords, xmin, xmax, ymin, ymax, zmin, zmax);
+                result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, mask3d, Xcoords, Ycoords, xmin, xmax, ymin, ymax, zmin, zmax);
             }
             else {
                 // image
@@ -524,7 +526,7 @@ public class InteractionAnalysisGUI implements ActionListener {
                     else {
                         iAnalysis = new Analysis();
                         System.out.println("[ImagePlus] p set to:" + pkernelWeight);
-                        result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, genMaskIP, imgx, imgy);
+                        result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, mask3d, imgx, imgy);
                     }
                 }
             }
@@ -704,6 +706,18 @@ public class InteractionAnalysisGUI implements ActionListener {
         return true;
     }
 
+    private static float[][][] imageTo3Darray(ImagePlus image) {
+        final ImageStack is = image.getStack();
+        final float[][][] image3d = new float[is.getSize()][is.getWidth()][is.getHeight()];
+
+        for (int k = 0; k < is.getSize(); k++) {
+            ImageProcessor imageProc = is.getProcessor(k + 1);
+            image3d[k] = imageProc.getFloatArray();
+        }
+        
+        return image3d;
+    }
+    
     public boolean resetMask() {
         genMaskIP = null;
         return true;

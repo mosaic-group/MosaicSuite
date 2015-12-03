@@ -32,7 +32,7 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
     private final ImagePlus X, Y;
 
-    public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
+    public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, float[][][] mask, double gridSize, double kernelWeightq, int discretizationSize) {
         super(mask, gridSize, kernelWeightq, discretizationSize);
         this.X = X;
         this.Y = Y;
@@ -45,22 +45,21 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         zscale = calibration.pixelDepth;
         xscale = calibration.pixelHeight;
         yscale = calibration.pixelWidth;
-
-        // X and Y should be 1.0 Z any
         yscale /= xscale;
         zscale /= xscale;
         xscale = 1.0;
 
         Vector<Particle> particle = detectParticlesinStack(image);
-        System.out.println("NUM OF PARTICLES: " + particle.size());
-        return getFilteredViaMaskCoordinates(getCoordinates(particle));
+        System.out.println("Num of detected Particles: " + particle.size());
+        return getFilteredAndScaledCoordinates(getCoordinates(particle));
     }
 
     private void calcDistances() {
-        iparticlesX = extractParticles(X);
+        iParticlesX = extractParticles(X);
         iParticlesY = extractParticles(Y);
-        stateDensity(0, 0, 0, X.getHeight() - 1, X.getWidth() - 1, X.getNSlices() - 1);
-        calcDistancesOfX();
+        System.out.println("Num of filtered Particles: (x/y): " + iParticlesX.length + " / " + iParticlesY.length);
+        stateDensity(0, X.getWidth() - 1, 0, X.getHeight() - 1, 0, X.getNSlices() - 1);
+        calcDistancesOfXtoY();
     }
     
     /**

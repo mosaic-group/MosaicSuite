@@ -5,9 +5,6 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.ImageProcessor;
 import weka.estimators.KernelEstimator;
 
 
@@ -17,10 +14,10 @@ public abstract class DistanceCalculations {
     private final double iDeltaStepLenght;
     private final double iKernelWeight;
     private final int iNumberOfBins;
-    private final float[][][] maskImage3d;
+    private final float[][][] iMaskImage3d; //[z][x][y]
 
     // These guys should be set in derived classes
-    protected Point3d[] iparticlesX;
+    protected Point3d[] iParticlesX;
     protected Point3d[] iParticlesY;
     protected double zscale = 1;
     protected double xscale = 1;
@@ -31,11 +28,11 @@ public abstract class DistanceCalculations {
     private double[] iDistancesDistribution;
     private double[] iProbabilityDistribution;
 
-    DistanceCalculations(ImagePlus mask, double aDeltaStepLength, double aKernelWeight, int aNumberOfBins) {
+    DistanceCalculations(float[][][] mask, double aDeltaStepLength, double aKernelWeight, int aNumberOfBins) {
         iDeltaStepLenght = aDeltaStepLength;
         iKernelWeight = aKernelWeight;
         iNumberOfBins = aNumberOfBins;
-        maskImage3d = mask != null ? imageTo3Darray(mask) : null;
+        iMaskImage3d = mask;
     }
     
     public double[] getProbabilityDistribution() {
@@ -50,10 +47,10 @@ public abstract class DistanceCalculations {
         return iDistances;
     }
 
-    protected void stateDensity(double x1, double y1, double z1, double x2, double y2, double z2) {
-        final int x_size = (int) Math.floor(Math.abs(x1 - x2) * xscale / iDeltaStepLenght) + 1;
-        final int y_size = (int) Math.floor(Math.abs(y1 - y2) * yscale / iDeltaStepLenght) + 1;
-        final int z_size = (int) Math.floor(Math.abs(z1 - z2) * zscale / iDeltaStepLenght) + 1;
+    protected void stateDensity(double aMinX, double aMaxX, double aMinY, double aMaxY, double aMinZ, double aMaxZ) {
+        final int x_size = (int) Math.floor(Math.abs(aMinX - aMaxX) * xscale / iDeltaStepLenght) + 1;
+        final int y_size = (int) Math.floor(Math.abs(aMinY - aMaxY) * yscale / iDeltaStepLenght) + 1;
+        final int z_size = (int) Math.floor(Math.abs(aMinZ - aMaxZ) * zscale / iDeltaStepLenght) + 1;
 
         System.out.println("Number of grid points (x/y/z): " + x_size + " / " + y_size + " / " + z_size);
 
@@ -67,9 +64,13 @@ public abstract class DistanceCalculations {
             for (int j = 0; j < y_size; j++) {
                 for (int k = 0; k < z_size; k++) {
                     try {
-                        position.x = x1 + i * iDeltaStepLenght;
-                        position.y = y1 + j * iDeltaStepLenght;
-                        position.z = z1 + k * iDeltaStepLenght;
+                        position.x = aMinX + i * iDeltaStepLenght;
+                        position.y = aMinY + j * iDeltaStepLenght;
+                        position.z = aMinZ + k * iDeltaStepLenght;
+                        
+                        // Skip points from outside of mask (if given)
+                        if (iMaskImage3d != null && !isInsideMask(position)) continue;
+                        
                         double distance = nearestNeighbor.getNearestNeighborDistance(position);
                         kernelEstimator.addValue(distance, iKernelWeight);
                         if (distance > max) max = distance;
@@ -94,18 +95,19 @@ public abstract class DistanceCalculations {
         }
     }
 
-    protected void calcDistancesOfX() {
-        System.out.println("Number of coordinates (X/Y): " + iparticlesX.length + " / " + iParticlesY.length);
-        iDistances = new KDTreeNearestNeighbor(iParticlesY).getNearestNeighborDistances(iparticlesX);
+    protected void calcDistancesOfXtoY() {
+        System.out.println("Number of coordinates (X/Y): " + iParticlesX.length + " / " + iParticlesY.length);
+        iDistances = new KDTreeNearestNeighbor(iParticlesY).getNearestNeighborDistances(iParticlesX);
     }
 
-    private boolean isInsideMask(double[] coords) {
+    private boolean isInsideMask(Point3d coords) {
         try {
-            if (maskImage3d[(int) Math.floor(coords[2])][(int) Math.floor(coords[1])][(int) Math.floor(coords[0])] > 0) {
+            if (iMaskImage3d[(int) coords.z][(int) coords.x][(int) coords.y] > 0) {
                 return true;
             }
         }
         catch (final ArrayIndexOutOfBoundsException e) {
+            System.out.println("FAULT: " + coords);
             // May happen if mask is applied to loaded coordinates. In that case checks are not done.
             return false;
         }
@@ -113,30 +115,13 @@ public abstract class DistanceCalculations {
         return false;
     }
     
-    protected Point3d[] getFilteredViaMaskCoordinates(Point3d[] points) {
-        if (maskImage3d == null) {
-            return points;
-        }
+    protected Point3d[] getFilteredAndScaledCoordinates(Point3d[] points) {
         final Vector<Point3d> vectorPoints = new Vector<Point3d>();
-        final double[] coords = new double[3];
         for (Point3d p : points) {
-            p.get(coords);
-            if (isInsideMask(coords)) {
-                vectorPoints.add(new Point3d(coords[0] * xscale, coords[1] * yscale, coords[2] * zscale));
+            if (iMaskImage3d == null || isInsideMask(p)) {
+                vectorPoints.add(new Point3d(p.x * xscale, p.y * yscale, p.z * zscale));
             }
         }
         return vectorPoints.toArray(new Point3d[0]);
-    }
-    
-    private static float[][][] imageTo3Darray(ImagePlus image) {
-        final ImageStack is = image.getStack();
-        final float[][][] image3d = new float[is.getSize()][is.getWidth()][is.getHeight()];
-
-        for (int k = 0; k < is.getSize(); k++) {
-            ImageProcessor imageProc = is.getProcessor(k + 1);
-            image3d[k] = imageProc.getFloatArray();
-        }
-        
-        return image3d;
     }
 }

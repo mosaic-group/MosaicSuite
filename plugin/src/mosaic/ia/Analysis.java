@@ -35,13 +35,13 @@ public class Analysis {
     private double minDistance, maxDistance, meanDistance;
 
 
-    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, ImagePlus genMask, ImagePlus iImageX, ImagePlus iImageY) {
+    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, ImagePlus iImageX, ImagePlus iImageY) {
         DistanceCalculations dci;
         dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, dgrid_size);
         return calcDistributions(dci, kernelWeightp);
     }
     
-    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, ImagePlus genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
+    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
         DistanceCalculations dci;
         dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, dgrid_size);
         return calcDistributions(dci, kernelWeightp);
