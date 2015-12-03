@@ -50,8 +50,10 @@ public class Analysis {
     public boolean calcDistributions(DistanceCalculations dci, double kernelWeightp) {
         iDistances = dci.getDistancesOfX();
         dgrid = dci.getDistancesDistribution();
+        // TODO: It is not sure if it should be normalized here or later in when calculating CMA. 
+        //       In original code there is misleading info, it says that it should be *NOT* normalized but
+        //       at the same time output from old DistanceCalculations is already normalized...)
         q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution(), false);
-        
         KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iDistances, kernelWeightp);
         nnObserved = new double[dgrid.length];
         for (int i = 0; i < dgrid.length; i++) {
