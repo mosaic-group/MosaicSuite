@@ -53,7 +53,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.HERNQUIST);
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
@@ -92,7 +92,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.NONPARAM);
         
         PotentialFunctions.NONPARAM_WEIGHT_SIZE = 41;
@@ -120,7 +120,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
-        assertEquals(77.255365, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.STEP);
 
         List<Result> results = new ArrayList<Result>();
