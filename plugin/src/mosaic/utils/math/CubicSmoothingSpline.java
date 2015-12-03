@@ -55,7 +55,7 @@ public class CubicSmoothingSpline {
     /**
      * Gets value from cubic smoothing spline at given point.
      * If values are outside initial x-values then boundary polynomials are used to
-     * extrapolate values. (first generatedd polynomial if aX < aXvalues[0] and last
+     * extrapolate values. (first generated polynomial if aX < aXvalues[0] and last
      * in opposite case).
      * @param aX
      * @return value in point aX

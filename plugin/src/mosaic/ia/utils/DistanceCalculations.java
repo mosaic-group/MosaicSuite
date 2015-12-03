@@ -1,7 +1,6 @@
 package mosaic.ia.utils;
 
 
-import java.util.Arrays;
 import java.util.Vector;
 
 import javax.vecmath.Point3d;
@@ -14,30 +13,37 @@ import weka.estimators.KernelEstimator;
 
 public abstract class DistanceCalculations {
 
-    private final double gridDeltaLenght;
-    private final double kernelWeightq;
+    // Input parameters
+    private final double iDeltaStepLenght;
+    private final double iKernelWeight;
     private final int iNumberOfBins;
-    
     private final float[][][] maskImage3d;
 
+    // These guys should be set in derived classes
     protected Point3d[] iparticlesX;
     protected Point3d[] iParticlesY;
     protected double zscale = 1;
     protected double xscale = 1;
     protected double yscale = 1;
 
+    // Internal data structures
     private double[] iDistances;
-    private double[][] iProbabilityAndDistancesDistribution;
+    private double[] iDistancesDistribution;
+    private double[] iProbabilityDistribution;
 
-    DistanceCalculations(ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
-        this.gridDeltaLenght = gridSize;
-        this.kernelWeightq = kernelWeightq;
-        this.iNumberOfBins = discretizationSize;
+    DistanceCalculations(ImagePlus mask, double aDeltaStepLength, double aKernelWeight, int aNumberOfBins) {
+        iDeltaStepLenght = aDeltaStepLength;
+        iKernelWeight = aKernelWeight;
+        iNumberOfBins = aNumberOfBins;
         maskImage3d = mask != null ? imageTo3Darray(mask) : null;
     }
     
-    public double[][] getProbabilityDistribution() {
-        return iProbabilityAndDistancesDistribution;
+    public double[] getProbabilityDistribution() {
+        return iProbabilityDistribution;
+    }
+    
+    public double[] getDistancesDistribution() {
+        return iDistancesDistribution;
     }
 
     public double[] getDistancesOfX() {
@@ -45,9 +51,9 @@ public abstract class DistanceCalculations {
     }
 
     protected void stateDensity(double x1, double y1, double z1, double x2, double y2, double z2) {
-        final int x_size = (int) Math.floor(Math.abs(x1 - x2) * xscale / gridDeltaLenght) + 1;
-        final int y_size = (int) Math.floor(Math.abs(y1 - y2) * yscale / gridDeltaLenght) + 1;
-        final int z_size = (int) Math.floor(Math.abs(z1 - z2) * zscale / gridDeltaLenght) + 1;
+        final int x_size = (int) Math.floor(Math.abs(x1 - x2) * xscale / iDeltaStepLenght) + 1;
+        final int y_size = (int) Math.floor(Math.abs(y1 - y2) * yscale / iDeltaStepLenght) + 1;
+        final int z_size = (int) Math.floor(Math.abs(z1 - z2) * zscale / iDeltaStepLenght) + 1;
 
         System.out.println("Number of grid points (x/y/z): " + x_size + " / " + y_size + " / " + z_size);
 
@@ -61,11 +67,11 @@ public abstract class DistanceCalculations {
             for (int j = 0; j < y_size; j++) {
                 for (int k = 0; k < z_size; k++) {
                     try {
-                        position.x = x1 + i * gridDeltaLenght;
-                        position.y = y1 + j * gridDeltaLenght;
-                        position.z = z1 + k * gridDeltaLenght;
+                        position.x = x1 + i * iDeltaStepLenght;
+                        position.y = y1 + j * iDeltaStepLenght;
+                        position.z = z1 + k * iDeltaStepLenght;
                         double distance = nearestNeighbor.getNearestNeighborDistance(position);
-                        kernelEstimator.addValue(distance, kernelWeightq);
+                        kernelEstimator.addValue(distance, iKernelWeight);
                         if (distance > max) max = distance;
                         if (distance < min) min = distance;
                     }
@@ -80,12 +86,12 @@ public abstract class DistanceCalculations {
         System.out.println("Maximum/Minimum distance found: " + max + " " + min);
         System.out.println("Bin lenght: " + binLength);
 
-        iProbabilityAndDistancesDistribution = new double[2][iNumberOfBins];
+        iDistancesDistribution = new double[iNumberOfBins];
+        iProbabilityDistribution = new double[iNumberOfBins];
         for (int i = 0; i < iNumberOfBins; i++) {
-            iProbabilityAndDistancesDistribution[0][i] = i * binLength;
-            iProbabilityAndDistancesDistribution[1][i] = kernelEstimator.getProbability(i * binLength);
+            iDistancesDistribution[i] = i * binLength;
+            iProbabilityDistribution[i] = kernelEstimator.getProbability(i * binLength);
         }
-        System.out.println(Arrays.toString(iProbabilityAndDistancesDistribution[1]));
     }
 
     protected void calcDistancesOfX() {
@@ -100,8 +106,7 @@ public abstract class DistanceCalculations {
             }
         }
         catch (final ArrayIndexOutOfBoundsException e) {
-            // May happen if mask is applied to loaded coordinates. In that case 
-            // checks are not done.
+            // May happen if mask is applied to loaded coordinates. In that case checks are not done.
             return false;
         }
 

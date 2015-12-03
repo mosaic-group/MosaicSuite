@@ -49,8 +49,8 @@ public class Analysis {
     
     public boolean calcDistributions(DistanceCalculations dci, double kernelWeightp) {
         iDistances = dci.getDistancesOfX();
-        dgrid = dci.getProbabilityDistribution()[0];
-        q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution()[1], false);
+        dgrid = dci.getDistancesDistribution();
+        q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution(), false);
         
         KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iDistances, kernelWeightp);
         nnObserved = new double[dgrid.length];
