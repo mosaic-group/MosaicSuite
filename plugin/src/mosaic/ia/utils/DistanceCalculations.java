@@ -60,14 +60,13 @@ public abstract class DistanceCalculations {
         double min = Double.MAX_VALUE;
         Point3d position = new Point3d();
         
+        position.x = aMinX;
         for (int i = 0; i < x_size; i++) {
+            position.y = aMinY;
             for (int j = 0; j < y_size; j++) {
+                position.z = aMinZ;
                 for (int k = 0; k < z_size; k++) {
                     try {
-                        position.x = aMinX + i * iDeltaStepLenght;
-                        position.y = aMinY + j * iDeltaStepLenght;
-                        position.z = aMinZ + k * iDeltaStepLenght;
-                        
                         // Skip points from outside of mask (if given)
                         if (iMaskImage3d != null && !isInsideMask(position)) continue;
                         
@@ -75,12 +74,16 @@ public abstract class DistanceCalculations {
                         kernelEstimator.addValue(distance, iKernelWeight);
                         if (distance > max) max = distance;
                         if (distance < min) min = distance;
+                        
                     }
                     catch (final Exception e) {
                         e.printStackTrace();
                     }
+                    position.z += iDeltaStepLenght;
                 }
+                position.y += iDeltaStepLenght;
             }
+            position.x += iDeltaStepLenght;
         }
         
         final double binLength = (max - min) / iNumberOfBins;
