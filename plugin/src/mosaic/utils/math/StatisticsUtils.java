@@ -1,4 +1,6 @@
-package mosaic.ia.utils;
+package mosaic.utils.math;
+
+import java.util.Arrays;
 
 public class StatisticsUtils {
     
@@ -11,7 +13,7 @@ public class StatisticsUtils {
     }
     
     /**
-     * @return double[] {min, max, mean} of provided data array
+     * @return MinMaxMean of provided data array
      */
     public static MinMaxMean getMinMaxMean(double[] aValues) {
         if (aValues == null || aValues.length == 0) return null;
@@ -58,15 +60,13 @@ public class StatisticsUtils {
      * @param aGenerateNewContainer - should new container be created or changes should be done "in place"
      * @return normalized CDF
      */
-    private static double[] normalizeCdf(final double[] aCdf,  boolean aGenerateNewContainer) {
+    public static double[] normalizeCdf(final double[] aCdf,  boolean aGenerateNewContainer) {
         final double[] result = aGenerateNewContainer ? new double[aCdf.length] : aCdf;
         
         double maximumValue = aCdf[aCdf.length - 1];
-        System.out.println("CDF before normalization:" + maximumValue);
         for (int i = 0; i < aCdf.length; i++) {
             result[i] = aCdf[i] / maximumValue;
         }
-        System.out.println("CDF after normalization:" + result[result.length - 1]);
         
         return result;
     }
@@ -89,5 +89,60 @@ public class StatisticsUtils {
         }
         
         return result;
+    }
+    
+    /**
+     * @return sample variance of provided data
+     */
+    public static double calcSampleVariance(double[] aValues) {
+        double mean = getMinMaxMean(aValues).mean;
+
+        double sum = 0;
+        for (final double a : aValues) {
+            sum += Math.pow(mean - a, 2);
+        }
+        
+        return sum / (aValues.length - 1);
+    }
+    
+    /**
+     * @return standard deviation of provided data (with sample variance)
+     */
+    public static double calcStandardDev(double[] aValues) {
+        return Math.sqrt(calcSampleVariance(aValues));
+    }
+    
+    /**
+     * Returns an estimate (linear interpolation) of the p'th percentile of the provided values
+     * If aPercentile = 0, it returns first element of sorted(aValues) - as Matlab does.
+     */
+    public static final double getPercentile(final double[] aValues, final double aPercentile) {
+        final int size = aValues.length;
+        if ((aPercentile > 1) || (aPercentile < 0)) {
+            throw new IllegalArgumentException("Invalid quantile value: " + aPercentile);
+        }
+        else if (size == 0) {
+            return Double.NaN;
+        }
+        else if (size == 1) {
+            return aValues[0];
+        }
+        
+        final double realPos = aPercentile * (size - 1);
+        final int intPos = (int) realPos;
+
+        final double[] sorted = aValues.clone();
+        Arrays.sort(sorted);
+
+        if (intPos == size - 1) {
+            return sorted[size - 1];
+        }
+        else {
+            final double diff = realPos - intPos;
+            final double lower = sorted[intPos];
+            final double upper = sorted[intPos + 1];
+            // return linear interpolation based on diff value
+            return lower + diff * (upper - lower);
+        }
     }
 }

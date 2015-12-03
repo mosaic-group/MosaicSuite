@@ -3,7 +3,6 @@ package mosaic.ia;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -18,8 +17,8 @@ import mosaic.ia.gui.PlotHistogram;
 import mosaic.ia.utils.DistanceCalculations;
 import mosaic.ia.utils.DistanceCalculationsCoords;
 import mosaic.ia.utils.DistanceCalculationsImage;
-import mosaic.ia.utils.StatisticsUtils;
-import mosaic.ia.utils.StatisticsUtils.MinMaxMean;
+import mosaic.utils.math.StatisticsUtils;
+import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 import weka.estimators.KernelEstimator;
 
 
@@ -30,7 +29,7 @@ public class Analysis {
 
     private double[] iDistances; // Nearest neighbour;
     private double[] q_D_grid, dgrid;
-    private double[] nnObserved, NN_D_grid;
+    private double[] nnObserved;
     private double[][] best;
     private int bestFitnessindex = 0;
     private double minDistance, maxDistance, meanDistance;
@@ -50,28 +49,24 @@ public class Analysis {
     
     public boolean calcDistributions(DistanceCalculations dci, double kernelWeightp) {
         iDistances = dci.getDistancesOfX();
-    
         dgrid = dci.getProbabilityDistribution()[0];
-        q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution()[1], true);
-        System.out.println("p set to:" + kernelWeightp);
-        KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iDistances, kernelWeightp);
-    
-        // generateKernelDensityforD
-        NN_D_grid = new double[dgrid.length];
-        for (int i = 0; i < dgrid.length; i++) {
-            NN_D_grid[i] = kernelEstimatorNN.getProbability(dgrid[i]);
-        }
-        nnObserved = StatisticsUtils.normalizePdf(NN_D_grid, true);
+        q_D_grid = StatisticsUtils.normalizePdf(dci.getProbabilityDistribution()[1], false);
         
-        new DistributionsPlot(dgrid, q_D_grid, nnObserved).show();
-        PlotHistogram.plot("ObservedDistances", iDistances, getOptimBins(iDistances, 8, iDistances.length / 8));
-
+        KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iDistances, kernelWeightp);
+        nnObserved = new double[dgrid.length];
+        for (int i = 0; i < dgrid.length; i++) {
+            nnObserved[i] = kernelEstimatorNN.getProbability(dgrid[i]);
+        }
+        StatisticsUtils.normalizePdf(nnObserved, false);
+        
         MinMaxMean mmm = StatisticsUtils.getMinMaxMean(iDistances);
-        System.out.println("Min/Max/Mean distance of X to Y: " + mmm.min + " / " + mmm.max + " / " + mmm.mean);
         minDistance = mmm.min;
         maxDistance = mmm.max;
         meanDistance = mmm.mean;
+        System.out.println("Min/Max/Mean distance of X to Y: " + mmm.min + " / " + mmm.max + " / " + mmm.mean);
         
+        new DistributionsPlot(dgrid, q_D_grid, nnObserved).show();
+        PlotHistogram.plot("ObservedDistances", iDistances, getOptimBins(iDistances, 8, iDistances.length / 8));
         IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iDistances));
     
         return true;
@@ -95,7 +90,7 @@ public class Analysis {
     }
     
     public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
-        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, StatisticsUtils.normalizePdf(NN_D_grid, true));
+        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, nnObserved);
         if (potentialType == PotentialFunctions.NONPARAM) {
             PotentialFunctions.initializeNonParamWeights(minDistance, maxDistance);
             best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
@@ -319,21 +314,15 @@ public class Analysis {
     }
 
     public static KernelEstimator createkernelDensityEstimator(double[] distances, double weight) {
-        final double precision = 100d;
-        final KernelEstimator ker = new KernelEstimator(1 / precision);
+        final KernelEstimator kernel = new KernelEstimator(0.01);
+        // weight is important, since bandwidth is calculated with it:
+        // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
         System.out.println("Weight:" + weight);
-        for (int i = 0; i < distances.length; i++) {
-            ker.addValue(distances[i], weight); 
-            // weight is important, since bandwidth is calculated with it:
-            // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
-            // depending on the changes to the grid, this might have to be changed.
+        for (double value : distances) {
+            kernel.addValue(value, weight); 
         }
-        System.out.println("Added values to kernel:"+ker.getNumKernels());
-        System.out.println("Standard deviation of sample: " + calcStandDev(distances));
-        System.out.println("Standard deviation Kernel: " + ker.getStdDev());
-        System.out.println("Length:" + distances.length);
 
-        return ker;
+        return kernel;
     }
     
     /**
@@ -343,8 +332,8 @@ public class Analysis {
      */
     public static int getOptimBins(double[] values, int minBinNumber, int maxBinNumber) {
         final int size = values.length;
-        final double q1 = getPercentile(values, 0.25);
-        final double q3 = getPercentile(values, 0.75);
+        final double q1 = StatisticsUtils.getPercentile(values, 0.25);
+        final double q3 = StatisticsUtils.getPercentile(values, 0.75);
         final double interQRange = q3 - q1;
         final double binWidth = 2 * interQRange * Math.pow(size, -0.33);
         MinMaxMean range = StatisticsUtils.getMinMaxMean(values);
@@ -359,46 +348,10 @@ public class Analysis {
         return noBins;
     }
     
-    /**
-     * Returns an estimate of the <code>p</code>th percentile of the values
-     * in the <code>values</code> array. Taken from commons-math.
-     */
-    private static final double getPercentile(final double[] values, final double p) {
-
-        final int size = values.length;
-        if ((p > 1) || (p <= 0)) {
-            throw new IllegalArgumentException("invalid quantile value: " + p);
-        }
-        if (size == 0) {
-            return Double.NaN;
-        }
-        if (size == 1) {
-            return values[0]; // always return single value for n = 1
-        }
-        final double n = size;
-        final double pos = p * (n + 1);
-        final double fpos = Math.floor(pos);
-        final int intPos = (int) fpos;
-        final double dif = pos - fpos;
-        final double[] sorted = new double[size];
-        System.arraycopy(values, 0, sorted, 0, size);
-        Arrays.sort(sorted);
-
-        if (pos < 1) {
-            return sorted[0];
-        }
-        if (pos >= n) {
-            return sorted[size - 1];
-        }
-        final double lower = sorted[intPos - 1];
-        final double upper = sorted[intPos];
-        return lower + dif * (upper - lower);
-    }
-    
     private static double calcSilvermanBandwidth(double[] distances) {
-        final double q1 = getPercentile(distances, 0.25);
-        final double q3 = getPercentile(distances, 0.75);
-        final double silBandwidth = .9 * Math.min(calcStandDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
+        final double q1 = StatisticsUtils.getPercentile(distances, 0.25);
+        final double q3 = StatisticsUtils.getPercentile(distances, 0.75);
+        final double silBandwidth = 0.9 * Math.min(StatisticsUtils.calcStandardDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
         System.out.println("Silverman's bandwidth: " + silBandwidth);
 
         return silBandwidth;
@@ -409,23 +362,6 @@ public class Analysis {
         final double range = mmm.max - mmm.min;
         final double bw = calcSilvermanBandwidth(distances);
         return ((1.0d / distances.length) * (range / bw) * (range / bw));
-    }
-    
-    private static double calcStandDev(double[] distances) {
-
-        double sum = 0.0;
-        for (final double a : distances) {
-            sum += a;
-        }
-        final double mean = sum / distances.length;
-
-        double temp = 0;
-        for (final double a : distances) {
-            temp += (mean - a) * (mean - a);
-        }
-        final double var = temp / (distances.length - 1);
-
-        return Math.sqrt(var);
     }
     
     public double getMinD() {

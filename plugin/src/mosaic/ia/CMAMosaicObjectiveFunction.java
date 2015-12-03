@@ -2,8 +2,8 @@ package mosaic.ia;
 
 
 import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
-import mosaic.ia.utils.StatisticsUtils;
-import mosaic.ia.utils.StatisticsUtils.MinMaxMean;
+import mosaic.utils.math.StatisticsUtils;
+import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
 
 class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
