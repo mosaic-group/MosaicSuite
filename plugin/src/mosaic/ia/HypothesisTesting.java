@@ -37,7 +37,7 @@ class HypothesisTesting {
         pcOb.calculateWOEpsilon();
         Tob = -1 * pcOb.getSumPotential();
 
-        double maxT = Double.MIN_VALUE, minT = Double.MAX_VALUE;
+        double maxT = -Double.MAX_VALUE, minT = Double.MAX_VALUE;
 
         for (int i = 0; i < K; i++) {
             if (minT > T[i]) {

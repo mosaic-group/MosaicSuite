@@ -36,7 +36,7 @@ import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
 import mosaic.ia.Analysis.Result;
 import mosaic.ia.PotentialFunctions;
-import mosaic.ia.utils.ImageProcessFileUtils;
+import mosaic.ia.utils.FileUtils;
 
 public class InteractionAnalysisGUI implements ActionListener {
 
@@ -437,7 +437,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             new InteractionAnalysisHelpGUI(0, 0);
         }
         else if (e.getSource() == browseX) {
-            imgx = ImageProcessFileUtils.openImage();
+            imgx = FileUtils.openImage();
             if (imgx == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -446,7 +446,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             browseX.setText(imgx.getTitle());
         }
         else if (e.getSource() == browseY) {
-            imgy = ImageProcessFileUtils.openImage();
+            imgy = FileUtils.openImage();
             if (imgy == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -455,11 +455,11 @@ public class InteractionAnalysisGUI implements ActionListener {
             browseY.setText(imgy.getTitle());
         }
         else if (e.getSource() == btnLoadCsvFileX) {
-            Xcoords = ImageProcessFileUtils.openCsvFile("Open CSV file for image X");
+            Xcoords = FileUtils.openCsvFile("Open CSV file for image X");
             setMinMaxCoordinates();
         }
         else if (e.getSource() == btnLoadCsvFileY) {
-            Ycoords = ImageProcessFileUtils.openCsvFile("Open CSV file for image Y");
+            Ycoords = FileUtils.openCsvFile("Open CSV file for image Y");
             setMinMaxCoordinates();
         }
         else if (e.getSource() == potentialComboBox) {
@@ -684,7 +684,7 @@ public class InteractionAnalysisGUI implements ActionListener {
     }
 
     public boolean loadMask() {
-        ImagePlus tempMask = ImageProcessFileUtils.openImage();
+        ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
             return false;

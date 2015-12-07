@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.utils.ImageProcessFileUtils;
+import mosaic.ia.utils.FileUtils;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
@@ -76,9 +76,9 @@ public class AnalysisTest extends CommonBase {
         // Define test data
         final String tcDirName           = "IA/VirusEndosome/";
         copyTestResources("Virus.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        Point3d[] x = ImageProcessFileUtils.openCsvFile("X", "/tmp/" + "Virus.csv");
+        Point3d[] x = FileUtils.openCsvFile("X", "/tmp/" + "Virus.csv");
         copyTestResources("Endosome.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        Point3d[] y = ImageProcessFileUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
+        Point3d[] y = FileUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
         
         Analysis analysis = new Analysis();
         analysis.calcDist(0.5, 0.001, 35.9, null, x, y, 0, 385, 0, 511, 0, 0);

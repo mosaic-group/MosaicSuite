@@ -8,72 +8,52 @@ import ij.gui.PlotWindow;
 import mosaic.ia.PotentialFunctions;
 import net.sf.javaml.utils.ArrayUtils;
 
-public class DistributionsPlot {
-    private final Plot plot;
-    
+/**
+ * Class responsible for plotting calculated distributions
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
+public class DistributionsPlot extends BasePlot {
     public DistributionsPlot(double[] aX, double[] aQ, double[] aObservedDistance) {
         double max = Math.max(ArrayUtils.max(aQ), ArrayUtils.max(aObservedDistance));
         plot = new Plot("Result: Estimated distance distributions", "Distance", "Probability density");
         plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
         plot.setLineWidth(2);
         
-        drawObservedDistances(aX, aObservedDistance);
-        drawQ(aX, aQ);
+        drawNearestNeighborDistances(aX, aObservedDistance);
+        drawProbabilityOfDistance(aX, aQ);
     }
     
-    public DistributionsPlot(double[] aX, double[] aModelFit, double[] aQ, double[] aObservedDistance, int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
-        double max = Math.max(ArrayUtils.max(aQ), Math.max(ArrayUtils.max(aObservedDistance), ArrayUtils.max(aModelFit)));
+    public DistributionsPlot(double[] aDistances, double[] aModelFit, double[] aProbabilityOfDistance, double[] aNearestNeighborDistance, int aPotentialType, double[] aBestPointFound, double aBestFunctionValue) {
+        double max = Math.max(ArrayUtils.max(aProbabilityOfDistance), Math.max(ArrayUtils.max(aNearestNeighborDistance), ArrayUtils.max(aModelFit)));
         plot = new Plot("Distance distributions", "Distance", "Probability density");
-        plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
+        plot.setLimits(aDistances[0], aDistances[aDistances.length - 1], 0, max);
         plot.setLineWidth(2);
 
-        drawObservedDistances(aX, aObservedDistance);
-        drawQ(aX, aQ);
-        drawModelFit(aX, aModelFit);
-        addDescription(potentialType, best, allFitness, bestFitnessindex);
+        drawNearestNeighborDistances(aDistances, aNearestNeighborDistance);
+        drawProbabilityOfDistance(aDistances, aProbabilityOfDistance);
+        drawModelFit(aDistances, aModelFit);
+        addDescription(aPotentialType, aBestPointFound, aBestFunctionValue);
     }
 
-    public void show() {
-        plot.draw();
-        plot.show();
-    }
-    
-    private void addDescription(int potentialType, double[][] best, double[] allFitness, int bestFitnessindex) {
-        final DecimalFormat format = new DecimalFormat("#.####E0");
-        if (potentialType == PotentialFunctions.STEP) {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else if (potentialType == PotentialFunctions.NONPARAM) {
-            plot.addLabel(.65, .6, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Scale: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-    }
-
-    private void drawModelFit(double[] aX, double[] aModelFit) {
+    private void drawModelFit(double[] aDistances, double[] aModelFit) {
         plot.setColor(Color.green);
-        plot.addPoints(aX, aModelFit, PlotWindow.LINE);
+        plot.addPoints(aDistances, aModelFit, PlotWindow.LINE);
         plot.addLabel(.65, .4, "----  ");
         plot.setColor(Color.black);
         plot.addLabel(.7, .4, "p(d): Model fit");
     }
 
-    private void drawQ(double[] aX, double[] aQ) {
+    private void drawProbabilityOfDistance(double[] aDistances, double[] aProbabilityOfDistance) {
         plot.setColor(Color.red);
-        plot.addPoints(aX, aQ, PlotWindow.LINE);
+        plot.addPoints(aDistances, aProbabilityOfDistance, PlotWindow.LINE);
         plot.addLabel(.65, .3, "----  ");
         plot.setColor(Color.black);
         plot.addLabel(.7, .3, "q(d): Context");
     }
 
-    private void drawObservedDistances(double[] aX, double[] aObservedDistance) {
+    private void drawNearestNeighborDistances(double[] aDistances, double[] aNearestNeighborDistance) {
         plot.setColor(Color.BLUE);
-        plot.addPoints(aX, aObservedDistance, PlotWindow.LINE);
+        plot.addPoints(aDistances, aNearestNeighborDistance, PlotWindow.LINE);
         plot.addLabel(.65, .2, "----  ");
         plot.setColor(Color.black);
         plot.addLabel(.7, .2, "Observed dist");

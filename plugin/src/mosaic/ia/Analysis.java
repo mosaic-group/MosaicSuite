@@ -13,10 +13,8 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Plot;
 import mosaic.ia.gui.DistributionsPlot;
+import mosaic.ia.gui.EstimatedPotentialPlot;
 import mosaic.ia.gui.PlotHistogram;
-import mosaic.ia.utils.DistanceCalculations;
-import mosaic.ia.utils.DistanceCalculationsCoords;
-import mosaic.ia.utils.DistanceCalculationsImage;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 import weka.estimators.KernelEstimator;
@@ -32,8 +30,8 @@ public class Analysis {
     private double[] iNearestNeighborDistances;
     private double[] iNearestNeighborDistanceDistribution;
     
-    private double[][] best;
-    private int bestFitnessindex = 0;
+    private double[][] bestPointFound;
+    private int bestIndex = 0;
     
     private double minDistance, maxDistance, meanDistance;
 
@@ -98,12 +96,12 @@ public class Analysis {
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistances, potentialType, iNearestNeighborDistanceDistribution);
         if (potentialType == PotentialFunctions.NONPARAM) {
             PotentialFunctions.initializeNonParamWeights(minDistance, maxDistance);
-            best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
+            bestPointFound = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
         }
         else {
-            best = new double[cmaReRunTimes][2];
+            bestPointFound = new double[cmaReRunTimes][2];
         }
-        double[] allFitness = new double[cmaReRunTimes];
+        double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
         
@@ -132,91 +130,37 @@ public class Analysis {
             cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX()));
             printCmaResultInfo(cma);
 
-            allFitness[k] = cma.getBestFunctionValue();
-            if (allFitness[k] < bestFitness) {
-                if (k > 0 && bestFitness - allFitness[k] > allFitness[k] * 0.00001) {
+            bestFunctionValue[k] = cma.getBestFunctionValue();
+            if (bestFunctionValue[k] < bestFitness) {
+                if (k > 0 && bestFitness - bestFunctionValue[k] > bestFunctionValue[k] * 0.00001) {
                     diffFitness = true;
                 }
-                bestFitness = allFitness[k];
-                bestFitnessindex = k;
+                bestFitness = bestFunctionValue[k];
+                bestIndex = k;
             }
-            best[k] = cma.getBestX();
+            bestPointFound[k] = cma.getBestX();
             
-            addNewOutputResult(aResultsOutput, allFitness, k);
+            addNewOutputResult(aResultsOutput, bestFunctionValue, k);
         }
 
         if (diffFitness) {
             IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
 
-        fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
-        plotEstimatedPotential(fitfun, allFitness, fitfun.getPotential(best[bestFitnessindex]));
+        fitfun.l2Norm(bestPointFound[bestIndex]); // to calc pgrid for best params
+        new EstimatedPotentialPlot(iDistancesDistribution, fitfun.getPotential(bestPointFound[bestIndex]), potentialType, bestPointFound[bestIndex], bestFunctionValue[bestIndex]).show();
         double[] P_grid = StatisticsUtils.normalizePdf(fitfun.getPGrid(), false);
-        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potentialType, best, allFitness, bestFitnessindex).show();
+        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potentialType, bestPointFound[bestIndex], bestFunctionValue[bestIndex]).show();
 
         return true;
-    }
-
-    private void plotEstimatedPotential(final CMAMosaicObjectiveFunction fitfun, double[] allFitness, final double[] fitPotential) {
-        final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
-        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(fitPotential);
-        plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], mmm.min, mmm.max);
-        plot.setColor(Color.BLUE);
-        plot.setLineWidth(2);
-        final DecimalFormat format = new DecimalFormat("#.####E0");
-
-        if (potentialType == PotentialFunctions.NONPARAM) {
-            String estim = "";
-            final double[] dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-            double minW = Double.MAX_VALUE, maxW = Double.MIN_VALUE;
-            for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
-                dp[i] = PotentialFunctions.dp[i];
-                estim = estim + "w[" + i + "]=" + best[bestFitnessindex][i] + " ";
-                if (best[bestFitnessindex][i] < minW) {
-                    minW = best[bestFitnessindex][i];
-                }
-                if (best[bestFitnessindex][i] > maxW) {
-                    maxW = best[bestFitnessindex][i];
-                }
-            }
-            System.out.println(estim);
-            final Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:", "Support", "Weight", new double[1], new double[1]);
-            plot.addLabel(.65, .3, "Residual: " + format.format(allFitness[bestFitnessindex]));
-
-            plotWeight.setLimits(dp[0], dp[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1 - 1], minW, maxW);
-            plotWeight.addPoints(dp, best[bestFitnessindex], Plot.CROSS);
-            plotWeight.setColor(Color.RED);
-
-            plotWeight.setLineWidth(2);
-            plotWeight.show();
-        }
-        else if (potentialType == PotentialFunctions.STEP) {
-            best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);// epsil
-            best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-            System.out.println("Best parameters: Epsilon, Threshold:" + best[0] + " " + best[bestFitnessindex][1]);
-
-            plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .4, "Threshold: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .5, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else {
-            best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);
-            best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-            System.out.println("Best parameters:  Epsilon, Sigma:" + best[bestFitnessindex][0] + " " + best[bestFitnessindex][1]);
-            plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .4, "Scale: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .5, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        System.out.println("N= " + iNearestNeighborDistances.length);
-        plot.show();
     }
 
     private void addNewOutputResult(List<Result> aResultsOutput, double[] allFitness, int k) {
         double strength = 0;
         double thresholdOrScale = 0;
         if (potentialType != PotentialFunctions.NONPARAM) {
-            strength = best[k][0];
-            thresholdOrScale = best[k][1];
+            strength = bestPointFound[k][0];
+            thresholdOrScale = bestPointFound[k][1];
         }
         double residual = allFitness[k];
         aResultsOutput.add(new Result(strength, thresholdOrScale, residual));
@@ -303,7 +247,7 @@ public class Analysis {
     }
  
     public boolean hypothesisTesting(int monteCarloRunsForTest, double alpha) {
-        if (best == null) {
+        if (bestPointFound == null) {
             IJ.showMessage("Error: Run estimation first");
             return false;
         }
@@ -313,7 +257,7 @@ public class Analysis {
         }
     
         System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), iDistancesDistribution, iNearestNeighborDistances, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
+        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), iDistancesDistribution, iNearestNeighborDistances, bestPointFound[bestIndex], potentialType, monteCarloRunsForTest, alpha);
         ht.rankTest();
         return true;
     }

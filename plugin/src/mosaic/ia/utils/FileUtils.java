@@ -16,13 +16,22 @@ import ij.io.Opener;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
-
-public class ImageProcessFileUtils {
+/**
+ * Contains some utils for IA for reading files (images and CSV).
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
+public class FileUtils {
+    /**
+     * Opens dialog for user to choose a file
+     * @return chosen file or null if operation cancelled
+     */
     public static ImagePlus openImage() {
         return new Opener().openImage("");
     }
 
-    // Wrapper used for reading data for Point3d class, it provides 'interface' methods for CSV reader
+    /**
+     * Wrapper used for reading data for Point3d class, it provides 'interface' methods for CSV reader
+     */
     public static class Point3dCsvReadWrapper extends Point3d {
         private static final long serialVersionUID = 1L;
         
@@ -37,10 +46,21 @@ public class ImageProcessFileUtils {
         public static CsvColumnConfig getConfig3D() { return new CsvColumnConfig(new String[]{"XX","YY","ZZ"}, new CellProcessor[] { new ParseDouble(), new ParseDouble(), new ParseDouble() }); }
     }
     
+    /**
+     * Reads coordinates from CSV file, first opening dialog for user to choose it.
+     * @param aTitle Title for opened dialog
+     * @return read points
+     */
     public static Point3d[] openCsvFile(String aTitle) {
         return openCsvFile(aTitle, null);
     }
     
+    /**
+     * Reads coordinates from CSV file.
+     * @param aTitle Title for opened dialog (only if provided file name is null)
+     * @param aFileName - absolute filename 
+     * @return read points
+     */
     public static Point3d[] openCsvFile(String aTitle, String aFileName) {
         File file = null;
         if (aFileName == null) {
