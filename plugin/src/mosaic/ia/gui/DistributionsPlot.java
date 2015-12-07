@@ -1,11 +1,9 @@
 package mosaic.ia.gui;
 
 import java.awt.Color;
-import java.text.DecimalFormat;
 
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
-import mosaic.ia.PotentialFunctions;
 import net.sf.javaml.utils.ArrayUtils;
 
 /**

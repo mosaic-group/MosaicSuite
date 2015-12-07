@@ -14,6 +14,7 @@ public class PotentialFunctions {
     public static final int L2 = 4;
     public static final int PlUMMER = 5;
     public static final int NONPARAM = 6;
+    public static final int COULOMB = 7;
 
     public static void initializeNonParamWeights(double min, double max) {
         System.out.println("# of support points changed to:" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);

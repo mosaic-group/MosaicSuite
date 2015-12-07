@@ -1,8 +1,6 @@
 package mosaic.ia;
 
 
-import java.awt.Color;
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Random;
 
@@ -11,7 +9,6 @@ import javax.vecmath.Point3d;
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.Plot;
 import mosaic.ia.gui.DistributionsPlot;
 import mosaic.ia.gui.EstimatedPotentialPlot;
 import mosaic.ia.gui.PlotHistogram;
@@ -257,7 +254,12 @@ public class Analysis {
         }
     
         System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), iDistancesDistribution, iNearestNeighborDistances, bestPointFound[bestIndex], potentialType, monteCarloRunsForTest, alpha);
+        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), 
+                                                           iDistancesDistribution, 
+                                                           iNearestNeighborDistances, 
+                                                           bestPointFound[bestIndex], 
+                                                           potentialType, 
+                                                           monteCarloRunsForTest, alpha);
         ht.rankTest();
         return true;
     }
