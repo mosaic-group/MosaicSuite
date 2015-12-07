@@ -24,7 +24,6 @@ class PotentialCalculator {
 
     public PotentialCalculator(double[] D_sample, double[] params, int type) // for non parametric
     {
-        super();
         this.D_sample = D_sample;
         this.params = params;
         this.type = type;

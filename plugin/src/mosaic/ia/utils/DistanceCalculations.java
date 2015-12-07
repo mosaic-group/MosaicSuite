@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+import mosaic.utils.math.NearestNeighborTree;
 import weka.estimators.KernelEstimator;
 
 
@@ -35,7 +36,7 @@ public abstract class DistanceCalculations {
         iMaskImage3d = mask;
     }
     
-    public double[] getProbabilityDistribution() {
+    public double[] getProbabilityOfDistancesDistribution() {
         return iProbabilityDistribution;
     }
     
@@ -43,10 +44,13 @@ public abstract class DistanceCalculations {
         return iDistancesDistribution;
     }
 
-    public double[] getDistancesOfX() {
+    public double[] getNearestNeighborsDistances() {
         return iDistances;
     }
 
+    /**
+     * Calculates the relative frequency of possible distances (state density)
+     */
     protected void stateDensity(double aMinX, double aMaxX, double aMinY, double aMaxY, double aMinZ, double aMaxZ) {
         final int x_size = (int) Math.floor(Math.abs(aMinX - aMaxX) * xscale / iDeltaStepLenght) + 1;
         final int y_size = (int) Math.floor(Math.abs(aMinY - aMaxY) * yscale / iDeltaStepLenght) + 1;
@@ -54,7 +58,7 @@ public abstract class DistanceCalculations {
 
         System.out.println("Number of grid points (x/y/z): " + x_size + " / " + y_size + " / " + z_size);
 
-        final KDTreeNearestNeighbor nearestNeighbor = new KDTreeNearestNeighbor(iParticlesY);
+        final NearestNeighborTree nearestNeighbor = new NearestNeighborTree(iParticlesY);
         final KernelEstimator kernelEstimator = new KernelEstimator(0.01 /* precision */);
         double max = -Double.MAX_VALUE;
         double min = Double.MAX_VALUE;
@@ -66,19 +70,14 @@ public abstract class DistanceCalculations {
             for (int j = 0; j < y_size; j++) {
                 position.z = aMinZ;
                 for (int k = 0; k < z_size; k++) {
-                    try {
-                        // Skip points from outside of mask (if given)
-                        if (iMaskImage3d != null && !isInsideMask(position)) continue;
-                        
-                        double distance = nearestNeighbor.getNearestNeighborDistance(position);
-                        kernelEstimator.addValue(distance, iKernelWeight);
-                        if (distance > max) max = distance;
-                        if (distance < min) min = distance;
-                        
-                    }
-                    catch (final Exception e) {
-                        e.printStackTrace();
-                    }
+                    // Skip points from outside of mask (if given)
+                    if (iMaskImage3d != null && !isInsideMask(position)) continue;
+
+                    double distance = nearestNeighbor.getDistanceToNearestNeighbor(position);
+                    kernelEstimator.addValue(distance, iKernelWeight);
+                    if (distance > max) max = distance;
+                    if (distance < min) min = distance;
+
                     position.z += iDeltaStepLenght;
                 }
                 position.y += iDeltaStepLenght;
@@ -100,7 +99,7 @@ public abstract class DistanceCalculations {
 
     protected void calcDistancesOfXtoY() {
         System.out.println("Number of coordinates (X/Y): " + iParticlesX.length + " / " + iParticlesY.length);
-        iDistances = new KDTreeNearestNeighbor(iParticlesY).getNearestNeighborDistances(iParticlesX);
+        iDistances = new NearestNeighborTree(iParticlesY).getDistancesToNearestNeighbors(iParticlesX);
     }
 
     private boolean isInsideMask(Point3d coords) {
