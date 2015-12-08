@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import mosaic.core.GUI.HelpGUI;
 
 /**
- * Creates window with basic inforamtion about IA
+ * Creates window with basic information about IA
  */
 class InteractionAnalysisHelpGui extends HelpGUI {
 

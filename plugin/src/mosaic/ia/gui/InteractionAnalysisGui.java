@@ -28,13 +28,11 @@ import mosaic.ia.utils.FileUtils;
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     private Analysis iAnalysis;
-    
     private ImagePlus iImgX, iImgY;
     private Point3d[] iCsvX, iCsvY;
     private ImagePlus iMaskImg;
-    
     // Order must be same as declared in PotentialType enum
-    protected static final String[] PotentialList = { "Step", "Hernquist", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
+    private static final String[] PotentialList = { "Step", "Hernquist", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
 
     public InteractionAnalysisGui() {
         super(PotentialList);
@@ -52,10 +50,12 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             iImgY = loadImage("Image Y", loadImgY);
         }
         else if (e.getSource() == loadCsvX) {
-            iCsvX = loadCsv("Open CSV file for image X");
+            iCsvX = FileUtils.openCsvFile("Open CSV file for image X");
+            setMinMaxCoordinates();
         }
         else if (e.getSource() == loadCsvY) {
-            iCsvY = loadCsv("Open CSV file for image Y");
+            iCsvY = FileUtils.openCsvFile("Open CSV file for image Y");
+            setMinMaxCoordinates();
         }
         else if (e.getSource() == potentialComboBox) {
             enableNoparamControls(getPotential() == PotentialType.NONPARAM ? true : false);
@@ -70,31 +70,13 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             testHypothesis();
         }
         else if (e.getSource() == generateMask) {
-            try {
-                if (tabbedPane.getSelectedIndex() == 1) {
-                    IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
-                    return;
-                }
-
-                if (!generateMask()) {
-                    IJ.showMessage("Image Y is null: Cannot generate mask");
-                }
-                else {
-                    maskPane.setTitleAt(0, "Mask: <generated>");
-                }
-            }
-            catch (final NullPointerException npe) {
-                IJ.showMessage("Image Y is null: Cannot generate mask");
-            }
+            generateMask();
         }
         else if (e.getSource() == loadMask) {
-            if (loadMask() == true) {
-                maskPane.setTitleAt(0, "Mask: " + getMaskTitle());
-            }
+            loadMask();
         }
         else if (e.getSource() == resetMask) {
             resetMask();
-            maskPane.setTitleAt(0, "Mask: <empty>");
         }
     }
 
@@ -144,7 +126,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         double pkernelWeight = Double.parseDouble(kernelWeightP.getText());
         iAnalysis = new Analysis();
         float[][][] mask3d = iMaskImg != null ? imageTo3Darray(iMaskImg) : null;
-        if (tabbedPane.getSelectedIndex() == 1) {
+        
+        if (isCoordinatesTab()) {
             // coordinates
             double xmin = Double.parseDouble(xMin.getText());
             double ymin = Double.parseDouble(yMin.getText());
@@ -158,8 +141,6 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             }
             
             if (iCsvX != null && iCsvY != null) {
-                iAnalysis = new Analysis();
-                System.out.println("[Point3d] p set to:" + pkernelWeight);
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }
@@ -171,11 +152,9 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             // image
             if (iImgY != null && iImgX != null) {
                 if (!checkIfImagesAreSameSize()) {
-                    System.out.println("Distance calc: different image sizes");
                     IJ.showMessage("Error: Image sizes/scale/unit do not match");
                 }
                 else {
-                    iAnalysis = new Analysis();
                     iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iImgX, iImgY);
                 }
             }
@@ -185,54 +164,49 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
     }
 
-    private Point3d[] loadCsv(String aDialogTitle) {
-        Point3d[] coords = FileUtils.openCsvFile(aDialogTitle);
-        setMinMaxCoordinates();
-        return coords;
+    private boolean isCoordinatesTab() {
+        return tabbedPane.getSelectedIndex() == 1;
     }
 
     private void setMinMaxCoordinates() {
-            double x1 = Double.MAX_VALUE;
-            double y1 = Double.MAX_VALUE;
-            double z1 = Double.MAX_VALUE;
-            double x2 = -Double.MAX_VALUE; 
-            double y2 = -Double.MAX_VALUE;
-            double z2 = -Double.MAX_VALUE;
+            double xmin = Double.MAX_VALUE;
+            double ymin = Double.MAX_VALUE;
+            double zmin = Double.MAX_VALUE;
+            double xmax = -Double.MAX_VALUE; 
+            double ymax = -Double.MAX_VALUE;
+            double zmax = -Double.MAX_VALUE;
             boolean isSet = false;
             
             Point3d[][] coordinates = {iCsvX, iCsvY}; 
             for (Point3d[] coords : coordinates) {
                 if (coords != null) {
                     for (Point3d p : coords) {
-                        if (p.x < x1) x1 = p.x;
-                        if (p.x > x2) x2 = p.x;
-                        if (p.y < y1) y1 = p.y;
-                        if (p.y > y2) y2 = p.y;
-                        if (p.z < z1) z1 = p.z;
-                        if (p.z > z2) z2 = p.z;
+                        if (p.x < xmin) xmin = p.x;
+                        if (p.x > xmax) xmax = p.x;
+                        if (p.y < ymin) ymin = p.y;
+                        if (p.y > ymax) ymax = p.y;
+                        if (p.z < zmin) zmin = p.z;
+                        if (p.z > zmax) zmax = p.z;
                     }
                     isSet = true;
                 }
             }
             if (isSet) {
-                xMin.setText(Math.floor(x1) + "");
-                xMax.setText(Math.ceil(x2) + "");
-                yMin.setText(Math.floor(y1) + "");
-                yMax.setText(Math.ceil(y2) + "");
-                zMin.setText(Math.floor(z1) + "");
-                zMax.setText(Math.ceil(z2) + "");
+                xMin.setText(Math.floor(xmin) + "");
+                xMax.setText(Math.ceil(xmax) + "");
+                yMin.setText(Math.floor(ymin) + "");
+                yMax.setText(Math.ceil(ymax) + "");
+                zMin.setText(Math.floor(zmin) + "");
+                zMax.setText(Math.ceil(zmax) + "");
             }
     }
 
     private boolean checkIfImagesAreSameSize() {
         final Calibration imgxc = iImgX.getCalibration();
         final Calibration imgyc = iImgY.getCalibration();
-        if ((iImgX.getWidth() == iImgY.getWidth()) && 
-            (iImgX.getHeight() == iImgY.getHeight()) && 
-            (iImgX.getStackSize() == iImgY.getStackSize()) && 
-            (imgxc.pixelDepth == imgyc.pixelDepth) &&
-            (imgxc.pixelHeight == imgyc.pixelHeight) && 
-            (imgxc.pixelWidth == imgyc.pixelWidth) && 
+        if ((iImgX.getWidth() == iImgY.getWidth()) && (iImgX.getHeight() == iImgY.getHeight()) && 
+            (iImgX.getStackSize() == iImgY.getStackSize()) && (imgxc.pixelDepth == imgyc.pixelDepth) &&
+            (imgxc.pixelHeight == imgyc.pixelHeight) && (imgxc.pixelWidth == imgyc.pixelWidth) && 
             (imgxc.getUnit().equals(imgyc.getUnit()))) 
         {
             return true;
@@ -246,20 +220,27 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
     }
     
-    public boolean generateMask() {
-        if (iImgY != null) {
-            final ImagePlus genMaskIP = new Duplicator().run(iImgY);
-            genMaskIP.show();
-            new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
-            genMaskIP.changes = false;
-            System.out.println("Generated mask: " + genMaskIP.getType());
-            iMaskImg = genMaskIP;
-            return true;
+    private void generateMask() {
+        if (isCoordinatesTab()) {
+            IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead.");
         }
-        return false;
+        else if (iImgY != null) {
+            iMaskImg = new Duplicator().run(iImgY);
+            iMaskImg.show();
+            new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
+            iMaskImg.changes = false;
+            maskPane.setTitleAt(0, "Mask: <generated>");
+        }
+        else {
+            IJ.showMessage("Image Y is null: Cannot generate mask");
+        }
     }
 
-    public boolean loadMask() {
+    private boolean loadMask() {
+        if (iImgY == null) {
+            IJ.showMessage("ERROR: Load Image Y first");
+            return false;
+        }
         ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
@@ -269,7 +250,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
             return false;
         }
-        else if (!(tabbedPane.getSelectedIndex() == 1)) {
+        else if (!isCoordinatesTab()) {
             if (tempMask.getHeight() != iImgY.getHeight() || tempMask.getWidth() != iImgY.getWidth() || tempMask.getNSlices() != iImgY.getNSlices()) {
                 IJ.showMessage("ERROR: Loaded mask size does not match with image size");
                 return false;
@@ -279,31 +260,28 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         tempMask.show("Mask loaded" + tempMask.getTitle());
         iMaskImg = tempMask;
         iMaskImg.updateImage();
+        maskPane.setTitleAt(0, "Mask: " + iMaskImg.getTitle());
         return true;
     }
 
-    ImagePlus loadImage(String aTitle, JButton aLoadImgButton) {
+    private ImagePlus loadImage(String aStatusBarMessage, JButton aLoadImgButton) {
         ImagePlus tempImg = FileUtils.openImage();
         if (tempImg == null) {
             IJ.showMessage("Cancelled/Filetype not recognized");
             return null;
         }
-        tempImg.show(aTitle);
+        tempImg.show(aStatusBarMessage);
         aLoadImgButton.setText(tempImg.getTitle());
         
         return tempImg;
     }
     
-    public boolean resetMask() {
+    private void resetMask() {
         iMaskImg = null;
-        return true;
+        maskPane.setTitleAt(0, "Mask: <empty>");
     }
 
-    public String getMaskTitle() {
-        return iMaskImg.getTitle();
-    }
-
-    public PotentialType getPotential() { 
+    private PotentialType getPotential() { 
         final String selected = PotentialList[potentialComboBox.getSelectedIndex()];
         PotentialType pt = PotentialType.values()[Arrays.asList(PotentialList).indexOf(selected)];
         System.out.println("Selected potential: [" + selected + "] / " + pt);
