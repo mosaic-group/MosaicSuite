@@ -13,12 +13,12 @@ import mosaic.core.GUI.HelpGUI;
 /**
  * Creates window with basic inforamtion about IA
  */
-class InteractionAnalysisHelpGUI extends HelpGUI {
+class InteractionAnalysisHelpGui extends HelpGUI {
 
     private final JFrame frame;
     private final JPanel panel;
 
-    public InteractionAnalysisHelpGUI(int x, int y) {
+    public InteractionAnalysisHelpGui(int x, int y) {
         frame = new JFrame("Interaction Analysis Help");
         frame.setSize(555, 780);
         frame.setLocation(x + 500, y - 50);
