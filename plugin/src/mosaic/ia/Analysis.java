@@ -28,25 +28,23 @@ public class Analysis {
     private double[] iNearestNeighborDistances;
     private double[] iNearestNeighborDistanceDistribution;
     
-    private double[][] bestPointFound;
-    private int bestIndex = 0;
+    private double[][] iBestPointsFound;
+    private int iBestPointIndex = -1;
     
     private double minDistance, maxDistance, meanDistance;
 
 
-    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, ImagePlus iImageX, ImagePlus iImageY) {
-        DistanceCalculations dci;
-        dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, GridDensity);
-        return calcDistributions(dci, kernelWeightp);
+    public void calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, ImagePlus iImageX, ImagePlus iImageY) {
+        DistanceCalculations dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, GridDensity);
+        calcDistributions(dci, kernelWeightp);
     }
     
-    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
-        DistanceCalculations dci;
-        dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, GridDensity);
-        return calcDistributions(dci, kernelWeightp);
+    public void calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
+        DistanceCalculations dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, GridDensity);
+        calcDistributions(dci, kernelWeightp);
     }
     
-    private boolean calcDistributions(DistanceCalculations dci, double kernelWeightp) {
+    private void calcDistributions(DistanceCalculations dci, double kernelWeightp) {
         iNearestNeighborDistances = dci.getNearestNeighborsDistances();
         iDistancesDistribution = dci.getDistancesDistribution();
         // TODO: It is not sure if it should be normalized here or later in when calculating CMA. 
@@ -69,8 +67,6 @@ public class Analysis {
         new DistributionsPlot(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution).show();
         PlotHistogram.plot("ObservedDistances", iNearestNeighborDistances, getOptimBins(iNearestNeighborDistances, 8, iNearestNeighborDistances.length / 8));
         IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iNearestNeighborDistances));
-    
-        return true;
     }
 
     public static class Result {
@@ -90,14 +86,14 @@ public class Analysis {
         }
     }
     
-    public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
+    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistances, potentialType, iNearestNeighborDistanceDistribution);
         if (potentialType == PotentialType.NONPARAM) {
             Potential.initializeNonParamWeights(minDistance, maxDistance);
-            bestPointFound = new double[cmaReRunTimes][Potential.NONPARAM_WEIGHT_SIZE - 1];
+            iBestPointsFound = new double[cmaReRunTimes][Potential.NONPARAM_WEIGHT_SIZE - 1];
         }
         else {
-            bestPointFound = new double[cmaReRunTimes][2];
+            iBestPointsFound = new double[cmaReRunTimes][2];
         }
         double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
@@ -134,9 +130,9 @@ public class Analysis {
                     diffFitness = true;
                 }
                 bestFitness = bestFunctionValue[k];
-                bestIndex = k;
+                iBestPointIndex = k;
             }
-            bestPointFound[k] = cma.getBestX();
+            iBestPointsFound[k] = cma.getBestX();
             
             addNewOutputResult(aResultsOutput, bestFunctionValue, k);
         }
@@ -145,20 +141,18 @@ public class Analysis {
             IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
 
-        fitfun.l2Norm(bestPointFound[bestIndex]); // to calc pgrid for best params
-        new EstimatedPotentialPlot(iDistancesDistribution, fitfun.getPotential(bestPointFound[bestIndex]), potentialType, bestPointFound[bestIndex], bestFunctionValue[bestIndex]).show();
+        fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
+        new EstimatedPotentialPlot(iDistancesDistribution, fitfun.getPotential(iBestPointsFound[iBestPointIndex]), potentialType, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
         double[] P_grid = StatisticsUtils.normalizePdf(fitfun.getPGrid(), false);
-        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potentialType, bestPointFound[bestIndex], bestFunctionValue[bestIndex]).show();
-
-        return true;
+        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potentialType, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
     }
 
     private void addNewOutputResult(List<Result> aResultsOutput, double[] allFitness, int k) {
         double strength = 0;
         double thresholdOrScale = 0;
         if (potentialType != PotentialType.NONPARAM) {
-            strength = bestPointFound[k][0];
-            thresholdOrScale = bestPointFound[k][1];
+            strength = iBestPointsFound[k][0];
+            thresholdOrScale = iBestPointsFound[k][1];
         }
         double residual = allFitness[k];
         aResultsOutput.add(new Result(strength, thresholdOrScale, residual));
@@ -244,32 +238,27 @@ public class Analysis {
         cma.println("best function value " + cma.getBestFunctionValue() + " at evaluation " + cma.getBestEvaluationNumber());
     }
  
-    public boolean hypothesisTesting(int monteCarloRunsForTest, double alpha) {
-        if (bestPointFound == null) {
+    public void hypothesisTesting(int monteCarloRunsForTest, double alpha) {
+        if (iBestPointsFound == null) {
             IJ.showMessage("Error: Run estimation first");
-            return false;
         }
         else if (potentialType == PotentialType.NONPARAM) {
             IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
-            return false;
         }
-    
-        System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), 
-                                                           iDistancesDistribution, 
-                                                           iNearestNeighborDistances, 
-                                                           bestPointFound[bestIndex], 
-                                                           potentialType, 
-                                                           monteCarloRunsForTest, alpha);
-        ht.rankTest();
-        return true;
+        else {
+            System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
+            final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iProbabilityOfDistanceDistribution, true), 
+                                                               iDistancesDistribution, 
+                                                               iNearestNeighborDistances, 
+                                                               iBestPointsFound[iBestPointIndex], 
+                                                               potentialType, 
+                                                               monteCarloRunsForTest, alpha);
+            ht.rankTest();
+        }
     }
 
     public static KernelEstimator createkernelDensityEstimator(double[] distances, double weight) {
         final KernelEstimator kernel = new KernelEstimator(0.01);
-        // weight is important, since bandwidth is calculated with it:
-        // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
-        System.out.println("Weight:" + weight);
         for (double value : distances) {
             kernel.addValue(value, weight); 
         }

@@ -81,15 +81,21 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
 
     private void testHypothesis() {
+        if (iAnalysis == null) {
+            IJ.showMessage("Error: Calculate distances first!");
+            return;
+        }
         int monteCarloRunsForTest = Integer.parseInt(monteCarloRuns.getText());
         double alpha = Double.parseDouble(alphaField.getText());
 
-        if (!iAnalysis.hypothesisTesting(monteCarloRunsForTest, alpha)) {
-            IJ.showMessage("Error: Run estimation first");
-        }
+        iAnalysis.hypothesisTesting(monteCarloRunsForTest, alpha);
     }
 
     private void estimatePotential() {
+        if (iAnalysis == null) {
+            IJ.showMessage("Error: Calculate distances first!");
+            return;
+        }
         Potential.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numOfSupportPoints.getText());
         Potential.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothness.getText());
         System.out.println("Weight size changed to:" + Potential.NONPARAM_WEIGHT_SIZE);
@@ -97,26 +103,22 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
         int numReRuns = Integer.parseInt(reRuns.getText());
         PotentialType potentialType = getPotential();
-        System.out.println("Estimating with potential type:" + potentialType);
+        
         iAnalysis.setPotentialType(potentialType); // for the first time
         List<Result> results = new ArrayList<Result>();
-        if (!iAnalysis.cmaOptimization(results, numReRuns)) {
-            IJ.showMessage("Error: Calculate distances first!");
-        }
-        else {
-            if (!Interpreter.batchMode) {
-                final ResultsTable rt = new ResultsTable();
-                for (Analysis.Result r : results) {
-                    rt.incrementCounter();
-                    if (potentialType != PotentialType.NONPARAM) {
-                        rt.addValue("Strength", r.iStrength);
-                        rt.addValue("Threshold/Scale", r.iThresholdScale);
-                    }
-                    rt.addValue("Residual", r.iResidual);
+        iAnalysis.cmaOptimization(results, numReRuns);
+        if (!Interpreter.batchMode) {
+            final ResultsTable rt = new ResultsTable();
+            for (Analysis.Result r : results) {
+                rt.incrementCounter();
+                if (potentialType != PotentialType.NONPARAM) {
+                    rt.addValue("Strength", r.iStrength);
+                    rt.addValue("Threshold/Scale", r.iThresholdScale);
                 }
-                rt.updateResults();
-                rt.show("Results");
+                rt.addValue("Residual", r.iResidual);
             }
+            rt.updateResults();
+            rt.show("Results");
         }
     }
 
@@ -124,7 +126,6 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         double gridDelta = Double.parseDouble(gridSize.getText());
         double qkernelWeight = Double.parseDouble(kernelWeightQ.getText());
         double pkernelWeight = Double.parseDouble(kernelWeightP.getText());
-        iAnalysis = new Analysis();
         float[][][] mask3d = iMaskImg != null ? imageTo3Darray(iMaskImg) : null;
         
         if (isCoordinatesTab()) {
@@ -142,6 +143,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             
             if (iCsvX != null && iCsvY != null) {
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
+                iAnalysis = new Analysis();
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }
             else {
@@ -155,6 +157,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                     IJ.showMessage("Error: Image sizes/scale/unit do not match");
                 }
                 else {
+                    iAnalysis = new Analysis();
                     iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iImgX, iImgY);
                 }
             }
