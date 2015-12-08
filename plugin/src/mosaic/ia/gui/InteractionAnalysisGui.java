@@ -176,11 +176,6 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 }
                 else {
                     iAnalysis = new Analysis();
-                    System.out.println("[ImagePlus] p set to:" + pkernelWeight);
-                    System.out.println("X: " + iImgX.toString());
-                    System.out.println("Y: " + iImgY.toString());
-                    System.out.println("Mask: " + iMaskImg.toString());
-                    System.out.println(mask3d.length + " " + mask3d[0].length + " " + mask3d[0][0].length);
                     iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iImgX, iImgY);
                 }
             }
