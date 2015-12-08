@@ -35,7 +35,8 @@ import ij.plugin.Macro_Runner;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.PotentialFunctions;
+import mosaic.ia.Potential;
+import mosaic.ia.Potential.PotentialType;
 import mosaic.ia.utils.FileUtils;
 
 public class InteractionAnalysisGUI implements ActionListener {
@@ -59,7 +60,7 @@ public class InteractionAnalysisGUI implements ActionListener {
     
     private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
     private JComboBox<String> potentialComboBox;
-    private int potentialType = PotentialFunctions.HERNQUIST;
+    private PotentialType potentialType = PotentialType.HERNQUIST;
     private JFormattedTextField reRuns;
     private JFormattedTextField numSupport, smoothnessNP;
     private JButton estimate;
@@ -173,7 +174,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         
         numSupport.setHorizontalAlignment(SwingConstants.CENTER);
         
-        numSupport.setText("" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);
+        numSupport.setText("" + Potential.NONPARAM_WEIGHT_SIZE);
         numSupport.setColumns(10);
         numSupport.setEnabled(false);
         numSupport.addActionListener(this);
@@ -182,7 +183,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         
         smoothnessNP.setHorizontalAlignment(SwingConstants.CENTER);
         
-        smoothnessNP.setText("" + PotentialFunctions.NONPARAM_SMOOTHNESS);
+        smoothnessNP.setText("" + Potential.NONPARAM_SMOOTHNESS);
         smoothnessNP.setColumns(10);
         smoothnessNP.setEnabled(false);
         smoothnessNP.addActionListener(this);
@@ -467,25 +468,25 @@ public class InteractionAnalysisGUI implements ActionListener {
             System.out.println("Selected: " + selected);
             if (selected == items[5]) {
                 enableNoparamControls(true);
-                potentialType = PotentialFunctions.NONPARAM;
+                potentialType = PotentialType.NONPARAM;
 
             }
             else {
                 enableNoparamControls(false);
                 if (selected == items[0]) {
-                    potentialType = PotentialFunctions.HERNQUIST;
+                    potentialType = PotentialType.HERNQUIST;
                 }
                 else if (selected == items[1]) {
-                    potentialType = PotentialFunctions.STEP;
+                    potentialType = PotentialType.STEP;
                 }
                 else if (selected == items[2]) {
-                    potentialType = PotentialFunctions.L1;
+                    potentialType = PotentialType.L1;
                 }
                 else if (selected == items[3]) {
-                    potentialType = PotentialFunctions.L2;
+                    potentialType = PotentialType.L2;
                 }
                 else if (selected == items[4]) {
-                    potentialType = PotentialFunctions.PlUMMER;
+                    potentialType = PotentialType.PlUMMER;
                 }
             }
         }
@@ -536,8 +537,8 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
         }
         else if (e.getSource() == estimate) {
-            PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
-            PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothnessNP.getText());
+            Potential.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
+            Potential.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothnessNP.getText());
             int numReRuns = Integer.parseInt(reRuns.getText());
 
             System.out.println("Estimating with potential type:" + potentialType);
@@ -551,7 +552,7 @@ public class InteractionAnalysisGUI implements ActionListener {
                     final ResultsTable rt = new ResultsTable();
                     for (Analysis.Result r : results) {
                         rt.incrementCounter();
-                        if (potentialType != PotentialFunctions.NONPARAM) {
+                        if (potentialType != PotentialType.NONPARAM) {
                             rt.addValue("Strength", r.iStrength);
                             rt.addValue("Threshold/Scale", r.iThresholdScale);
                         }
@@ -571,12 +572,12 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
         }
         else if (e.getSource() == numSupport) {
-            PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(e.getActionCommand());
-            System.out.println("Weight size changed to:" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);
+            Potential.NONPARAM_WEIGHT_SIZE = Integer.parseInt(e.getActionCommand());
+            System.out.println("Weight size changed to:" + Potential.NONPARAM_WEIGHT_SIZE);
         }
         else if (e.getSource() == smoothnessNP) {
-            PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(e.getActionCommand());
-            System.out.println("Smoothness:" + PotentialFunctions.NONPARAM_SMOOTHNESS);
+            Potential.NONPARAM_SMOOTHNESS = Double.parseDouble(e.getActionCommand());
+            System.out.println("Smoothness:" + Potential.NONPARAM_SMOOTHNESS);
         }
         else if (e.getSource() == genMask) {
             try {

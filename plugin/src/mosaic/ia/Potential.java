@@ -1,32 +1,36 @@
 package mosaic.ia;
 
+import java.util.Arrays;
 
-public class PotentialFunctions {
+public class Potential {
 
     // for non param, the support points must be close enough so that piece wise linearity makes sense, and remains smooth (non smooth => w1 w2 estim, w2 effects d2-d3)
     public static double[] dp = { 0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.85, 1.9, 1.95, 2 };
     public static double NONPARAM_SMOOTHNESS = .1; // fornonparam penalty; smaller the smoother (smaller => penalty is high => penalty minim gives
     public static int NONPARAM_WEIGHT_SIZE = dp.length;
     
-    public static final int HERNQUIST = 2;
-    public static final int STEP = 1;
-    public static final int L1 = 3;
-    public static final int L2 = 4;
-    public static final int PlUMMER = 5;
-    public static final int NONPARAM = 6;
-    public static final int COULOMB = 7;
-
+    public static enum PotentialType {
+        STEP,
+        HERNQUIST,
+        L1,
+        L2,
+        PlUMMER,
+        NONPARAM,
+        COULOMB
+    }
+    
     public static void initializeNonParamWeights(double min, double max) {
-        System.out.println("# of support points changed to:" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);
-        PotentialFunctions.dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE];
+        dp = new double[NONPARAM_WEIGHT_SIZE];
 
-        System.out.println("Min:" + min + " Max:" + max);
-        final double inc = (max - min) / PotentialFunctions.NONPARAM_WEIGHT_SIZE;
-        final double begin = -inc;
-        for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE; i++) {
-            PotentialFunctions.dp[i] = begin + inc * i;
-            System.out.print(PotentialFunctions.dp[i] + ",");
+        final double delta = (max - min) / (NONPARAM_WEIGHT_SIZE - 1);
+        final double begin = min;
+        for (int i = 0; i < NONPARAM_WEIGHT_SIZE; i++) {
+            dp[i] = begin + delta * i;
         }
+        
+        System.out.println("Number of support points:" + NONPARAM_WEIGHT_SIZE);
+        System.out.println("Min: " + min + " Max: " + max);
+        System.out.println("Points: " + Arrays.toString(dp));
     }
 
     static double stepPotential(double di, double threshold) {

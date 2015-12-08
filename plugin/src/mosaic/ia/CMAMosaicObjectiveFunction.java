@@ -2,6 +2,7 @@ package mosaic.ia;
 
 
 import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
+import mosaic.ia.Potential.PotentialType;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
@@ -10,10 +11,10 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     private final double[] iDistances; // measured NN
     private final double[] D_grid; // at which q is evalueated and p will be sampled
     private double[] P_grid;
-    private final int potentialType;
+    private final PotentialType potentialType;
     private final double[] qofD_grid, observedDGrid;
 
-    public CMAMosaicObjectiveFunction(double[] D_grid, double[] qofD_grid, double[] d, int potentialType, double[] observedDGrid) {
+    public CMAMosaicObjectiveFunction(double[] D_grid, double[] qofD_grid, double[] d, PotentialType potentialType, double[] observedDGrid) {
         this.D_grid = D_grid;
         this.iDistances = d; // data
         this.qofD_grid = qofD_grid;
@@ -36,7 +37,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         // if non param, return true.
         // if param: epsilon >=0 & epsilon <=20 & scale/threshold>min * < max
         
-        if (potentialType == PotentialFunctions.NONPARAM) {
+        if (potentialType == PotentialType.NONPARAM) {
             return true;
         }
         else {
@@ -56,13 +57,13 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     
     @Override
     public double valueOf(double[] x) {
-        if (potentialType == PotentialFunctions.NONPARAM) {
-            final double[] weights = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE];
-            for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
+        if (potentialType == PotentialType.NONPARAM) {
+            final double[] weights = new double[Potential.NONPARAM_WEIGHT_SIZE];
+            for (int i = 0; i < Potential.NONPARAM_WEIGHT_SIZE - 1; i++) {
                 weights[i] = x[i];
             }
-            weights[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1] = 0;
-            return l2Norm(x) + nonParamPenalty(weights, PotentialFunctions.NONPARAM_SMOOTHNESS);
+            weights[Potential.NONPARAM_WEIGHT_SIZE - 1] = 0;
+            return l2Norm(x) + nonParamPenalty(weights, Potential.NONPARAM_SMOOTHNESS);
         }
         else {
             return l2Norm(x);

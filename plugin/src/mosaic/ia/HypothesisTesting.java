@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import ij.IJ;
+import mosaic.ia.Potential.PotentialType;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
@@ -17,13 +18,13 @@ class HypothesisTesting {
     // Potential Calculator
     private final double[] iNearestNeighborDistances;
     private final double[] iBestPointFound; // same convention
-    private final int iPotentialType;
+    private final PotentialType iPotentialType;
     
     // Monte-Carlo params
     private final int iNumOfMcRuns;
     private final double iAlpha;
 
-    public HypothesisTesting(double[] aDistanceCdf, double[] aDistances, double[] aNearestNeighborDistances, double[] aBestPointFound, int aPotentialType, int aNumOfMcRuns, double aAlpha) {
+    public HypothesisTesting(double[] aDistanceCdf, double[] aDistances, double[] aNearestNeighborDistances, double[] aBestPointFound, PotentialType aPotentialType, int aNumOfMcRuns, double aAlpha) {
         iDistanceCdf = aDistanceCdf;
         iDistances = aDistances;
         iBestPointFound = aBestPointFound;

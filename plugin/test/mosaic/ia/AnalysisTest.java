@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
+import mosaic.ia.Potential.PotentialType;
 import mosaic.ia.utils.FileUtils;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
@@ -54,7 +55,7 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialFunctions.HERNQUIST);
+        analysis.setPotentialType(PotentialType.HERNQUIST);
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
         System.out.println(results);
@@ -93,11 +94,11 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialFunctions.NONPARAM);
+        analysis.setPotentialType(PotentialType.NONPARAM);
         
-        PotentialFunctions.NONPARAM_WEIGHT_SIZE = 41;
-        PotentialFunctions.NONPARAM_SMOOTHNESS = 0.1;
-        PotentialFunctions.initializeNonParamWeights(analysis.getMinD(), analysis.getMaxD());
+        Potential.NONPARAM_WEIGHT_SIZE = 41;
+        Potential.NONPARAM_SMOOTHNESS = 0.1;
+        Potential.initializeNonParamWeights(analysis.getMinD(), analysis.getMaxD());
         
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
@@ -121,7 +122,7 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.418188, analysis.getMinD(), epsilon);
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialFunctions.STEP);
+        analysis.setPotentialType(PotentialType.STEP);
 
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);

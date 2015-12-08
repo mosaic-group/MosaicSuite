@@ -9,6 +9,7 @@ import javax.vecmath.Point3d;
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
+import mosaic.ia.Potential.PotentialType;
 import mosaic.ia.gui.DistributionsPlot;
 import mosaic.ia.gui.EstimatedPotentialPlot;
 import mosaic.ia.gui.PlotHistogram;
@@ -20,7 +21,7 @@ import weka.estimators.KernelEstimator;
 public class Analysis {
     private static final int GridDensity = 1000;
     
-    private int potentialType;
+    private PotentialType potentialType;
 
     private double[] iDistancesDistribution;
     private double[] iProbabilityOfDistanceDistribution;
@@ -91,9 +92,9 @@ public class Analysis {
     
     public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistances, potentialType, iNearestNeighborDistanceDistribution);
-        if (potentialType == PotentialFunctions.NONPARAM) {
-            PotentialFunctions.initializeNonParamWeights(minDistance, maxDistance);
-            bestPointFound = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
+        if (potentialType == PotentialType.NONPARAM) {
+            Potential.initializeNonParamWeights(minDistance, maxDistance);
+            bestPointFound = new double[cmaReRunTimes][Potential.NONPARAM_WEIGHT_SIZE - 1];
         }
         else {
             bestPointFound = new double[cmaReRunTimes][2];
@@ -155,7 +156,7 @@ public class Analysis {
     private void addNewOutputResult(List<Result> aResultsOutput, double[] allFitness, int k) {
         double strength = 0;
         double thresholdOrScale = 0;
-        if (potentialType != PotentialFunctions.NONPARAM) {
+        if (potentialType != PotentialType.NONPARAM) {
             strength = bestPointFound[k][0];
             thresholdOrScale = bestPointFound[k][1];
         }
@@ -184,18 +185,18 @@ public class Analysis {
         cma.options.stopFitness = 1e-12; // optional setting
         cma.options.stopTolFun = 1e-15;
         final Random rn = new Random(System.nanoTime());
-        if (potentialType == PotentialFunctions.NONPARAM) {
-            cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
-            final double[] initialX = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-            final double[] initialsigma = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-            for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
+        if (potentialType == PotentialType.NONPARAM) {
+            cma.setDimension(Potential.NONPARAM_WEIGHT_SIZE - 1);
+            final double[] initialX = new double[Potential.NONPARAM_WEIGHT_SIZE - 1];
+            final double[] initialsigma = new double[Potential.NONPARAM_WEIGHT_SIZE - 1];
+            for (int i = 0; i < Potential.NONPARAM_WEIGHT_SIZE - 1; i++) {
                 initialX[i] = meanDistance * rn.nextDouble();
                 initialsigma[i] = initialX[i] / 3;
             }
             cma.setInitialX(initialX);
             cma.setInitialStandardDeviations(initialsigma);
         }
-        else if (potentialType == PotentialFunctions.STEP) {
+        else if (potentialType == PotentialType.STEP) {
             cma.setDimension(2);
             final double[] initialX = new double[2];
             final double[] initialsigma = new double[2];
@@ -248,7 +249,7 @@ public class Analysis {
             IJ.showMessage("Error: Run estimation first");
             return false;
         }
-        else if (potentialType == PotentialFunctions.NONPARAM) {
+        else if (potentialType == PotentialType.NONPARAM) {
             IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
             return false;
         }
@@ -327,7 +328,7 @@ public class Analysis {
         return iNearestNeighborDistances;
     }
     
-    public void setPotentialType(int potentialType) {
+    public void setPotentialType(PotentialType potentialType) {
         this.potentialType = potentialType;
     }
 }
