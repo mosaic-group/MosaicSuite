@@ -11,17 +11,17 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
 public class EstimatedPotentialPlot extends BasePlot {
     
-    public EstimatedPotentialPlot(final double[] aDistances, final double[] aPotential, Potential aPotentialType, double[] aBestPointFound, double aBestFunctionValue) {
-        plot = new Plot("Estimated potential", "distance", "Potential value", aDistances, aPotential);
-        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(aPotential);
+    public EstimatedPotentialPlot(final double[] aDistances, final double[] aPotentialValues, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
+        plot = new Plot("Estimated potential", "distance", "Potential value", aDistances, aPotentialValues);
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(aPotentialValues);
         plot.setLimits(aDistances[0] - 1, aDistances[aDistances.length - 1], mmm.min, mmm.max);
         plot.setColor(Color.BLUE);
         plot.setLineWidth(2);
-        addDescription(aPotentialType, aBestPointFound, aBestFunctionValue);
+        addDescription(aPotential, aBestPointFound, aBestFunctionValue);
         
         // In case of non parametric potential, create additional plot with weights of points
-        if (aPotentialType.getType() == PotentialType.NONPARAM) {
-            PotentialNoParam noParam = (PotentialNoParam) aPotentialType;
+        if (aPotential.getType() == PotentialType.NONPARAM) {
+            PotentialNoParam noParam = (PotentialNoParam) aPotential;
             double[] dp = noParam.getSupportPoints();
             final Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:", "Support", "Weight");
             mmm = StatisticsUtils.getMinMaxMean(aBestPointFound);
