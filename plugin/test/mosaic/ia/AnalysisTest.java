@@ -12,8 +12,7 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.Potential.PotentialType;
-import mosaic.ia.utils.FileUtils;
+import mosaic.ia.Potentials.PotentialType;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
@@ -42,8 +41,8 @@ public class AnalysisTest extends CommonBase {
         analysis.calcDist(0.5, 0.001, 2.974, null, x, y, 0, 5, 0, 5, 0, 0);
         
         double epsilon = 1e-10;
-        assertEquals(0, analysis.getMinD(), epsilon);
-        assertEquals(2, analysis.getMaxD(), epsilon);
+        assertEquals(0, analysis.getMinDistance(), epsilon);
+        assertEquals(2, analysis.getMaxDistance(), epsilon);
         assertArrayEquals(new double[] {2, 1, 0, 1, 2}, analysis.getDistances(), epsilon);
     }
 
@@ -52,10 +51,10 @@ public class AnalysisTest extends CommonBase {
         Analysis analysis = prepereIaForTest();
         
         double epsilon = 1e-6;
-        assertEquals(0.418188, analysis.getMinD(), epsilon);
-        assertEquals(112.924864, analysis.getMaxD(), epsilon);
+        assertEquals(0.418188, analysis.getMinDistance(), epsilon);
+        assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialType.HERNQUIST);
+        analysis.setPotentialType(Potentials.createPotential(PotentialType.HERNQUIST));
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
         System.out.println(results);
@@ -91,14 +90,10 @@ public class AnalysisTest extends CommonBase {
         Analysis analysis = prepereIaForTest();
         
         double epsilon = 1e-6;
-        assertEquals(0.418188, analysis.getMinD(), epsilon);
-        assertEquals(112.924864, analysis.getMaxD(), epsilon);
+        assertEquals(0.418188, analysis.getMinDistance(), epsilon);
+        assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialType.NONPARAM);
-        
-        Potential.NONPARAM_WEIGHT_SIZE = 41;
-        Potential.NONPARAM_SMOOTHNESS = 0.1;
-        Potential.initializeNonParamWeights(analysis.getMinD(), analysis.getMaxD());
+        analysis.setPotentialType(Potentials.createPotential(PotentialType.NONPARAM, analysis.getMinDistance(), analysis.getMaxDistance(), 41, 0.1));
         
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
@@ -119,11 +114,11 @@ public class AnalysisTest extends CommonBase {
         Analysis analysis = prepereIaForTest();
         
         double epsilon = 1e-6;
-        assertEquals(0.418188, analysis.getMinD(), epsilon);
-        assertEquals(112.924864, analysis.getMaxD(), epsilon);
+        assertEquals(0.418188, analysis.getMinDistance(), epsilon);
+        assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
-        analysis.setPotentialType(PotentialType.STEP);
-
+        analysis.setPotentialType(Potentials.createPotential(PotentialType.STEP));
+        
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
         System.out.println(results);

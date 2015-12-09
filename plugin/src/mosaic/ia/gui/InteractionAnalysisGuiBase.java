@@ -20,8 +20,6 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 
-import mosaic.ia.Potential;
-
 /**
  * This class contain GUI creation stuff (probably back in time generated in NetBeans or sth).
  * It was shamelessly moved here to make GUI processing (subclass of it) more clear
@@ -153,7 +151,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         
         numOfSupportPoints.setHorizontalAlignment(SwingConstants.CENTER);
         
-        numOfSupportPoints.setText("" + Potential.NONPARAM_WEIGHT_SIZE);
+        numOfSupportPoints.setText("41");
         numOfSupportPoints.setColumns(10);
         numOfSupportPoints.setEnabled(false);
         numOfSupportPoints.addActionListener(this);
@@ -162,7 +160,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         
         smoothness.setHorizontalAlignment(SwingConstants.CENTER);
         
-        smoothness.setText("" + Potential.NONPARAM_SMOOTHNESS);
+        smoothness.setText("0.1");
         smoothness.setColumns(10);
         smoothness.setEnabled(false);
         smoothness.addActionListener(this);

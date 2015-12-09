@@ -4,7 +4,7 @@ import java.awt.Color;
 
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
-import mosaic.ia.Potential.PotentialType;
+import mosaic.ia.Potentials.Potential;
 import net.sf.javaml.utils.ArrayUtils;
 
 /**
@@ -22,7 +22,7 @@ public class DistributionsPlot extends BasePlot {
         drawProbabilityOfDistance(aX, aQ);
     }
     
-    public DistributionsPlot(double[] aDistances, double[] aModelFit, double[] aProbabilityOfDistance, double[] aNearestNeighborDistance, PotentialType aPotentialType, double[] aBestPointFound, double aBestFunctionValue) {
+    public DistributionsPlot(double[] aDistances, double[] aModelFit, double[] aProbabilityOfDistance, double[] aNearestNeighborDistance, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
         double max = Math.max(ArrayUtils.max(aProbabilityOfDistance), Math.max(ArrayUtils.max(aNearestNeighborDistance), ArrayUtils.max(aModelFit)));
         plot = new Plot("Distance distributions", "Distance", "Probability density");
         plot.setLimits(aDistances[0], aDistances[aDistances.length - 1], 0, max);
@@ -31,7 +31,7 @@ public class DistributionsPlot extends BasePlot {
         drawNearestNeighborDistances(aDistances, aNearestNeighborDistance);
         drawProbabilityOfDistance(aDistances, aProbabilityOfDistance);
         drawModelFit(aDistances, aModelFit);
-        addDescription(aPotentialType, aBestPointFound, aBestFunctionValue);
+        addDescription(aPotential, aBestPointFound, aBestFunctionValue);
     }
 
     private void drawModelFit(double[] aDistances, double[] aModelFit) {

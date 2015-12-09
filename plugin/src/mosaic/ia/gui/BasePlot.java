@@ -3,7 +3,8 @@ package mosaic.ia.gui;
 import java.text.DecimalFormat;
 
 import ij.gui.Plot;
-import mosaic.ia.Potential.PotentialType;
+import mosaic.ia.Potentials.Potential;
+import mosaic.ia.Potentials.PotentialType;
 
 abstract public class BasePlot {
     protected Plot plot;
@@ -13,14 +14,14 @@ abstract public class BasePlot {
         plot.show();
     }
     
-    protected void addDescription(PotentialType aPotentialType, double[] aBestPointFound, double aBestFunctionValue) {
+    protected void addDescription(Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
         final DecimalFormat format = new DecimalFormat("#.####E0");
-        if (aPotentialType == PotentialType.STEP) {
+        if (aPotential.getType() == PotentialType.STEP) {
             plot.addLabel(.65, .6, "Strength: " + format.format(aBestPointFound[0]));
             plot.addLabel(.65, .7, "Threshold: " + format.format(aBestPointFound[1]));
             plot.addLabel(.65, .8, "Residual: " + format.format(aBestFunctionValue));
         }
-        else if (aPotentialType == PotentialType.NONPARAM) {
+        else if (aPotential.getType() == PotentialType.NONPARAM) {
             plot.addLabel(.65, .6, "Residual: " + format.format(aBestFunctionValue));
         }
         else {

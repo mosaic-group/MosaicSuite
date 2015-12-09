@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import ij.IJ;
-import mosaic.ia.Potential.PotentialType;
+import mosaic.ia.Potentials.Potential;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
@@ -17,18 +17,18 @@ class HypothesisTesting {
     
     // Potential Calculator
     private final double[] iNearestNeighborDistances;
-    private final double[] iBestPointFound; // same convention
-    private final PotentialType iPotentialType;
+    private final double[] iBestPointFound;
+    private final Potential iPotential;
     
     // Monte-Carlo params
     private final int iNumOfMcRuns;
     private final double iAlpha;
 
-    public HypothesisTesting(double[] aDistanceCdf, double[] aDistances, double[] aNearestNeighborDistances, double[] aBestPointFound, PotentialType aPotentialType, int aNumOfMcRuns, double aAlpha) {
+    public HypothesisTesting(double[] aDistanceCdf, double[] aDistances, double[] aNearestNeighborDistances, double[] aBestPointFound, Potential aPotential, int aNumOfMcRuns, double aAlpha) {
         iDistanceCdf = aDistanceCdf;
         iDistances = aDistances;
         iBestPointFound = aBestPointFound;
-        iPotentialType = aPotentialType;
+        iPotential = aPotential;
         iNearestNeighborDistances = aNearestNeighborDistances;
         iNumOfMcRuns = aNumOfMcRuns;
         iAlpha = aAlpha;
@@ -39,10 +39,9 @@ class HypothesisTesting {
         double[] T = new double[iNumOfMcRuns];
         calculateT(DRand, T);
         
-        final PotentialCalculator pcOb = new PotentialCalculator(iNearestNeighborDistances, iBestPointFound, iPotentialType);
-        pcOb.calculateWOEpsilon();
+        iPotential.calculateWithoutEpsilon(iNearestNeighborDistances, iBestPointFound);
 
-        double Tob = -1 * pcOb.getSumPotential();
+        double Tob = -1 * iPotential.getSumPotential();
         int i = 0;
         for (i = 0; i < iNumOfMcRuns; i++) {
             if (Tob <= T[i]) {
@@ -76,9 +75,8 @@ class HypothesisTesting {
     private void calculateT(double[] DRand, double[] T) {
         for (int i = 0; i < iNumOfMcRuns; i++) {
             generateRandomDistances(DRand);
-            final PotentialCalculator pc = new PotentialCalculator(DRand, iBestPointFound, iPotentialType);
-            pc.calculateWOEpsilon();
-            T[i] = -1 * pc.getSumPotential();
+            iPotential.calculateWithoutEpsilon(DRand, iBestPointFound);
+            T[i] = -1 * iPotential.getSumPotential();
         }
         Arrays.sort(T);
     }

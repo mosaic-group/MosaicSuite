@@ -19,10 +19,11 @@ import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
+import mosaic.ia.FileUtils;
 import mosaic.ia.Analysis.Result;
-import mosaic.ia.Potential;
-import mosaic.ia.Potential.PotentialType;
-import mosaic.ia.utils.FileUtils;
+import mosaic.ia.Potentials;
+import mosaic.ia.Potentials.Potential;
+import mosaic.ia.Potentials.PotentialType;
 
 
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
@@ -96,22 +97,21 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             IJ.showMessage("Error: Calculate distances first!");
             return;
         }
-        Potential.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numOfSupportPoints.getText());
-        Potential.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothness.getText());
-        System.out.println("Weight size changed to:" + Potential.NONPARAM_WEIGHT_SIZE);
-        System.out.println("Smoothness:" + Potential.NONPARAM_SMOOTHNESS);
+        int numOfSupportPointsValue = Integer.parseInt(numOfSupportPoints.getText());
+        double smoothnessValue = Double.parseDouble(smoothness.getText());
+        System.out.println("Weight size changed to:" + numOfSupportPointsValue);
+        System.out.println("Smoothness:" + smoothnessValue);
 
         int numReRuns = Integer.parseInt(reRuns.getText());
-        PotentialType potentialType = getPotential();
-        
-        iAnalysis.setPotentialType(potentialType); // for the first time
+        Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
+        iAnalysis.setPotentialType(potential); // for the first time
         List<Result> results = new ArrayList<Result>();
         iAnalysis.cmaOptimization(results, numReRuns);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
             for (Analysis.Result r : results) {
                 rt.incrementCounter();
-                if (potentialType != PotentialType.NONPARAM) {
+                if (getPotential() != PotentialType.NONPARAM) {
                     rt.addValue("Strength", r.iStrength);
                     rt.addValue("Threshold/Scale", r.iThresholdScale);
                 }

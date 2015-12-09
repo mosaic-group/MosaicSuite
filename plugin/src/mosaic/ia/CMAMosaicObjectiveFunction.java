@@ -2,7 +2,9 @@ package mosaic.ia;
 
 
 import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
-import mosaic.ia.Potential.PotentialType;
+import mosaic.ia.Potentials.Potential;
+import mosaic.ia.Potentials.PotentialNoParam;
+import mosaic.ia.Potentials.PotentialType;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
@@ -11,10 +13,10 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     private final double[] iDistances; // measured NN
     private final double[] D_grid; // at which q is evalueated and p will be sampled
     private double[] P_grid;
-    private final PotentialType potentialType;
+    private final Potential potentialType;
     private final double[] qofD_grid, observedDGrid;
 
-    public CMAMosaicObjectiveFunction(double[] D_grid, double[] qofD_grid, double[] d, PotentialType potentialType, double[] observedDGrid) {
+    public CMAMosaicObjectiveFunction(double[] D_grid, double[] qofD_grid, double[] d, Potential potentialType, double[] observedDGrid) {
         this.D_grid = D_grid;
         this.iDistances = d; // data
         this.qofD_grid = qofD_grid;
@@ -37,7 +39,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         // if non param, return true.
         // if param: epsilon >=0 & epsilon <=20 & scale/threshold>min * < max
         
-        if (potentialType == PotentialType.NONPARAM) {
+        if (potentialType.getType() == PotentialType.NONPARAM) {
             return true;
         }
         else {
@@ -57,13 +59,14 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     
     @Override
     public double valueOf(double[] x) {
-        if (potentialType == PotentialType.NONPARAM) {
-            final double[] weights = new double[Potential.NONPARAM_WEIGHT_SIZE];
-            for (int i = 0; i < Potential.NONPARAM_WEIGHT_SIZE - 1; i++) {
+        if (potentialType.getType() == PotentialType.NONPARAM) {
+            PotentialNoParam noParam = (PotentialNoParam) potentialType;
+            final double[] weights = new double[potentialType.numOfDimensions() + 1];
+            for (int i = 0; i < potentialType.numOfDimensions(); i++) {
                 weights[i] = x[i];
             }
-            weights[Potential.NONPARAM_WEIGHT_SIZE - 1] = 0;
-            return l2Norm(x) + nonParamPenalty(weights, Potential.NONPARAM_SMOOTHNESS);
+            weights[potentialType.numOfDimensions()] = 0;
+            return l2Norm(x) + nonParamPenalty(weights, noParam.getSmoothness());
         }
         else {
             return l2Norm(x);
@@ -71,9 +74,8 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     }
     
     public double[] getPotential(double[] params) {
-        PotentialCalculator pc = new PotentialCalculator(D_grid, params, potentialType);
-        pc.calculate();
-        return pc.getPotential();
+        potentialType.calculate(D_grid, params);
+        return potentialType.getPotential();
     }
     
     public double l2Norm(double[] params) {
@@ -95,9 +97,8 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     }
     
     private double[] getGibbsPotential(double[] params) {
-        PotentialCalculator pc = new PotentialCalculator(D_grid, params, potentialType);
-        pc.calculate();
-        return pc.getGibbsPotential();
+        potentialType.calculate(D_grid, params);
+        return potentialType.getGibbsPotential();
     }
 
     private double nonParamPenalty(double[] weights, double s) {

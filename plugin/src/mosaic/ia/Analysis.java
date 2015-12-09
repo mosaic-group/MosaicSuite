@@ -9,7 +9,8 @@ import javax.vecmath.Point3d;
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
-import mosaic.ia.Potential.PotentialType;
+import mosaic.ia.Potentials.Potential;
+import mosaic.ia.Potentials.PotentialType;
 import mosaic.ia.gui.DistributionsPlot;
 import mosaic.ia.gui.EstimatedPotentialPlot;
 import mosaic.ia.gui.PlotHistogram;
@@ -17,11 +18,10 @@ import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 import weka.estimators.KernelEstimator;
 
-
 public class Analysis {
     private static final int GridDensity = 1000;
     
-    private PotentialType potentialType;
+    private Potential potential;
 
     private double[] iDistancesDistribution;
     private double[] iProbabilityOfDistanceDistribution;
@@ -87,19 +87,18 @@ public class Analysis {
     }
     
     public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
-        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistances, potentialType, iNearestNeighborDistanceDistribution);
-        if (potentialType == PotentialType.NONPARAM) {
-            Potential.initializeNonParamWeights(minDistance, maxDistance);
-            iBestPointsFound = new double[cmaReRunTimes][Potential.NONPARAM_WEIGHT_SIZE - 1];
+        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(iDistancesDistribution, iProbabilityOfDistanceDistribution, iNearestNeighborDistances, potential, iNearestNeighborDistanceDistribution);
+        if (potential.getType() == PotentialType.NONPARAM) {
+            iBestPointsFound = new double[cmaReRunTimes][potential.numOfDimensions()];
         }
         else {
-            iBestPointsFound = new double[cmaReRunTimes][2];
+            iBestPointsFound = new double[cmaReRunTimes][potential.numOfDimensions()];
         }
         double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
         
-        for (int k = 0; k < cmaReRunTimes; k++) {
+        for (int cmaRunNumber = 0; cmaRunNumber < cmaReRunTimes; cmaRunNumber++) {
             final CMAEvolutionStrategy cma = createNewConfiguredCma();
             final double[] fitness = cma.init();
 
@@ -124,17 +123,17 @@ public class Analysis {
             cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX()));
             printCmaResultInfo(cma);
 
-            bestFunctionValue[k] = cma.getBestFunctionValue();
-            if (bestFunctionValue[k] < bestFitness) {
-                if (k > 0 && bestFitness - bestFunctionValue[k] > bestFunctionValue[k] * 0.00001) {
+            bestFunctionValue[cmaRunNumber] = cma.getBestFunctionValue();
+            if (bestFunctionValue[cmaRunNumber] < bestFitness) {
+                if (cmaRunNumber > 0 && bestFitness - bestFunctionValue[cmaRunNumber] > bestFunctionValue[cmaRunNumber] * 0.00001) {
                     diffFitness = true;
                 }
-                bestFitness = bestFunctionValue[k];
-                iBestPointIndex = k;
+                bestFitness = bestFunctionValue[cmaRunNumber];
+                iBestPointIndex = cmaRunNumber;
             }
-            iBestPointsFound[k] = cma.getBestX();
+            iBestPointsFound[cmaRunNumber] = cma.getBestX();
             
-            addNewOutputResult(aResultsOutput, bestFunctionValue, k);
+            addNewOutputResult(aResultsOutput, bestFunctionValue[cmaRunNumber], iBestPointsFound[cmaRunNumber]);
         }
 
         if (diffFitness) {
@@ -142,19 +141,19 @@ public class Analysis {
         }
 
         fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
-        new EstimatedPotentialPlot(iDistancesDistribution, fitfun.getPotential(iBestPointsFound[iBestPointIndex]), potentialType, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        new EstimatedPotentialPlot(iDistancesDistribution, fitfun.getPotential(iBestPointsFound[iBestPointIndex]), potential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
         double[] P_grid = StatisticsUtils.normalizePdf(fitfun.getPGrid(), false);
-        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potentialType, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        new DistributionsPlot(iDistancesDistribution, P_grid, iProbabilityOfDistanceDistribution, iNearestNeighborDistanceDistribution, potential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
     }
 
-    private void addNewOutputResult(List<Result> aResultsOutput, double[] allFitness, int k) {
+    private void addNewOutputResult(List<Result> aResultsOutput, double aBestFunctionValue, double[] aBestPointFound) {
         double strength = 0;
         double thresholdOrScale = 0;
-        if (potentialType != PotentialType.NONPARAM) {
-            strength = iBestPointsFound[k][0];
-            thresholdOrScale = iBestPointsFound[k][1];
+        if (potential.getType() != PotentialType.NONPARAM) {
+            strength = aBestPointFound[0];
+            thresholdOrScale = aBestPointFound[1];
         }
-        double residual = allFitness[k];
+        double residual = aBestFunctionValue;
         aResultsOutput.add(new Result(strength, thresholdOrScale, residual));
     }
 
@@ -178,54 +177,34 @@ public class Analysis {
         cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
         cma.options.stopFitness = 1e-12; // optional setting
         cma.options.stopTolFun = 1e-15;
+        cma.setDimension(potential.numOfDimensions());
+        
+        final double[] initialX = new double[potential.numOfDimensions()];
+        final double[] initialSigma = new double[potential.numOfDimensions()];
         final Random rn = new Random(System.nanoTime());
-        if (potentialType == PotentialType.NONPARAM) {
-            cma.setDimension(Potential.NONPARAM_WEIGHT_SIZE - 1);
-            final double[] initialX = new double[Potential.NONPARAM_WEIGHT_SIZE - 1];
-            final double[] initialsigma = new double[Potential.NONPARAM_WEIGHT_SIZE - 1];
-            for (int i = 0; i < Potential.NONPARAM_WEIGHT_SIZE - 1; i++) {
+        if (potential.getType() == PotentialType.NONPARAM) {
+            for (int i = 0; i < potential.numOfDimensions(); i++) {
                 initialX[i] = meanDistance * rn.nextDouble();
-                initialsigma[i] = initialX[i] / 3;
+                initialSigma[i] = initialX[i] / 3;
             }
-            cma.setInitialX(initialX);
-            cma.setInitialStandardDeviations(initialsigma);
-        }
-        else if (potentialType == PotentialType.STEP) {
-            cma.setDimension(2);
-            final double[] initialX = new double[2];
-            final double[] initialsigma = new double[2];
-            initialX[0] = rn.nextDouble() * 5; // epsilon. average strength of 5
-
-            if (meanDistance != 0) {
-                initialX[1] = rn.nextDouble() * meanDistance;
-                initialsigma[1] = initialX[1] / 3;
-            }
-            else {
-                initialX[1] = 0;
-                initialsigma[1] = 1E-3;
-            }
-            initialsigma[0] = initialX[0] / 3;
-            cma.setTypicalX(initialX);
-            cma.setInitialStandardDeviations(initialsigma);
         }
         else {
-            cma.setDimension(2);
-            final double[] initialX = new double[2];
-            final double[] initialsigma = new double[2];
+            // For other than NOPARAM potentials dimensions are always = 2
             initialX[0] = rn.nextDouble() * 5; // epsilon. average strength of 5
-
             if (meanDistance != 0) {
                 initialX[1] = rn.nextDouble() * meanDistance;
-                initialsigma[1] = initialX[1] / 3;
+                initialSigma[1] = initialX[1] / 3;
             }
             else {
                 initialX[1] = 0;
-                initialsigma[1] = 1E-3;
+                initialSigma[1] = 1E-3;
             }
-            initialsigma[0] = initialX[0] / 3;
-            cma.setTypicalX(initialX);
-            cma.setInitialStandardDeviations(initialsigma);
+            initialSigma[0] = initialX[0] / 3;
         }
+        
+        cma.setTypicalX(initialX);
+        cma.setInitialStandardDeviations(initialSigma);
+        
         return cma;
     }
 
@@ -242,7 +221,7 @@ public class Analysis {
         if (iBestPointsFound == null) {
             IJ.showMessage("Error: Run estimation first");
         }
-        else if (potentialType == PotentialType.NONPARAM) {
+        else if (potential.getType() == PotentialType.NONPARAM) {
             IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
         }
         else {
@@ -251,7 +230,7 @@ public class Analysis {
                                                                iDistancesDistribution, 
                                                                iNearestNeighborDistances, 
                                                                iBestPointsFound[iBestPointIndex], 
-                                                               potentialType, 
+                                                               potential, 
                                                                monteCarloRunsForTest, alpha);
             ht.rankTest();
         }
@@ -305,11 +284,11 @@ public class Analysis {
         return ((1.0d / distances.length) * (range / bw) * (range / bw));
     }
     
-    public double getMinD() {
+    public double getMinDistance() {
         return minDistance;
     }
 
-    public double getMaxD() {
+    public double getMaxDistance() {
         return maxDistance;
     }
 
@@ -317,7 +296,7 @@ public class Analysis {
         return iNearestNeighborDistances;
     }
     
-    public void setPotentialType(PotentialType potentialType) {
-        this.potentialType = potentialType;
+    public void setPotentialType(Potential potentialType) {
+        this.potential = potentialType;
     }
 }
