@@ -8,7 +8,10 @@ import mosaic.ia.Potentials.PotentialType;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
-
+/**
+ * Fit function for CMA-ES minimalization. Its value is l2 norm (squared) between nearest neighbour PDF
+ * and observed NN distances PDF (calculated for given potential).
+ */
 class FitFunction extends AbstractObjectiveFunction {
     private final double[] iNearestNeighborDistances;
     private final double[] iDistancesGrid;

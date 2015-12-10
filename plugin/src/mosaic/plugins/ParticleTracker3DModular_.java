@@ -1058,18 +1058,24 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
         // default is not to filter any trajectories (min length of zero)
         fod.addNumericField("Only keep trajectories longer than", 0, 0, 10, "frames");
+        fod.addNumericField("Show only trajectory with ID:", 0, 0, 10, " (0 means - show All)");
 
         fod.showDialog();
         if (fod.wasCanceled()) {
             return false;
         }
         final int min_length_to_display = (int) fod.getNextNumber();
-
+        int idToShow = (int) fod.getNextNumber();
+        if (idToShow < 0 || idToShow > all_traj.size()) {
+            IJ.showMessage("ID of trajectory to filter is not valid. All trajectories will be displayed");
+            idToShow = 0;
+        }
+        
         int passed_traj = 0;
         final Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
             final Trajectory curr_traj = iter.next();
-            if (curr_traj.length <= min_length_to_display) {
+            if (curr_traj.length <= min_length_to_display || (idToShow != 0 && curr_traj.serial_number != idToShow)) {
                 curr_traj.to_display = false;
             }
             else {
