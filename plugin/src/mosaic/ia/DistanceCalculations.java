@@ -26,7 +26,7 @@ public abstract class DistanceCalculations {
 
     // Internal data structures
     private double[] iDistances;
-    private double[] iDistancesDistribution;
+    private double[] iDistancesGrid;
     private double[] iProbabilityDistribution;
 
     DistanceCalculations(float[][][] mask, double aDeltaStepLength, double aKernelWeight, int aNumberOfBins) {
@@ -40,8 +40,8 @@ public abstract class DistanceCalculations {
         return iProbabilityDistribution;
     }
     
-    public double[] getDistancesDistribution() {
-        return iDistancesDistribution;
+    public double[] getDistancesGrid() {
+        return iDistancesGrid;
     }
 
     public double[] getNearestNeighborsDistances() {
@@ -89,10 +89,10 @@ public abstract class DistanceCalculations {
         System.out.println("Maximum/Minimum distance found: " + max + " " + min);
         System.out.println("Bin lenght: " + binLength);
 
-        iDistancesDistribution = new double[iNumberOfBins];
+        iDistancesGrid = new double[iNumberOfBins];
         iProbabilityDistribution = new double[iNumberOfBins];
         for (int i = 0; i < iNumberOfBins; i++) {
-            iDistancesDistribution[i] = i * binLength;
+            iDistancesGrid[i] = i * binLength;
             iProbabilityDistribution[i] = kernelEstimator.getProbability(i * binLength);
         }
     }

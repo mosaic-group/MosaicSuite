@@ -35,7 +35,7 @@ public class DistanceCalculationsTest {
         double[] expectedDistances = new double [] {1.4142135623730951, 2.0};
         
         assertArrayEquals(expectedDistances, distnace.getNearestNeighborsDistances(), 0.001);
-        assertArrayEquals(expectedDistrDistance, distnace.getDistancesDistribution(), 0.001);
+        assertArrayEquals(expectedDistrDistance, distnace.getDistancesGrid(), 0.001);
         assertArrayEquals(expectedDistrProbability, distnace.getProbabilityOfDistancesDistribution(), 0.001);
     }
     
@@ -75,7 +75,7 @@ public class DistanceCalculationsTest {
         double[] expectedDistances = new double [] {1.0, Math.sqrt(2.0)};
         
         assertArrayEquals(expectedDistances, distnace.getNearestNeighborsDistances(), 0.001);
-        assertArrayEquals(expectedDistrDistance, distnace.getDistancesDistribution(), 0.001);
+        assertArrayEquals(expectedDistrDistance, distnace.getDistancesGrid(), 0.001);
         assertArrayEquals(expectedDistrProbability, distnace.getProbabilityOfDistancesDistribution(), 0.001);
     }
 }

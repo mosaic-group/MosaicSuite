@@ -58,8 +58,8 @@ public class Potentials {
      */
     public static abstract class Potential {
         
-        public abstract void calculate(double[] aDistances, double[] aParameters);
-        public abstract void calculateWithoutEpsilon(double[] aDistances, double[] aParameters);
+        public abstract Potential calculate(double[] aDistances, double[] aParameters);
+        public abstract Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters);
         public abstract int numOfDimensions();
         public abstract PotentialType getType();
         
@@ -103,13 +103,15 @@ public class Potentials {
         public int numOfDimensions() {return iSupportPoints.length - 1;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             calc(aDistances, aParameters);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             calc(aDistances, aParameters);
+            return this;
         }
         
         public void calc(double[] aDistances, double[] aParameters) {
@@ -151,17 +153,19 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = Math.abs(aParameters[1]);
             final double epsilon = Math.abs(aParameters[0]);
             calc(aDistances, threshold, epsilon);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = Math.abs(aParameters[1]);
             final double epsilon = 1.0;
             calc(aDistances, threshold, epsilon);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon) {
@@ -193,19 +197,21 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
             final double epsilon = Math.abs(aParameters[0]);
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
             final double epsilon = 1;
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon, double sigma) {
@@ -238,19 +244,21 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = 1;
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon, double sigma) {
@@ -283,19 +291,21 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = Math.abs(aParameters[0]);
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = 1;
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon, double sigma) {
@@ -331,19 +341,21 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = 1;
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon, double sigma) {
@@ -376,19 +388,21 @@ public class Potentials {
         public int numOfDimensions() {return 2;}
         
         @Override
-        public void calculate(double[] aDistances, double[] aParameters) {
+        public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         @Override
-        public void calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
+        public Potential calculateWithoutEpsilon(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
             final double epsilon = 1;
             calc(aDistances, threshold, epsilon, sigma);
+            return this;
         }
         
         public void calc(double[] aDistances, double threshold, double epsilon, double sigma) {

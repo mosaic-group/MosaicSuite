@@ -4,16 +4,18 @@ import java.awt.Color;
 
 import ij.gui.Plot;
 import mosaic.ia.Potentials.Potential;
-import mosaic.ia.Potentials.PotentialType;
 import mosaic.ia.Potentials.PotentialNoParam;
+import mosaic.ia.Potentials.PotentialType;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
 public class EstimatedPotentialPlot extends BasePlot {
     
-    public EstimatedPotentialPlot(final double[] aDistances, final double[] aPotentialValues, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
-        plot = new Plot("Estimated potential", "distance", "Potential value", aDistances, aPotentialValues);
-        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(aPotentialValues);
+    public EstimatedPotentialPlot(final double[] aDistances, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
+        aPotential.calculate(aDistances, aBestPointFound);
+        double[] potentialValues = aPotential.getPotential();
+        plot = new Plot("Estimated potential", "distance", "Potential value", aDistances, potentialValues);
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(potentialValues);
         plot.setLimits(aDistances[0] - 1, aDistances[aDistances.length - 1], mmm.min, mmm.max);
         plot.setColor(Color.BLUE);
         plot.setLineWidth(2);

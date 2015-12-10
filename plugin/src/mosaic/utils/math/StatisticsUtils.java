@@ -87,7 +87,6 @@ public class StatisticsUtils {
         for (int i = 0; i < aPdf.length; i++) {
             result[i] = aPdf[i] / sum;
         }
-        
         return result;
     }
     
