@@ -3,6 +3,8 @@ package mosaic.ia;
 
 import javax.vecmath.Point3d;
 
+import ij.IJ;
+
 public class DistanceCalculationsCoords extends DistanceCalculations {
 
     public DistanceCalculationsCoords(Point3d[] X, Point3d[] Y, float[][][] mask, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double gridSize, double kernelWeightq, int discretizationSize) {

@@ -240,10 +240,6 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
 
     private boolean loadMask() {
-        if (!isCoordinatesTab() && iImgY == null) {
-            IJ.showMessage("ERROR: Load Image Y first");
-            return false;
-        }
         ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
@@ -253,13 +249,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
             return false;
         }
-        else if (!isCoordinatesTab()) {
-            if (tempMask.getHeight() != iImgY.getHeight() || tempMask.getWidth() != iImgY.getWidth() || tempMask.getNSlices() != iImgY.getNSlices()) {
-                IJ.showMessage("ERROR: Loaded mask size does not match with image size");
-                return false;
-            }
-        }
-    
+        
         tempMask.show("Mask loaded" + tempMask.getTitle());
         iMaskImg = tempMask;
         iMaskImg.updateImage();

@@ -9,7 +9,7 @@ import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
 
 
-public class PotentialCalculatorTest {
+public class PotentialsTest {
 
     @Test
     public void testCalculateWithAndWithoutEpsilon() {
