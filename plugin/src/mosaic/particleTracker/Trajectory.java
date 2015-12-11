@@ -36,6 +36,7 @@ public class Trajectory {
 
     public int serial_number; // serial number of this trajectory (for report and display)
     public boolean to_display = true; // flag for display filter
+    public boolean showParticles = true; // draw particle, if false only trajectory line is drawn
     public Color color; // the display color of this Trajectory
     Roi mouse_selection_area; // The Roi area where a mouse click will select this trajectory
     public Roi focus_area; // The Roi for focus display of this trajectory
@@ -66,6 +67,9 @@ public class Trajectory {
         return to_display;
     }
 
+    public boolean drawParticle() {
+        return showParticles;
+    }
     /**
      * Set the <code>focus_area</code> for this trajectory - it defines the area (ROI) focused
      * on when the user selects this trajectory to focus on <br>

@@ -51,7 +51,7 @@ public class MyFrame {
     // holds string with ready to print info about this frame before particle discrimination
     private StringBuffer info_before_discrimination;
 
-    public MyFrame() {}
+    private MyFrame() {}
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
@@ -1008,12 +1008,12 @@ public class MyFrame {
      *            focus video start
      * @param focus boundary of the focus area (can be null);
      * @param cal_ Calibration basically the image spacing
-     * @param p_radius when != -1 the redius of the particles is fixed
+     * @param p_radius when != -1 the radius of the particles is fixed
      * @param typ type of draw
      */
     private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_, float scaling, DrawType typ,
             int p_radius) {
-        final MyFrame f = new MyFrame();
+        final MyFrame myFrame = new MyFrame();
 
         // Particles
         final Vector<Particle> vp = new Vector<Particle>();
@@ -1027,11 +1027,11 @@ public class MyFrame {
 
             for (int t = 0; t < tr.size(); t++) {
                 // If we have to display the trajectory
-
                 if (tr.get(t).toDisplay() == false) {
                     continue;
                 }
-
+                if (!tr.get(t).drawParticle()) p_radius = 0;
+                
                 vp.clear();
                 lines.clear();
                 lines_jmp.clear();
@@ -1060,134 +1060,35 @@ public class MyFrame {
 
                     if (typ == DrawType.NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.PREV) {
                         if (j - 1 >= 0) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine2(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.PREV_NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                         if (j - 1 >= 0) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine2(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.TRAJECTORY_HISTORY) {
                         // draw the full trajectory history, collect all the
                         // lines from j to the start of the trajectory
-
                         for (int i = j; i >= 1; i--) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine3(tr, focus, myFrame, lines, lines_jmp, t, i);
                         }
                     }
                     else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT) {
                         for (int i = j + 1; i >= 1; i--) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine3(tr, focus, myFrame, lines, lines_jmp, t, i);
                         }
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                 }
@@ -1215,6 +1116,57 @@ public class MyFrame {
                 // Jump link
                 drawLines(view, lines_jmp, cal_, scaling, ARGBType.rgba(255, 0.0, 0.0, 0.0));
             }
+        }
+    }
+
+    private static void createNewLine3(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j - 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
+        }
+    }
+
+    private static void createNewLine2(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
+        }
+    }
+
+    private static void crateNewLine(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
         }
     }
 

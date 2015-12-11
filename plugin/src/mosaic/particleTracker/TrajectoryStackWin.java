@@ -31,14 +31,19 @@ import net.imglib2.type.numeric.ARGBType;
  *
  * @author Pietro Incardona
  */
-public class TrajectoryStackWin extends StackWindow implements MouseListener {
+public class TrajectoryStackWin extends StackWindow implements MouseListener  {
 
     private final ParticleTracker3DModular_ particleTracker3DModular;
     private static final long serialVersionUID = 1L;
     private Button filter_length;
+    private Button drawParticles;
+    int lastState;
     private final Label numberOfParticlesLabel;
     private Img<ARGBType> out;
 
+    private static final String HideParticles = "Hide particles";
+    private static final String ShowParticles = "Show particles";
+    
     /**
      * Constructor. <br>
      * Creates an instance of TrajectoryStackWindow from a given <code>ImagePlus</code> and <code>ImageCanvas</code> and a creates GUI panel. <br>
@@ -94,6 +99,14 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         filter_length.addActionListener(this);
         panel.add(filter_length);
         panel.add(numberOfParticlesLabel);
+        String drawString = ShowParticles;
+        System.out.println("INIT STATE: " + particleTracker3DModular.all_traj.get(0).drawParticle());
+        if (particleTracker3DModular.all_traj.get(0).drawParticle()) {
+            drawString = HideParticles;
+        }
+        drawParticles = new Button(drawString);
+        drawParticles.addActionListener(this);
+        panel.add(drawParticles);
         add(panel);
         pack();
         final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -119,6 +132,24 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
                 return;
             }
         }
+        if (b == drawParticles) {
+            
+            // if user cancelled the filter dialog - do nothing
+            System.out.println("NAME: " + drawParticles.getLabel());
+            if (drawParticles.getLabel().equals(ShowParticles)) {
+                System.out.println("showing");
+                drawParticles.setLabel(HideParticles);
+                particleTracker3DModular.setDrawingParticle(true);
+            }
+            else {
+                System.out.println("hiding");
+                drawParticles.setLabel(ShowParticles);
+                particleTracker3DModular.setDrawingParticle(false); 
+            }
+        }
+        
+        System.out.println("SOURCE: " + e.getSource());
+        
         // Regenerate the image
         out = particleTracker3DModular.createHyperStackFromFrames();
 

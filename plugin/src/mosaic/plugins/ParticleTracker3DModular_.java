@@ -1087,6 +1087,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         return true;
     }
 
+    public void setDrawingParticle(boolean showParticles) {
+        final Iterator<Trajectory> iter = all_traj.iterator();
+        while (iter.hasNext()) {
+            final Trajectory curr_traj = iter.next();
+            curr_traj.showParticles = showParticles;
+        }
+    }
+    
     /**
      * Resets the trajectories filter so no trajectory is filtered by
      * setting the <code>to_display</code> param of each trajectory to true
