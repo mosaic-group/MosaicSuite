@@ -1,8 +1,8 @@
 package mosaic.test.framework;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.scijava.Context;
-import org.scijava.app.AppService;
-import org.scijava.app.StatusService;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -29,11 +26,9 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import io.scif.SCIFIOService;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 
 
@@ -45,7 +40,10 @@ import net.imglib2.img.Img;
 public class CommonBase extends Info {
 
     private static final Logger logger = Logger.getLogger(CommonBase.class);
-    private static ImgOpener iImgOpener = null;
+    
+    // TODO: Commented out until "protected Img<?> loadImage(String aFileName)" is fixed
+//    private static ImgOpener iImgOpener = null;
+    
     protected String tmpPath;
     protected String tcPath;
     
@@ -171,6 +169,7 @@ public class CommonBase extends Info {
             throw new RuntimeException("No img: [" + aGeneratedImageWindowName + "]");
         }
         assertTrue("Reference vs. processed file.", compareImages(referenceImg, processedImg));
+        logger.debug("Files match!");
     }
 
     /**
@@ -184,7 +183,7 @@ public class CommonBase extends Info {
         logger.debug("    test:[" + testFile + "]");
         String expected = readFile(refFile);
         String result = readFile(testFile);
-        assertEquals(expected, result);
+        assertEquals("Files differ!", expected, result);
     }
 
     /**
@@ -195,9 +194,9 @@ public class CommonBase extends Info {
      */
     protected void copyTestResources(final String aInputFileOrDirectory, final String aInputPath, final String aDestinationPath) {
         if (aInputFileOrDirectory != null) {
+            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
             final File in = new File(aInputPath + aInputFileOrDirectory);
             final File out = new File(aDestinationPath);
-            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
             if (in.isDirectory()) {
                 SystemOperations.copyDirectoryToDirectory(in, out);
             }
@@ -222,7 +221,6 @@ public class CommonBase extends Info {
         int countAll = 0;
         int countDifferent = 0;
         boolean firstDiffFound = false;
-
         while (ci1.hasNext())
         {
             ci1.fwd();
@@ -233,13 +231,13 @@ public class CommonBase extends Info {
             final Object t2 = ci2.get();
 
             countAll++;
-
-            if (!t1.equals(t2))
+            
+            // TODO: Currently compares strings..., it seems that t1.equals(t2) sometimes fails event if they have same information about point
+            if (!t2.toString().equals(t1.toString()))
             {
                 countDifferent++;
                 if (!firstDiffFound) {
                     firstDiffFound = true;
-
                     // Produce error log with coordinates and values of first
                     // not matching location
                     String errorMsg = "Images differ. First occurence at: [";
@@ -321,25 +319,38 @@ public class CommonBase extends Info {
      * @return Img
      */
     protected Img<?> loadImage(String aFileName) {
-        if (iImgOpener == null) {
-            // Create ImgOpener with some default context, without it, it search for already existing one
-            iImgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
-            // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off.
-            iImgOpener.log().setLevel(0);
+        logger.debug("Opening file: [" + aFileName + "]");
+        ImagePlus ip = loadImagePlus(aFileName);
+        if (ip == null) {
+            logger.error("Failed to load: [" + aFileName + "]");
         }
-
-        try {
-            logger.debug("Opening file: [" + aFileName + "]");
-            final Img<?> img = iImgOpener.openImgs(aFileName).get(0);
-            return img;
-        } catch (final ImgIOException e) {
-            e.printStackTrace();
-            final String errorMsg = "Failed to load: [" + aFileName + "]";
-            logger.error(errorMsg);
-            fail(errorMsg);
-        }
-
-        return null;
+        return ImagePlusAdapter.wrap(ip);
+        
+        // Code below is intentionally commented out. It seems that ImgOpener works well on regular files (tiff.. ) but 
+        // when it comes to zip'ed tif files (*.zip) it is extremally slow. For image 1000x1000 it takes >> 10s to open which is not a case 
+        // when the same file is unzipped.
+        // TODO: It should be checked with new versions of imglib how it behaves and reverted.
+        //       Until that time legacy opener with imglib2 wrapper is good enough.
+        
+//        if (iImgOpener == null) {
+//            // Create ImgOpener with some default context, without it, it search for already existing one
+//            iImgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
+//            // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off.
+//            iImgOpener.log().setLevel(0);
+//        }
+//
+//        try {
+//            logger.debug("Opening file: [" + aFileName + "]");
+//            final Img<?> img = iImgOpener.openImgs(aFileName).get(0);
+//            return img;
+//        } catch (final ImgIOException e) {
+//            e.printStackTrace();
+//            final String errorMsg = "Failed to load: [" + aFileName + "]";
+//            logger.error(errorMsg);
+//            fail(errorMsg);
+//        }
+//
+//        return null;
     }
 
     /**

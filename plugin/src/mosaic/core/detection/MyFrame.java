@@ -34,38 +34,30 @@ import net.imglib2.view.Views;
 
 
 /**
- * Defines a MyFrame that is based upon an ImageProcessor or information from a
- * text file.
- *
- * @param <RandomsAccessible>
+ * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
  */
 public class MyFrame {
 
     private Vector<Particle> particles;
-    private int particles_number; // number of particles initialy detected
-    public int real_particles_number; // number of "real" particles discrimination
     public int frame_number; // Serial number of this frame in the movie (can be 0)
-
-    // holds string with ready to print info about this frame before particle discrimination
-    private StringBuffer info_before_discrimination;
-
+    int linkrange = 0;
     /* only relevant to frames representing real images */
     // the original image, this is used for the
     // featurePointDetector to access
     // corresponding the image data.
     private ImageStack original_ips = null; 
-    
-    int linkrange = 0;
-    private int p_radius = -1;
 
-    public MyFrame() {}
+    private int p_radius = -1;
+    // holds string with ready to print info about this frame before particle discrimination
+    private StringBuffer info_before_discrimination;
+
+    private MyFrame() {}
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
      * All particles and other information will be derived from the given <code>ImageProcessor</code> by applying Detector methods
      *
-     * @param ip the original ImageProcessor upon this MyFrame is based, will
-     *            remain unchanged!
+     * @param ip the original ImageProcessor upon this MyFrame is based, will remain unchanged!
      * @param frame_num the serial number of this frame in the movie
      * @param aLinkrange link range
      */
@@ -93,10 +85,6 @@ public class MyFrame {
 
     private MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
         this.frame_number = frame;
-        this.particles_number = p.size();
-        this.real_particles_number = p.size();
-
-        /* initialise the particles array */
         this.particles = p;
 
         for (int i = 0; i < this.particles.size(); i++) {
@@ -135,10 +123,7 @@ public class MyFrame {
 
         try {
             r = new BufferedReader(new FileReader(path));
-
             ret = loadParticlesFromFile(r, path);
-
-            /* close file */
             r.close();
         }
         catch (final Exception e) {
@@ -196,7 +181,6 @@ public class MyFrame {
             }
             line = line.trim();
             particles_info.addElement(line.split("\\s+"));
-            this.particles_number++;
         }
 
         /* initialise the particles array */
@@ -215,17 +199,14 @@ public class MyFrame {
             }
 
             if (particle_info.length == 2) {
-//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
                 this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, linkrange));
             }
             else {
-//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
                 this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, linkrange));
             }
 
             if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null
                     || particle_info[8] == null) {
-                // IJ.error("File: " + path + "\ndoes not have momentum values at positions 4 to 8 for all particles");
                 this.particles.elementAt(counter).m0 = 0;
                 this.particles.elementAt(counter).m1 = 0;
                 this.particles.elementAt(counter).m2 = 0;
@@ -256,9 +237,8 @@ public class MyFrame {
 
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
-        // I work with StringBuffer since its faster than String
         final StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");
-        info.append(this.real_particles_number);
+        info.append(this.particles.size());
         info.append(" particles):\n");
         for (int i = 0; i < this.particles.size(); i++) {
             info.append("%\t\t");
@@ -281,16 +261,15 @@ public class MyFrame {
      *
      * @see #info_before_discrimination
      */
-    void generateFrameInfoBeforeDiscrimination() {
+    private void generateFrameInfoBeforeDiscrimination() {
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
 
-        // I work with StringBuffer since its faster than String
         final StringBuffer info = new StringBuffer("% Frame ");
         info.append(this.frame_number);
         info.append(":\n");
         info.append("%\t");
-        info.append(this.particles_number);
+        info.append(this.particles.size());
         info.append(" particles found\n");
         info.append("%\tDetected particle positions:\n");
         for (int i = 0; i < this.particles.size(); i++) {
@@ -352,8 +331,6 @@ public class MyFrame {
      * @return a <code>StringBuffer</code> with the info
      */
     public StringBuffer toStringBuffer() {
-        // work with StringBuffer since its faster than String
-
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
         final StringBuffer sb = new StringBuffer("% Frame ");
@@ -381,11 +358,8 @@ public class MyFrame {
     }
 
     /**
-     * Return particles vector
-     *
-     * @return a vector of particle
+     * @return particles vector
      */
-
     public Vector<Particle> getParticles() {
         return this.particles;
     }
@@ -427,11 +401,37 @@ public class MyFrame {
         return info1;
     }
 
-    void setParticles(Vector<Particle> particles, int particles_number) {
+    public void setParticles(Vector<Particle> particles) {
         this.particles = particles;
-        this.particles_number = particles_number;
+        
+        for (int i = particles.size() - 1; i >= 0; i--) {
+            particles.elementAt(i).setLinkRange(linkrange);
+            particles.elementAt(i).setFrame(frame_number);
+        }
+        
+        generateFrameInfoBeforeDiscrimination();
+        removeNonParticle();
+        
     }
-
+    
+    /**
+     * removes particles that were discarded by the <code>nonParticleDiscrimination</code> method
+     * from the particles array. <br>
+     * Non particles will be removed from the <code>particles</code> array so if their info is
+     * needed, it should be saved before calling this method
+     * @return 
+     * 
+     * @see MyFrame#nonParticleDiscrimination()
+     */
+    private Vector<Particle> removeNonParticle() {
+        for (int i = particles.size() - 1; i >= 0; i--) {
+            if (!particles.elementAt(i).special) {
+                particles.removeElementAt(i);
+            }
+        }
+        return particles;
+    }
+    
     public ImageStack getOriginalImageStack() {
         return this.original_ips;
     }
@@ -525,9 +525,9 @@ public class MyFrame {
         MaskOnSpaceMapper rg_m = null;
 
         if ((rg_m = CircleCache.get(rc)) == null) {
-            if (rc < 1) {
-                rc = 1;
-            }
+//            if (rc < 1) {
+//                rc = 1;
+//            }
             final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
             rg_m = new MaskOnSpaceMapper(cm, sz);
             CircleCache.put(rc, rg_m);
@@ -893,10 +893,8 @@ public class MyFrame {
      *            image pixel)
      * @param col Color
      */
-
     private void drawParticles(Img<ARGBType> out, Calibration cal, float scale, int col) {
         // Create a list of particles
-
         final List<Particle> pt = new ArrayList<Particle>();
 
         for (int i = 0; i < particles.size(); i++) {
@@ -918,10 +916,8 @@ public class MyFrame {
      * @param frame number
      * @return the image
      */
-
     private Img<ARGBType> createImage(int[] vMax) {
         // Create image
-
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
         final Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 
@@ -937,10 +933,7 @@ public class MyFrame {
      * @param cal calibration
      * @return image video
      */
-
     public <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Calibration cal) {
-        // Check that the image is really RealType
-
         // Check that the image is really RealType
         try {
             background.firstElement();
@@ -957,7 +950,6 @@ public class MyFrame {
         background.dimensions(dims);
 
         // Create image
-
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
         final Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
 
@@ -974,7 +966,6 @@ public class MyFrame {
         }
 
         // Copy the background
-
         while (curBack.hasNext()) {
             curOut.fwd();
             curBack.fwd();
@@ -992,7 +983,6 @@ public class MyFrame {
     }
 
     private class pParticle {
-
         Particle p1;
         Particle p2;
 
@@ -1018,13 +1008,12 @@ public class MyFrame {
      *            focus video start
      * @param focus boundary of the focus area (can be null);
      * @param cal_ Calibration basically the image spacing
-     * @param p_radius when != -1 the redius of the particles is fixed
+     * @param p_radius when != -1 the radius of the particles is fixed
      * @param typ type of draw
      */
-
     private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_, float scaling, DrawType typ,
             int p_radius) {
-        final MyFrame f = new MyFrame();
+        final MyFrame myFrame = new MyFrame();
 
         // Particles
         final Vector<Particle> vp = new Vector<Particle>();
@@ -1038,11 +1027,11 @@ public class MyFrame {
 
             for (int t = 0; t < tr.size(); t++) {
                 // If we have to display the trajectory
-
                 if (tr.get(t).toDisplay() == false) {
                     continue;
                 }
-
+                if (!tr.get(t).drawParticle()) p_radius = 0;
+                
                 vp.clear();
                 lines.clear();
                 lines_jmp.clear();
@@ -1071,134 +1060,35 @@ public class MyFrame {
 
                     if (typ == DrawType.NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.PREV) {
                         if (j - 1 >= 0) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine2(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.PREV_NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                         if (j - 1 >= 0) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine2(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                     else if (typ == DrawType.TRAJECTORY_HISTORY) {
                         // draw the full trajectory history, collect all the
                         // lines from j to the start of the trajectory
-
                         for (int i = j; i >= 1; i--) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine3(tr, focus, myFrame, lines, lines_jmp, t, i);
                         }
                     }
                     else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT) {
                         for (int i = j + 1; i >= 1; i--) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            createNewLine3(tr, focus, myFrame, lines, lines_jmp, t, i);
                         }
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
-                            if (focus != null) {
-                                l1.translate(focus);
-                            }
-
-                            // Check if it is a jump
-
-                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
-
-                            if (jump == false) {
-                                lines.add(l1);
-                            }
-                            else {
-                                lines_jmp.add(l1);
-                            }
+                            crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
                 }
@@ -1229,6 +1119,57 @@ public class MyFrame {
         }
     }
 
+    private static void createNewLine3(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j - 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
+        }
+    }
+
+    private static void createNewLine2(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
+        }
+    }
+
+    private static void crateNewLine(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        if (focus != null) {
+            l1.translate(focus);
+        }
+
+        // Check if it is a jump
+        final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+
+        if (jump == false) {
+            lines.add(l1);
+        }
+        else {
+            lines_jmp.add(l1);
+        }
+    }
+
     /**
      * Update the image
      *
@@ -1238,22 +1179,12 @@ public class MyFrame {
      * @param a Vector of trajectories
      * @param Type of draw
      */
-
     static public void updateImage(RandomAccessibleInterval<ARGBType> out, Rectangle focus, int start_frame, Vector<Trajectory> tr, Calibration cal, DrawType typ, int p_radius) {
         // Adjust calibration according to magnification
-
         final int scale_x = (int) (out.dimension(0) / focus.width);
-
-        // Get image
-
-        // Cursor<ARGBType> curOut = Views.iterable(out).cursor();
-
-        //
-
         final int nframe = (int) out.dimension(out.numDimensions() - 1);
 
         // Draw trajectories
-
         TrajectoriesDraw(out, nframe, tr, start_frame, focus, cal, scale_x, typ, p_radius);
     }
 
@@ -1266,7 +1197,6 @@ public class MyFrame {
      * @param Type of draw
      * @param when p_radius != -1 the radius of the particles is fixed
      */
-
     static public void updateImage(Img<ARGBType> out, Vector<Trajectory> tr, Calibration cal, DrawType typ, int p_radius) {
         for (int i = 0; i < tr.size(); i++) {
             new MyFrame();
@@ -1288,7 +1218,6 @@ public class MyFrame {
      * @param Type of draw
      * @return image video
      */
-
     public <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr, Calibration cal, int frame, DrawType typ) {
         // if you have no trajectory draw use the other function
 
@@ -1320,16 +1249,13 @@ public class MyFrame {
         }
 
         // Copy the background
-
         while (curBack.hasNext()) {
             curOut.fwd();
             curBack.fwd();
-
             curOut.get().set(conv.toARGB(curBack.get()));
         }
 
         // Collect particles to draw and spline to draw
-
         TrajectoriesDraw(out, 1, tr, frame, null, cal, 1.0f, typ, p_radius);
 
         return out;
@@ -1384,5 +1310,4 @@ public class MyFrame {
 
         particles = p;
     }
-
 }

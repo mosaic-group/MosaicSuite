@@ -1,13 +1,13 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
+
+import ij.IJ;
 
 
 public class RScript {
@@ -109,9 +109,10 @@ public class RScript {
 
         InputStream in = null;
         try {
-            // works when plugin running from .jar plugin file
-            IJ.log("RSCRIPT..........");
-            in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
+            in = getClass().getResourceAsStream("Rscript.r");
+            if (in == null) {
+                IJ.log("RSCRIPT generation has not succeed (cannot find Rscript.r resource)");
+            }
             final Scanner scanner = new Scanner(in);
             final String content = scanner.useDelimiter("\\Z").next();
 

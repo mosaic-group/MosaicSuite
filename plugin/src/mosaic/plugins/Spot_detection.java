@@ -41,7 +41,8 @@ public class Spot_detection implements PlugInFilter // NO_UCD
 
             // Detect feature points in current frame
             IJ.showStatus("Detecting Particles in Frame " + (frameIdx + 1) + "/" + numOfFrames);
-            iDetector.featurePointDetection(frame);
+            Vector<Particle> detectedParticles = iDetector.featurePointDetection(frame.getOriginalImageStack());
+            frame.setParticles(detectedParticles);
             frames[frame.frame_number] = frame;
         }
 

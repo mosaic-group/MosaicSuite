@@ -44,6 +44,18 @@ public class Matrix {
     }
 
     /**
+     * Creates new Matrix from provided values. Number of provided values 
+     * should equal aNumOfRows * aNumOfCols (it is not checked!). 
+     * Provided values are put in matrix row-major.
+     * @param aNumOfRows
+     * @param aNumOfCols
+     * @param aValues
+     */
+    public Matrix(int aNumOfRows, int aNumOfCols, double... aValues) {
+        iMatrix = new DenseMatrix64F(aNumOfRows, aNumOfCols, true, aValues);
+    }
+    
+    /**
      * Creates new Matrix from provided 2D array first dimension is rows and
      * then cols ([r][c] or [y][x]).
      *
@@ -642,7 +654,7 @@ public class Matrix {
     public Matrix normalizeInRange0to1() {
         final int len = iMatrix.data.length;
         double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
+        double max = -Double.MAX_VALUE;
         for (int i = 0; i < len; ++i) {
             final double val = iMatrix.data[i];
             if (max < val) {

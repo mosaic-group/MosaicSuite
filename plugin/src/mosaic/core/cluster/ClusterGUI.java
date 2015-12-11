@@ -61,7 +61,7 @@ public class ClusterGUI extends JDialog {
         dir += File.separator + ".MosaicToolSuite" + File.separator + "clusterProfile";
         final File cpf[] = new File(dir).listFiles();
         if (cpf != null) {
-            cp = new ClusterProfile[cpf.length + 1];
+            cp = new ClusterProfile[cpf.length + 2];
 
             int cnt = 0;
             for (final File tcpf : cpf) {
@@ -70,12 +70,13 @@ public class ClusterGUI extends JDialog {
             }
         }
         else {
-            cp = new ClusterProfile[1];
+            cp = new ClusterProfile[2];
         }
 
         // Set coded profile
 
-        cp[cp.length - 1] = new MadMaxProfile();
+        cp[cp.length - 2] = new MadMaxProfile();
+        cp[cp.length - 1] = new JenkinsTestProfile();
         cp_sel = cp[cp.length - 1];
 
         // Create a set of strings

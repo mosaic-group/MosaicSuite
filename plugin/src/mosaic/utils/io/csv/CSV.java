@@ -100,18 +100,23 @@ public class CSV<E> {
     /**
      * Trying to figure out the best setting to read the CSV file
      * @param aCsvFilename
+     * @return 
      */
-    public void setCSVPreferenceFromFile(String aCsvFilename) {
+    public int setCSVPreferenceFromFile(String aCsvFilename) {
         ICsvDozerBeanReader beanReader = null;
+        int numOfColumns = 0;
         try {
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
 
             final String[] map = beanReader.getHeader(true);
+            numOfColumns = map.length;
             // In case when header map is equal to 1 it is probable that current delimiter is not correct
             // Try to find better. (Of course there is always a chanse that there is only one column).
-            if (map.length == 1) {
-                if (map[0].split(";").length > 1) {
+            if (numOfColumns == 1) {
+                int tempNumOfColumns = map[0].split(";").length;
+                if (tempNumOfColumns > 1) {
                     setDelimiter(';');
+                    numOfColumns = tempNumOfColumns;
                 }
             }
         }
@@ -127,6 +132,8 @@ public class CSV<E> {
                 }
             }
         }
+        
+        return numOfColumns;
     }
 
     /**
@@ -147,8 +154,19 @@ public class CSV<E> {
      * @return container with values
      */
     public Vector<E> Read(String aCsvFilename, CsvColumnConfig aOutputChoose) {
+        return Read(aCsvFilename, aOutputChoose, false);
+    }
+    
+    /**
+     * Read a CSV file
+     *
+     * @param aCsvFilename - Name of the filename to open
+     * @param CsvColumnConfig - output choose with defined colum names and processors
+     * @return container with values
+     */
+    public Vector<E> Read(String aCsvFilename, CsvColumnConfig aOutputChoose, boolean aSkipHeader) {
         final Vector<E> out = new Vector<E>();
-        readData(aCsvFilename, out, aOutputChoose);
+        readData(aCsvFilename, out, aOutputChoose, aSkipHeader);
 
         return out;
     }
@@ -219,13 +237,13 @@ public class CSV<E> {
         }
 
         final Vector<E> out = new Vector<E>();
-        final CsvColumnConfig occ = readData(aInputFileNames[0], out, aOutputChoose);
+        final CsvColumnConfig occ = readData(aInputFileNames[0], out, aOutputChoose, false);
         if (occ == null) {
             return false;
         }
 
         for (int i = 1; i < aInputFileNames.length; i++) {
-            readData(aInputFileNames[i], out, occ);
+            readData(aInputFileNames[i], out, occ, false);
         }
 
         Write(aOutputFileName, out, occ, false);
@@ -237,34 +255,45 @@ public class CSV<E> {
      * Read a CSV file
      *
      * @param aCsvFilename - CSV filename
-     * @param out output - container for output data
+     * @param out output - container for output data (in case of any error it will be empty)
      * @param aOutputChoose - chosen output (if null, it will be generated from header)
      */
-    private CsvColumnConfig readData(String aCsvFilename, Vector<E> aOutput, CsvColumnConfig aOutputChoose) {
+    private CsvColumnConfig readData(String aCsvFilename, Vector<E> aOutput, CsvColumnConfig aOutputChoose, boolean aSkipHeader) {
         ICsvDozerBeanReader beanReader = null;
         try {
             logger.info("Reading file: [" + aCsvFilename + "]");
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
 
-            final String[] map = beanReader.getHeader(true);
-            if (map == null)
-            {
-                return null; // we cannot get the header
+            if (!aSkipHeader) {
+                final String[] map = beanReader.getHeader(true);
+                if (map == null)
+                {
+                    return null; // we cannot get the header
+                }
+                if (aOutputChoose == null) {
+                    aOutputChoose = generateOutputChoose(map);
+                }
             }
-            if (aOutputChoose == null) {
-                aOutputChoose = generateOutputChoose(map);
-            }
-
+            if (aOutputChoose == null) return null;
+            
             beanReader.configureBeanMapping(iClazz, aOutputChoose.fieldMapping);
 
             E element;
             while ((element = beanReader.read(iClazz, aOutputChoose.cellProcessors)) != null) {
                 aOutput.add(element);
             }
+            logger.info("Read " + aOutput.size() + " elements");
 
-        } catch (final IOException e) {
+        } 
+        catch (final IOException e) {
             e.printStackTrace();
-        } finally {
+            aOutput.clear();
+        } 
+        catch (final Exception e) {
+            e.printStackTrace();
+            aOutput.clear();
+        }
+        finally {
             if (beanReader != null) {
                 try {
                     beanReader.close();

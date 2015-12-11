@@ -24,6 +24,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
@@ -41,7 +43,8 @@ import mosaic.test.framework.SystemOperations;
 
 
 public class GenericGUI {
-
+    private static final Logger logger = Logger.getLogger(GenericGUI.class);
+    
     private enum run_mode {
         USE_CLUSTER, LOCAL, STOP
     }
@@ -116,7 +119,9 @@ public class GenericGUI {
             if (gd.wasCanceled()) {
                 return run_mode.STOP;
             }
+            
             Analysis.p.wd = gd.getNextText();
+            logger.debug("wd = [" + Analysis.p.wd + "]");
         }
 
         if (BackgroundSubGUI.getParameters() == -1) {
@@ -297,10 +302,15 @@ public class GenericGUI {
         String file3;
         Boolean use_cluster = false;
 
+        logger.debug("clustermode = " + clustermode);
+        
         if (!clustermode) {
             run_mode rm = null;
 
+            // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
+            // it does not work. Should be investigated why...
             if (IJ.isMacro() == true) {
+                logger.debug("Macro setting for mode");
                 new GenericDialog("Squassh");
                 // Draw a batch system window
 
@@ -310,10 +320,11 @@ public class GenericGUI {
                 }
             }
             else {
+                logger.debug("Non-Macro setting for mode");
                 final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
                 rm = drawStandardWindow(gd, aImp);
             }
-
+            logger.debug("runmode = " + rm);
             use_cluster = (rm == run_mode.USE_CLUSTER);
 
             if (rm == run_mode.STOP) {
@@ -338,7 +349,7 @@ public class GenericGUI {
             Analysis.p.wd = gd.getNextString();
         }
 
-        System.out.println("Paramenters: " + Analysis.p);
+        System.out.println("Parameters: " + Analysis.p);
 
         if (Analysis.p.mode_voronoi2) {
             // betamleout to be determined by clustering of whole image
@@ -362,7 +373,7 @@ public class GenericGUI {
         if (use_cluster == false && clustermode == false) {
             Analysis.p.dispwindows = true;
         }
-
+        logger.debug("use_cluster = " + use_cluster);
         // Two different way to run the Segmentation and colocalization
         if (clustermode || use_cluster == false) {
             // We run locally
@@ -434,19 +445,19 @@ public class GenericGUI {
         }
         else {
             // We run on cluster
-            final Parameters p = new Parameters(Analysis.p);
+            final Parameters tempParams = new Parameters(Analysis.p);
 
             // disabling display options
-            p.dispwindows = false;
+            tempParams.dispwindows = false;
 
             // save for the cluster
             // For the cluster we have to nullify the directory option
-            p.wd = null;
+            tempParams.wd = null;
 
             // TODO: Why settings are saved twice to two different files? To be investigated.
-            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", p);
+            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", tempParams);
             // save locally
-            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", p);
+            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", tempParams);
 
             // Check if we selected a directory
             File[] fileslist = null;

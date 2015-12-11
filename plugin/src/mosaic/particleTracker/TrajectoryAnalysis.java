@@ -13,7 +13,7 @@ import mosaic.utils.math.LeastSquares;
  */
 public class TrajectoryAnalysis {
 
-    private final Particle[] iParticles;           // given trajectory's particles
+    private final Particle[] iParticles;     // given trajectory's particles
     private int[] iMomentOrders;             // requested moment orders to be calculated
     private int[] iFrameShifts;              // requested frame shift (deltas)
     private double[][] iMSDs;                // moments of displacement for every moment order

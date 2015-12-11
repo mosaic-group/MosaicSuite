@@ -20,6 +20,8 @@ import java.util.Vector;
 
 import javax.swing.JLabel;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -124,7 +126,8 @@ import net.imglib2.view.Views;
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface {
-
+    private static final Logger logger = Logger.getLogger(ParticleTracker3DModular_.class);
+    
     public Img<ARGBType> out;
     public ImagePlus iInputImage;
     public String resultFilesTitle;
@@ -224,12 +227,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         // Check if there are segmentation information
         if (MosaicUtils.checkSegmentationInfo(aInputImage, null)) {
-            final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
-
-            if (YN_dialog.yesPressed() == true) {
-                SegmentationInfo info;
-                info = MosaicUtils.getSegmentationInfo(aInputImage);
-
+            boolean shouldProceed = false;
+            if (isGuiMode) {
+                final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
+                if (YN_dialog.yesPressed() == true) shouldProceed = true;
+            }
+            else {
+                // Macro mode
+                shouldProceed = true;
+            }
+            if (shouldProceed) {
+                SegmentationInfo info = MosaicUtils.getSegmentationInfo(aInputImage);
+                vFI = aInputImage.getOriginalFileInfo();
+                logger.debug("Taking input from segmentation results (file = [" + aInputImage.getTitle() + "], dir = [" + vFI.directory + "]) ");
+                
+                resultFilesTitle = aInputImage.getTitle();
                 text_files_mode = true;
                 csv_format = true;
                 Csv_region_list = info.RegionList;
@@ -304,7 +316,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         IJ.showStatus("Generating Trajectories");
         generateTrajectories();
-
         if (!isGuiMode) {
             writeDataToDisk();
         }
@@ -523,7 +534,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
                     // Detect feature points in this frame
                     IJ.showStatus("Detecting Particles in Frame " + (frame_i + 1) + "/" + frames_number);
-                    detector.featurePointDetection(current_frame);
+                    Vector<Particle> detectedParticles = detector.featurePointDetection(current_frame.getOriginalImageStack());
+                    current_frame.setParticles(detectedParticles);
                 }
                 if (current_frame.frame_number >= iFrames.length) {
                     IJ.showMessage("Error, frame " + current_frame.frame_number + "  is out of range, enumeration must not have hole, and must start from 0");
@@ -1019,7 +1031,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         final MyFrame preview_frame = new MyFrame(frame.getStack(), iInputImage.getFrame(), linkrange);
 
-        detector.featurePointDetection(preview_frame);
+        Vector<Particle> detectedParticles = detector.featurePointDetection(preview_frame.getOriginalImageStack());
+        preview_frame.setParticles(detectedParticles);
         final Img<FloatType> backgroundImg = ImagePlusAdapter.convertFloat(frame);
 
         preview_frame.setParticleRadius(getRadius());
@@ -1045,18 +1058,24 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
         // default is not to filter any trajectories (min length of zero)
         fod.addNumericField("Only keep trajectories longer than", 0, 0, 10, "frames");
+        fod.addNumericField("Show only trajectory with ID:", 0, 0, 10, " (0 means - show All)");
 
         fod.showDialog();
         if (fod.wasCanceled()) {
             return false;
         }
         final int min_length_to_display = (int) fod.getNextNumber();
-
+        int idToShow = (int) fod.getNextNumber();
+        if (idToShow < 0 || idToShow > all_traj.size()) {
+            IJ.showMessage("ID of trajectory to filter is not valid. All trajectories will be displayed");
+            idToShow = 0;
+        }
+        
         int passed_traj = 0;
         final Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
             final Trajectory curr_traj = iter.next();
-            if (curr_traj.length <= min_length_to_display) {
+            if (curr_traj.length <= min_length_to_display || (idToShow != 0 && curr_traj.serial_number != idToShow)) {
                 curr_traj.to_display = false;
             }
             else {
@@ -1068,6 +1087,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         return true;
     }
 
+    public void setDrawingParticle(boolean showParticles) {
+        final Iterator<Trajectory> iter = all_traj.iterator();
+        while (iter.hasNext()) {
+            final Trajectory curr_traj = iter.next();
+            curr_traj.showParticles = showParticles;
+        }
+    }
+    
     /**
      * Resets the trajectories filter so no trajectory is filtered by
      * setting the <code>to_display</code> param of each trajectory to true

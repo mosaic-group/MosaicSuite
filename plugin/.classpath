@@ -26,7 +26,7 @@
 	<classpathentry kind="lib" path="lib/super-csv-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/super-csv-dozer-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/weka-dev-3.7.11.jar"/>
-	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
+	<classpathentry kind="lib" path="lib/junit-4.12.jar" sourcepath="/Users/gonciarz/.m2/repository/junit/junit/4.12/junit-4.12-sources.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="lib/fiji-scripting-2.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/Jython_Interpreter-2.0.0-SNAPSHOT.jar"/>
@@ -64,5 +64,6 @@
 	<classpathentry kind="lib" path="lib/bio-formats/specification-5.1.6.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/turbojpeg-5.1.6.jar"/>
 	<classpathentry kind="lib" path="lib/guava-17.0.jar"/>
+	<classpathentry kind="lib" path="lib/Skeletonize3D_-1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

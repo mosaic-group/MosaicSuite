@@ -1,733 +1,302 @@
 package mosaic.ia;
 
 
-import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.Plot;
-import ij.gui.PlotWindow;
-import ij.measure.ResultsTable;
-
-import java.awt.Color;
-import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import javax.vecmath.Point3d;
 
-import mosaic.ia.nn.DistanceCalculations;
-import mosaic.ia.nn.DistanceCalculationsCoords;
-import mosaic.ia.nn.DistanceCalculationsImage;
-import mosaic.ia.utils.IAPUtils;
-import mosaic.ia.utils.ImageProcessUtils;
-import mosaic.ia.utils.PlotUtils;
+import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
+import ij.IJ;
+import ij.ImagePlus;
+import mosaic.ia.Potentials.Potential;
+import mosaic.ia.Potentials.PotentialType;
+import mosaic.ia.gui.DistributionsPlot;
+import mosaic.ia.gui.EstimatedPotentialPlot;
+import mosaic.ia.gui.PlotHistogram;
+import mosaic.utils.math.StatisticsUtils;
+import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 import weka.estimators.KernelEstimator;
 
-
 public class Analysis {
+    private static final int GridDensity = 1000;
+    
+    private Potential iPotential;
 
-    private final ImagePlus X, Y;
-    private ImagePlus mask, genMask;
-    private final Point3d[] particleXSetCoordUnfiltered;
-    private final Point3d[] particleYSetCoordUnfiltered;
+    private double[] iDistancesGrid;
+    private double[] iDistancePdf;
+    private double[] iNearestNeighborDistances;
+    private double[] iNearestNeighborDistancePdf;
+    
+    private double[][] iBestPointsFound;
+    private int iBestPointIndex = -1;
+    
+    private double minDistance, maxDistance, meanDistance;
 
-    private final int dgrid_size = 1000;
-    private double[] q_D_grid, NN_D_grid;
-    private KernelEstimator kep; // kep for NN
-    private double x1, y1, x2, y2, z1, z2;
-    private int cmaReRunTimes;
-    private boolean showAllRerunResults = false;
-    private int bestFitnessindex = 0;
 
-    public double getX1() {
-        return x1;
+    public void calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, ImagePlus iImageX, ImagePlus iImageY) {
+        DistanceCalculations dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, GridDensity);
+        calcDistributions(dci, kernelWeightp);
     }
-
-    public void setX1(double x1) {
-        this.x1 = x1;
+    
+    public void calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
+        DistanceCalculations dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, GridDensity);
+        calcDistributions(dci, kernelWeightp);
     }
-
-    public void setY1(double y1) {
-        this.y1 = y1;
-    }
-
-    public void setX2(double x2) {
-        this.x2 = x2;
-    }
-
-    public void setY2(double y2) {
-        this.y2 = y2;
-    }
-
-    public void setZ1(double z1) {
-        this.z1 = z1;
-    }
-
-    public void setZ2(double z2) {
-        this.z2 = z2;
-    }
-
-    private double[] D; // Nearest neighbour;
-    private int potentialType; // 1 is step, 2 is hernquist, 5 is nonparam
-    private double[][] best;
-    private double[] allFitness;
-    private double kernelWeightq, kernelWeightp;
-
-    private double[] q, nnObserved, dgrid;
-
-    public double getMinD() {
-        return minD;
-    }
-
-    public void setMinD(double minD) {
-        this.minD = minD;
-    }
-
-    public double getMaxD() {
-        return maxD;
-    }
-
-    public void setMaxD(double maxD) {
-        this.maxD = maxD;
-    }
-
-    public double getMeanD() {
-        return meanD;
-    }
-
-    public void setMeanD(double meanD) {
-        this.meanD = meanD;
-    }
-
-    private double minD, maxD, meanD;
-    private final boolean isImage; // to distinguish b/wimage and coords
-
-    public Analysis(ImagePlus X, ImagePlus Y) {
-        this.X = X;
-        this.Y = Y;
-        isImage = true;
-        this.particleXSetCoordUnfiltered = null;
-        this.particleYSetCoordUnfiltered = null;
-    }
-
-    public boolean isMaskSet() {
-        if (mask != null) {
-            return true;
+    
+    private void calcDistributions(DistanceCalculations dci, double kernelWeightp) {
+        iNearestNeighborDistances = dci.getNearestNeighborsDistances();
+        iDistancesGrid = dci.getDistancesGrid();
+        // TODO: It is not sure if it should be normalized here or later in when calculating CMA. 
+        //       In original code there is misleading info, it says that it should be *NOT* normalized but
+        //       at the same time output from old DistanceCalculations is already normalized...)
+        iDistancePdf = StatisticsUtils.normalizePdf(dci.getProbabilityOfDistancesDistribution(), false);
+        KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iNearestNeighborDistances, kernelWeightp);
+        iNearestNeighborDistancePdf = new double[iDistancesGrid.length];
+        for (int i = 0; i < iDistancesGrid.length; i++) {
+            iNearestNeighborDistancePdf[i] = kernelEstimatorNN.getProbability(iDistancesGrid[i]);
         }
-        return false;
+        StatisticsUtils.normalizePdf(iNearestNeighborDistancePdf, false);
+        
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(iNearestNeighborDistances);
+        minDistance = mmm.min;
+        maxDistance = mmm.max;
+        meanDistance = mmm.mean;
+        System.out.println("Min/Max/Mean distance of X to Y: " + mmm.min + " / " + mmm.max + " / " + mmm.mean);
+        
+        new DistributionsPlot(iDistancesGrid, iDistancePdf, iNearestNeighborDistancePdf).show();
+        PlotHistogram.plot("ObservedDistances", iNearestNeighborDistances, getOptimBins(iNearestNeighborDistances, 8, iNearestNeighborDistances.length / 8));
+        IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iNearestNeighborDistances));
     }
 
-    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords) {
-        this.particleXSetCoordUnfiltered = Xcoords;
-        this.particleYSetCoordUnfiltered = Ycoords;
-        this.X = null;
-        this.Y = null;
-        isImage = false;
-        // System.out.println("1:"+X.getWidth());
+    public static class Result {
+        public final double iStrength;
+        public final double iThresholdScale;
+        public final double iResidual;
+        
+        public Result (double aStrength, double aThresholdScale, double aResidual) {
+            iStrength = aStrength;
+            iThresholdScale = aThresholdScale;
+            iResidual = aResidual;
+        }
+        
+        @Override
+        public String toString() { 
+            return "[strength="+ iStrength + ", threshold/scale="+iThresholdScale+", residual="+iResidual+"]";
+        }
     }
-
-    public void setPotentialType(int potentialType) {
-        this.potentialType = potentialType;
-    }
-
-    public String getMaskTitle() {
-        return mask.getTitle();
-    }
-
-    public boolean getIsImage() {
-        return isImage;
-    }
-
-    public boolean calcDist(double gridSize) {
-
-        boolean ret;
-        DistanceCalculations dci;
-        if (isImage == true) {
-            dci = new DistanceCalculationsImage(X, Y, mask, gridSize, kernelWeightq, dgrid_size);
-            dci.calcDistances();
-
+    
+    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
+        final FitFunction fitfun = new FitFunction(iDistancesGrid, iDistancePdf, iNearestNeighborDistances, iPotential, iNearestNeighborDistancePdf);
+        if (iPotential.getType() == PotentialType.NONPARAM) {
+            iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
         }
         else {
-            dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, dgrid_size);
-            dci.calcDistances();
+            iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
         }
-        D = dci.getD();
-
-        dgrid = dci.getqOfD()[0];
-        q = dci.getqOfD()[1];
-        q_D_grid = q; // q_D_grid is supposed to be not normalized - will be normalized again in CMAObj... but its OK.
-        System.out.println("p set to:" + kernelWeightp);
-        // System.out.println("Weka weight:"+IAPUtils.calcWekaWeights(D));
-        kep = IAPUtils.createkernelDensityEstimator(D, kernelWeightp);
-
-        // ke = IAPUtils.createkernelDensityEstimator(dci.getDGrid(), kernelWeightq);
-        // fillQofD_grid(dci.getDGrid());
-        generateKernelDensityforD();
-        ret = true;
-        if (ret == true) {
-            // q = normalize(q_D_grid);
-            nnObserved = IAPUtils.normalize(NN_D_grid);
-            plotQP(dgrid, q, nnObserved);
-            PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D, IAPUtils.getOptimBins(D, 8, D.length / 8));
-            final double[] minMaxMean = IAPUtils.getMinMaxMeanD(D);
-            minD = minMaxMean[0];
-            maxD = minMaxMean[1];
-            meanD = minMaxMean[2];
-            System.out.println("min d" + minD);
-        }
-
-        // plot also Q ratio
-        final double SumNormQ[] = new double[dgrid.length];
-        final double QD[] = new double[D.length];
-        final double n[] = new double[D.length];
-        double[] D1 = new double[D.length];
-        D1 = D;
-        Arrays.sort(D1);
-        SumNormQ[0] = q[0];
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/q.txt"), q);
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/d.txt"), dgrid);
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/Dfile.txt"), D);
-        for (int i = 1; i < dgrid.length; i++) {
-            SumNormQ[i] = SumNormQ[i - 1] + q[i];
-        }
-
-        for (int i = 0; i < D.length; i++) {
-            for (int j = 1; j < dgrid.length; j++) {
-                if (dgrid[j - 1] <= D1[i] && dgrid[j] > D1[i]) {
-                    QD[i] = IAPUtils.linearInterpolation(SumNormQ[j - 1], dgrid[j - 1], SumNormQ[j], dgrid[j], D1[i]);
-                    // (SumNormQ[j-1]+SumNormQ[j])/2;
-                    // QD[i]=(SumNormQ[j-1]);
-                }
-
-            }
-
-            for (int k = 0; k < D.length; k++) {
-                if (D1[k] <= D1[i]) {
-                    n[i]++;
-                }
-
-            }
-
-        }
-        IAPUtils.updateMacheps(); // for hyp testing...
-        IJ.showMessage("Suggested Kernel wt(p): " + IAPUtils.calcWekaWeights(D));
-
-        return ret;
-    }
-
-    private void generateKernelDensityforD() // just to run kernel density
-    {
-
-        // double min=Double.MAX_VALUE;
-
-        NN_D_grid = new double[dgrid.length];
-        NN_D_grid[0] = kep.getProbability(dgrid[0]);
-        for (int i = 1; i < dgrid.length; i++) {
-            NN_D_grid[i] = kep.getProbability(dgrid[i]);
-        }
-
-    }
-
-    public boolean calcMask() {
-
-        genMask = new ImagePlus();
-        if (Y != null) {
-            genMask = ImageProcessUtils.generateMask(Y);
-            return true;
-        }
-        // System.out.println(genMask.getType());
-        return false;
-    }
-
-    public boolean applyMask() {
-        if (genMask == null) {
-            return false;
-        }
-        // new Macro_Runner().run("Convert to Mask");
-        genMask.updateImage();
-
-        System.out.println("Mask size is same");
-        mask = genMask;
-        return true;
-
-    }
-
-    public boolean loadMask() {
-        // open file dialog, open image, test if it is binary, set
-        // genMask=loaded image
-
-        ImagePlus tempMask = new ImagePlus();
-        tempMask = ImageProcessUtils.openImage("");
-        if (tempMask == null) {
-            IJ.showMessage("Filetype not recognized");
-            return false;
-        }
-        tempMask.show("Mask loaded" + tempMask.getTitle());
-
-        if (tempMask.getType() != ImagePlus.GRAY8) {
-            IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
-
-            return false;
-        }
-
-        if (isImage) {
-            if (tempMask.getHeight() != Y.getHeight() || tempMask.getWidth() != Y.getWidth() || tempMask.getNSlices() != Y.getNSlices()) {
-                IJ.showMessage("ERROR: Loaded mask size does not match with image size");
-                return false;
-            }
-        }
-
-        genMask = tempMask;
-        return true;
-
-    }
-
-    public boolean resetMask() {
-        mask = null;
-
-        return true;
-    }
-
-    /**
-     *
-     */
-    public boolean cmaOptimization() {
-        // PlotUtils.plotDoubleArray("CDF",iam.getDgrid(),
-        // IAPUtils.calculateCDF(iam.getQ_D_grid()));
-
-        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, D, potentialType, IAPUtils.normalize(NN_D_grid));
-        /*
-         * double [] P1=fitfun.likelihood(initGuess);
-         * PlotUtils.plotDoubleArray("Loglikelihood", iam.getD(), P1); return
-         * true;
-         */
-
-        if (potentialType == PotentialFunctions.NONPARAM) {
-            best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-        }
-        else {
-            best = new double[cmaReRunTimes][2];
-        }
-        allFitness = new double[cmaReRunTimes];
+        double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
-        final ResultsTable rt = new ResultsTable();
-        /*
-         * Analyzer.getResultsTable();
-         * if (rt == null) {
-         * rt = new ResultsTable();
-         * Analyzer.setResultsTable(rt);
-         * }
-         * int rowNums=rt.getCounter();
-         * for (int i=0;i<rowNums;i++)
-         * rt.deleteRow(i);
-         * rt.updateResults();
-         */
         boolean diffFitness = false;
-        // cma.options.stopTolUpXFactor=10000;
-        for (int k = 0; k < cmaReRunTimes; k++) {
-            final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
-            cma.options.writeDisplayToFile = 0;
-
-            cma.readProperties(); // read options, see file
-            // CMAEvolutionStrategy.properties
-            cma.options.stopFitness = 1e-12; // optional setting
-            cma.options.stopTolFun = 1e-15;
-            final Random rn = new Random(System.nanoTime());
-            if (potentialType == PotentialFunctions.NONPARAM) {
-                cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
-                final double[] initialX = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-                final double[] initialsigma = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-                for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
-                    initialX[i] = meanD * rn.nextDouble();
-                    initialsigma[i] = initialX[i] / 3;
-                }
-                cma.setInitialX(initialX);
-                cma.setInitialStandardDeviations(initialsigma);
-            }
-
-            else if (potentialType == PotentialFunctions.STEP) {
-                cma.setDimension(2);
-
-                final double[] initialX = new double[2];
-
-                final double[] initialsigma = new double[2];
-                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
-                // of 5
-
-                if (meanD != 0) {
-                    initialX[1] = rn.nextDouble() * meanD;
-                    initialsigma[1] = initialX[1] / 3;
-                    //
-                }
-                else {
-                    initialX[1] = 0;
-                    initialsigma[1] = 1E-3;
-                }
-
-                // cma.setInitialX(initialX);
-                initialsigma[0] = initialX[0] / 3;
-
-                cma.setTypicalX(initialX);
-                cma.setInitialStandardDeviations(initialsigma);
-
-            }
-            else {
-
-                cma.setDimension(2);
-                final double[] initialX = new double[2];
-
-                final double[] initialsigma = new double[2];
-                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
-                // of 5
-
-                if (meanD != 0) {
-                    initialX[1] = rn.nextDouble() * meanD;
-                    initialsigma[1] = initialX[1] / 3;
-                    //
-                }
-                else {
-                    initialX[1] = 0;
-                    initialsigma[1] = 1E-3;
-                }
-
-                // cma.setInitialX(initialX);
-                initialsigma[0] = initialX[0] / 3;
-
-                cma.setTypicalX(initialX);
-                cma.setInitialStandardDeviations(initialsigma);
-
-            }
-
-            // cma.setInitialX(l, u);
-
-            // cma.options.lowerStandardDeviations=new double[]{1e-5,1e-5};
-            // initialize cma and get fitness array to fill in later
-            final double[] fitness = cma.init(); // new
-            // double[cma.parameters.getPopulationSize()];
-
-            // initial output to files
-            // cma.writeToDefaultFilesHeaders(0); // 0 == overwrites old files
-
-            // iteration loop
+        
+        for (int cmaRunNumber = 0; cmaRunNumber < cmaReRunTimes; cmaRunNumber++) {
+            final CMAEvolutionStrategy cma = createNewConfiguredCma();
+            final double[] fitness = cma.init();
 
             while (cma.stopConditions.getNumber() == 0) {
-
-                // --- core iteration step ---
-                final double[][] pop = cma.samplePopulation(); // get a new population
-                // of solutions
-                for (int i = 0; i < pop.length; ++i) { // for each candidate
-                    // solution i
-                    // a simple way to handle constraints that define a convex
-                    // feasible domain
-                    // (like box constraints, i.e. variable boundaries) via
-                    // "blind re-sampling"
-                    // assumes that the feasible domain is convex, the optimum
-                    // is
-                    while (!fitfun.isFeasible(pop[i])) {
-                        // not located on (or very close to) the domain
-                        // boundary,
-                        pop[i] = cma.resampleSingle(i); // initialX is feasible
+                final double[][] populations = cma.samplePopulation(); // get a new population of solutions
+                for (int i = 0; i < populations.length; ++i) { 
+                    // for each candidate solution 'i' a simple way to handle constraints that define a convex feasible domain
+                    // (like box constraints, i.e. variable boundaries) via "blind re-sampling" assumes that the feasible domain 
+                    // is convex, the optimum is not located on (or very close to) the domain boundary,
+                    while (!fitfun.isFeasible(populations[i])) {
+                        populations[i] = cma.resampleSingle(i); // initialX is feasible
                     }
-                    // and
-                    // initialStandardDeviations
-                    // are
-                    // sufficiently small to
-                    // prevent
-                    // quasi-infinite
-                    // looping here
-                    // compute fitness/objective value
-                    fitness[i] = fitfun.valueOf(pop[i]); // fitfun.valueOf() is
-                    // to be minimized
+                    // and initialStandardDeviations are sufficiently small to
+                    // prevent quasi-infinite looping here compute fitness/objective value
+                    fitness[i] = fitfun.valueOf(populations[i]); // fitfun.valueOf() is to be minimized
                 }
-                cma.updateDistribution(fitness); // pass fitness array to update
-                // search distribution
-                // --- end core iteration step ---
-
-                // output to files and console
-                // cma.writeToDefaultFiles();
-                final int outmod = 150;
-                if (cma.getCountIter() % (15 * outmod) == 1) {
-                    cma.printlnAnnotation(); // might write file as well
-                }
-                if (cma.getCountIter() % outmod == 1) {
-                    cma.println();
-                }
+                cma.updateDistribution(fitness);
+                printCurrentIterationInfo(cma);
             }
-            // evaluate mean value as it is the best estimator for the optimum
-            cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX())); // updates
-            // the best
-            // ever
-            // solution
+            
+            // evaluate mean value as it is the best estimate for the optimum
+            cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX()));
+            printCmaResultInfo(cma);
 
-            // final output
-            // cma.writeToDefaultFiles(1);
-            cma.println();
-            cma.println("Terminated due to");
-            for (final String s : cma.stopConditions.getMessages()) {
-                cma.println("  " + s);
-            }
-            cma.println("best function value " + cma.getBestFunctionValue() + " at evaluation " + cma.getBestEvaluationNumber());
-            // double [] best;
-
-            allFitness[k] = cma.getBestFunctionValue();
-            if (allFitness[k] < bestFitness) {
-                if (k > 0 && bestFitness - allFitness[k] > allFitness[k] * .00001) {
+            bestFunctionValue[cmaRunNumber] = cma.getBestFunctionValue();
+            if (bestFunctionValue[cmaRunNumber] < bestFitness) {
+                if (cmaRunNumber > 0 && bestFitness - bestFunctionValue[cmaRunNumber] > bestFunctionValue[cmaRunNumber] * 0.00001) {
                     diffFitness = true;
                 }
-                bestFitness = allFitness[k];
-                bestFitnessindex = k;
-
+                bestFitness = bestFunctionValue[cmaRunNumber];
+                iBestPointIndex = cmaRunNumber;
             }
-            best[k] = cma.getBestX();
-            rt.incrementCounter();
-            if (potentialType != PotentialFunctions.NONPARAM) {
-
-                rt.addValue("Strength", best[k][0]);
-                rt.addValue("Threshold/Scale", best[k][1]);
-            }
-            rt.addValue("Residual", allFitness[k]);
-
+            iBestPointsFound[cmaRunNumber] = cma.getBestX();
+            
+            addNewOutputResult(aResultsOutput, bestFunctionValue[cmaRunNumber], iBestPointsFound[cmaRunNumber]);
         }
 
-        rt.updateResults();
-        rt.show("Results");
-
         if (diffFitness) {
-
             IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
 
-        // System.out.println("Best parameters: Threshold, Sigma, Epsilon"+best[0]+" "+best[1]+" "+best[2]);
-
-        if (!showAllRerunResults) { // show only best
-            final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
-            fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
-            final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
-            double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
-            for (int i = 0; i < fitPotential.length; i++) {
-                if (fitPotential[i] < min) {
-                    min = fitPotential[i];
-                }
-                if (fitPotential[i] > max) {
-                    max = fitPotential[i];
-                }
-            }
-
-            plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], min, max);
-            plot.setColor(Color.BLUE);
-            plot.setLineWidth(2);
-            final DecimalFormat format = new DecimalFormat("#.####E0");
-
-            if (potentialType == PotentialFunctions.NONPARAM) {
-                String estim = "";
-                final double[] dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-                double minW = Double.MAX_VALUE, maxW = Double.MIN_VALUE;
-                for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
-                    dp[i] = PotentialFunctions.dp[i];
-                    // kp[i]=kp[i]+ //print kp
-                    // System.out.print("w["+i+"]="+best[i]+" ");
-                    estim = estim + "w[" + i + "]=" + best[bestFitnessindex][i] + " ";
-                    if (best[bestFitnessindex][i] < minW) {
-                        minW = best[bestFitnessindex][i];
-                    }
-                    if (best[bestFitnessindex][i] > maxW) {
-                        maxW = best[bestFitnessindex][i];
-                    }
-                }
-                System.out.println(estim);
-                final Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:", "Support", "Weight", new double[1], new double[1]);
-                plot.addLabel(.65, .3, "Residual: " + format.format(allFitness[bestFitnessindex]));
-
-                plotWeight.setLimits(dp[0], dp[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1 - 1], minW, maxW);
-                plotWeight.addPoints(dp, best[bestFitnessindex], Plot.CROSS);
-                plotWeight.setColor(Color.RED);
-
-                plotWeight.setLineWidth(2);
-                plotWeight.show();
-            }
-            else if (potentialType == PotentialFunctions.STEP) {
-                best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);// epsil
-                best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-                System.out.println("Best parameters: Epsilon, Threshold:" + best[0] + " " + best[bestFitnessindex][1]);
-
-                plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
-                plot.addLabel(.65, .4, "Threshold: " + format.format(best[bestFitnessindex][1]));
-                plot.addLabel(.65, .5, "Residual: " + format.format(allFitness[bestFitnessindex]));
-
-            }
-            else {
-                best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);
-                best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-                System.out.println("Best parameters:  Epsilon, Sigma:" + best[bestFitnessindex][0] + " " + best[bestFitnessindex][1]);
-                plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
-                plot.addLabel(.65, .4, "Scale: " + format.format(best[bestFitnessindex][1]));
-                plot.addLabel(.65, .5, "Residual: " + format.format(allFitness[bestFitnessindex]));
-            }
-            System.out.println("N= " + D.length);
-            plot.show();
-            double[] P_grid = fitfun.getPGrid();
-
-            P_grid = IAPUtils.normalize(P_grid);
-
-            plotQPNN(dgrid, P_grid, q, nnObserved);
-
-        }
-
-        return true;
-
+        fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
+        new EstimatedPotentialPlot(iDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        double[] P_grid = StatisticsUtils.normalizePdf(fitfun.getObservedNearestNeighborDistancesPdf(), false);
+        new DistributionsPlot(iDistancesGrid, P_grid, iDistancePdf, iNearestNeighborDistancePdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
     }
 
-    private void plotQP(double[] d, double[] q, double[] nn) {
-        String xlabel = "Distance";
-        if (isImage) {
-            xlabel = xlabel + " (" + X.getCalibration().getUnit() + ")";
-
+    private void addNewOutputResult(List<Result> aResultsOutput, double aBestFunctionValue, double[] aBestPointFound) {
+        double strength = 0;
+        double thresholdOrScale = 0;
+        if (iPotential.getType() != PotentialType.NONPARAM) {
+            strength = aBestPointFound[0];
+            thresholdOrScale = aBestPointFound[1];
         }
-        final Plot plot = new Plot("Result: Estimated distance distributions", xlabel, "Probability density", d, nn);
-        double max = 0;
-        for (int i = 0; i < q.length; i++) {
-            if (q[i] > max) {
-                max = q[i];
-            }
-        }
-        for (int i = 0; i < nn.length; i++) {
-            if (nn[i] > max) {
-                max = nn[i];
-            }
-        }
-        plot.setLimits(d[0], d[d.length - 1], 0, max);
-        plot.setColor(Color.BLUE);
-        // plot.setLimits(0, 1, 0, 10);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .2, "----  ");
-
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .2, "Observed dist");
-        plot.draw();
-
-        plot.setColor(Color.red);
-        plot.addPoints(d, q, PlotWindow.LINE);
-        plot.addLabel(.7, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.75, .3, "q(d): Context");
-
-        plot.show();
-
+        double residual = aBestFunctionValue;
+        aResultsOutput.add(new Result(strength, thresholdOrScale, residual));
     }
 
-    private void plotQPNN(double[] d, double[] p, double[] q, double[] nn) {
-        String xlabel = "Distance";
-        if (isImage) {
-            xlabel = xlabel + " (" + X.getCalibration().getUnit() + ")";
+    private void printCurrentIterationInfo(final CMAEvolutionStrategy cma) {
+        // Print every infoFilter'th message from CMA
+        final int infoFilter = 150;
+        // Print every 15 info annotation (header with column names)
+        final int annotationFilter = 15 * infoFilter;
 
+        if (cma.getCountIter() % annotationFilter == 1) {
+            cma.printlnAnnotation();
         }
-        final Plot plot = new Plot("Distance distributions", xlabel, "Probability density", d, nn);
+        if (cma.getCountIter() % infoFilter == 1) {
+            cma.println();
+        }
+    }
 
-        double max = 0;
-        for (int i = 0; i < q.length; i++) {
-            if (q[i] > max) {
-                max = q[i];
+    private CMAEvolutionStrategy createNewConfiguredCma() {
+        final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
+        cma.options.writeDisplayToFile = 0;
+        cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
+        cma.options.stopFitness = 1e-12; // optional setting
+        cma.options.stopTolFun = 1e-15;
+        cma.setDimension(iPotential.numOfDimensions());
+        
+        final double[] initialX = new double[iPotential.numOfDimensions()];
+        final double[] initialSigma = new double[iPotential.numOfDimensions()];
+        final Random rn = new Random(System.nanoTime());
+        if (iPotential.getType() == PotentialType.NONPARAM) {
+            for (int i = 0; i < iPotential.numOfDimensions(); i++) {
+                initialX[i] = meanDistance * rn.nextDouble();
+                initialSigma[i] = initialX[i] / 3;
             }
-        }
-        for (int i = 0; i < nn.length; i++) {
-            if (nn[i] > max) {
-                max = nn[i];
-            }
-        }
-        for (int i = 0; i < p.length; i++) {
-            if (p[i] > max) {
-                max = p[i];
-            }
-        }
-        plot.setLimits(d[0], d[d.length - 1], 0, max);
-        plot.setColor(Color.BLUE);
-        // plot.setLimits(0, 1, 0, 10);
-        plot.setLineWidth(2);
-        plot.addLabel(.65, .2, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.7, .2, "Observed dist");
-        plot.draw();
-
-        plot.setColor(Color.red);
-        plot.addPoints(d, q, PlotWindow.LINE);
-        plot.addLabel(.65, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.7, .3, "q(d): Context");
-
-        plot.setColor(Color.green);
-        plot.addPoints(d, p, PlotWindow.LINE);
-        // plot.setLimits(-1, xMax, yMin, yMax);
-        plot.addLabel(.65, .4, "----  ");
-        plot.setColor(Color.black);
-        plot.draw();
-        plot.addLabel(.7, .4, "p(d): Model fit");
-        final DecimalFormat format = new DecimalFormat("#.####E0");
-        if (potentialType == PotentialFunctions.STEP) {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
-        }
-        else if (potentialType == PotentialFunctions.NONPARAM) {
-            plot.addLabel(.65, .6, "Residual: " + format.format(allFitness[bestFitnessindex]));
         }
         else {
-            plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
-            plot.addLabel(.65, .7, "Scale: " + format.format(best[bestFitnessindex][1]));
-            plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
+            // For other than NOPARAM potentials dimensions are always = 2
+            initialX[0] = rn.nextDouble() * 5; // epsilon. average strength of 5
+            if (meanDistance != 0) {
+                initialX[1] = rn.nextDouble() * meanDistance;
+                initialSigma[1] = initialX[1] / 3;
+            }
+            else {
+                initialX[1] = 0;
+                initialSigma[1] = 1E-3;
+            }
+            initialSigma[0] = initialX[0] / 3;
         }
-
-        plot.show();
-
+        
+        cma.setTypicalX(initialX);
+        cma.setInitialStandardDeviations(initialSigma);
+        
+        return cma;
     }
 
-    public boolean hypTest(int monteCarloRunsForTest, double alpha) {
-        if (best == null) {
+    private void printCmaResultInfo(final CMAEvolutionStrategy cma) {
+        cma.println();
+        cma.println("Terminated due to");
+        for (final String s : cma.stopConditions.getMessages()) {
+            cma.println("  " + s);
+        }
+        cma.println("best function value " + cma.getBestFunctionValue() + " at evaluation " + cma.getBestEvaluationNumber());
+    }
+ 
+    public void hypothesisTesting(int monteCarloRunsForTest, double alpha) {
+        if (iBestPointsFound == null) {
             IJ.showMessage("Error: Run estimation first");
-
         }
-        else if (potentialType == PotentialFunctions.NONPARAM) {
+        else if (iPotential.getType() == PotentialType.NONPARAM) {
             IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
-            return false;
+        }
+        else {
+            System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
+            final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iDistancePdf, true), 
+                                                               iDistancesGrid, 
+                                                               iNearestNeighborDistances, 
+                                                               iBestPointsFound[iBestPointIndex], 
+                                                               iPotential, 
+                                                               monteCarloRunsForTest, alpha);
+            ht.rankTest();
+        }
+    }
+
+    public static KernelEstimator createkernelDensityEstimator(double[] distances, double weight) {
+        final KernelEstimator kernel = new KernelEstimator(0.01);
+        for (double value : distances) {
+            kernel.addValue(value, weight); 
         }
 
-        System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        final HypothesisTesting ht = new HypothesisTesting(IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
-        ht.rankTest();
-        return true;
+        return kernel;
+    }
+    
+    /**
+     * Return the optimal bin number for a histogram of the data given in array, sing the
+     * Freedman and Diaconis rule (bin_space = 2*IQR/n^(1/3)).
+     * Inspired from Fiji TMUtils.java
+     */
+    public static int getOptimBins(double[] values, int minBinNumber, int maxBinNumber) {
+        final int size = values.length;
+        final double q1 = StatisticsUtils.getPercentile(values, 0.25);
+        final double q3 = StatisticsUtils.getPercentile(values, 0.75);
+        final double interQRange = q3 - q1;
+        final double binWidth = 2 * interQRange * Math.pow(size, -0.33);
+        MinMaxMean range = StatisticsUtils.getMinMaxMean(values);
+
+        int noBins = (int) ((range.max - range.min) / binWidth + 1);
+        if (noBins > maxBinNumber) {
+            noBins = maxBinNumber;
+        }
+        else if (noBins < minBinNumber) {
+            noBins = minBinNumber;
+        }
+        return noBins;
+    }
+    
+    private static double calcSilvermanBandwidth(double[] distances) {
+        final double q1 = StatisticsUtils.getPercentile(distances, 0.25);
+        final double q3 = StatisticsUtils.getPercentile(distances, 0.75);
+        final double silBandwidth = 0.9 * Math.min(StatisticsUtils.calcStandardDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
+        System.out.println("Silverman's bandwidth: " + silBandwidth);
+
+        return silBandwidth;
+    }
+    
+    public static double calcWekaWeights(double[] distances) {
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(distances);
+        final double range = mmm.max - mmm.min;
+        final double bw = calcSilvermanBandwidth(distances);
+        return ((1.0d / distances.length) * (range / bw) * (range / bw));
+    }
+    
+    public double getMinDistance() {
+        return minDistance;
     }
 
-    public void setCmaReRunTimes(int cmaReRunTimes) {
-        this.cmaReRunTimes = cmaReRunTimes;
+    public double getMaxDistance() {
+        return maxDistance;
     }
 
-    public boolean isShowAllRerunResults() {
-        return showAllRerunResults;
+    public double[] getDistances() {
+        return iNearestNeighborDistances;
     }
-
-    public void setShowAllRerunResults(boolean showAllRerunResults) {
-        this.showAllRerunResults = showAllRerunResults;
+    
+    public void setPotentialType(Potential potentialType) {
+        this.iPotential = potentialType;
     }
-
-    public double getKernelWeightq() {
-        return kernelWeightq;
-    }
-
-    public void setKernelWeightq(double kernelWeightq) {
-        this.kernelWeightq = kernelWeightq;
-    }
-
-    public double getKernelWeightp() {
-        return kernelWeightp;
-    }
-
-    public void setKernelWeightp(double kernelWeightp) {
-        this.kernelWeightp = kernelWeightp;
-    }
-
 }

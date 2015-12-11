@@ -11,6 +11,7 @@
     <property environment="env" />
     <echo message="MOSAIC plugin path to Fiji: [${env.FIJI_MOSAIC_PLUGIN_PATH}]" />
     <property name="pluginsDir" location="${env.FIJI_MOSAIC_PLUGIN_PATH}" />
+    <property name="ImageJpluginDir" location="${env.IMAGEJ_MOSAIC_PLUGIN_PATH}" />
 
     <!-- ****************************************************************** -->
     <!-- Shouldn't be necessary to change something below here, 
@@ -50,6 +51,26 @@
         </echo>
     </target>
 
+    <target name="ImageJ" depends="" description="Generate the distribution">
+        <echo>
+            Building the .jar file.
+        </echo>
+        <jar jarfile="${ImageJpluginDir}/${jarfilename}.jar" update="true">
+            <fileset dir="." includes="plugins.config" />
+            <fileset dir="${build}" includes="**/*.*" />
+            <!-- <fileset dir="${src}" includes="**/*.java" /> -->
+            <fileset dir="." includes="src/mosaic/plugins/scripts/*.ijm" />
+            <fileset dir="." includes="src/mosaic/plugins/scripts/Rscript.r" />
+            <fileset dir="." includes="src/mosaic/plugins/scripts/Stack_Overlay.py" />
+
+            <zipgroupfileset dir="lib" includes="**/*.jar" excludes="*.config" />
+            
+            <manifest>
+                <attribute name="Built-By" value="${name}" />
+            </manifest>
+        </jar>
+    </target>
+ 
     <target name="compress" depends="" description="Generate the distribution">
         <echo>
             Building the .jar file.
@@ -79,7 +100,7 @@
             </manifest>
         </jar>
     </target>
-
+ 
     <target name="clean" description="deletes all binaries and jars">
         <echo>
             Deleting files...
@@ -111,7 +132,7 @@
         <copy file="${test}/log4j.properties" todir="${build}"/>
         <copy file="${test}/logging.properties" todir="${build}"/>
         <copy file="${test}/logback-test.xml" todir="${build}"/>
-
+	<copy file="${src}/mosaic/plugins/scripts/Rscript.r" todir="${build}/mosaic/bregman" />
         <javac debug="true" includeantruntime="false" srcdir="src/:test/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.7" target="1.7">
                     <compilerarg value="-Xlint:all" />
                     <compilerarg value="-Xlint:-path" />

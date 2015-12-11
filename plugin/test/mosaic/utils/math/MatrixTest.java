@@ -5,9 +5,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
+
+import mosaic.test.framework.CommonBase;
 
 public class MatrixTest extends CommonBase {
 
@@ -69,6 +70,22 @@ public class MatrixTest extends CommonBase {
             assertEquals("Matrices should be same", new Matrix(yxDouble, true), new Matrix(yxFloat, true));
             assertEquals("Matrices should be same", new Matrix(yxDouble, false), new Matrix(yxFloat, false));
             assertEquals("Matrices should be same", new Matrix(yxDouble), new Matrix(yxFloat));
+        }
+        {
+            final double[] data = {1, 2, 3, 4, 5, 6};
+            Matrix m = new Matrix(3, 2, data);
+            m.pow(2);
+            assertEquals(3, m.numRows());
+            assertEquals(2, m.numCols());
+            assertArrayEquals("Input array should not be changed.", new double[] {1, 2, 3, 4, 5, 6}, data, 0.0);
+            assertArrayEquals("Should be same", new double[][] {{1, 4}, {9, 16}, {25, 36}}, m.getArrayYX());
+        }
+        {
+            Matrix m = new Matrix(3, 2, /* values from here */ 1, 2, 3, 4, 5, 6);
+            m.pow(2);
+            assertEquals(3, m.numRows());
+            assertEquals(2, m.numCols());
+            assertArrayEquals("Should be same", new double[][] {{1, 4}, {9, 16}, {25, 36}}, m.getArrayYX());
         }
     }
 

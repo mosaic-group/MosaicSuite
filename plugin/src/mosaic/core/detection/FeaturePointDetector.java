@@ -11,7 +11,7 @@ import ij.process.Blitter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import mosaic.core.utils.MosaicImageProcessingTools;
+import mosaic.core.utils.DilateImage;
 import mosaic.core.utils.MosaicUtils;
 
 
@@ -32,8 +32,6 @@ public class FeaturePointDetector {
 
     // Internal stuff
     private Vector<Particle> iParticles;
-    private int iNumOfInitialyDetectedParticles;
-    private int iNumOfRealParticles;
     private int[][] mask;
     
     
@@ -52,17 +50,15 @@ public class FeaturePointDetector {
      * Determines the "real" particles in this frame (only for frame constructed from Image) <br>
      * Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes it, convolutes and dilates it,
      * finds the particles, refine their position and filters out non particles
-     * 
-     * @see ImageProcessor#convertToFloat()
+     * @return container with disovered particles
      */
-    public void featurePointDetection(MyFrame frame) {
+    public Vector<Particle> featurePointDetection(ImageStack original_ips) {
         /*
          * Converting the original imageProcessor to float
          * This is a constraint caused by the lack of floating point precision of pixels
          * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
          * converted to 32bit floating point, false particles get detected
          */
-        final ImageStack original_ips = frame.getOriginalImageStack();
         ImageStack restored_fps = new ImageStack(original_ips.getWidth(), original_ips.getHeight());
 
         for (int i = 1; i <= original_ips.getSize(); i++) {
@@ -79,7 +75,7 @@ public class FeaturePointDetector {
         // new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
         /* Estimation of the point location - Step 2 of the algorithm */
-        pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
+        pointLocationsEstimation(restored_fps);
         
         /* Refinement of the point location - Step 3 of the algorithm */
         pointLocationsRefinement(restored_fps);
@@ -87,16 +83,7 @@ public class FeaturePointDetector {
         /* Non Particle Discrimination(set a flag to particles) - Step 4 of the algorithm */
         nonParticleDiscrimination();
 
-        /* Save frame information before particle discrimination/deletion - it will be lost otherwise */
-        frame.setParticles(iParticles, iNumOfInitialyDetectedParticles);
-        frame.generateFrameInfoBeforeDiscrimination();
-
-        /* remove all the "false" particles from particles array */
-        removeNonParticle();
-        frame.setParticles(iParticles, iNumOfRealParticles);
-
-        /* Set the real_particle_number */
-        frame.real_particles_number = iNumOfRealParticles;
+        return iParticles;
     }
 
     /**
@@ -111,10 +98,8 @@ public class FeaturePointDetector {
     private void normalizeFrameFloat(ImageStack is, float global_min, float global_max) {
         for (int s = 1; s <= is.getSize(); s++) {
             final float[] pixels = (float[]) is.getPixels(s);
-            float tmp_pix_value;
             for (int i = 0; i < pixels.length; i++) {
-                tmp_pix_value = (pixels[i] - global_min) / (global_max - global_min);
-                pixels[i] = tmp_pix_value;
+                pixels[i] = (pixels[i] - global_min) / (global_max - global_min);
             }
         }
     }
@@ -189,10 +174,10 @@ public class FeaturePointDetector {
      * 
      * @param ip ImageProcessor, should be after conversion, normalization and restoration
      */
-    private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
+    private void pointLocationsEstimation(ImageStack ips) {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
-        final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, iRadius, 4);
+        final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
         iParticles = new Vector<Particle>();
         /* loop over all pixels */
@@ -207,12 +192,11 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        iParticles.add(new Particle(j + .5f, i + .5f, s, frame_number, linkrange));
+                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1, 0));
                     }
                 }
             }
         }
-        iNumOfInitialyDetectedParticles = iParticles.size();
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
@@ -345,31 +329,30 @@ public class FeaturePointDetector {
      * Adapted "as is" from Ingo Oppermann implementation
      */
     private void nonParticleDiscrimination() {
-        int j, k;
-        double score;
-        int max_x = 1, max_y = 1, max_z = 1;
-        iNumOfRealParticles = iNumOfInitialyDetectedParticles;
         if (iParticles.size() == 1) {
+            // If there is only one particle it should not be discriminated - big enough value will do the job.
             iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
         }
-        for (j = 0; j < iParticles.size(); j++) {
-            // int accepted = 1;
-            max_x = Math.max((int) iParticles.elementAt(j).iX, max_x);
-            max_y = Math.max((int) iParticles.elementAt(j).iY, max_y);
-            max_z = Math.max((int) iParticles.elementAt(j).iZ, max_z);
+        
+        int max_x = 1;
+        int max_y = 1;
+        int max_z = 1;
+        for (int j = 0; j < iParticles.size(); j++) {
+            final Particle pJ = iParticles.elementAt(j);
+            max_x = Math.max((int) pJ.iX, max_x);
+            max_y = Math.max((int) pJ.iY, max_y);
+            max_z = Math.max((int) pJ.iZ, max_z);
 
-            for (k = j + 1; k < iParticles.size(); k++) {
-                score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1))
-                        * Math.exp(-(iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) * (iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) / (2.0 * 0.1)
-                                - (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) * (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) / (2.0 * 0.1));
-                iParticles.elementAt(j).nonParticleDiscriminationScore += score;
-                iParticles.elementAt(k).nonParticleDiscriminationScore += score;
+            for (int k = j + 1; k < iParticles.size(); k++) {
+                final Particle pK = iParticles.elementAt(k);
+                double score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * Math.exp(- Math.pow((pJ.m0 - pK.m0), 2) / (2.0 * 0.1) - Math.pow((pJ.m2 - pK.m2), 2) / (2.0 * 0.1) );
+                pJ.nonParticleDiscriminationScore += score;
+                pK.nonParticleDiscriminationScore += score;
             }
-            if (iParticles.elementAt(j).nonParticleDiscriminationScore < iCutoff) {
-                iParticles.elementAt(j).special = false;
-                iNumOfRealParticles--;
+            
+            if (pJ.nonParticleDiscriminationScore < iCutoff) {
+                pJ.special = false;
             }
-            // System.out.println(j + "\t" + particles.elementAt(j).m0 + "\t" + particles.elementAt(j).m2 + "\t" + accepted);
         }
 
         // Remove duplicates (happens when dealing with artificial images)
@@ -383,12 +366,13 @@ public class FeaturePointDetector {
             }
         }
 
-        for (j = 0; j < iParticles.size(); j++) {
+        for (int j = 0; j < iParticles.size(); j++) {
+            final Particle pJ = iParticles.elementAt(j);
             boolean vParticleInNeighborhood = false;
             for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
                 for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
                     for (int ox = -1; !vParticleInNeighborhood && ox <= 1; ox++) {
-                        if (vBitmap[(int) iParticles.elementAt(j).iZ + 1 + oz][(int) iParticles.elementAt(j).iY + 1 + oy][(int) iParticles.elementAt(j).iX + 1 + ox]) {
+                        if (vBitmap[(int) pJ.iZ + 1 + oz][(int) pJ.iY + 1 + oy][(int) pJ.iX + 1 + ox]) {
                             vParticleInNeighborhood = true;
                         }
                     }
@@ -396,30 +380,13 @@ public class FeaturePointDetector {
             }
 
             if (vParticleInNeighborhood) {
-                iParticles.elementAt(j).special = false;
-                iNumOfRealParticles--;
+                pJ.special = false;
             }
             else {
-                vBitmap[(int) iParticles.elementAt(j).iZ + 1][(int) iParticles.elementAt(j).iY + 1][(int) iParticles.elementAt(j).iX + 1] = true;
+                vBitmap[(int) pJ.iZ + 1][(int) pJ.iY + 1][(int) pJ.iX + 1] = true;
             }
         }
 
-    }
-
-    /**
-     * removes particles that were discarded by the <code>nonParticleDiscrimination</code> method
-     * from the particles array. <br>
-     * Non particles will be removed from the <code>particles</code> array so if their info is
-     * needed, it should be saved before calling this method
-     * 
-     * @see MyFrame#nonParticleDiscrimination()
-     */
-    private void removeNonParticle() {
-        for (int i = iParticles.size() - 1; i >= 0; i--) {
-            if (!iParticles.elementAt(i).special) {
-                iParticles.removeElementAt(i);
-            }
-        }
     }
 
     /**
@@ -428,10 +395,8 @@ public class FeaturePointDetector {
      * 
      * @param is ImageStack to be restored
      * @return the restored <code>ImageProcessor</code>
-     * @see Convolver#convolve(ij.process.ImageProcessor, float[], int, int)
      */
     private ImageStack imageRestoration(ImageStack is) {
-        // remove the clutter
         ImageStack restored = null;
 
         // pad the imagestack
@@ -451,13 +416,10 @@ public class FeaturePointDetector {
         // Set it back to 1*lambda_n to match the 2D implementation.
         final float lambda_n = 1;
         GaussBlur3D(restored, 1 * lambda_n);
-        // new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
         boxCarBackgroundSubtractor(restored);
-        // new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
         if (is.getSize() > 1) {
             // again, 3D crop
-            // new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
             restored = MosaicUtils.cropImageStack3D(restored, iRadius);
         }
         else {
@@ -466,9 +428,8 @@ public class FeaturePointDetector {
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
-        // new StackWindow(new ImagePlus("restored", GetSubStackCopyInFloat(restored, 1, restored.getSize())));
+        
         return restored;
-
     }
 
     private void GaussBlur3D(ImageStack is, float aSigma) {
@@ -557,7 +518,7 @@ public class FeaturePointDetector {
      * @param mask_radius
      */
     private void generateDilationMasks(int mask_radius) {
-        mask = MosaicImageProcessingTools.generateMask(mask_radius);
+        mask = DilateImage.generateMask(mask_radius);
     }
 
     /**
