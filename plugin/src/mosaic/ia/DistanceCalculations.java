@@ -3,7 +3,6 @@ package mosaic.ia;
 
 import java.util.Vector;
 
-import javax.management.RuntimeErrorException;
 import javax.vecmath.Point3d;
 
 import ij.IJ;
