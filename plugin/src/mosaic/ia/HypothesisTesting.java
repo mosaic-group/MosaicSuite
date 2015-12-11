@@ -13,7 +13,7 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 class HypothesisTesting {
     // Input Distributions
     private final double[] iDistanceCdf;
-    private final double[] iDistances;
+    private final double[] iDistancesGrid;
     
     // Potential Calculator
     private final double[] iNearestNeighborDistances;
@@ -24,9 +24,9 @@ class HypothesisTesting {
     private final int iNumOfMcRuns;
     private final double iAlpha;
 
-    public HypothesisTesting(double[] aDistanceCdf, double[] aDistances, double[] aNearestNeighborDistances, double[] aBestPointFound, Potential aPotential, int aNumOfMcRuns, double aAlpha) {
+    public HypothesisTesting(double[] aDistanceCdf, double[] aDistancesGrid, double[] aNearestNeighborDistances, double[] aBestPointFound, Potential aPotential, int aNumOfMcRuns, double aAlpha) {
         iDistanceCdf = aDistanceCdf;
-        iDistances = aDistances;
+        iDistancesGrid = aDistancesGrid;
         iBestPointFound = aBestPointFound;
         iPotential = aPotential;
         iNearestNeighborDistances = aNearestNeighborDistances;
@@ -39,9 +39,7 @@ class HypothesisTesting {
         double[] T = new double[iNumOfMcRuns];
         calculateT(DRand, T);
         
-        iPotential.calculateWithoutEpsilon(iNearestNeighborDistances, iBestPointFound);
-
-        double Tob = -1 * iPotential.getSumPotential();
+        double Tob = -1 * iPotential.calculateWithoutEpsilon(iNearestNeighborDistances, iBestPointFound).getSumPotential();
         int i = 0;
         for (i = 0; i < iNumOfMcRuns; i++) {
             if (Tob <= T[i]) {
@@ -75,8 +73,7 @@ class HypothesisTesting {
     private void calculateT(double[] DRand, double[] T) {
         for (int i = 0; i < iNumOfMcRuns; i++) {
             generateRandomDistances(DRand);
-            iPotential.calculateWithoutEpsilon(DRand, iBestPointFound);
-            T[i] = -1 * iPotential.getSumPotential();
+            T[i] = -1 *  iPotential.calculateWithoutEpsilon(DRand, iBestPointFound).getSumPotential();
         }
         Arrays.sort(T);
     }
@@ -101,7 +98,7 @@ class HypothesisTesting {
                 break;
             }
         }
-        return linearInterpolation(iDistanceCdf[i], iDistanceCdf[i + 1], iDistances[i], iDistances[i + 1], R);
+        return linearInterpolation(iDistanceCdf[i], iDistanceCdf[i + 1], iDistancesGrid[i], iDistancesGrid[i + 1], R);
     }
     
     private static double linearInterpolation(double aXmin, double aXmax, double aYmin, double aYmax, double aXpoint) {

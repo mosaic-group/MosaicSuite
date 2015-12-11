@@ -12,8 +12,7 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 public class EstimatedPotentialPlot extends BasePlot {
     
     public EstimatedPotentialPlot(final double[] aDistances, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
-        aPotential.calculate(aDistances, aBestPointFound);
-        double[] potentialValues = aPotential.getPotential();
+        double[] potentialValues = aPotential.calculate(aDistances, aBestPointFound).getPotential();
         plot = new Plot("Estimated potential", "distance", "Potential value", aDistances, potentialValues);
         MinMaxMean mmm = StatisticsUtils.getMinMaxMean(potentialValues);
         plot.setLimits(aDistances[0] - 1, aDistances[aDistances.length - 1], mmm.min, mmm.max);

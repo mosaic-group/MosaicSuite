@@ -525,9 +525,9 @@ public class MyFrame {
         MaskOnSpaceMapper rg_m = null;
 
         if ((rg_m = CircleCache.get(rc)) == null) {
-            if (rc < 1) {
-                rc = 1;
-            }
+//            if (rc < 1) {
+//                rc = 1;
+//            }
             final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
             rg_m = new MaskOnSpaceMapper(cm, sz);
             CircleCache.put(rc, rg_m);

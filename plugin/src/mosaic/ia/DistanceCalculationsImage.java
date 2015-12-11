@@ -94,7 +94,6 @@ public class DistanceCalculationsImage extends DistanceCalculations {
      */
     private static <T extends RealType<T> & NativeType<T>> Vector<Particle> detectParticlesInStack(ImagePlus aInputImg) {
         // Show input image
-        System.out.println("No of N slices: " + aInputImg.getNSlices());
         aInputImg.show();
 
         // Get parameters from user

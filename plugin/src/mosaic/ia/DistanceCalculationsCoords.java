@@ -19,8 +19,8 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
         calcDistances();
     }
 
-    private final Point3d[] X, Y; // unfiltered points
-    private final double x1, x2, y1, y2, z1, z2; // ask for users input, if no mask. currently, force mask for csv.
+    private final Point3d[] X, Y;
+    private final double x1, x2, y1, y2, z1, z2;
 
     private void calcDistances() {
         iParticlesX = getFilteredAndScaledCoordinates(X);
