@@ -29,9 +29,12 @@ import mosaic.ia.Potentials.PotentialType;
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     private Analysis iAnalysis;
-    private ImagePlus iImgX, iImgY;
-    private Point3d[] iCsvX, iCsvY;
+    private ImagePlus iImgX;
+    private ImagePlus iImgY;
+    private Point3d[] iCsvX;
+    private Point3d[] iCsvY;
     private ImagePlus iMaskImg;
+    
     // Order must be same as declared in PotentialType enum
     private static final String[] PotentialList = { "Step", "Hernquist", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
 
@@ -142,7 +145,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             }
             
             if (iCsvX != null && iCsvY != null) {
-                System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
+                System.out.println("Boundary (x/y/z): " + xmin + " - " + xmax + "; " + ymin + " - " + ymax + "; " + zmin + " - " + zmax);
                 iAnalysis = new Analysis();
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }

@@ -118,7 +118,6 @@ public abstract class DistanceCalculations {
         catch (final ArrayIndexOutOfBoundsException e) {
             // It is OK to be here: may happen if mask is smaller than input data (image or loaded coordinates).
             // In that case we discard points outside mask.
-            return false;
         }
 
         return false;
