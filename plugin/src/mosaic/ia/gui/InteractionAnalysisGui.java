@@ -240,7 +240,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
 
     private boolean loadMask() {
-        if (iImgY == null) {
+        if (!isCoordinatesTab() && iImgY == null) {
             IJ.showMessage("ERROR: Load Image Y first");
             return false;
         }

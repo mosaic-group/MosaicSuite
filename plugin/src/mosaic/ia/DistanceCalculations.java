@@ -111,6 +111,8 @@ public abstract class DistanceCalculations {
         catch (final ArrayIndexOutOfBoundsException e) {
             System.out.println("FAULT: " + coords);
             // May happen if mask is applied to loaded coordinates. In that case checks are not done.
+            // TODO: Anyway it should be possible to use smaller and bigger masks than input image. In that case we use part of mask 
+            //       (if mask is bigger) or discard points outside mask (if smaller), or sth like that. Should be investigated and implemented.
             return false;
         }
 
