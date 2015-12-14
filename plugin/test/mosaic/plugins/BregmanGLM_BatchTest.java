@@ -2,6 +2,7 @@ package mosaic.plugins;
 
 import org.junit.Test;
 
+import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
@@ -197,6 +198,42 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
         copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testCluster()  {
+        
+        // Define test data
+        final String tcDirName           = "Squassh_cluster/file_dir/";
+        final String setupString         = "run";
+        final String macroOptions        = "username=" + System.getProperty("user.name");
+        final String inputFile           = null;
+        final String[] expectedImgFiles  = {};
+        final String[] referenceImgFiles = {};
+        final String[] expectedFiles     = {};
+        final String[] referenceFiles    = {};
+
+        
+        // Create tested plugIn
+        Interpreter.batchMode = true;
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        plugin.bypass_GUI();
+        plugin.setIsOnTest(true);
+        plugin.setUseCluster(true);
+        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("droplet_1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("droplet_3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("droplet_4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("droplet_5.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("droplet_6.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,

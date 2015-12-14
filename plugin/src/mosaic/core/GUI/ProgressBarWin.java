@@ -14,6 +14,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
+import ij.macro.Interpreter;
+
 
 /**
  * It is a Dialog with a progress bar
@@ -24,11 +26,12 @@ import javax.swing.border.EmptyBorder;
 public class ProgressBarWin extends JDialog {
 
     private static final long serialVersionUID = 147834134785813L;
-    private final JPanel contentPane;
-    private final JProgressBar Prog_s;
-    private final JLabel Status;
+    private JPanel contentPane;
+    private JProgressBar Prog_s;
+    private JLabel Status;
 
     public void SetStatusMessage(String Message) {
+        if (Interpreter.batchMode == true) return;
         Status.setText(Message);
 
         // Measure the text
@@ -54,11 +57,13 @@ public class ProgressBarWin extends JDialog {
     }
 
     public void SetProgress(int p) {
+        if (Interpreter.batchMode == true) return;
         Prog_s.setString(((Integer) p).toString() + " %");
         Prog_s.setValue(p);
     }
 
     public ProgressBarWin() {
+        if (Interpreter.batchMode == true) return;
         setTitle("Processing...");
         setBounds(100, 100, 400, 100);
         contentPane = new JPanel();

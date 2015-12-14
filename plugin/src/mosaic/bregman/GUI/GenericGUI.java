@@ -308,8 +308,10 @@ public class GenericGUI {
             run_mode rm = null;
 
             // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
-            // it does not work. Should be investigated why...
-            if (IJ.isMacro() == true) {
+            // it does not work -> unit test fails. Should be investigated why...
+            // It seems that we go then always in first 'if' instead of 'else' on most tests since batchMode = true is default
+            // for unit testing...
+            if (IJ.isMacro() == true || BregmanGLM_Batch.test_mode) {// || Interpreter.batchMode == true) {
                 logger.debug("Macro setting for mode");
                 new GenericDialog("Squassh");
                 // Draw a batch system window
