@@ -82,7 +82,7 @@ public class Analysis {
         
         @Override
         public String toString() { 
-            return "[strength="+ iStrength + ", threshold/scale="+iThresholdScale+", residual="+iResidual+"]";
+            return "[strength=" + iStrength + ", threshold/scale=" + iThresholdScale + ", residual=" + iResidual + "]";
         }
     }
     

@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.region_competition.GUI;
 
 import java.awt.Window;
 import java.awt.event.WindowEvent;
@@ -33,7 +33,7 @@ public class SegmentationProcessWindow {
      * @param aHeight
      * @param aShouldKeepAllSlices - Should stack keep all added slices or only last added?
      */
-    SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices) {
+    public SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices) {
         shouldKeepAllSlices = aShouldKeepAllSlices;
 
         // Generate stack and ImagePlus with given dimensions
@@ -52,7 +52,7 @@ public class SegmentationProcessWindow {
      * @param aTitle - title for image
      * @param aBiggestLabelSoFar - maximum label number used so far
      */
-    void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
+    public void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
         if (iStack == null) {
             // stack was closed by user, don't reopen
             return;
@@ -76,7 +76,7 @@ public class SegmentationProcessWindow {
     /**
      * Closes SegmentationProcessWindow
      */
-    void close() {
+    public void close() {
         if (stackImPlus != null) {
             stackImPlus.close();
         }
@@ -88,7 +88,7 @@ public class SegmentationProcessWindow {
      * @param aTitle Title of the stack slice
      * @param aPixels data of the new slice (pixel array)
      */
-    void addSliceToStackAndShow(String aTitle, final short[] aPixels) {
+    public void addSliceToStackAndShow(String aTitle, final short[] aPixels) {
         if (!shouldKeepAllSlices) {
             iStack.deleteLastSlice();
         }
