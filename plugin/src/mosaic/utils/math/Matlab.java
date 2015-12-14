@@ -7,6 +7,7 @@ import java.util.Map;
 
 import mosaic.utils.math.Interpolation.InterpolationMode;
 import mosaic.utils.math.Interpolation.InterpolationType;
+import mosaic.utils.math.Matrix.MFunc;
 
 public class Matlab {
     /**

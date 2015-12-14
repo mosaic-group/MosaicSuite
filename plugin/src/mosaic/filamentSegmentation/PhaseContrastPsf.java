@@ -1,10 +1,10 @@
 package mosaic.filamentSegmentation;
 
-import mosaic.utils.math.MFunc;
+import org.apache.commons.math3.special.BesselJ;
+
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
-
-import org.apache.commons.math3.special.BesselJ;
+import mosaic.utils.math.Matrix.MFunc;
 
 class PhaseContrastPsf {
     static Matrix generate(double aR, double aW, double aM) {
