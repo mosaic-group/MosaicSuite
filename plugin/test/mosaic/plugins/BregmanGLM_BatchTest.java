@@ -1,5 +1,10 @@
 package mosaic.plugins;
 
+import java.io.File;
+import java.util.Collection;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.Test;
 
 import ij.macro.Interpreter;
@@ -215,11 +220,30 @@ public class BregmanGLM_BatchTest extends CommonBase {
         final String setupString         = "run";
         final String macroOptions        = "username=" + System.getProperty("user.name");
         final String inputFile           = null;
-        final String[] expectedImgFiles  = {};
-        final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
+        final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/droplet_1_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_2_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_3_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_4_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_5_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_6_outline_overlay_c1.zip"};
+        final String[] referenceImgFiles = {"__outline_overlay_c1.zip/droplet_1_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_2_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_3_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_4_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_5_outline_overlay_c1.zip",
+                                            "__outline_overlay_c1.zip/droplet_6_outline_overlay_c1.zip"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/droplet_1_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_2_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_3_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_4_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_5_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_6_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/droplet_1_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_2_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_3_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_4_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_5_ObjectsData_c1.csv",
+                                            "__ObjectsData_c1.csv/droplet_6_ObjectsData_c1.csv"};
         
         // Create tested plugIn
         Interpreter.batchMode = true;
@@ -230,16 +254,45 @@ public class BregmanGLM_BatchTest extends CommonBase {
         copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("droplet_1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("droplet_2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("droplet_3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("droplet_4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("droplet_5.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("droplet_6.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_5.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_6.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
                    macroOptions, 
                    setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
+                   null, null, null, null);
+                   
+        File dataDir = new File(SystemOperations.getTestDataPath() + tcDirName);
+        File testDir = new File(tmpPath);
+        
+        // compare output from plugin with reference images
+        for (int i = 0; i < expectedImgFiles.length; ++i) {
+            String refFile = findJobFile(referenceImgFiles[i], dataDir).getAbsoluteFile().toString();
+            String testFile = findJobFile(expectedImgFiles[i], testDir).getAbsoluteFile().toString();
+            testFile = "./" + testFile.substring(tmpPath.length(), testFile.length());
+            compareImageFromIJ(refFile, testFile);
+        }
+
+        for (int i = 0; i < expectedFiles.length; ++i) {
+            String refFile = findJobFile(referenceFiles[i], dataDir).getAbsoluteFile().toString();
+            String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
+            compareCsvFiles(refFile, testFile);
+        }
+    }
+
+    private File findJobFile(String aName, File aDir) {
+        File[] fileList = aDir.listFiles();
+        for (File f : fileList) {
+            if (f.isDirectory() && f.getName().substring(0, 3).equals("Job")) { 
+                Collection<File> lf = FileUtils.listFiles(f, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+                for (File c : lf) {
+                    if (c.getAbsolutePath().endsWith(aName)) return c;
+                }
+            }
+        }
+        return null;
     }
 }

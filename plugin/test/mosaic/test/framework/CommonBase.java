@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -136,12 +138,13 @@ public class CommonBase extends Info {
         debugOutput();
         
         // compare output from plugin with reference images
-        for (int i = 0; i < aExpectedImgFiles.length; ++i) {
-            String refFile = tcPath + aReferenceImgFiles[i];
-            String testFile = aExpectedImgFiles[i];
-            compareImageFromIJ(refFile, testFile);
+        if (aExpectedImgFiles != null && aReferenceImgFiles != null) {
+            for (int i = 0; i < aExpectedImgFiles.length; ++i) {
+                String refFile = tcPath + aReferenceImgFiles[i];
+                String testFile = aExpectedImgFiles[i];
+                compareImageFromIJ(refFile, testFile);
+            }
         }
-
         if (aExpectedFiles != null && aReferenceFiles != null) {
             for (int i = 0; i < aExpectedFiles.length; ++i) {
                 String refFile = tcPath + aReferenceFiles[i];
@@ -156,7 +159,7 @@ public class CommonBase extends Info {
      * @param aReferenceFileName - absolute path to reference file
      * @param aGeneratedImageWindowName - name of window containing tested image
      */
-    private void compareImageFromIJ(String aReferenceFileName, String aGeneratedImageWindowName) {
+    protected void compareImageFromIJ(String aReferenceFileName, String aGeneratedImageWindowName) {
         logger.debug("Comparing output of two images:");
         logger.debug("    ref: [" + aReferenceFileName + "]");
         logger.debug("    test:[" + aGeneratedImageWindowName +"]");
@@ -177,7 +180,7 @@ public class CommonBase extends Info {
      * @param refFile - absolute path to reference file
      * @param testFile - absolute path to tested file
      */
-    private void compareTextFiles(String refFile, String testFile) {
+    protected void compareTextFiles(String refFile, String testFile) {
         logger.debug("Comparing output of two text files:");
         logger.debug("    ref: [" + refFile + "]");
         logger.debug("    test:[" + testFile + "]");
@@ -186,6 +189,36 @@ public class CommonBase extends Info {
         assertEquals("Files differ!", expected, result);
     }
 
+    protected void compareCsvFiles(String refFile, String testFile) {
+        logger.debug("Comparing output of two CSV files:");
+        logger.debug("    ref: [" + refFile + "]");
+        logger.debug("    test:[" + testFile +"]");
+        try {
+            List<String> ref = readLines(refFile);
+            List<String> test = readLines(testFile);
+            for (int i = 0; i < ref.size(); ++i) {
+                if (ref.get(i).startsWith("%background:")) continue;
+                assertEquals(ref.get(i), test.get(i));
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Exception!");
+        }
+        logger.debug("Files match!");
+    }
+    
+    protected List<String> readLines(String file) throws IOException {
+        ArrayList<String> lines = new ArrayList<String>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+               lines.add(line);
+            }
+        }
+        return lines;
+    }
+    
     /**
      * Copies aInputFileOrDirectory from inputPath to given destinationPath
      * @param aInputFileOrDirectory input file or directory
