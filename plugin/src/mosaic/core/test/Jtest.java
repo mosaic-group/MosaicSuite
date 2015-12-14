@@ -13,9 +13,7 @@ import org.scijava.util.FileUtils;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.ShellCommand;
-import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.plugins.MergeJobs;
 import mosaic.plugins.utils.TimeMeasurement;
 import mosaic.test.framework.SystemOperations;
@@ -46,19 +44,6 @@ public class Jtest implements PlugInFilter {
         final TimeMeasurement tm = new TimeMeasurement();
         
         // -----------------------------------------------------------------------------------
-        
-        logger.info("========================== TestSuite: bregman.Jtest  ===================================");
-        final BregmanGLM_Batch BG = new BregmanGLM_Batch();
-        BG.bypass_GUI();
-        final TimeMeasurement tm1 = new TimeMeasurement();
-        
-        Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
-        BG.setUseCluster(true);
-        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
-        tm1.logLapTimeSec("----------------------- Squassh_cluster");
-        
-        tm.logLapTimeSec("========================== bregman");
-
         logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
         mergetest();
         tm.logLapTimeSec("========================== core.cluster.Jtest");
