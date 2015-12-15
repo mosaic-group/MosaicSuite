@@ -515,68 +515,6 @@ public class MosaicUtils {
         return padded_is;
     }
 
-    /**
-     * Does the same as padImageStack3D but does not create a new image. It
-     * recreates the edge of the cube (frame).
-     *
-     * @see padImageStack3D, cropImageStack3D
-     * @param aIS
-     */
-    public static void repadImageStack3D(ImageStack aIS, int padSize) {
-        if (aIS.getSize() > 1) { // only in the 3D case
-            for (int s = 1; s <= padSize; s++) {
-                aIS.deleteSlice(1);
-                aIS.deleteLastSlice();
-            }
-        }
-        for (int s = 1; s <= aIS.getSize(); s++) {
-            final float[] pixels = (float[]) aIS.getProcessor(s).getPixels();
-            final int width = aIS.getWidth();
-            final int height = aIS.getHeight();
-            for (int i = 0; i < pixels.length; i++) {
-                final int xcoord = i % width;
-                final int ycoord = i / width;
-                if (xcoord < padSize && ycoord < padSize) {
-                    pixels[i] = pixels[padSize * width + padSize];
-                    continue;
-                }
-                if (xcoord < padSize && ycoord >= height - padSize) {
-                    pixels[i] = pixels[(height - padSize - 1) * width + padSize];
-                    continue;
-                }
-                if (xcoord >= width - padSize && ycoord < padSize) {
-                    pixels[i] = pixels[(padSize + 1) * width - padSize - 1];
-                    continue;
-                }
-                if (xcoord >= width - padSize && ycoord >= height - padSize) {
-                    pixels[i] = pixels[(height - padSize) * width - padSize - 1];
-                    continue;
-                }
-                if (xcoord < padSize) {
-                    pixels[i] = pixels[ycoord * width + padSize];
-                    continue;
-                }
-                if (xcoord >= width - padSize) {
-                    pixels[i] = pixels[(ycoord + 1) * width - padSize - 1];
-                    continue;
-                }
-                if (ycoord < padSize) {
-                    pixels[i] = pixels[padSize * width + xcoord];
-                    continue;
-                }
-                if (ycoord >= height - padSize) {
-                    pixels[i] = pixels[(height - padSize - 1) * width + xcoord];
-                }
-            }
-        }
-        if (aIS.getSize() > 1) {
-            for (int s = 1; s <= padSize; s++) { // only in 3D case
-                aIS.addSlice("", aIS.getProcessor(1).duplicate(), 1);
-                aIS.addSlice("", aIS.getProcessor(aIS.getSize()).duplicate());
-            }
-        }
-    }
-
     public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos) {
         final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
         if (startPos > endPos || startPos < 0 || endPos < 0) {
@@ -1160,20 +1098,6 @@ public class MosaicUtils {
         return true;
     }
 
-    /**
-     * This function check if the Fiji respect all the requirement to run the
-     * MosaicToolSuite
-     *
-     * @return true if respect the requirement
-     */
-    static public boolean checkRequirement() {
-        if (IJ.versionLessThan("1.48")) {
-            IJ.error("Your Fiji or ImageJ version is too old to run the MosaicToolSuite please update it");
-            return false;
-        }
-        return true;
-    }
-    
     /**
      * Calculate the sum of all pixels
      *

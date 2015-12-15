@@ -248,8 +248,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Create tested plugIn
         Interpreter.batchMode = true;
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        BregmanGLM_Batch.test_mode = true;
         plugin.bypass_GUI();
-        plugin.setIsOnTest(true);
         plugin.setUseCluster(true);
         copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("droplet_1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
