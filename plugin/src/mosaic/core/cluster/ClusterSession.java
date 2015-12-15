@@ -731,9 +731,9 @@ public class ClusterSession {
             final int p = (int) (progress * 100.0 / total);
             wp.SetProgress(p);
 
-            // wait 10 second to send and get again the status
+            // wait to send and get again the status
             try {
-                Thread.sleep(3000);
+                Thread.sleep(500);
             }
             catch (final InterruptedException e) {
                 e.printStackTrace();
