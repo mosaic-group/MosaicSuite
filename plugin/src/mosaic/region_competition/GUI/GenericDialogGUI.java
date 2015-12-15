@@ -131,7 +131,7 @@ public class GenericDialogGUI  {
         }
     }
     
-    final CustomDialog gd;
+    CustomDialog gd;
     private GenericDialog gd_p;
 
     private String filenameInput;
@@ -156,18 +156,15 @@ public class GenericDialogGUI  {
         settings = aSettings; // region_Competition.settings;
         aImp = aImg; // region_Competition.getOriginalImPlus();
 
+        gd = new CustomDialog("Region Competition");
+        
         if (IJ.isMacro() == true) {
-            gd = new CustomDialog("Region Competition");
-
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
             gd.addStringField("text2", "");
-
             gd.addCheckbox("Show_and_save_Statistics", true);
             return;
         }
-
-        gd = new CustomDialog("Region Competition");
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
 
