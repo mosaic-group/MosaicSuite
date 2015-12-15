@@ -131,7 +131,7 @@ public class GenericDialogGUI  {
         }
     }
     
-    final CustomDialog gd;
+    GenericDialog gd;
     private GenericDialog gd_p;
 
     private String filenameInput;
@@ -156,17 +156,18 @@ public class GenericDialogGUI  {
         settings = aSettings; // region_Competition.settings;
         aImp = aImg; // region_Competition.getOriginalImPlus();
 
+        
         if (IJ.isMacro() == true) {
-            gd = new CustomDialog("Region Competition");
-
+            // Must be 'false' since headless mode of Fiji cannot handle this window.
+            keepAllFrames = false;
+            gd = new GenericDialog("MACRO MODE");
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
             gd.addStringField("text2", "");
-
             gd.addCheckbox("Show_and_save_Statistics", true);
             return;
         }
-
+        
         gd = new CustomDialog("Region Competition");
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
@@ -506,8 +507,8 @@ public class GenericDialogGUI  {
         
         
         if (IJ.isMacro() == true) {
-            inputImage = getInputImageFile();
             filenameInput = gd.getNextString();
+            inputImage = getInputImageFile();
             filenameLabelImage = gd.getNextString();
             showAndSaveStatistics = gd.getNextBoolean();
 
