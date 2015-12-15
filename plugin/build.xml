@@ -43,7 +43,7 @@
         </junit>
     </target>   
 
-    <target name="main" depends="clean,build,compress" description="Main target">
+    <target name="main" depends="clean,build,compress,buildTest" description="Main target">
         <echo>
             Clean, compile and compressing the .jar file.
 
