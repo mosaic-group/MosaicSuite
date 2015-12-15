@@ -35,7 +35,6 @@ import java.util.StringTokenizer;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
-import ch.qos.logback.classic.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -132,7 +131,7 @@ public class GenericDialogGUI  {
         }
     }
     
-    CustomDialog gd;
+    GenericDialog gd;
     private GenericDialog gd_p;
 
     private String filenameInput;
@@ -157,16 +156,18 @@ public class GenericDialogGUI  {
         settings = aSettings; // region_Competition.settings;
         aImp = aImg; // region_Competition.getOriginalImPlus();
 
-        gd = new CustomDialog("Region Competition");
         
         if (IJ.isMacro() == true) {
             System.out.println("MACRO !!!!!!!!!!!!!!!");
+            gd = new GenericDialog("MACRO MODE");
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
             gd.addStringField("text2", "");
             gd.addCheckbox("Show_and_save_Statistics", true);
             return;
         }
+        
+        gd = new CustomDialog("Region Competition");
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
 

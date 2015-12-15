@@ -34,7 +34,6 @@
 	<classpathentry kind="lib" path="lib/ejml-0.24.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math3-3.4.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/ij-1.50a.jar"/>
 	<classpathentry kind="lib" path="lib/imagej-common-0.15.1.jar"/>
 	<classpathentry kind="lib" path="lib/imagej-ops-0.15.0.jar"/>
 	<classpathentry kind="lib" path="lib/imglib2-2.3.0.jar"/>
@@ -65,5 +64,6 @@
 	<classpathentry kind="lib" path="lib/bio-formats/turbojpeg-5.1.6.jar"/>
 	<classpathentry kind="lib" path="lib/guava-17.0.jar"/>
 	<classpathentry kind="lib" path="lib/Skeletonize3D_-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/ij-1.50e.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
