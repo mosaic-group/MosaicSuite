@@ -3,7 +3,6 @@ package mosaic.plugins;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 
 public class ParticleTracker3DModular_Test extends CommonBase {
@@ -71,7 +70,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        copyTestResources("test.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("test.csv", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -96,7 +95,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        copyTestResources("textFrames", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("textFrames", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -121,11 +120,11 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        copyTestResources("__ImagesData.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("__ObjectsData_c1.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("__outline_overlay_c1.zip", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("stitch__ImagesData.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("stitch__ObjectsData_c1.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__ObjectsData_c1.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__outline_overlay_c1.zip", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__ObjectsData_c1.csv", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,

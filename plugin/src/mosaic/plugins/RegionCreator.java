@@ -26,7 +26,6 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.Cursor;
@@ -393,10 +392,6 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
     @Override
     public int setup(String arg0, ImagePlus original_imp) {
-        if (MosaicUtils.checkRequirement() == false) {
-            return DONE;
-        }
-
         /* get user defined params and set more initial params accordingly */
         final GenericDialog gd = new GenericDialog("Region creator");
 

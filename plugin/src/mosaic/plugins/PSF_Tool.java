@@ -59,31 +59,31 @@ import mosaic.psf2d.PsfSourcePosition;
 public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, WindowListener{ // NO_UCD
 
     /** Radius of selected point sources*/
-    public double radius;
+    private double radius;
 
     /** Maximum sampling radius*/
-    public double sample_radius;
+    private double sample_radius;
 
     /** Pixel size on chip */
-    public float pix_size;
+    private float pix_size;
 
     /** Numerical Aperture of Microscope Objective*/
-    public double na;
+    private double na;
 
     /** Wavelength of detected light*/
-    public double lambda;
+    private double lambda;
 
     /** Magnification factor of microscope */
-    public float mic_mag;
+    private float mic_mag;
 
     /** Magnification factor of pixel size (how fine should PSF be estimated?)*/
-    public final int mag_fact = 4;
+    private final int mag_fact = 4;
 
     /**	 Number of selected sources*/
-    public int num_of_particles = 0;
+    private int num_of_particles = 0;
 
     /**	 Number of sample points*/
-    public final int sample_points = 50;
+    private final int sample_points = 50;
 
     private boolean select_start = false;		// Flag to test if in selection-mode or not
     private PsfRefinement Refine;					// Used to refine positions based on centroid calculation
@@ -141,7 +141,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         return DOES_8G + NO_CHANGES + SUPPORTS_MASKING;
     }
 
-
     /**
      * This method runs the plugin, what implemented here is what the plugin actually
      * does. It takes the image processor it works on as an argument.
@@ -159,34 +158,25 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         // Start Dialog to get necessary plugin parameters
         final GenericDialog gd = new GenericDialog("Configuration");
         gd.addMessage("Please enter necessary Information");
-        //		gd.addNumericField("Apparent Radius of Point Sources [Pixel]", 3, 2);
         gd.addNumericField("Maximum Sampling Radius [Pixel]", 6, 2);
         gd.addNumericField("Pixel Size on Camera Chip [um]", 16, 2);
         gd.addNumericField("Numerical Aperture of Microscope Objective", 1.3, 3);
         gd.addNumericField("Wavelength of Detected Light [nm]", 532, 2);
         gd.addNumericField("Microscope Magnification Factor", 100, 2);
-        //gd.addNumericField("Total Magnification", 2, 0);
-        //gd.addNumericField("Number of Sample Points", 4, 0);
         gd.showDialog();
         if (gd.wasCanceled()) {
             IJ.error("PlugIn canceled!");
             return;
         }
         // Read user inputs
-        //		radius = gd.getNextNumber();
         radius = 3;
         sample_radius = gd.getNextNumber();
         pix_size = (float)gd.getNextNumber();
         na = gd.getNextNumber();
         lambda = gd.getNextNumber();
         mic_mag = (float)gd.getNextNumber();
-        //mag_fact = (int)gd.getNextNumber();
-        //sample_points = (int)gd.getNextNumber();
 
         Positions = new Vector<PsfSourcePosition>();	// Create Vector to hold selected Positions
-
-
-
 
         // Add MouseListener to displayed image
         final ImageWindow win = imp.getWindow();
@@ -201,7 +191,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         });
     }
 
-
     /**
      * Shows an ImageJ message with info about this plugin
      */
@@ -212,7 +201,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                         "Version: 1.0-Beta Februar, 2007\n" +
                 "Requires: ImageJ 1.36b or higher\n");
     }
-
 
     /**
      * Creates new point sources based on user selection
@@ -269,8 +257,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     @Override
     public synchronized void mouseReleased(MouseEvent e){}
-
-
 
     /**
      * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons
@@ -367,7 +353,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         }
     }
 
-
     /**
      * Deletes unselected checkboxes, related point sources and their color marks in the image window
      */
@@ -390,44 +375,41 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         checkbox_panel.updateUI();	// update gui
     }
 
-
     /**
      * GUI for Point Source Selection and PSF estimation
      */
     void userInterface(){
-    ui.setLayout(new BorderLayout());
-    // Initialize Buttons and add ActionListener
-    start = new JButton("Start New Selection");
-    equalize = new JButton("Enhance Contrast");
-    estimate = new JButton("Estimate PSF");
-    report = new JButton("Create Report");
-    start.addActionListener(this);
-    equalize.addActionListener(this);
-    estimate.addActionListener(this);
-    report.addActionListener(this);
-    // Pack Buttons onto a Panel
-    button_panel = new JPanel(new GridLayout(2,2));
-    button_panel.add(start);
-    button_panel.add(equalize);
-    button_panel.add(estimate);
-    button_panel.add(report);
-    // Create Panel for Checkboxes
-    checkbox_panel = new JPanel();
-    checkbox_panel.setLayout(new GridLayout(1,1));
-    // Create TextArea for user information
-    text_panel = new JTextArea("Start by clicking on \"Start New Selection\"");
-    text_panel.setEditable(false);
-    scroller = new JScrollPane(checkbox_panel);
-    ui.getContentPane().add(text_panel, BorderLayout.NORTH);
-    ui.getContentPane().add(scroller, BorderLayout.CENTER);
-    ui.getContentPane().add(button_panel, BorderLayout.SOUTH);
-    ui.setSize(500,250);
-    ui.setLocation(300,200);
-    ui.setVisible(true);
-    //ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    ui.addWindowListener(this);
+        ui.setLayout(new BorderLayout());
+        // Initialize Buttons and add ActionListener
+        start = new JButton("Start New Selection");
+        equalize = new JButton("Enhance Contrast");
+        estimate = new JButton("Estimate PSF");
+        report = new JButton("Create Report");
+        start.addActionListener(this);
+        equalize.addActionListener(this);
+        estimate.addActionListener(this);
+        report.addActionListener(this);
+        // Pack Buttons onto a Panel
+        button_panel = new JPanel(new GridLayout(2,2));
+        button_panel.add(start);
+        button_panel.add(equalize);
+        button_panel.add(estimate);
+        button_panel.add(report);
+        // Create Panel for Checkboxes
+        checkbox_panel = new JPanel();
+        checkbox_panel.setLayout(new GridLayout(1,1));
+        // Create TextArea for user information
+        text_panel = new JTextArea("Start by clicking on \"Start New Selection\"");
+        text_panel.setEditable(false);
+        scroller = new JScrollPane(checkbox_panel);
+        ui.getContentPane().add(text_panel, BorderLayout.NORTH);
+        ui.getContentPane().add(scroller, BorderLayout.CENTER);
+        ui.getContentPane().add(button_panel, BorderLayout.SOUTH);
+        ui.setSize(500,250);
+        ui.setLocation(300,200);
+        ui.setVisible(true);
+        ui.addWindowListener(this);
     }
-
 
     /**
      * Draws PSF of one single selection
@@ -443,12 +425,11 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         drawPSF("PSF of Last Selection");
     }
 
-
     /**
      * Calculates the Width of PSF at half maximum
      * @return Width at half maximum
      */
-    public double widthAtHalfMaximum(){
+    private double widthAtHalfMaximum(){
         final double d = 0.5;
         if (PSF[0]< d) {
             return 0.0;
@@ -499,7 +480,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         plotWin.show();
     }
 
-
     /**
      * Calculate theoretical PSF based on Microscope parameters and modeled as a first-order Bessel function
      * @return Theoretical PSF
@@ -516,7 +496,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         b[0] = 1;
         return b;
     }
-
 
     /**
      * Contrast Enhancement. Pixel values are scaled between 0 and 255
@@ -552,7 +531,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         return eq;
     }
 
-
     /**
      * Creates a Textfile containing all relevant configurations and results
      * @param directory Directory of file
@@ -575,7 +553,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             return false;
         }
     }
-
 
     /**
      * Formats all configuration parameters to a StringBuffer
@@ -603,7 +580,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         return configuration;
     }
 
-
     /**
      * Returns PSF values as StringBuffer
      * @return StringBuffer with PSF values
@@ -619,7 +595,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         PSFdata.append("%Width at half maximum [nm]:\t" + (int)(whm*100)/100.0 + "\n");
         return PSFdata;
     }
-
 
     /**
      * Collects all program information and appends it to a StringBuffer
@@ -648,48 +623,28 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         return report;
     }
 
-
     @Override
-    public void windowOpened(WindowEvent arg0) {
-
-    }
-
+    public void windowOpened(WindowEvent arg0) {}
 
     @Override
     public void windowClosing(WindowEvent arg0) {
         ui.setVisible(false);
         ui.dispose();
         canvas.removeMouseListener(this);
-
     }
-
 
     @Override
-    public void windowClosed(WindowEvent arg0) {
-
-    }
-
+    public void windowClosed(WindowEvent arg0) {}
 
     @Override
-    public void windowIconified(WindowEvent arg0) {
-
-    }
-
+    public void windowIconified(WindowEvent arg0) {}
 
     @Override
-    public void windowDeiconified(WindowEvent arg0) {
-
-    }
-
+    public void windowDeiconified(WindowEvent arg0) {}
 
     @Override
-    public void windowActivated(WindowEvent arg0) {
-
-    }
-
+    public void windowActivated(WindowEvent arg0) {}
 
     @Override
-    public void windowDeactivated(WindowEvent arg0) {
-
-    }
+    public void windowDeactivated(WindowEvent arg0) {}
 }

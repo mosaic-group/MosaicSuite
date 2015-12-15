@@ -1,4 +1,4 @@
-package mosaic.ia.nn;
+package mosaic.ia;
 
 import static org.junit.Assert.assertArrayEquals;
 

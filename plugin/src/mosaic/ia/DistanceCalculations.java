@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+import ij.IJ;
 import mosaic.utils.math.NearestNeighborTree;
 import weka.estimators.KernelEstimator;
 
@@ -52,6 +53,11 @@ public abstract class DistanceCalculations {
      * Calculates the relative frequency of possible distances (state density)
      */
     protected void stateDensity(double aMinX, double aMaxX, double aMinY, double aMaxY, double aMinZ, double aMaxZ) {
+        if (iParticlesX.length == 0 || iParticlesY.length == 0) {
+            IJ.showMessage("Number discaverd (and filtered) particles cannot be 0 for further calculations.\nNumber of particles (x/y): " + iParticlesX.length + " " + iParticlesY.length);
+            throw new RuntimeException("Not enough particles to perform calculations!");
+        }
+        
         final int x_size = (int) Math.floor(Math.abs(aMinX - aMaxX) * xscale / iDeltaStepLenght) + 1;
         final int y_size = (int) Math.floor(Math.abs(aMinY - aMaxY) * yscale / iDeltaStepLenght) + 1;
         final int z_size = (int) Math.floor(Math.abs(aMinZ - aMaxZ) * zscale / iDeltaStepLenght) + 1;
@@ -109,9 +115,8 @@ public abstract class DistanceCalculations {
             }
         }
         catch (final ArrayIndexOutOfBoundsException e) {
-            System.out.println("FAULT: " + coords);
-            // May happen if mask is applied to loaded coordinates. In that case checks are not done.
-            return false;
+            // It is OK to be here: may happen if mask is smaller than input data (image or loaded coordinates).
+            // In that case we discard points outside mask.
         }
 
         return false;

@@ -2,7 +2,6 @@ package mosaic.plugins;
 
 
 import java.awt.GraphicsEnvironment;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
@@ -12,11 +11,11 @@ import ij.ImageStack;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
+import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
-import mosaic.core.test.PlugInFilterExt;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.utils.Debug;
 import mosaic.region_competition.Algorithm;
@@ -24,6 +23,7 @@ import mosaic.region_competition.ClusterModeRC;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GenericDialogGUI;
+import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
@@ -49,7 +49,7 @@ import net.imglib2.type.numeric.real.FloatType;
  * @author Stephan Semmler, ETH Zurich
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class Region_Competition implements PlugInFilterExt {
+public class Region_Competition implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(Region_Competition.class);
 
     public enum InitializationType {
@@ -173,7 +173,7 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     private void saveStatistics(String absoluteFileNameNoExt) {
-        if (showAndSaveStatistics || test_mode == true) {
+        if (showAndSaveStatistics) {
             if (absoluteFileNameNoExt == null) {
                 logger.error("Cannot save segmentation statistics. Filename for saving not available!");
                 return;
@@ -184,7 +184,7 @@ public class Region_Competition implements PlugInFilterExt {
             StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values());
             logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
             statisticsTable.save(absoluteFileName);
-            if (showGUI && !test_mode) {
+            if (showGUI) {
                 statisticsTable.show("statistics");
             }
     
@@ -415,7 +415,7 @@ public class Region_Competition implements PlugInFilterExt {
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
-        OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
+        labelImage.show("", algorithm.getBiggestLabel());
         
         iController.close();
     }
@@ -427,36 +427,5 @@ public class Region_Competition implements PlugInFilterExt {
         labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
         labelImg.initBoundary();
         labelImg.connectedComponents();
-    }
-
-    // Current test interface methods and variables - will vanish in future
-    // -----------------------------------------------------------------------------------------------
-    private boolean test_mode;
-    private final Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
-    
-    @Override
-    public void closeAll() {
-        if (stackProcess != null) {
-            stackProcess.close();
-        }
-        if (originalInputImage != null) {
-            originalInputImage.close();
-        }
-        if (inputImageChosenByUser != null) {
-            inputImageChosenByUser.close();
-        }
-        for (int i = 0; i < OpenedImages.size(); i++) {
-            OpenedImages.get(i).close();
-        }
-    }
-
-    @Override
-    public void setIsOnTest(boolean test) {
-        test_mode = test;
-    }
-
-    @Override
-    public boolean isOnTest() {
-        return test_mode;
     }
 }

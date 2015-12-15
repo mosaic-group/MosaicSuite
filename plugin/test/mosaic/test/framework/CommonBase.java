@@ -4,14 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -26,6 +31,7 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
+import mosaic.utils.SystemOperations;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.ImagePlusAdapter;
@@ -69,7 +75,7 @@ public class CommonBase extends Info {
         
         // Prepare needed paths
         logger.debug("Preparing test directory");
-        tmpPath = SystemOperations.getCleanTestTmpPath();
+        tmpPath = getCleanTestTmpPath();
     }
 
     @After
@@ -109,7 +115,7 @@ public class CommonBase extends Info {
             final String[] aReferenceFiles) {
 
         // ===================  Prepare plugin env. =================================
-        tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        tcPath = getTestDataPath() + aTcDirName;
         
         copyTestResources(aInputFile, tcPath, tmpPath);
 
@@ -133,15 +139,16 @@ public class CommonBase extends Info {
         
         // ===================  Verify plugin output================================
         // Show what images are opened in ImageJ internal structures.
-        debugOutput();
+        printInformationAboutOpenWindowsInIj();
         
         // compare output from plugin with reference images
-        for (int i = 0; i < aExpectedImgFiles.length; ++i) {
-            String refFile = tcPath + aReferenceImgFiles[i];
-            String testFile = aExpectedImgFiles[i];
-            compareImageFromIJ(refFile, testFile);
+        if (aExpectedImgFiles != null && aReferenceImgFiles != null) {
+            for (int i = 0; i < aExpectedImgFiles.length; ++i) {
+                String refFile = tcPath + aReferenceImgFiles[i];
+                String testFile = aExpectedImgFiles[i];
+                compareImageFromIJ(refFile, testFile);
+            }
         }
-
         if (aExpectedFiles != null && aReferenceFiles != null) {
             for (int i = 0; i < aExpectedFiles.length; ++i) {
                 String refFile = tcPath + aReferenceFiles[i];
@@ -156,7 +163,7 @@ public class CommonBase extends Info {
      * @param aReferenceFileName - absolute path to reference file
      * @param aGeneratedImageWindowName - name of window containing tested image
      */
-    private void compareImageFromIJ(String aReferenceFileName, String aGeneratedImageWindowName) {
+    protected void compareImageFromIJ(String aReferenceFileName, String aGeneratedImageWindowName) {
         logger.debug("Comparing output of two images:");
         logger.debug("    ref: [" + aReferenceFileName + "]");
         logger.debug("    test:[" + aGeneratedImageWindowName +"]");
@@ -177,7 +184,7 @@ public class CommonBase extends Info {
      * @param refFile - absolute path to reference file
      * @param testFile - absolute path to tested file
      */
-    private void compareTextFiles(String refFile, String testFile) {
+    protected void compareTextFiles(String refFile, String testFile) {
         logger.debug("Comparing output of two text files:");
         logger.debug("    ref: [" + refFile + "]");
         logger.debug("    test:[" + testFile + "]");
@@ -186,6 +193,35 @@ public class CommonBase extends Info {
         assertEquals("Files differ!", expected, result);
     }
 
+    protected void compareCsvFiles(String refFile, String testFile) {
+        logger.debug("Comparing output of two CSV files:");
+        logger.debug("    ref: [" + refFile + "]");
+        logger.debug("    test:[" + testFile +"]");
+        try {
+            List<String> ref = readLines(refFile);
+            List<String> test = readLines(testFile);
+            for (int i = 0; i < ref.size(); ++i) {
+                if (ref.get(i).startsWith("%background:")) continue;
+                assertEquals(ref.get(i), test.get(i));
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Exception!");
+        }
+        logger.debug("Files match!");
+    }
+    
+    protected List<String> readLines(String aFileName) throws IOException {
+        ArrayList<String> lines = new ArrayList<String>();
+        try (BufferedReader br = new BufferedReader(new FileReader(aFileName))) {
+            for (String line = br.readLine(); line != null; line = br.readLine()) {
+               lines.add(line);
+            }
+        }
+        return lines;
+    }
+    
     /**
      * Copies aInputFileOrDirectory from inputPath to given destinationPath
      * @param aInputFileOrDirectory input file or directory
@@ -203,7 +239,6 @@ public class CommonBase extends Info {
             else {
                 SystemOperations.copyFileToDirectory(in, out);
             }
-            
         }
     }
 
@@ -301,7 +336,7 @@ public class CommonBase extends Info {
      */
     protected Img<?> loadImageByName(String aImageName) {
         logger.debug("Loading image from IJ WindowManager: [" + aImageName + "]");
-        final String outputFileName = SystemOperations.getTestTmpPath() + aImageName + ".tif";
+        final String outputFileName = getTestTmpPath() + aImageName + ".tif";
         final ImagePlus imageByName = getImageByName(aImageName);
         if (imageByName != null) {
             logger.debug("Saving [" + aImageName + "] as [" + outputFileName + "]");
@@ -377,10 +412,11 @@ public class CommonBase extends Info {
             img.close();
         }
     }
+    
     /**
      * Logs images available in IJ internal structures. Helpful during new TC writing.
      */
-    protected void debugOutput() {
+    protected void printInformationAboutOpenWindowsInIj() {
         logger.debug("getWindowCount(): " + WindowManager.getWindowCount());
         logger.debug("getBatchModeImageCount(): " + Interpreter.getBatchModeImageCount());
         getAllImagesByName();
@@ -393,6 +429,75 @@ public class CommonBase extends Info {
         } catch (final IOException e) {
             e.printStackTrace();
             fail("Reading [" + aFullPathFile + "] file failed.");
+        }
+        return null;
+    }
+    
+    /**
+     * Returns test data path.
+     * @return Absolute path to test data
+     *
+     */
+    static public String getTestDataPath() {
+        final String path = System.getenv("MOSAIC_PLUGIN_TEST_DATA_PATH");
+
+        if (path == null || path.equals("")) {
+            // Throw and stop execution of test intentionally. It is easier to
+            // debug if test will stop here.
+            throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
+        }
+
+        return path + SystemOperations.SEPARATOR;
+    }
+    
+    /**
+     * Returns temporary test path which should be used during tests execution.
+     * @return Absolute path to temporary test data.
+     */
+    public static String getTestTmpPath() {
+        final String TEST_TMP_DIR = "test";
+        return SystemOperations.getTmpPath() + TEST_TMP_DIR + SystemOperations.SEPARATOR;
+    }
+
+    /**
+     * Returns prepared (empty) temporary test path which should be used
+     * during tests execution.
+     *
+     * @return Absolute path to temporary test data.
+     */
+    public static String getCleanTestTmpPath() {
+        removeTestTmpDir();
+        createTestTmpDir();
+
+        return getTestTmpPath();
+    }
+    
+    /**
+     * Removes test temporary directory. If any problem arise it
+     * will throw and break an execution of test.
+     */
+    public static void removeTestTmpDir() {
+        SystemOperations.removeDir(getTestTmpPath());
+
+    }
+
+    /**
+     * Creates test temporary directory. If any problem arise it
+     * will throw and break an execution of test.
+     */
+    private static void createTestTmpDir() {
+        SystemOperations.createDir(getTestTmpPath());
+    }
+    
+    protected File findJobFile(String aName, File aDir) {
+        File[] fileList = aDir.listFiles();
+        for (File f : fileList) {
+            if (f.isDirectory() && f.getName().substring(0, 3).equals("Job")) { 
+                Collection<File> lf = FileUtils.listFiles(f, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+                for (File c : lf) {
+                    if (c.getAbsolutePath().endsWith(aName)) return c;
+                }
+            }
         }
         return null;
     }

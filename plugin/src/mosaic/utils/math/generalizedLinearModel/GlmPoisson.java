@@ -1,7 +1,7 @@
 package mosaic.utils.math.generalizedLinearModel;
 
-import mosaic.utils.math.MFunc;
 import mosaic.utils.math.Matrix;
+import mosaic.utils.math.Matrix.MFunc;
 
 public class GlmPoisson implements Glm {
 
@@ -36,7 +36,7 @@ public class GlmPoisson implements Glm {
             // This part is different from algorithm in Matlab. It happens that we have here small negative
             // numbers. Matlab handles that via complex numbers but here... we just put small numbers just
             // to continue without bigger problems. Such elements happen only in places where image is
-            // equall to 0 so they are zerod anyway. That is why '1' is set for such places. After log
+            // equal to 0 so they are zeroed anyway. That is why '1' is set for such places. After log
             // it becomes 0 and let calculations to proceed.
             @Override
             public double f(double aElement, int aRow, int aCol) {

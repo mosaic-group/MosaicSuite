@@ -29,9 +29,12 @@ import mosaic.ia.Potentials.PotentialType;
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     private Analysis iAnalysis;
-    private ImagePlus iImgX, iImgY;
-    private Point3d[] iCsvX, iCsvY;
+    private ImagePlus iImgX;
+    private ImagePlus iImgY;
+    private Point3d[] iCsvX;
+    private Point3d[] iCsvY;
     private ImagePlus iMaskImg;
+    
     // Order must be same as declared in PotentialType enum
     private static final String[] PotentialList = { "Step", "Hernquist", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
 
@@ -142,7 +145,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             }
             
             if (iCsvX != null && iCsvY != null) {
-                System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
+                System.out.println("Boundary (x/y/z): " + xmin + " - " + xmax + "; " + ymin + " - " + ymax + "; " + zmin + " - " + zmax);
                 iAnalysis = new Analysis();
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }
@@ -240,10 +243,6 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
 
     private boolean loadMask() {
-        if (iImgY == null) {
-            IJ.showMessage("ERROR: Load Image Y first");
-            return false;
-        }
         ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
@@ -253,13 +252,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
             return false;
         }
-        else if (!isCoordinatesTab()) {
-            if (tempMask.getHeight() != iImgY.getHeight() || tempMask.getWidth() != iImgY.getWidth() || tempMask.getNSlices() != iImgY.getNSlices()) {
-                IJ.showMessage("ERROR: Loaded mask size does not match with image size");
-                return false;
-            }
-        }
-    
+        
         tempMask.show("Mask loaded" + tempMask.getTitle());
         iMaskImg = tempMask;
         iMaskImg.updateImage();

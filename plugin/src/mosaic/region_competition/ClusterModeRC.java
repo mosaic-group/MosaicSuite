@@ -30,8 +30,7 @@ public class ClusterModeRC {
         
         logger.info("Running RC on cluster");
         
-        // We run on cluster
-        // saving config file
+        // We run on cluster - saving config file
         Region_Competition.getConfigHandler().SaveToFile("/tmp/settings.dat", settings);
 
         final ClusterGUI cg = new ClusterGUI();

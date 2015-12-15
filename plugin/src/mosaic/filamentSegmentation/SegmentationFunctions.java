@@ -1,9 +1,9 @@
 package mosaic.filamentSegmentation;
 
 import mosaic.utils.math.CubicSmoothingSpline;
-import mosaic.utils.math.MFunc;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
+import mosaic.utils.math.Matrix.MFunc;
 import mosaic.utils.nurbs.BSplineSurface;
 import mosaic.utils.nurbs.BSplineSurfaceFactory;
 import mosaic.utils.nurbs.Function;

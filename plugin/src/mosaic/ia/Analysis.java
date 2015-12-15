@@ -82,18 +82,13 @@ public class Analysis {
         
         @Override
         public String toString() { 
-            return "[strength="+ iStrength + ", threshold/scale="+iThresholdScale+", residual="+iResidual+"]";
+            return "[strength=" + iStrength + ", threshold/scale=" + iThresholdScale + ", residual=" + iResidual + "]";
         }
     }
     
     public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
         final FitFunction fitfun = new FitFunction(iDistancesGrid, iDistancePdf, iNearestNeighborDistances, iPotential, iNearestNeighborDistancePdf);
-        if (iPotential.getType() == PotentialType.NONPARAM) {
-            iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
-        }
-        else {
-            iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
-        }
+        iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
         double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
@@ -142,8 +137,8 @@ public class Analysis {
 
         fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
         new EstimatedPotentialPlot(iDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
-        double[] P_grid = StatisticsUtils.normalizePdf(fitfun.getObservedNearestNeighborDistancesPdf(), false);
-        new DistributionsPlot(iDistancesGrid, P_grid, iDistancePdf, iNearestNeighborDistancePdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        double[] observedNNDistancesPdf = StatisticsUtils.normalizePdf(fitfun.getObservedNearestNeighborDistancesPdf(), false);
+        new DistributionsPlot(iDistancesGrid, observedNNDistancesPdf, iDistancePdf, iNearestNeighborDistancePdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
     }
 
     private void addNewOutputResult(List<Result> aResultsOutput, double aBestFunctionValue, double[] aBestPointFound) {
@@ -271,7 +266,7 @@ public class Analysis {
     private static double calcSilvermanBandwidth(double[] distances) {
         final double q1 = StatisticsUtils.getPercentile(distances, 0.25);
         final double q3 = StatisticsUtils.getPercentile(distances, 0.75);
-        final double silBandwidth = 0.9 * Math.min(StatisticsUtils.calcStandardDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
+        final double silBandwidth = 0.9 * Math.min(StatisticsUtils.calcStandardDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -0.2);
         System.out.println("Silverman's bandwidth: " + silBandwidth);
 
         return silBandwidth;

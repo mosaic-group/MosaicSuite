@@ -27,7 +27,6 @@ import javax.swing.border.Border;
  */
 abstract public class InteractionAnalysisGuiBase implements ActionListener {
 
-    
     protected JButton help;
     protected JButton loadImgY, loadImgX;
     protected JButton loadCsvX, loadCsvY;

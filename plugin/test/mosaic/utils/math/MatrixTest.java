@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.math.Matrix.MFunc;
 
 public class MatrixTest extends CommonBase {
 

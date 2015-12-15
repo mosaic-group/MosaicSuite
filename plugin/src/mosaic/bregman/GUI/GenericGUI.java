@@ -39,7 +39,6 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
-import mosaic.test.framework.SystemOperations;
 
 
 public class GenericGUI {
@@ -308,8 +307,10 @@ public class GenericGUI {
             run_mode rm = null;
 
             // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
-            // it does not work. Should be investigated why...
-            if (IJ.isMacro() == true) {
+            // it does not work -> unit test fails. Should be investigated why...
+            // It seems that we go then always in first 'if' instead of 'else' on most tests since batchMode = true is default
+            // for unit testing...
+            if (IJ.isMacro() == true || BregmanGLM_Batch.test_mode) {// || Interpreter.batchMode == true) {
                 logger.debug("Macro setting for mode");
                 new GenericDialog("Squassh");
                 // Draw a batch system window
@@ -490,7 +491,6 @@ public class GenericGUI {
             }
             else {
                 // It is a file
-
                 ClusterSession.processImage(aImp, "Squassh", "", Analysis.out);
                 Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
             }
@@ -498,7 +498,8 @@ public class GenericGUI {
             // Get output format and Stitch the output in the output selected
             String path = MosaicUtils.ValidFolderFromImage(aImp);
             if (BregmanGLM_Batch.test_mode == true) {
-                path = SystemOperations.getTestTmpPath();
+                // TODO: Artifact from "old test system". Must be refactored!!!
+                path = BregmanGLM_Batch.test_path;
             }
             final File dir = ClusterSession.processJobsData(path);
 

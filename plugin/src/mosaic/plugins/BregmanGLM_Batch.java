@@ -23,11 +23,13 @@ import net.imglib2.type.numeric.real.DoubleType;
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
     
-    private ImagePlus OriginalImagePlus = null;
     private String savedSettings;
     private GenericGUI window;
     private boolean gui_use_cluster = false;
 
+    public static boolean test_mode = false;
+    public static String test_path = null;
+    
     private enum outputF {
         MASK(2), OBJECT(0);
 
@@ -44,10 +46,6 @@ public class BregmanGLM_Batch implements Segmentation {
     
     @Override
     public int setup(String arg0, ImagePlus active_img) {
-        if (MosaicUtils.checkRequirement() == false) {
-            return DONE;
-        }
-
         // init basic structure
         Analysis.init();
 
@@ -82,8 +80,6 @@ public class BregmanGLM_Batch implements Segmentation {
 
         // Initialize CSV format
         CSVOutput.initCSV(Analysis.p.oc_s);
-
-        this.OriginalImagePlus = active_img;
 
         // Check the argument
         final boolean batch = GraphicsEnvironment.isHeadless();
@@ -151,31 +147,6 @@ public class BregmanGLM_Batch implements Segmentation {
 
     public void setUseCluster(boolean bl) {
         gui_use_cluster = bl;
-    }
-
-    // =================== Implementation of PlugInFilterExt interface
-    public static boolean test_mode;
-
-    /**
-     * Close all the file
-     */
-    @Override
-    public void closeAll() {
-        if (OriginalImagePlus != null) {
-            OriginalImagePlus.close();
-        }
-
-        window.closeAll();
-    }
-
-    @Override
-    public void setIsOnTest(boolean test) {
-        test_mode = test;
-    }
-
-    @Override
-    public boolean isOnTest() {
-        return test_mode;
     }
 
     // =================== Implementation of Segmentation interface

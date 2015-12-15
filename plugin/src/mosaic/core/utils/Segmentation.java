@@ -2,7 +2,7 @@ package mosaic.core.utils;
 
 
 import ij.ImagePlus;
-import mosaic.core.test.PlugInFilterExt;
+import ij.plugin.filter.PlugInFilter;
 
 
 /**
@@ -12,7 +12,7 @@ import mosaic.core.test.PlugInFilterExt;
  * @author Pietro Incardona
  */
 
-public interface Segmentation extends PlugInFilterExt {
+public interface Segmentation extends PlugInFilter {
 
     /**
      * Get Mask images name output

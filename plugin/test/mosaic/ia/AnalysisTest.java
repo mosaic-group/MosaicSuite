@@ -14,7 +14,6 @@ import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
 import mosaic.ia.Potentials.PotentialType;
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 /**
  * Tests of IA
@@ -75,9 +74,9 @@ public class AnalysisTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "IA/VirusEndosome/";
-        copyTestResources("Virus.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("Virus.csv", getTestDataPath() + tcDirName, "/tmp");
         Point3d[] x = FileUtils.openCsvFile("X", "/tmp/" + "Virus.csv");
-        copyTestResources("Endosome.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("Endosome.csv", getTestDataPath() + tcDirName, "/tmp");
         Point3d[] y = FileUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
         
         Analysis analysis = new Analysis();
