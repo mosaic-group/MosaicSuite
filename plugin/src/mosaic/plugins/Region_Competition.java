@@ -214,6 +214,7 @@ public class Region_Competition implements PlugInFilter {
         settings = null;
         
         final String options = Macro.getOptions();
+        logger.info("Macro Options: [" + options + "]");
         if (options != null) {
             // Command line interface
             

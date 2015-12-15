@@ -35,6 +35,7 @@ import java.util.StringTokenizer;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
+import ch.qos.logback.classic.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -159,6 +160,7 @@ public class GenericDialogGUI  {
         gd = new CustomDialog("Region Competition");
         
         if (IJ.isMacro() == true) {
+            System.out.println("MACRO !!!!!!!!!!!!!!!");
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
             gd.addStringField("text2", "");
@@ -503,8 +505,8 @@ public class GenericDialogGUI  {
         
         
         if (IJ.isMacro() == true) {
-            inputImage = getInputImageFile();
             filenameInput = gd.getNextString();
+            inputImage = getInputImageFile();
             filenameLabelImage = gd.getNextString();
             showAndSaveStatistics = gd.getNextBoolean();
 
