@@ -28,6 +28,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private boolean gui_use_cluster = false;
 
     public static boolean test_mode = false;
+    public static String test_path = null;
     
     private enum outputF {
         MASK(2), OBJECT(0);

@@ -10,10 +10,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.util.Arrays;
 
-import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
-
 import org.junit.Test;
+
+import mosaic.test.framework.CommonBase;
 
 
 public class DataFileTest extends CommonBase {
@@ -39,7 +38,7 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testGeneral() {
         // Prepare data
-        final String fileName = SystemOperations.getCleanTestTmpPath() + "testGeneral.dat";
+        final String fileName = getCleanTestTmpPath() + "testGeneral.dat";
         final TestConfig expectedData = new TestConfig();
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};
@@ -62,7 +61,7 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testReadNotExisting() {
         // Prepare data
-        final String fileName = SystemOperations.getCleanTestTmpPath() + "testReadNotExisting.dat";
+        final String fileName = getCleanTestTmpPath() + "testReadNotExisting.dat";
 
         // Make sure that file is not existing
         final File f = new File(fileName);
@@ -78,7 +77,7 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testReadWrongObject() {
         // Prepare data
-        final String fileName = SystemOperations.getCleanTestTmpPath() + "testReadWrongObject.dat";
+        final String fileName = getCleanTestTmpPath() + "testReadWrongObject.dat";
 
         // Write different type of object than the one to be read.
         final DataFile<String> df = new SerializedDataFile<String>();
@@ -94,7 +93,7 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testWriteToWrongFile() {
         // Prepare data
-        final String fileName = SystemOperations.getCleanTestTmpPath(); // try to write to directory instead of file
+        final String fileName = getCleanTestTmpPath(); // try to write to directory instead of file
         final TestConfig expectedData = new TestConfig();
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};

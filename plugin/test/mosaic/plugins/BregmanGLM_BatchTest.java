@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 public class BregmanGLM_BatchTest extends CommonBase {
     
@@ -28,7 +27,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -55,7 +54,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -80,7 +79,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -105,7 +104,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -152,18 +151,18 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("1 Ctrl 2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("1 Ctrl 3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("2 OA1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("2 OA2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("2 OA4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("3 Ctrl1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("3 Ctrl2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("3 Ctrl3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("4 OA1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("4 OA3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("4 OA4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("1 Ctrl 2.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("1 Ctrl 3.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA1.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA2.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA4.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl1.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl2.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl3.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA1.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA3.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA4.tif", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -202,7 +201,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -249,15 +248,16 @@ public class BregmanGLM_BatchTest extends CommonBase {
         Interpreter.batchMode = true;
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
         BregmanGLM_Batch.test_mode = true;
+        BregmanGLM_Batch.test_path = getTestTmpPath();
         plugin.bypass_GUI();
         plugin.setUseCluster(true);
-        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("droplet_1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("droplet_2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("droplet_3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("droplet_4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("droplet_5.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("droplet_6.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("droplet_1.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_2.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_3.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_4.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_5.tif", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("droplet_6.tif", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -265,7 +265,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
                    setupString, inputFile,
                    null, null, null, null);
                    
-        File dataDir = new File(SystemOperations.getTestDataPath() + tcDirName);
+        File dataDir = new File(getTestDataPath() + tcDirName);
         File testDir = new File(tmpPath);
         
         // compare output from plugin with reference images

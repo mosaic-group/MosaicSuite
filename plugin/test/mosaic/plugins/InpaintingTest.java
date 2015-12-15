@@ -1,9 +1,8 @@
 package mosaic.plugins;
 
-import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
-
 import org.junit.Test;
+
+import mosaic.test.framework.CommonBase;
 
 public class InpaintingTest extends CommonBase  {
 
@@ -12,7 +11,7 @@ public class InpaintingTest extends CommonBase  {
         // Define test data
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
-        final String tcPath = SystemOperations.getTestDataPath() + tcDirName;
+        final String tcPath = getTestDataPath() + tcDirName;
         final String maskFile = tcPath + "inpaint_mask.png";
         final String macroOptions       = "(inpainting)=" + maskFile + " filter=[TV (Total Variation)] number=20";
         final String inputFile          = "inpaint.png";

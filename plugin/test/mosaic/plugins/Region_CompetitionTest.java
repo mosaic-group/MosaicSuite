@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 
 public class Region_CompetitionTest extends CommonBase {
@@ -24,7 +23,7 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -49,10 +48,10 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("psf_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("psf_file_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("uc_psf.tif", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("psf_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("psf_file_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("uc_psf.tif", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -77,7 +76,7 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -102,7 +101,7 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -127,7 +126,7 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -152,8 +151,8 @@ public class Region_CompetitionTest extends CommonBase {
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
-        copyTestResources("label.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("label.tif", getTestDataPath() + tcDirName, tmpPath);
         
         // A little hack - I have no found the other way to load second image for test purposes.
         Interpreter.batchMode = true;

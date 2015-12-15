@@ -28,6 +28,7 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
+import mosaic.utils.SystemOperations;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.ImagePlusAdapter;
@@ -71,7 +72,7 @@ public class CommonBase extends Info {
         
         // Prepare needed paths
         logger.debug("Preparing test directory");
-        tmpPath = SystemOperations.getCleanTestTmpPath();
+        tmpPath = getCleanTestTmpPath();
     }
 
     @After
@@ -111,7 +112,7 @@ public class CommonBase extends Info {
             final String[] aReferenceFiles) {
 
         // ===================  Prepare plugin env. =================================
-        tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        tcPath = getTestDataPath() + aTcDirName;
         
         copyTestResources(aInputFile, tcPath, tmpPath);
 
@@ -208,11 +209,10 @@ public class CommonBase extends Info {
         logger.debug("Files match!");
     }
     
-    protected List<String> readLines(String file) throws IOException {
+    protected List<String> readLines(String aFileName) throws IOException {
         ArrayList<String> lines = new ArrayList<String>();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = br.readLine()) != null) {
+        try (BufferedReader br = new BufferedReader(new FileReader(aFileName))) {
+            for (String line = br.readLine(); line != null; line = br.readLine()) {
                lines.add(line);
             }
         }
@@ -334,7 +334,7 @@ public class CommonBase extends Info {
      */
     protected Img<?> loadImageByName(String aImageName) {
         logger.debug("Loading image from IJ WindowManager: [" + aImageName + "]");
-        final String outputFileName = SystemOperations.getTestTmpPath() + aImageName + ".tif";
+        final String outputFileName = getTestTmpPath() + aImageName + ".tif";
         final ImagePlus imageByName = getImageByName(aImageName);
         if (imageByName != null) {
             logger.debug("Saving [" + aImageName + "] as [" + outputFileName + "]");
@@ -410,6 +410,7 @@ public class CommonBase extends Info {
             img.close();
         }
     }
+    
     /**
      * Logs images available in IJ internal structures. Helpful during new TC writing.
      */
@@ -428,5 +429,62 @@ public class CommonBase extends Info {
             fail("Reading [" + aFullPathFile + "] file failed.");
         }
         return null;
+    }
+    
+    static final String TEST_TMP_DIR = "test";
+    
+    /**
+     * Returns test data path.
+     * @return Absolute path to test data
+     *
+     */
+    static public String getTestDataPath() {
+        final String path = System.getenv("MOSAIC_PLUGIN_TEST_DATA_PATH");
+
+        if (path == null || path.equals("")) {
+            // Throw and stop execution of test intentionally. It is easier to
+            // debug if test will stop here.
+            throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
+        }
+
+        return path + SystemOperations.SEPARATOR;
+    }
+    
+    /**
+     * Returns temporary test path which should be used during tests execution.
+     * @return Absolute path to temporary test data.
+     */
+    public static String getTestTmpPath() {
+        return SystemOperations.getTmpPath() + TEST_TMP_DIR + SystemOperations.SEPARATOR;
+    }
+
+    /**
+     * Returns prepared (empty) temporary test path which should be used
+     * during tests execution.
+     *
+     * @return Absolute path to temporary test data.
+     */
+    public static String getCleanTestTmpPath() {
+        removeTestTmpDir();
+        createTestTmpDir();
+
+        return getTestTmpPath();
+    }
+    
+    /**
+     * Removes test temporary directory. If any problem arise it
+     * will throw and break an execution of test.
+     */
+    public static void removeTestTmpDir() {
+        SystemOperations.removeDir(getTestTmpPath());
+
+    }
+
+    /**
+     * Creates test temporary directory. If any problem arise it
+     * will throw and break an execution of test.
+     */
+    private static void createTestTmpDir() {
+        SystemOperations.createDir(getTestTmpPath());
     }
 }

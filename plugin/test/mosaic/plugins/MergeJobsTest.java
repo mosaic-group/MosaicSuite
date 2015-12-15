@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import mosaic.core.utils.ShellCommand;
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 
 public class MergeJobsTest extends CommonBase {
@@ -22,8 +21,8 @@ public class MergeJobsTest extends CommonBase {
          */
         final MergeJobs mj = new MergeJobs();
 
-        final String dir = SystemOperations.getTestDataPath();
-        final String dirOutTest = SystemOperations.getCleanTestTmpPath();
+        final String dir = getTestDataPath();
+        final String dirOutTest = getCleanTestTmpPath();
         final String dir_test = dirOutTest + File.separator + "merge_jobs" + File.separator + "Test";
         final String dir_sample = dir + File.separator + "merge_jobs" + File.separator + "Sample";
 

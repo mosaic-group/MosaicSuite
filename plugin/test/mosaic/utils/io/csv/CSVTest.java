@@ -17,7 +17,6 @@ import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 public class CSVTest extends CommonBase {
 
@@ -129,7 +128,7 @@ public class CSVTest extends CommonBase {
     }
 
     static String fullFileName(String aFileName) {
-        final String testDir = SystemOperations.getTestTmpPath();
+        final String testDir = getTestTmpPath();
         return testDir + aFileName;
     }
 

@@ -39,7 +39,6 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
-import mosaic.test.framework.SystemOperations;
 
 
 public class GenericGUI {
@@ -492,7 +491,6 @@ public class GenericGUI {
             }
             else {
                 // It is a file
-
                 ClusterSession.processImage(aImp, "Squassh", "", Analysis.out);
                 Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
             }
@@ -500,7 +498,8 @@ public class GenericGUI {
             // Get output format and Stitch the output in the output selected
             String path = MosaicUtils.ValidFolderFromImage(aImp);
             if (BregmanGLM_Batch.test_mode == true) {
-                path = SystemOperations.getTestTmpPath();
+                // TODO: Artifact from "old test system". Must be refactored!!!
+                path = BregmanGLM_Batch.test_path;
             }
             final File dir = ClusterSession.processJobsData(path);
 
