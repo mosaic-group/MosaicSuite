@@ -133,7 +133,7 @@
         <copy file="${test}/logging.properties" todir="${build}"/>
         <copy file="${test}/logback-test.xml" todir="${build}"/>
 	<copy file="${src}/mosaic/plugins/scripts/Rscript.r" todir="${build}/mosaic/bregman" />
-        <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.7" target="1.7">
+        <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.6" target="1.6">
                     <compilerarg value="-Xlint:all" />
                     <compilerarg value="-Xlint:-path" />
                     <compilerarg value="-proc:none" />

@@ -12,8 +12,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -136,7 +139,7 @@ public class CommonBase extends Info {
         
         // ===================  Verify plugin output================================
         // Show what images are opened in ImageJ internal structures.
-        debugOutput();
+        printInformationAboutOpenWindowsInIj();
         
         // compare output from plugin with reference images
         if (aExpectedImgFiles != null && aReferenceImgFiles != null) {
@@ -236,7 +239,6 @@ public class CommonBase extends Info {
             else {
                 SystemOperations.copyFileToDirectory(in, out);
             }
-            
         }
     }
 
@@ -414,7 +416,7 @@ public class CommonBase extends Info {
     /**
      * Logs images available in IJ internal structures. Helpful during new TC writing.
      */
-    protected void debugOutput() {
+    protected void printInformationAboutOpenWindowsInIj() {
         logger.debug("getWindowCount(): " + WindowManager.getWindowCount());
         logger.debug("getBatchModeImageCount(): " + Interpreter.getBatchModeImageCount());
         getAllImagesByName();
@@ -430,8 +432,6 @@ public class CommonBase extends Info {
         }
         return null;
     }
-    
-    static final String TEST_TMP_DIR = "test";
     
     /**
      * Returns test data path.
@@ -455,6 +455,7 @@ public class CommonBase extends Info {
      * @return Absolute path to temporary test data.
      */
     public static String getTestTmpPath() {
+        final String TEST_TMP_DIR = "test";
         return SystemOperations.getTmpPath() + TEST_TMP_DIR + SystemOperations.SEPARATOR;
     }
 
@@ -486,5 +487,18 @@ public class CommonBase extends Info {
      */
     private static void createTestTmpDir() {
         SystemOperations.createDir(getTestTmpPath());
+    }
+    
+    protected File findJobFile(String aName, File aDir) {
+        File[] fileList = aDir.listFiles();
+        for (File f : fileList) {
+            if (f.isDirectory() && f.getName().substring(0, 3).equals("Job")) { 
+                Collection<File> lf = FileUtils.listFiles(f, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+                for (File c : lf) {
+                    if (c.getAbsolutePath().endsWith(aName)) return c;
+                }
+            }
+        }
+        return null;
     }
 }

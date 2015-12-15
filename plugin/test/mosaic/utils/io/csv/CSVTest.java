@@ -164,8 +164,8 @@ public class CSVTest extends CommonBase {
 
         // Verify
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "1,33.3\n" +
-                                 "4,99.1\n";
+                                       "1,33.3\n" +
+                                       "4,99.1\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -175,8 +175,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "1,33.3\n" +
-                                 "4,99.1\n";
+                                       "1,33.3\n" +
+                                       "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method
@@ -358,8 +358,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "1,33.3\n" +
-                                 "4,99.1\n";
+                                       "1,33.3\n" +
+                                       "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method (do not specify columns with OutputChoose)
@@ -382,8 +382,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "1,33.3\n" +
-                                 "4,99.1\n";
+                                       "1,33.3\n" +
+                                       "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         final CSV<TestSmall> csv =  new CSV<TestSmall>(TestSmall.class);
@@ -412,8 +412,8 @@ public class CSVTest extends CommonBase {
 
         // Verify (in case when column is wrongly provided it will not be save in output file).
         final String expectedContent = "ID\n" +
-                                 "1\n" +
-                                 "4\n";
+                                       "1\n" +
+                                       "4\n";
         verifyFileContent(fullFileName, expectedContent);
     }
     

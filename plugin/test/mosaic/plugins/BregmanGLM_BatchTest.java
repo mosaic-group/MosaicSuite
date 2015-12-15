@@ -1,10 +1,7 @@
 package mosaic.plugins;
 
 import java.io.File;
-import java.util.Collection;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.junit.Test;
 
 import ij.macro.Interpreter;
@@ -281,18 +278,5 @@ public class BregmanGLM_BatchTest extends CommonBase {
             String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
             compareCsvFiles(refFile, testFile);
         }
-    }
-
-    private File findJobFile(String aName, File aDir) {
-        File[] fileList = aDir.listFiles();
-        for (File f : fileList) {
-            if (f.isDirectory() && f.getName().substring(0, 3).equals("Job")) { 
-                Collection<File> lf = FileUtils.listFiles(f, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
-                for (File c : lf) {
-                    if (c.getAbsolutePath().endsWith(aName)) return c;
-                }
-            }
-        }
-        return null;
     }
 }
