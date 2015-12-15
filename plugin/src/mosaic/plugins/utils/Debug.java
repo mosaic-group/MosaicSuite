@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 
 
 /**
- * Debug printouts for troubleshooting. Contains some convinient methods
+ * Debug printouts for troubleshooting. Contains some convenient methods
  * for usual style of printing out on console.
  *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
@@ -13,9 +13,7 @@ import com.google.gson.GsonBuilder;
 public class Debug { // NO_UCD (code used only for debugging)
 
     public static void print(Object... aObjects) {
-        for (final Object o : aObjects) {
-            System.out.print("[" + o + "] ");
-        }
+        System.out.println(getString(aObjects));
         System.out.println();
     }
 
