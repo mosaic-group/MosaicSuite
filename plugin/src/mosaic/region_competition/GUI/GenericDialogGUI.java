@@ -158,7 +158,8 @@ public class GenericDialogGUI  {
 
         
         if (IJ.isMacro() == true) {
-            System.out.println("MACRO !!!!!!!!!!!!!!!");
+            // Must be 'false' since headless mode of Fiji cannot handle this window.
+            keepAllFrames = false;
             gd = new GenericDialog("MACRO MODE");
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
