@@ -71,7 +71,7 @@ public class AnalysisTest extends CommonBase {
         Interpreter.batchMode = true;
         
         // Define test data
-        final String tcDirName           = "IA/VirusEndosome/";
+        final String tcDirName = "IA/VirusEndosome/";
         copyTestResources("Virus.csv", getTestDataPath() + tcDirName, "/tmp");
         Point3d[] x = FileUtils.openCsvFile("X", "/tmp/" + "Virus.csv");
         copyTestResources("Endosome.csv", getTestDataPath() + tcDirName, "/tmp");

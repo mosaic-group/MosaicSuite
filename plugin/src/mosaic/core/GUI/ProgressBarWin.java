@@ -23,9 +23,8 @@ import ij.macro.Interpreter;
  * @author Pietro Incardona
  */
 
-public class ProgressBarWin extends JDialog {
-
-    private static final long serialVersionUID = 147834134785813L;
+public class ProgressBarWin  {
+    private JDialog jd;
     private JPanel contentPane;
     private JProgressBar Prog_s;
     private JLabel Status;
@@ -39,7 +38,7 @@ public class ProgressBarWin extends JDialog {
 
         // get metrics from the graphics
         if (contentPane.getGraphics() == null) {
-            setVisible(true);
+            jd.setVisible(true);
         }
 
         final FontMetrics metrics = contentPane.getGraphics().getFontMetrics(font);
@@ -53,7 +52,7 @@ public class ProgressBarWin extends JDialog {
         // text with some padding.
         final Dimension size = new Dimension(adv + 2, hgt + 2);
 
-        setSize(2 * size.width + 50, getSize().height);
+        jd.setSize(2 * size.width + 50, jd.getSize().height);
     }
 
     public void SetProgress(int p) {
@@ -62,13 +61,20 @@ public class ProgressBarWin extends JDialog {
         Prog_s.setValue(p);
     }
 
+    public void dispose() {
+        if (Interpreter.batchMode == true) return;
+        jd.dispose();
+    }
+    
     public ProgressBarWin() {
         if (Interpreter.batchMode == true) return;
-        setTitle("Processing...");
-        setBounds(100, 100, 400, 100);
+        jd = new JDialog();
+        jd.setTitle("Processing...");
+        jd.setBounds(100, 100, 400, 100);
+        jd.setVisible(true);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        setContentPane(contentPane);
+        jd.setContentPane(contentPane);
         contentPane.setLayout(new GridBagLayout());
 
         // Status message

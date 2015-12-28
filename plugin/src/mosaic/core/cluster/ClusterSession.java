@@ -111,9 +111,9 @@ public class ClusterSession {
             dispose = true;
         }
 
-        wp.setFocusableWindowState(false);
-        wp.setVisible(true);
-        wp.setFocusableWindowState(false);
+//        wp.setFocusableWindowState(false);
+//        wp.setVisible(true);
+//        wp.setFocusableWindowState(false);
 
         nImages = img.getNFrames();
         final String tmp_dir = IJ.getDirectory("temp");
@@ -613,9 +613,9 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
         final ProgressBarWin wp = new ProgressBarWin();
-        wp.setFocusableWindowState(false);
-        wp.setVisible(true);
-        wp.setFocusableWindowState(true);
+//        wp.setFocusableWindowState(false);
+//        wp.setVisible(true);
+//        wp.setFocusableWindowState(true);
 
         // Create job array
 
