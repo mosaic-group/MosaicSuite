@@ -56,13 +56,11 @@ public class AnalysisTest extends CommonBase {
         analysis.setPotentialType(Potentials.createPotential(PotentialType.HERNQUIST));
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
-        System.out.println(results);
         
-        // Results may vary quite a lot - change epsilon to relax expectations
-        epsilon = 0.01;
-        assertEquals(36.723190, results.get(0).iStrength, epsilon);
+        epsilon = 1e-6;
+        assertEquals(36.723224, results.get(0).iStrength, epsilon);
         assertEquals(241.636178, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.001399, results.get(0).iResidual, epsilon);
+        assertEquals(0.001396, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
         analysis.hypothesisTesting(100, 0.01);
@@ -96,13 +94,11 @@ public class AnalysisTest extends CommonBase {
         
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
-        System.out.println(results);
-        
-        // Results may vary quite a lot - change epsilon to relax expectations
-        epsilon = 0.01;
+
+        epsilon = 1e-6;
         assertEquals(0.0, results.get(0).iStrength, epsilon);
         assertEquals(0.0, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.008895, results.get(0).iResidual, epsilon);
+        assertEquals(0.007918, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
         analysis.hypothesisTesting(100, 0.01);
@@ -120,13 +116,11 @@ public class AnalysisTest extends CommonBase {
         
         List<Result> results = new ArrayList<Result>();
         analysis.cmaOptimization(results, 1);
-        System.out.println(results);
         
-        // Results may vary quite a lot - change epsilon to relax expectations
-        epsilon = 0.5;
-        assertEquals(2.411145, results.get(0).iStrength, 1.5);
-        assertEquals(6.472193, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.002122, results.get(0).iResidual, epsilon);
+        epsilon = 1e-6;
+        assertEquals(2.439648, results.get(0).iStrength, epsilon);
+        assertEquals(6.678545, results.get(0).iThresholdScale, epsilon);
+        assertEquals(0.002117, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
         analysis.hypothesisTesting(100, 0.01);

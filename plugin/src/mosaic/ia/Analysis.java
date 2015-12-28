@@ -96,7 +96,7 @@ public class Analysis {
         for (int cmaRunNumber = 0; cmaRunNumber < cmaReRunTimes; cmaRunNumber++) {
             final CMAEvolutionStrategy cma = createNewConfiguredCma();
             final double[] fitness = cma.init();
-
+            
             while (cma.stopConditions.getNumber() == 0) {
                 final double[][] populations = cma.samplePopulation(); // get a new population of solutions
                 for (int i = 0; i < populations.length; ++i) { 
@@ -168,6 +168,8 @@ public class Analysis {
 
     private CMAEvolutionStrategy createNewConfiguredCma() {
         final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
+        cma.setSeed(1);
+        cma.setRand(new Random(1));
         cma.options.writeDisplayToFile = 0;
         cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
         cma.options.stopFitness = 1e-12; // optional setting
@@ -176,7 +178,7 @@ public class Analysis {
         
         final double[] initialX = new double[iPotential.numOfDimensions()];
         final double[] initialSigma = new double[iPotential.numOfDimensions()];
-        final Random rn = new Random(System.nanoTime());
+        final Random rn = new Random(123456);
         if (iPotential.getType() == PotentialType.NONPARAM) {
             for (int i = 0; i < iPotential.numOfDimensions(); i++) {
                 initialX[i] = meanDistance * rn.nextDouble();
