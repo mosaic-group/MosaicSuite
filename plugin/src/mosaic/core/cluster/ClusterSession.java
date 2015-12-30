@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
-import mosaic.core.GUI.ChooseGUI;
+import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;

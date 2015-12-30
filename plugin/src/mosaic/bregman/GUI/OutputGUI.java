@@ -1,4 +1,4 @@
-package mosaic.core.GUI;
+package mosaic.bregman.GUI;
 
 
 import java.awt.Dimension;

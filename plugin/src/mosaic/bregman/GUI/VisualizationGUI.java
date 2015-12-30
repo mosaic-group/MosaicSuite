@@ -11,7 +11,6 @@ import ij.gui.GenericDialog;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.SquasshOutputChoose;
-import mosaic.core.GUI.OutputGUI;
 
 
 public class VisualizationGUI {

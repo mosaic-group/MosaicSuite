@@ -2,7 +2,7 @@ package mosaic.bregman.output;
 
 
 import mosaic.bregman.Region;
-import mosaic.core.GUI.GUIOutputChoose;
+import mosaic.bregman.GUI.GUIOutputChoose;
 import mosaic.utils.io.csv.CSV;
 
 
