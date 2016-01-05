@@ -174,7 +174,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/dotCluster/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics process username=" + System.getProperty("user.name");;
+        final String macroOptions        = "show_and_save_statistics process username=" + System.getProperty("user.name");
         final String inputFile           = "dot.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/dot_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/dot_seg_c1.tif"};

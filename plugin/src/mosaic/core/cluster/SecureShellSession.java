@@ -72,7 +72,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         // Check that all the pipe are empty
 
         while (poutput_in.available() != 0 && pinput_in.available() != 0) {
-            Thread.sleep(1000);
+            Thread.sleep(100);
         }
         pinput_in.close();
         pinput_out.close();

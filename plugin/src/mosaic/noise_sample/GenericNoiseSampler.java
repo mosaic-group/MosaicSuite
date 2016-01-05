@@ -15,19 +15,83 @@ import net.imglib2.type.numeric.RealType;
  * @author Pietro
  * @param <T> intensity type
  */
-
 public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T> {
+    private final Random iRandomGenerator = new Random();
+    private Class<T> iClazzOfPixel;
+    private final Vector<Ihist> iHistograms;
+
+    public GenericNoiseSampler(Class<T> cls_) {
+        iHistograms = new Vector<Ihist>();
+        iClazzOfPixel = cls_;
+    }
 
     /**
-     * @author Pietro Incardona
+     * Set an histogram in the list
+     *
+     * @param intensity of the histogram
+     * @param hist Histogram
      */
+    public void setHistogram(T intensity, Histogram1d<T> hist) {
+        final Ihist tmp = new Ihist();
+        tmp.intensity = intensity;
+        tmp.hist = hist;
 
-    private final Random rnd;
-    private Class<T> cls;
-    private T center;
+        for (int i = 0; i < iHistograms.size(); i++) {
+            if (iHistograms.get(i).intensity.getRealDouble() < intensity.getRealDouble()) {
+                iHistograms.insertElementAt(tmp, i);
+                return;
+            }
+        }
+        iHistograms.add(tmp);
+    }
 
+    /**
+     * Sample from it
+     */
+    @Override
+    public void sample(T x, T out) {
+        int i = 0;
+
+        // figure out in which interval we are
+        for (i = 0; i < iHistograms.size(); i++) {
+            if (x.getRealDouble() > iHistograms.get(i).intensity.getRealDouble()) {
+                break;
+            }
+        }
+
+        // Create an interpolate histogram
+        final InterpolateHistogram Ih = new InterpolateHistogram(iHistograms.get(i), iHistograms.get(i + 1));
+
+        // Get the integral of the histogram
+        final long integral = Ih.integral(x);
+
+        // Generate a random number between 0 and total
+        final long gen = (long) (iRandomGenerator.nextDouble() * integral);
+
+        // search the bin we fall into (the domain of all histogram is warranted to be the same)
+        long tot = 0;
+        for (i = 0; i < iHistograms.get(0).hist.getBinCount(); i++) {
+            tot += Ih.get(x, iClazzOfPixel);
+
+            if (tot >= gen) {
+                break;
+            }
+        }
+
+        // return associated T of the sampled bin
+        iHistograms.get(0).hist.getCenterValue(i, out);
+    }
+
+    private class Ihist {
+        protected Ihist() {}
+        
+        T intensity;
+        Histogram1d<T> hist;
+        long integral; // TODO: this is never set but used later (always 0).
+    }
+
+    
     private class InterpolateHistogram {
-
         Ihist h1;
         Ihist h2;
 
@@ -37,11 +101,8 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
          * @param h1_
          * @param h2_
          */
-
         InterpolateHistogram(Ihist h1_, Ihist h2_) {
-            // check that h2.inte > h1.inte otherwise store in the other
-            // way around
-
+            // check that h2.inte > h1.inte otherwise store in the other way around
             if (h2_.intensity.getRealDouble() > h1_.intensity.getRealDouble()) {
                 h1 = h1_;
                 h2 = h2_;
@@ -62,13 +123,11 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 
         int get(T inte, Class<T> cls) {
             // calculate distance from h1 and h2
-
             final double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
             final double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
             final double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
 
             // calculate ratio
-
             final double r1dist = h1dist / h2h1dist;
             final double r2dist = h2dist / h2h1dist;
 
@@ -76,7 +135,6 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
             long och2 = 0;
 
             // calculate shift
-
             T binsh1;
             try {
                 binsh1 = cls.newInstance();
@@ -102,121 +160,18 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
          *
          * @return
          */
-
         long integral(T inte) {
             // calculate distance from h1 and h2
-
             final double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
             final double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
             final double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
 
             // calculate ratio
-
             final double r1dist = h1dist / h2h1dist;
             final double r2dist = h2dist / h2h1dist;
 
             // calculate the integral
-
             return (int) (h1.integral * r1dist + h2.integral * r2dist);
         }
     }
-
-    private class Ihist {
-
-        protected Ihist() {}
-        
-        T intensity;
-        Histogram1d<T> hist;
-        long integral;
-    }
-
-    private final Vector<Ihist> inteHist;
-
-    public GenericNoiseSampler(Class<T> cls_) {
-        inteHist = new Vector<Ihist>();
-        cls = cls_;
-        rnd = new Random();
-
-        try {
-            center = cls.newInstance();
-        }
-        catch (final InstantiationException e) {
-            e.printStackTrace();
-        }
-        catch (final IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Set an histogram in the list
-     *
-     * @param intensity of the histogram
-     * @param hist Histogram
-     */
-
-    public void setHistogram(T intensity, Histogram1d<T> hist) {
-        final Ihist tmp = new Ihist();
-        tmp.intensity = intensity;
-        tmp.hist = hist;
-
-        for (int i = 0; i < inteHist.size(); i++) {
-            if (inteHist.get(i).intensity.getRealDouble() < intensity.getRealDouble()) {
-                // Add here
-
-                inteHist.insertElementAt(tmp, i);
-
-                return;
-            }
-        }
-        inteHist.add(tmp);
-    }
-
-    /**
-     * Sample from it
-     */
-
-    @Override
-    public void sample(T x, T out) {
-        int i = 0;
-
-        // figure out in which interval we are
-
-        for (i = 0; i < inteHist.size(); i++) {
-            if (x.getRealDouble() > inteHist.get(i).intensity.getRealDouble()) {
-                break;
-            }
-        }
-
-        // Create an interpolate histogram
-
-        final InterpolateHistogram Ih = new InterpolateHistogram(inteHist.get(i), inteHist.get(i + 1));
-
-        // Get the integral of the histogram
-
-        final long integral = Ih.integral(x);
-
-        // Generate a random number between 0 and total
-
-        final long gen = (long) (rnd.nextDouble() * integral);
-
-        // search the bin we fall into (the domain of all histogram is warranted to be the
-        // same)
-
-        long tot = 0;
-
-        for (i = 0; i < inteHist.get(0).hist.getBinCount(); i++) {
-            inteHist.get(0).hist.getCenterValue(i, center);
-            tot += Ih.get(x, cls);
-
-            if (tot >= gen) {
-                break;
-            }
-        }
-
-        // return associated T of the sampled bin
-
-        inteHist.get(0).hist.getCenterValue(i, out);
-    }
-
 }

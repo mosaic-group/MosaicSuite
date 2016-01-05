@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
-import mosaic.core.GUI.ChooseGUI;
+import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
@@ -111,9 +111,9 @@ public class ClusterSession {
             dispose = true;
         }
 
-        wp.setFocusableWindowState(false);
-        wp.setVisible(true);
-        wp.setFocusableWindowState(false);
+//        wp.setFocusableWindowState(false);
+//        wp.setVisible(true);
+//        wp.setFocusableWindowState(false);
 
         nImages = img.getNFrames();
         final String tmp_dir = IJ.getDirectory("temp");
@@ -613,9 +613,9 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
         final ProgressBarWin wp = new ProgressBarWin();
-        wp.setFocusableWindowState(false);
-        wp.setVisible(true);
-        wp.setFocusableWindowState(true);
+//        wp.setFocusableWindowState(false);
+//        wp.setVisible(true);
+//        wp.setFocusableWindowState(true);
 
         // Create job array
 
@@ -731,9 +731,9 @@ public class ClusterSession {
             final int p = (int) (progress * 100.0 / total);
             wp.SetProgress(p);
 
-            // wait 10 second to send and get again the status
+            // wait to send and get again the status
             try {
-                Thread.sleep(3000);
+                Thread.sleep(500);
             }
             catch (final InterruptedException e) {
                 e.printStackTrace();

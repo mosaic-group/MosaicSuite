@@ -1,4 +1,4 @@
-package mosaic.core.GUI;
+package mosaic.particleTracker;
 
 
 import java.awt.Dimension;
@@ -7,6 +7,8 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import mosaic.core.GUI.HelpGUI;
 
 
 public class ParticleTrackerHelp extends HelpGUI {

@@ -141,7 +141,7 @@ public class Particle {
         return result;
     }
 
-    boolean match(Particle aParticle) {
+    public boolean match(Particle aParticle) {
         if (iX == aParticle.iX && 
             iY == aParticle.iY && 
             iZ == aParticle.iZ && 
