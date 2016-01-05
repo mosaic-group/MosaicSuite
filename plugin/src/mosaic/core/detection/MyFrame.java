@@ -51,7 +51,7 @@ public class MyFrame {
     // holds string with ready to print info about this frame before particle discrimination
     private StringBuffer info_before_discrimination;
 
-    private MyFrame() {}
+    public MyFrame() {}
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
@@ -83,7 +83,7 @@ public class MyFrame {
      * @param aLinkRange linking range
      */
 
-    private MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
+    public MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
         this.frame_number = frame;
         this.particles = p;
 
