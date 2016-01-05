@@ -33,9 +33,15 @@ import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
 import mosaic.utils.SystemOperations;
 import net.imglib2.Cursor;
+import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.FloatType;
 
 
 /**
@@ -248,26 +254,24 @@ public class CommonBase extends Info {
      * @param aTestedImg Image2
      * @return true if they match, false otherwise
      */
-    protected boolean compareImages(Img<?> aRefImg, Img<?> aTestedImg) {
-        final Cursor<?> ci1 = aRefImg.cursor();
+    protected boolean compareImages(IterableInterval<?> aRefImg, RandomAccessible<?> aTestedImg) {
+        final Cursor<?> ci1 = aRefImg.localizingCursor();
         final RandomAccess<?> ci2 = aTestedImg.randomAccess();
 
-        final int loc[] = new int[aRefImg.numDimensions()];
         int countAll = 0;
         int countDifferent = 0;
         boolean firstDiffFound = false;
         while (ci1.hasNext())
         {
             ci1.fwd();
-            ci1.localize(loc);
-            ci2.setPosition(loc);
-
+            ci2.setPosition(ci1);
             final Object t1 = ci1.get();
             final Object t2 = ci2.get();
 
             countAll++;
-            
-            // TODO: Currently compares strings..., it seems that t1.equals(t2) sometimes fails event if they have same information about point
+
+            // Currently compares strings..., it seems that t1.equals(t2) fails for types extended from AbstractNativeType in 
+            // imglib2 since it does not override equals method and compare just references.
             if (!t2.toString().equals(t1.toString()))
             {
                 countDifferent++;
@@ -275,9 +279,10 @@ public class CommonBase extends Info {
                     firstDiffFound = true;
                     // Produce error log with coordinates and values of first
                     // not matching location
+                    System.out.println(t1.getClass() + " vs " + t2.getClass());
                     String errorMsg = "Images differ. First occurence at: [";
                     for (int i = 0; i < aRefImg.numDimensions(); ++i) {
-                        errorMsg += loc[i];
+                        errorMsg += ci1.getIntPosition(i);
                         if (i < aRefImg.numDimensions() - 1) {
                             errorMsg += ",";
                         }
