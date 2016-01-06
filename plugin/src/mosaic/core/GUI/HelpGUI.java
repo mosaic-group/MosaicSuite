@@ -223,10 +223,7 @@ public class HelpGUI {
             try {
                 Desktop.getDesktop().browse(uri);
             }
-            catch (final IOException e) { /* TODO: error handling */
-            }
-        }
-        else { /* TODO: error handling */
+            catch (final IOException e) { /* Intentionally ignored - nothing to do in such case */}
         }
     }
 }
