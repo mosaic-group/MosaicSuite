@@ -2,9 +2,10 @@ package mosaic.utils;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import java.util.Arrays;
 
-import mosaic.utils.ConvertArray;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ConvertArrayTest {
 
@@ -77,5 +78,18 @@ public class ConvertArrayTest {
         for (int i = 0; i < input.length; ++i) {
             assertEquals("(" + i + ")", input[i], result[i]);
         }
+    }
+    
+    @Test
+    public void testToFloatFrom1Dto2D() {
+        final float[] input = new float[] {1.0f, 1.5f, 2.0f, 0.0f, -1.0f, -3.0f};
+        final float[][] expected = new float[][] {{1.0f, 0.0f}, {1.5f, -1.0f}, {2.0f, -3.0f}};
+        
+        // Tested method
+        final float[][] result = ConvertArray.toFloat2D(input, 3, 2);
+        
+        for (int i = 0; i < expected.length; ++i) {
+            Assert.assertArrayEquals(expected[i], result[i], 0.0f);
+         }
     }
 }

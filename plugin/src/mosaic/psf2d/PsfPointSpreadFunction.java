@@ -1,11 +1,12 @@
 package mosaic.psf2d;
 
 
-import ij.process.ImageProcessor;
-
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 
-import mosaic.interpolators.BicubicInterpolator;
+import ij.process.ImageProcessor;
+import mosaic.utils.ConvertArray;
+import mosaic.utils.math.Interpolation;
 
 
 public class PsfPointSpreadFunction {
@@ -48,9 +49,11 @@ public class PsfPointSpreadFunction {
         // Calculate sampling positions
         float x_pos, y_pos; // Sampling position in x/y-coordinates
         float phi; // Angle of sampling position in polar-coordinates
-        float val_int = 0.0f; // Interpolated intensity value
         int k; // Number of circles
         float radius = 0; // Circle radius
+
+        ImageProcessor fp = org.convertToFloat();
+        float[][] float2d = ConvertArray.toFloat2D((float[])fp.getPixels(), fp.getWidth(), fp.getHeight());
 
         // Calculate maximal number of circles based on user-defined magnification factor
         k = rad_max * fact;
@@ -64,7 +67,6 @@ public class PsfPointSpreadFunction {
             // TODO
             psf_data.append("\n\n%Radius:\t" + Rad[j] + " nm");
             PSF[j] = 0.0f;
-            val_int = 0.0f;
             psf_data.append("\n%Sampling Positions of Point Source:\n");
             // Loop over Sampling Points
             for (int i = 0; i < sample_number; i++) {
@@ -72,12 +74,9 @@ public class PsfPointSpreadFunction {
                 x_pos = source.x + radius * (float) Math.cos(phi);
                 y_pos = source.y + radius * (float) Math.sin(phi);
                 psf_data.append("(" + x_pos + " , " + y_pos + ");");
-                // Interpolate intensity values TODO
-                final BicubicInterpolator bi = new BicubicInterpolator();
-                bi.setImageProcessor(org);
+
                 final Point2D pnt = new Point2D.Float(x_pos, y_pos);
-                val_int = (float) bi.getInterpolatedPixel(pnt);
-                PSF[j] += val_int;
+                PSF[j] += Interpolation.bicubicInterpolation(pnt.getX(), pnt.getY(), ConvertArray.toDouble(float2d), Interpolation.InterpolationMode.NONE);
             }
 
             // Calculate PSF on circle
@@ -104,8 +103,10 @@ public class PsfPointSpreadFunction {
             }
         }
         c = max - min;
-        for (int v = 0; v < PSF.length; v++) {
-            PSF[v] = (PSF[v] - min) / c;
+        if (c != 0.0) {
+            for (int v = 0; v < PSF.length; v++) {
+                PSF[v] = (PSF[v] - min) / c;
+            }
         }
     }
 

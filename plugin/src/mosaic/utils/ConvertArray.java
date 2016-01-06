@@ -151,4 +151,23 @@ public class ConvertArray {
         }
         return result;
     }
+    
+    /**
+     * Converts 1D array of floats to 2D [width][height] float array column major with provided dimensions
+     * @param aArray 1D array of floats
+     * @param aWidth
+     * @param aHeight
+     * @return 2D array of floats [aWidth][aHeight]
+     */
+    public static float[][] toFloat2D(float[] aArray, int aWidth, int aHeight) {
+        if (aArray.length != aWidth * aHeight) 
+            throw new RuntimeException("Wrong Dimensions: " + aArray.length + " vs " + aWidth + "/" + aHeight);
+        final float [][] result = new float[aWidth][aHeight];
+        for (int x = 0; x < aWidth; ++x) {
+            for (int y = 0; y < aHeight; ++y) {
+                result[x][y] = aArray[y * aWidth + x];
+            }
+        }
+        return result;
+    }
 }
