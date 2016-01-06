@@ -9,16 +9,8 @@ package mosaic.psf2d;
  * Bessel and Airy functions.
  */
 public class PsfBessel {
-
-    /**
-     * Makes this class non instantiable, but still let's others inherit from it.
-     */
-    public PsfBessel() {
-    }
-
     /**
      * Returns the Bessel function of the first kind of order 0 of the argument.
-     * 
      * @param x the value to compute the bessel function of.
      */
     static public double j0(double x) throws ArithmeticException {
@@ -45,7 +37,6 @@ public class PsfBessel {
 
     /**
      * Returns the Bessel function of the first kind of order 1 of the argument.
-     * 
      * @param x the value to compute the bessel function of.
      */
     static public double j1(double x) throws ArithmeticException {
