@@ -2,7 +2,6 @@ package mosaic.psf2d;
 
 
 import java.awt.geom.Point2D;
-import java.util.Arrays;
 
 import ij.process.ImageProcessor;
 import mosaic.utils.ConvertArray;
