@@ -9,6 +9,9 @@ import mosaic.utils.math.Interpolation;
 
 /**
  * Calculates PSF values around provided middle point.
+ * 
+ * TODO: This class is doing to much... It should only sample things but it is also responsible for creating report.
+ *       It should also take as a input 2D array to be more versatile.
  */
 public class PsfSampler {
     private float iPsf[]; 
@@ -45,7 +48,7 @@ public class PsfSampler {
                 double angleOfSample = ((double)i / aNumOfSamples) * (2 * Math.PI);
                 float xPosOfSample = aPsfCoords.x + currentRadius * (float) Math.cos(angleOfSample);
                 float yPosOfSample = aPsfCoords.y + currentRadius * (float) Math.sin(angleOfSample);
-                iPsfData.append("(" + xPosOfSample + ", " + yPosOfSample + ");");
+                iPsfData.append("(" + xPosOfSample + ", " + yPosOfSample + "); ");
 
                 iPsf[j] += Interpolation.bicubicInterpolation(xPosOfSample, yPosOfSample, img2d, Interpolation.InterpolationMode.NONE);
             }
