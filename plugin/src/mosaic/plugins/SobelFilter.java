@@ -1,8 +1,8 @@
 package mosaic.plugins;
 
 import ij.process.FloatProcessor;
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
 

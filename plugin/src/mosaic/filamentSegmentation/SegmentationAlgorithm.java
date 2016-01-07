@@ -18,9 +18,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import mosaic.core.imageUtils.Point;
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.utils.ConvertArray;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;

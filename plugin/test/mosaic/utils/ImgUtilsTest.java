@@ -1,9 +1,10 @@
-package mosaic.plugins.utils;
+package mosaic.utils;
 
 import static org.junit.Assert.assertEquals;
 import ij.process.FloatProcessor;
-import mosaic.plugins.utils.ImgUtils.MinMax;
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.ImgUtils;
+import mosaic.utils.ImgUtils.MinMax;
 
 import org.junit.Assert;
 import org.junit.Test;

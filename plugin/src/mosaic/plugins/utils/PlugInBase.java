@@ -5,6 +5,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
+import mosaic.utils.ImgUtils;
 
 /**
  * Base for plugIns that use float values as a algorithm base.

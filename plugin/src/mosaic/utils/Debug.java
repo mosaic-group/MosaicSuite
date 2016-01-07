@@ -1,4 +1,4 @@
-package mosaic.plugins.utils;
+package mosaic.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

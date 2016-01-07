@@ -1,4 +1,4 @@
-package mosaic.plugins.utils;
+package mosaic.utils;
 
 import ij.CompositeImage;
 import ij.ImagePlus;

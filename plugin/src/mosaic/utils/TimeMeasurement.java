@@ -1,4 +1,4 @@
-package mosaic.plugins.utils;
+package mosaic.utils;
 
 import org.apache.log4j.Logger;
 
