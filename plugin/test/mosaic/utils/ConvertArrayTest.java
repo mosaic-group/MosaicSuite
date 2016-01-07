@@ -90,4 +90,17 @@ public class ConvertArrayTest {
             Assert.assertArrayEquals(expected[i], result[i], 0.0f);
          }
     }
+    
+    @Test
+    public void testToDoubleFrom1Dto2D() {
+        final double[] input = new double[] {1.0, 1.5, 2.0, 0.0, -1.0, -3.0};
+        final double[][] expected = new double[][] {{1.0, 0.0}, {1.5, -1.0}, {2.0, -3.0}};
+        
+        // Tested method
+        final double[][] result = ConvertArray.toDouble2D(input, 3, 2);
+        
+        for (int i = 0; i < expected.length; ++i) {
+            Assert.assertArrayEquals(expected[i], result[i], 0.0f);
+         }
+    }
 }

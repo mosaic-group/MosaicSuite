@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.utils.MaximumFinder2D;
+import mosaic.utils.ArrayOps;
 import mosaic.utils.ConvertArray;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
@@ -639,7 +640,7 @@ public class SegmentationAlgorithm {
         final int height = (int) (Math.ceil((double) iOriginalHeight / iStepSize) * iStepSize);
         final double[][] img = new double[height][width];
         ImgUtils.imgResize(iImage, img);
-        ImgUtils.normalize(img);
+        ArrayOps.normalize(img);
         iImageData = new Matrix(img);
 
 

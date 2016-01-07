@@ -36,9 +36,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import mosaic.psf2d.PsfBessel;
-import mosaic.psf2d.PsfPointSpreadFunction;
+import mosaic.psf2d.PsfSampler;
 import mosaic.psf2d.PsfRefinement;
 import mosaic.psf2d.PsfSourcePosition;
+import mosaic.utils.ArrayOps;
 
 /**
  * <h2>PSF_Tool</h2>
@@ -87,7 +88,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 
     private boolean select_start = false;		// Flag to test if in selection-mode or not
     private PsfRefinement Refine;					// Used to refine positions based on centroid calculation
-    private PsfPointSpreadFunction EstimatePSF[];	// Instance of class PointSpreadFunction that does the actual work
+    private PsfSampler EstimatePSF[];	// Instance of class PointSpreadFunction that does the actual work
     private float[] PSF;						// Float Array containing PSF-values
     private float rad[];						// Float Array containing PSF-radius to plot the function
     private Vector<PsfSourcePosition> Positions;					// Vector to hold user selected coordinates
@@ -315,15 +316,14 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 selections.append(centroid);
                 // Start the calculations
                 final PsfSourcePosition[] particles = new PsfSourcePosition[num_of_particles];
-                EstimatePSF = new PsfPointSpreadFunction[num_of_particles];
+                EstimatePSF = new PsfSampler[num_of_particles];
                 // Loop over Point Sources
                 for (int i=0; i<num_of_particles; i++){
                     float[] PSFtmp;
                     particles[i] = Positions.elementAt(i);
                     selections.append("\n%" + (i+1) + ":\t" + particles[i].x + "\t" + particles[i].y);	// update report file
-                    EstimatePSF[i] = new PsfPointSpreadFunction(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
-                    EstimatePSF[i].calculatePSF();
-                    PSFtmp = EstimatePSF[i].getPSF();
+                    EstimatePSF[i] = new PsfSampler(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
+                    PSFtmp = EstimatePSF[i].getPsf();
                     for (int j=0; j<PSFtmp.length; j++) {
                         PSF[j] = PSF[j] + PSFtmp[j];
                     }
@@ -332,8 +332,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 for (int i=0; i<PSF.length;i++) {
                     PSF[i] = PSF[i]/num_of_particles;
                 }
-                // Normalize values to [0,1] TODO
-                EstimatePSF[0].normalizePSF(PSF);
+                ArrayOps.normalize(PSF);
 
                 rad = EstimatePSF[0].getRadius();
                 whm = widthAtHalfMaximum();
@@ -417,9 +416,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     //	TODO think about better ways to handle single/multiple selections
     private void singlePSF(PsfSourcePosition single_part){
-        final PsfPointSpreadFunction single_estimate = new PsfPointSpreadFunction(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
-        single_estimate.calculatePSF();
-        PSF = single_estimate.getPSF();
+        final PsfSampler single_estimate = new PsfSampler(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
+        PSF = single_estimate.getPsf();
         rad = single_estimate.getRadius();
         whm = widthAtHalfMaximum();
         drawPSF("PSF of Last Selection");
@@ -614,7 +612,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         if (EstimatePSF != null){
             for (int i=0; i<EstimatePSF.length; i++){
                 report.append("\n\n%Point Source " + (i+1) + ":");
-                report.append(EstimatePSF[i].getPSFreport());
+                report.append(EstimatePSF[i].getPsfReport());
             }
         }
         else {

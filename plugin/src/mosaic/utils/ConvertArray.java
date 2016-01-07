@@ -59,7 +59,7 @@ public class ConvertArray {
      * @param aArray 1D array of floats
      * @return 1D array of doubles
      */
-    static double[] toDouble(float[] aArray) {
+    public static double[] toDouble(float[] aArray) {
         final int h = aArray.length;
         final double[] result = new double[h];
         for (int y = 0; y < h; ++y) {
@@ -163,6 +163,25 @@ public class ConvertArray {
         if (aArray.length != aWidth * aHeight) 
             throw new RuntimeException("Wrong Dimensions: " + aArray.length + " vs " + aWidth + "/" + aHeight);
         final float [][] result = new float[aWidth][aHeight];
+        for (int x = 0; x < aWidth; ++x) {
+            for (int y = 0; y < aHeight; ++y) {
+                result[x][y] = aArray[y * aWidth + x];
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array of floats to 2D [width][height] double array column major with provided dimensions
+     * @param aArray 1D array of doubles
+     * @param aWidth
+     * @param aHeight
+     * @return 2D array of doubles [aWidth][aHeight]
+     */
+    public static double[][] toDouble2D(double[] aArray, int aWidth, int aHeight) {
+        if (aArray.length != aWidth * aHeight) 
+            throw new RuntimeException("Wrong Dimensions: " + aArray.length + " vs " + aWidth + "/" + aHeight);
+        final double [][] result = new double[aWidth][aHeight];
         for (int x = 0; x < aWidth; ++x) {
             for (int y = 0; y < aHeight; ++y) {
                 result[x][y] = aArray[y * aWidth + x];
