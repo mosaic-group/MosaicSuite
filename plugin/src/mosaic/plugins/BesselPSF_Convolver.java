@@ -6,21 +6,12 @@ import ij.gui.GenericDialog;
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
 import ij.process.ImageProcessor;
+import mosaic.utils.math.MathOps;
 
 /**
  * A small ImageJ Plugin convolves an image or a stack with a bessel point spread function.
  * @author Janick Cardinale, ETH Zurich
- * @author Tao Pang, University of Nevada, for the implementation of the Bessel method
  * @version 1.0, January 08
- *
- * <p><b>Disclaimer</b>
- * <br>IN NO EVENT SHALL THE ETH BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL,
- * OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND
- * ITS DOCUMENTATION, EVEN IF THE ETH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * THE ETH SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO
- * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  */
 
 public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
@@ -30,9 +21,9 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
     ImagePlus mImp;
 
     // User input
-    double mRMax = .5e-6; // .5um
+    double mRMax = 0.5e-6; // 0.5um
     double mNA = 1.2f;
-    double mLambda  = 450*1e-9;
+    double mLambda  = 450 * 1e-9;
 
     // Stuff for kernel computing
     double mXResolution = 1;
@@ -43,7 +34,7 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
         mImp = aImp;
-        mSetupFlags = IJ.setupDialog(aImp, DOES_8G + DOES_16 + DOES_32);
+        mSetupFlags = IJ.setupDialog(mImp, FLAGS);
         return mSetupFlags;
     }
 
@@ -56,6 +47,11 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
             return DONE;
         }
         return mSetupFlags;
+    }
+
+    @Override
+    public void setNPasses(int arg0) {
+        // Nothing to be done here
     }
 
     @Override
@@ -84,6 +80,12 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
         vKernel[coords(vXRadius, vYRadius)] = 1f;
 
         return vKernel;
+    }
+
+    private double bessel_PSF(double aRadius, double aLambda, double aApparture) {
+        final double vA = 2 * Math.PI * aApparture / aLambda;
+        final double vR = 2 * MathOps.bessel1(aRadius * vA) / aRadius;
+        return vR * vR;
     }
 
     private int coords(int aX, int aY) {
@@ -136,12 +138,6 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
         return false;
     }
 
-    private double bessel_PSF(double aRadius, double aLambda, double aApparture) {
-        final double vA = 2 * Math.PI * aApparture / aLambda;
-        final double vR = 2 * bessel(aRadius * vA, 1, (int)(aRadius * vA + 10))[1] / aRadius;
-        return vR * vR;
-    }
-
     private boolean showDialog() {
         final GenericDialog gd = new GenericDialog("Bessel PSF parameter");
         gd.addNumericField("wavelength", mLambda*1e9, 0, 5, "nm");
@@ -158,41 +154,5 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
         mRMax = gd.getNextNumber() * 1e-9;
 
         return true;
-    }
-
-    @Override
-    public void setNPasses(int arg0) {
-        // Nothing to be done here
-    }
-
-    // ==================================================================================
-    /**
-     * @author Tao Pang 2006
-     *
-     *(1) This Java program is part of the book, "An Introduction to
-     *Computational Physics, 2nd Edition," written by Tao Pang and
-     *published by Cambridge University Press on January 19, 2006.
-     *
-     *(2) No warranties, express or implied, are made for this program.
-     */
-    private static double[] bessel(double x, int n, int nb) {
-        final int nmax = n+nb;
-        final double y[] = new double[n+1];
-        final double z[] = new double[nmax+1];
-
-        // Generate the Bessel function of 1st kind J_n(x)
-        z[nmax-1] = 1;
-        double s = 0;
-        for (int i=nmax-1; i>0; --i) {
-            z[i-1] = 2*i*z[i]/x-z[i+1];
-            if (i%2 == 0) {
-                s += 2*z[i];
-            }
-        }
-        s += z[0];
-        for (int i=0; i<=n; ++i) {
-            y[i] = z[i]/s;
-        }
-        return y;
     }
 }
