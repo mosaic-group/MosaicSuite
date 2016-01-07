@@ -35,11 +35,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import mosaic.psf2d.PsfBessel;
 import mosaic.psf2d.PsfSampler;
 import mosaic.psf2d.PsfRefinement;
 import mosaic.psf2d.PsfSourcePosition;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.math.MathOps;
 
 /**
  * <h2>PSF_Tool</h2>
@@ -219,20 +219,20 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             singlePSF(selected);//TODO
             selections.setLength(0);
             selections.append(centroid);
-            selections.append("\n%\t" + selected.x + "\t" + selected.y);
+            selections.append("\n%\t" + selected.iX + "\t" + selected.iY);
 
             Positions.addElement(selected);			// Add point source to vector containing user-selections
             num_of_particles = Positions.size();	// Update number of sources
 
             // Add Checkbox to GUI
-            final JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.x + ", " + selected.y + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
+            final JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.iX + ", " + selected.iY + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
             chb.setSelected(true);
             checkbox_panel.setLayout(new GridLayout(num_of_particles,1));
             checkbox_panel.add(chb);
             checkbox_panel.updateUI();
             // Make selection visible in a nice color
             color.setColor(Color.RED);
-            color.drawPixel(Math.round(selected.x), Math.round(selected.y));
+            color.drawPixel(Math.round(selected.iX), Math.round(selected.iY));
             imp.updateAndDraw();
         }
     }
@@ -321,7 +321,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 for (int i=0; i<num_of_particles; i++){
                     float[] PSFtmp;
                     particles[i] = Positions.elementAt(i);
-                    selections.append("\n%" + (i+1) + ":\t" + particles[i].x + "\t" + particles[i].y);	// update report file
+                    selections.append("\n%" + (i+1) + ":\t" + particles[i].iX + "\t" + particles[i].iY);	// update report file
                     EstimatePSF[i] = new PsfSampler(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
                     PSFtmp = EstimatePSF[i].getPsf();
                     for (int j=0; j<PSFtmp.length; j++) {
@@ -365,8 +365,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 final PsfSourcePosition last = Positions.elementAt(i);
                 Positions.removeElementAt(i);
                 // Get original RGB-value and re-draw
-                iArray  = lastcolor.getPixel(Math.round(last.x), Math.round(last.y), iArray);
-                color.putPixel(Math.round(last.x), Math.round(last.y), iArray);
+                iArray  = lastcolor.getPixel(Math.round(last.iX), Math.round(last.iY), iArray);
+                color.putPixel(Math.round(last.iX), Math.round(last.iY), iArray);
                 imp.updateAndDraw();
                 checkbox_panel.remove(cb);
             }
@@ -489,7 +489,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         double barg;
         for (int i=0;i<rad.length;i++){
             barg = arg*rad[i];
-            b[i] = (2*PsfBessel.j1(barg)/barg)*(2*PsfBessel.j1(barg)/barg);
+            b[i] = (2*MathOps.bessel1(barg)/barg)*(2*MathOps.bessel1(barg)/barg);
         }
         b[0] = 1;
         return b;

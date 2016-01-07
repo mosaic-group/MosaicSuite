@@ -1,7 +1,7 @@
 package mosaic.bregman;
 
 
-import mosaic.psf2d.PsfBessel;
+import mosaic.utils.math.MathOps;
 
 
 public class GaussianPSFModel {
@@ -43,8 +43,8 @@ public class GaussianPSFModel {
 
     public double lateral_LSCM() {
         double res;
-        final double num = 4 * c2 * PsfBessel.j0(c2) * PsfBessel.j1(c2) - 8 * Math.pow(PsfBessel.j1(c2), 2);
-        final double den = Math.pow(r, 2) * (Math.pow(PsfBessel.j0(c2), 2) + Math.pow(PsfBessel.j1(c2), 2) - 1);
+        final double num = 4 * c2 * MathOps.bessel0(c2) * MathOps.bessel1(c2) - 8 * Math.pow(MathOps.bessel1(c2), 2);
+        final double den = Math.pow(r, 2) * (Math.pow(MathOps.bessel0(c2), 2) + Math.pow(MathOps.bessel1(c2), 2) - 1);
 
         res = Math.sqrt(2) / Math.sqrt((c1 * c1 / (r * r)) + num / den);
         return res;
@@ -53,8 +53,8 @@ public class GaussianPSFModel {
     public double axial_LSCM() {
         double res;
 
-        final double num = 48 * c2 * c2 * (Math.pow(PsfBessel.j0(c2), 2) + Math.pow(PsfBessel.j1(c2), 2)) - 192 * Math.pow(PsfBessel.j1(c2), 2);
-        final double den = Math.pow(n, 2) * Math.pow(kem, 2) * Math.pow(r, 4) * (Math.pow(PsfBessel.j0(c2), 2) + Math.pow(PsfBessel.j1(c2), 2) - 1);
+        final double num = 48 * c2 * c2 * (Math.pow(MathOps.bessel0(c2), 2) + Math.pow(MathOps.bessel1(c2), 2)) - 192 * Math.pow(MathOps.bessel1(c2), 2);
+        final double den = Math.pow(n, 2) * Math.pow(kem, 2) * Math.pow(r, 4) * (Math.pow(MathOps.bessel0(c2), 2) + Math.pow(MathOps.bessel1(c2), 2) - 1);
 
         res = 2 * Math.sqrt(6) / Math.sqrt((c1 * c1 * NA * NA / (r * r * n * n)) - num / den);
         return res;

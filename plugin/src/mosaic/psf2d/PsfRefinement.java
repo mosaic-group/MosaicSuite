@@ -114,57 +114,54 @@ public class PsfRefinement {
         epsx = epsy = 1.0F;
 
         while (epsy > 0.5 || epsy < -0.5 || epsx > 0.5 || epsx < -0.5) {
-            particle.m0 = 0.0F;
-            particle.m2 = 0.0F;
+            float m0 = 0.0F;
             epsx = 0.0F;
             epsy = 0.0F;
 
             for (k = -radius; k <= radius; k++) {
-                if (((int) particle.y + k) < 0 || ((int) particle.y + k) >= ip.getHeight()) {
+                if (((int) particle.iY + k) < 0 || ((int) particle.iY + k) >= ip.getHeight()) {
                     continue;
                 }
-                y = (int) particle.y + k;
+                y = (int) particle.iY + k;
 
                 for (l = -radius; l <= radius; l++) {
-                    if (((int) particle.x + l) < 0 || ((int) particle.x + l) >= ip.getWidth()) {
+                    if (((int) particle.iX + l) < 0 || ((int) particle.iX + l) >= ip.getWidth()) {
                         continue;
                     }
-                    x = (int) particle.x + l;
+                    x = (int) particle.iX + l;
 
                     c = ip.getPixelValue(x, y) * mask[coord(k + radius, l + radius, mask_width)];
-                    particle.m0 += c;
+                    m0 += c;
                     epsy += k * c;
                     epsx += l * c;
-                    particle.m2 += (k * k + l * l) * c;
                 }
             }
 
-            epsy /= particle.m0;
-            epsx /= particle.m0;
-            particle.m2 /= particle.m0;
+            epsy /= m0;
+            epsx /= m0;
 
             // This is a little hack to avoid numerical inaccuracy
             tx = (int) (10.0 * epsx);
             ty = (int) (10.0 * epsy);
 
             if ((ty) / 10.0 > 0.5) {
-                if ((int) particle.y + 1 < ip.getHeight()) {
-                    particle.y++;
+                if ((int) particle.iY + 1 < ip.getHeight()) {
+                    particle.iY++;
                 }
             }
             else if ((ty) / 10.0 < -0.5) {
-                if ((int) particle.y - 1 >= 0) {
-                    particle.y--;
+                if ((int) particle.iY - 1 >= 0) {
+                    particle.iY--;
                 }
             }
             if ((tx) / 10.0 > 0.5) {
-                if ((int) particle.x + 1 < ip.getWidth()) {
-                    particle.x++;
+                if ((int) particle.iX + 1 < ip.getWidth()) {
+                    particle.iX++;
                 }
             }
             else if ((tx) / 10.0 < -0.5) {
-                if ((int) particle.x - 1 >= 0) {
-                    particle.x--;
+                if ((int) particle.iX - 1 >= 0) {
+                    particle.iX--;
                 }
             }
 
@@ -173,8 +170,8 @@ public class PsfRefinement {
             }
         }
 
-        particle.x += epsx;
-        particle.y += epsy;
+        particle.iX += epsx;
+        particle.iY += epsy;
     }
 
     /**
