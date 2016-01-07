@@ -1,5 +1,24 @@
 package mosaic.plugins;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -11,33 +30,9 @@ import ij.io.SaveDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Vector;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
-import mosaic.psf2d.PsfSampler;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.psf2d.PsfRefinement;
+import mosaic.psf2d.PsfSampler;
 import mosaic.psf2d.PsfSourcePosition;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.math.MathOps;
