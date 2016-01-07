@@ -72,24 +72,19 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
 
         for (int vYI = 0; vYI < mKernelHeight; vYI++) {
             for (int vXI = 0; vXI < mKernelWidth; vXI++) {
-                final float vDist = (float) Math.sqrt((vXRadius - vXI) * mXResolution * (vXRadius - vXI) * mXResolution
-                        + (vYRadius - vYI) * mYResolution * (vYRadius - vYI) * mYResolution);
-                vKernel[coords(vXI, vYI)] = (float) (bessel_PSF(vDist, mLambda, mNA) / vBesselMax);
+                double vDist = Math.sqrt( Math.pow((vXRadius - vXI) * mXResolution, 2) + Math.pow((vYRadius - vYI) * mYResolution, 2) );
+                vKernel[vYI * mKernelWidth + vXI] = (float) (bessel_PSF(vDist, mLambda, mNA) / vBesselMax);
             }
         }
-        vKernel[coords(vXRadius, vYRadius)] = 1f;
+        vKernel[vYRadius * mKernelWidth + vXRadius] = 1f;
 
         return vKernel;
     }
 
-    private double bessel_PSF(double aRadius, double aLambda, double aApparture) {
+     private double bessel_PSF(double aRadius, double aLambda, double aApparture) {
         final double vA = 2 * Math.PI * aApparture / aLambda;
         final double vR = 2 * MathOps.bessel1(aRadius * vA) / aRadius;
         return vR * vR;
-    }
-
-    private int coords(int aX, int aY) {
-        return aY * mKernelWidth + aX;
     }
 
     /**
