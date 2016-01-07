@@ -546,7 +546,7 @@ public class MosaicUtils {
      * @param directory location of the file to write to
      * @param file_name file name to write to
      * @param info info the write to file
-     * @see java.io.FileOutputStream#FileOutputStream(java.lang.String)
+     * @return boolean (writing to file successful or error message)
      */
     public static boolean write2File(String directory, String file_name, String info) {
         try {

@@ -36,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import mosaic.psf2d.PsfSampler;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.psf2d.PsfRefinement;
 import mosaic.psf2d.PsfSourcePosition;
 import mosaic.utils.ArrayOps;
@@ -347,7 +348,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             if (sd.getDirectory() == null || sd.getFileName() == null) {
                 return;
             }
-            write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
+            MosaicUtils.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
             return;
         }
     }
@@ -527,29 +528,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             }
         }
         return eq;
-    }
-
-    /**
-     * Creates a Textfile containing all relevant configurations and results
-     * @param directory Directory of file
-     * @param file_name File name
-     * @param info String holding the text that should be written to the file
-     * @return boolean (writing to file successful or error message)
-     */
-    private boolean write2File(String directory, String file_name, String info) {
-        PrintWriter print_writer = null;
-        try {
-            final FileOutputStream fos = new FileOutputStream(directory + file_name);
-            final BufferedOutputStream bos = new BufferedOutputStream(fos);
-            print_writer = new PrintWriter(bos);
-            print_writer.print(info);
-            print_writer.close();
-            return true;
-        }
-        catch (final IOException e) {
-            IJ.error("" + e);
-            return false;
-        }
     }
 
     /**
