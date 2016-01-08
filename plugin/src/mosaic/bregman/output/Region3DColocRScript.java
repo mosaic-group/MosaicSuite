@@ -82,7 +82,6 @@ public class Region3DColocRScript implements Outdata<Region> {
 
     @Override
     public void setData(Region r) {
-
         Image_ID = 0;
         Object_ID = 0;
         Intensity = r.getintensity();
@@ -100,7 +99,6 @@ public class Region3DColocRScript implements Outdata<Region> {
     }
 
     public void setData(Region3DColocRScript r) {
-
         Image_ID = r.Image_ID;
         Object_ID = r.Object_ID;
         Size = r.Size;

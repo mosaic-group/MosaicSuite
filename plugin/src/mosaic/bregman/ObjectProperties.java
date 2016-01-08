@@ -83,10 +83,10 @@ class ObjectProperties implements Runnable {
         estimate_int(mask[0]);
         region.intensity = cin * (intmax - intmin) + intmin;
         if (p.nz == 1) {
-            region.rsize = round((region.pixels.size()) / ((float) osxy * osxy), 3);
+            region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy), 3);
         }
         else {
-            region.rsize = round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
+            region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
         }
 
         if (p.dispint) {
@@ -439,13 +439,4 @@ class ObjectProperties implements Runnable {
             r.length = ((double) length) / osxy;
         }
     }
-
-    private float round(float y, int z) {
-        // Special tip to round numbers to 10^-2
-        y *= Math.pow(10, z);
-        y = (int) y;
-        y /= Math.pow(10, z);
-        return y;
-    }
-
 }

@@ -260,16 +260,8 @@ class ImagePatches {
 
         jobs_done++;
 
-        IJ.showStatus("Computing segmentation  " + round(55 + (45 * ((double) jobs_done) / (nb_jobs)), 2) + "%");
+        IJ.showStatus("Computing segmentation  " + Tools.round(55 + (45 * ((double) jobs_done) / (nb_jobs)), 2) + "%");
         IJ.showProgress(0.55 + 0.45 * (jobs_done) / (nb_jobs));
-    }
-
-    private double round(double y, int z) {
-        // Special tip to round numbers to 10^-2
-        y *= Math.pow(10, z);
-        y = (int) y;
-        y /= Math.pow(10, z);
-        return y;
     }
 
     private void assemble_result(AnalysePatch ap, Region r) {

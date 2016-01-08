@@ -16,9 +16,6 @@ import mosaic.bregman.Analysis;
 
 
 public class SegmentationGUI {
-    public SegmentationGUI() {
-    }
-
     public void run() {
         getParameters();
     }
@@ -73,12 +70,10 @@ public class SegmentationGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-
                 final JFileChooser fc = new JFileChooser();
                 fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                 fc.showOpenDialog(null);
                 final File selFile = fc.getSelectedFile();
-
                 Analysis.p.patches_from_file = selFile.getAbsolutePath();
             }
 
@@ -114,10 +109,7 @@ public class SegmentationGUI {
         }
 
         if (Analysis.p.mode_voronoi2) {
-            // betamleout to be determined by clustering of whole image
-
             Analysis.p.betaMLEindefault = 1;
-            // Analysis.p.betaMLEoutdefault=0.1;
             Analysis.p.regionthresh = Analysis.p.min_intensity;
             Analysis.p.regionthreshy = Analysis.p.min_intensityY;
             Analysis.p.refinement = true;
@@ -125,15 +117,6 @@ public class SegmentationGUI {
             Analysis.p.regionSegmentLevel = 1;// not used
             Analysis.p.dispvoronoi = Analysis.p.debug;
             Analysis.p.minves_size = 2;
-
-            // Analysis.p.mode_intensity=2;
-
-            // Analysis.p.subpixel=false;
-
-            // estimation des intensit�s des zones ?
-            // dans ce mode il ne faut pas thresholder le masque pour avoir les objets (car il est calcul� avec int=1)
-            // -> calculer les objets en faisant tourner l'algo dans la zone voronoi
-            // par RSS ou par clustering ?
         }
 
         if (!Analysis.p.subpixel) {
