@@ -1,72 +1,52 @@
 package mosaic.bregman.GUI;
 
 
-import ij.gui.GenericDialog;
-
 import java.io.File;
-import java.util.Vector;
+import java.util.List;
+
+import ij.gui.GenericDialog;
 
 
 public class ChooseGUI {
-
     /**
      * Create a Choose Window
-     *
-     * @param Window title
-     * @param message to show in the selection window
-     * @param sel all the options
+     * @param aTitle Window title
+     * @param aMessage to show in the selection window
+     * @param aSelectOptions all the options
      * @return chosen String
      */
+    public String chooseString(String aTitle, String aMessage, String aSelectOptions[]) {
+        if (aSelectOptions.length == 0) return null;
 
-    public String choose(String title, String message, String sel[]) {
-        if (sel.length == 0) {
+        final GenericDialog gd = new GenericDialog(aTitle);
+        gd.addChoice(aMessage, aSelectOptions, aSelectOptions[0]);
+        gd.showDialog();
+
+        if (gd.wasCanceled()) {
             return null;
         }
 
-        final GenericDialog gd = new GenericDialog(title);
-
-        final String ad[] = new String[sel.length];
-        for (int i = 0; i < sel.length; i++) {
-            ad[i] = sel[i];
-        }
-        gd.addChoice(message, ad, ad[0]);
-        gd.showDialog();
-
-        if (!gd.wasCanceled()) {
-            return gd.getNextChoice();
-        }
-
-        return null;
+        return gd.getNextChoice();
     }
 
     /**
      * Create a Choose Window
-     *
-     * @param Window title
-     * @param message to show in the selection window
-     * @param sel all the options
+     * @param aTitle Window title
+     * @param aMessage to show in the selection window
+     * @param aSelectOptions all the options
      * @return chosen File
      */
+    public File chooseFile(String aTitle, String aMessage, List<File> aSelectOptions) {
+        if (aSelectOptions.size() == 0) return null;
 
-    public File choose(String title, String message, Vector<File> sel) {
-        if (sel.size() == 0) {
-            return null;
+        final String ad[] = new String[aSelectOptions.size()];
+        for (int i = 0; i < aSelectOptions.size(); i++) {
+            ad[i] = aSelectOptions.get(i).getAbsolutePath();
         }
-
-        final GenericDialog gd = new GenericDialog(title);
-
-        final String ad[] = new String[sel.size()];
-        for (int i = 0; i < sel.size(); i++) {
-            ad[i] = sel.get(i).getAbsolutePath();
-        }
-        gd.addChoice(message, ad, ad[0]);
-        gd.showDialog();
-
-        if (!gd.wasCanceled()) {
-            final String c = gd.getNextChoice();
-            return new File(c);
-        }
-
-        return null;
+        
+        String c = chooseString(aTitle, aMessage, ad); 
+        if (c == null) return null;
+        
+        return new File(c);
     }
 }

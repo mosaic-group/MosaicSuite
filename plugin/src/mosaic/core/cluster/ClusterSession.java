@@ -386,7 +386,7 @@ public class ClusterSession {
      */
     private int CreateJobSelector(String directories[]) {
         final ChooseGUI cg = new ChooseGUI();
-        final String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
+        final String c = cg.chooseString("Job Selector", "Select a Job to visualize", directories);
         if (c == null) {
             return 0;
         }

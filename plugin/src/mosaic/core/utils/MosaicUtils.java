@@ -170,7 +170,7 @@ public class MosaicUtils {
 
             final ChooseGUI cg = new ChooseGUI();
 
-            return cg.choose("Choose segmentation", "Found multiple segmentations", PossibleFile);
+            return cg.chooseFile("Choose segmentation", "Found multiple segmentations", PossibleFile);
         }
         else {
             if (PossibleFile.size() == 1) {
