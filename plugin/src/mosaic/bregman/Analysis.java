@@ -52,9 +52,8 @@ public class Analysis {
 
     static int frame;
 
-    // Maximum norm, it fix the range of the normalization, useful for video
-    // normalization has to be done on all frame video, filled when the plugins
-    // is called with the options min=... max=...
+    // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
+    // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
     // Minimum norm
     public static double norm_min = 0.0;
@@ -80,7 +79,6 @@ public class Analysis {
 
         final int f = img2.getFrame();
 
-        // IJ.log("creating a");
         imgA = new ImagePlus();
         final int bits = img2.getBitDepth();
 
@@ -100,7 +98,6 @@ public class Analysis {
         }
 
         imgA.setStack(img2.getTitle(), imga_s);
-        // imgA.setTitle("A2");
         setimagea();
 
         imgB = new ImagePlus();
@@ -481,7 +478,6 @@ public class Analysis {
 
             if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                // objectscoloc++;
             }
 
             totalsignal += r.rsize * r.intensity;
@@ -499,7 +495,6 @@ public class Analysis {
             final Region r = it.next();
             if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                // objectscoloc++;
             }
 
             totalsize += r.rsize;
@@ -528,7 +523,6 @@ public class Analysis {
         int objects = 0;
         for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
             final Region r = it.next();
-            // IJ.log("obj" + r.value);
             objects++;
             if (r.colocpositive) {
                 objectscoloc++;
@@ -547,7 +541,6 @@ public class Analysis {
 
             if (regioncoloc(r, regionslist[0], regions[0])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                // objectscoloc++;
             }
 
             totalsignal += r.rsize * r.intensity;
@@ -565,8 +558,7 @@ public class Analysis {
             final Region r = it.next();
 
             if (regioncoloc(r, regionslist[0], regions[0])) {
-                // TODO: if condition intentionally left here - not sure if it does any changes
-                // objectscoloc++;
+                // TODO: if condition intentionally left here - not sure if it does any changes (via regioncoloc method)
             }
 
             totalsize += r.rsize;
@@ -589,7 +581,6 @@ public class Analysis {
         for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             final Pix p = it.next();
             valcoloc = regions[p.pz][p.px][p.py];
-            // IJ.log("valcoloc " + valcoloc);
             if (valcoloc > 0) {
                 countcoloc++;
                 if (previousvalcoloc != 0 && valcoloc != previousvalcoloc) {
@@ -632,7 +623,6 @@ public class Analysis {
     }
     
     private static double regionsum(Region r, double[][][] image) {
-
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
         if (Analysis.p.nz > 1) {
@@ -713,7 +703,6 @@ public class Analysis {
                 }
             }
         }
-
     }
 
     static void setmaskb(int[][][] mask) {
@@ -725,7 +714,6 @@ public class Analysis {
                 }
             }
         }
-
     }
 
     static double meansurface(ArrayList<Region> regionslist) {
@@ -817,7 +805,6 @@ public class Analysis {
     }
 
     static void computeOverallMask() {
-
         final boolean mask[][][] = new boolean[p.nz][p.ni][p.nj];
 
         for (int z = 0; z < p.nz; z++) {
@@ -845,13 +832,7 @@ public class Analysis {
 
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        int fz2;
-        if (Analysis.p.nz > 1) {
-            fz2 = factor2;
-        }
-        else {
-            fz2 = 1;
-        }
+        int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
         int index = 1;
 
         for (int z = 0; z < p.nz * fz2; z++) {
@@ -867,10 +848,8 @@ public class Analysis {
             // r.value=index; keep old index in csv file : do not (because
             // displaying happens before, with the previous values)
             setRegionLabel(r, regions, index);
-            // IJ.log(" "+index);
             index++;
         }
-
     }
 
     private static void setRegionLabel(Region r, short[][][] regions, int label) {

@@ -17,7 +17,6 @@ import weka.clusterers.SimpleKMeans;
 
 /**
  * Regions statistics solver
- *
  * @author i-bird
  */
 class RegionStatisticsSolver {
@@ -45,7 +44,6 @@ class RegionStatisticsSolver {
      * @param max_iter Maximum number of iteration for the Fisher scoring
      * @param p
      */
-
     public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] temp3, double[][][] image, double[][][] weights, int max_iter, Parameters p) {
         this.p = p;
         this.Z = image;
@@ -55,7 +53,6 @@ class RegionStatisticsSolver {
         this.image = image;
         this.max_iter = max_iter;
         this.weights = weights;
-
     }
 
     /**
@@ -69,7 +66,6 @@ class RegionStatisticsSolver {
      * @param max_iter Maximum number of iteration for the Fisher scoring
      * @param p
      */
-
     public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] temp3, double[][][] image, int max_iter, Parameters p) {
         this.p = p;
         this.Z = image;
@@ -97,7 +93,6 @@ class RegionStatisticsSolver {
 
     /**
      * Evaluate the region intensity
-     *
      * @param Mask
      */
     public void eval(double[][][] Mask) {
@@ -121,7 +116,6 @@ class RegionStatisticsSolver {
         double detK = 0;
         betaMLEout = 0;
         betaMLEin = 0;
-
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -224,7 +218,6 @@ class RegionStatisticsSolver {
                 }
             }
         }
-
     }
 
     void cluster_region(float[][][] Ri, float[][][] Ro, ArrayList<Region> regionslist) {
@@ -263,11 +256,8 @@ class RegionStatisticsSolver {
             /* Perform clustering */
             final Dataset[] data2 = jmlxm.cluster(data);
             /* Output results */
-            // System.out.println(clusters.length);
-
             nk = data2.length;// get number of clusters really found (usually = 3 = setNumClusters but not always)
             for (int i = 0; i < nk; i++) {
-                // Instance inst =DatasetTools.minAttributes(data2[i]);
                 final Instance inst = DatasetTools.average(data2[i]);
                 levels[i] = inst.value(0);
             }
@@ -297,7 +287,6 @@ class RegionStatisticsSolver {
                     final int z = p.pz;
                     Ri[z][i][j] = (float) (255 * betaMLEin);
                     Ro[z][i][j] = (float) (255 * betaMLEout);
-
                 }
             }
         }
@@ -315,8 +304,6 @@ class RegionStatisticsSolver {
                 final int z = p.pz;
                 Ri[z][i][j] = regionslist.indexOf(r);
             }
-
         }
     }
-
 }

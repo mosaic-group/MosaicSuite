@@ -99,24 +99,6 @@ class ZoneTask3D implements Runnable {
             Sync3.await();
         }
 
-        /*
-         * if (nt == 0)
-         * {
-         * double tot = 0;
-         * for (int i = 0 ; i < AS.temp2[AS.l].length ; i++)
-         * {
-         * for (int j = 0 ; j < AS.temp2[AS.l][i].length ; j++)
-         * {
-         * for (int k = 0 ; k < AS.temp2[AS.l][i][j].length ; k++)
-         * {
-         * tot += AS.temp2[AS.l][i][j][k];
-         * }
-         * }
-         * }
-         * System.out.println("update 1: " + tot);
-         * }
-         */
-
         Tools.convolve3Dseparable(AS.temp4[AS.l], AS.temp2[AS.l], AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp1[AS.l], iStart, iEnd);
 
         if (Sync11 != null) {
@@ -135,9 +117,6 @@ class ZoneTask3D implements Runnable {
         if (Sync4 != null) {
             Sync4.countDown();
         }
-
-        // IJ.log("thread + istart iend jstart jend"+
-        // iStart +" " + iEnd+" " + jStart+" " + jEnd);
 
         if (Dct != null) {
             Dct.await();
@@ -159,7 +138,6 @@ class ZoneTask3D implements Runnable {
         Tools.convolve3Dseparable(AS.temp2[AS.l], AS.temp1[AS.l], AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp3[AS.l], iStart, iEnd);
 
         // synchro
-
         if (Sync10 != null) {
             Sync10.countDown();
             Sync10.await();

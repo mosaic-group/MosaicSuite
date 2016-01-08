@@ -1,20 +1,6 @@
 package mosaic.bregman;
 
 
-/*
- * Colocalization analysis class
- */
-
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.plugin.RGBStackMerge;
-import ij.plugin.Resizer;
-import ij.process.BinaryProcessor;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
-
 import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
@@ -26,6 +12,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.RGBStackMerge;
+import ij.plugin.Resizer;
+import ij.process.BinaryProcessor;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
@@ -39,6 +34,9 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
 
 
+/*
+ * Colocalization analysis class
+ */
 public class BLauncher {
 
     private double colocAB;
@@ -160,7 +158,6 @@ public class BLauncher {
 
     private void start(ImagePlus aImp_) {
         aImp = aImp_;
-
         PrintWriter out = null;
 
         // Check if we have more than one frame
@@ -177,7 +174,6 @@ public class BLauncher {
             }
 
             // Display results
-
             displayResult(false);
         }
 
@@ -407,11 +403,7 @@ public class BLauncher {
 
     private void Headless_file() {
         try {
-            ImagePlus img = null;
-
-            /* Get Image directory */
-            img = aImp;
-
+            ImagePlus img = aImp;
             if (img == null) {
                 IJ.error("No image to process");
                 return;
@@ -492,24 +484,16 @@ public class BLauncher {
             Analysis.setRegionsLabels(Analysis.regionslist[0], Analysis.regions[0]);
             Analysis.setRegionsLabels(Analysis.regionslist[1], Analysis.regions[1]);
             final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-            int fz2;
-            if (Analysis.p.nz > 1) {
-                fz2 = factor2;
-            }
-            else {
-                fz2 = 1;
-            }
+            int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
 
             final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p.nlevels, Analysis.p.cl, Analysis.p);
             md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(), Analysis.regionslist[0], Analysis.regionslist[1], ip);
 
             if (Analysis.p.save_images) {
                 // Write object 2 list
-                String savepath = null;
-                savepath = MosaicUtils.ValidFolderFromImage(aImp);
+                String savepath = MosaicUtils.ValidFolderFromImage(aImp);
 
                 // Calculate colocalization quantities
-
                 colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(), 4);
                 colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(), 4);
                 colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(), 4);
@@ -523,14 +507,7 @@ public class BLauncher {
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
 
-                boolean append = false;
-
-                if (new File(output1).exists()) {
-                    append = true;
-                }
-                else {
-                    append = false;
-                }
+                boolean append = (new File(output1).exists()) ? true : false;
 
                 // Write channel 2
 
@@ -569,7 +546,6 @@ public class BLauncher {
                 }
 
                 final Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount, 0);
-
                 final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
@@ -583,7 +559,6 @@ public class BLauncher {
         ij.Prefs.blackBackground = tempBlackbackground;
 
         final long lEndTime = new Date().getTime(); // start time
-
         final long difference = lEndTime - lStartTime; // check different
         Ttime += difference;
         IJ.log("Done. Total Time: " + Ttime / 1000 + "s");
@@ -676,7 +651,6 @@ public class BLauncher {
         final ImagePlus over = RGBStackMerge.mergeChannels(tab, false);
 
         // if we have already an outline overlay image merge the frame
-
         if (sep == false) {
             updateImages(out_over, over, getOutlineName(channel - 1), Analysis.p.dispoutline, channel);
         }
@@ -782,8 +756,6 @@ public class BLauncher {
         final int width = regions[0].length;
         final int height = regions[0][0].length;
         final int depth = regions.length;
-
-        // ImageStack out_label_stack = out_label[channel].getStack();
 
         ImageStack labS;
         label = new ImagePlus();

@@ -23,10 +23,8 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 /**
  * Class that process the first Split bregman segmentation and refine with patches
- *
  * @author Aurelien Ritz
  */
-
 class TwoRegions extends NRegions {
 
     private final double[][][][] SpeedData;
@@ -48,10 +46,7 @@ class TwoRegions extends NRegions {
         }
         else {
             SpeedData = null;
-            // Tools.disp_vals(SpeedData[1][0], "speedData");
-            // Tools.disp_vals(mask[1][0], "mask");
         }
-
     }
 
     /**
@@ -130,27 +125,16 @@ class TwoRegions extends NRegions {
 
     @Override
     public void run() {
-        // p.nlevels=1;//create only one region not 2 : nz-1
-
         // This store the output mask
         md = new MasksDisplay(ni, nj, nz, nl, p.cl, p);
 
         ASplitBregmanSolver A_solver = null;
-        // TODO save test
         p.cl[0] = p.betaMLEoutdefault;
-        // p.cl[1]=0.2340026;
-        // p.cl[1]=0.2;
         p.cl[1] = p.betaMLEindefault;
-
-        // p.cl[0]=0.006857039757524;;
-        // p.cl[1]=0.709785769586498;
         p.nlevels = 1;
-
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
-        // Tools.showmem();
+    
         if (p.usePSF && p.nz > 1) {
-            // Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz,(int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling, p.zcorrec);
-
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
             final DoubleType[] var = new DoubleType[3];
             var[0] = new DoubleType(p.sigma_gaussian);
@@ -162,11 +146,6 @@ class TwoRegions extends NRegions {
             A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
         }
         else if (p.usePSF && p.nz == 1) {
-
-            // Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, 0.8);
-            // Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, (int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling);
-            // Tools.disp_valsc(p.PSF[1], "PSF computed 1");
-
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
             final DoubleType[] var = new DoubleType[2];
             var[0] = new DoubleType(p.sigma_gaussian);
@@ -178,7 +157,6 @@ class TwoRegions extends NRegions {
 
         }
         else if (!p.usePSF && p.nz > 1) {
-            // Tools.gaussian3D(p.PSF, p.kernelx, p.kernely,p.kernelz, 7, 1);
             A_solver = new ASplitBregmanSolverTwoRegions3D(p, image, SpeedData, mask, md, channel, null);
         }
         else {
@@ -205,7 +183,6 @@ class TwoRegions extends NRegions {
 
             // create a mask Image
             final double img[][][] = new double[p.nz][p.ni][p.nj];
-
             drawParticles(img, A_solver.w3kbest[0], pt_f, (int) 3.0);
 
             A_solver.regions_intensity_findthresh(img);
@@ -217,20 +194,13 @@ class TwoRegions extends NRegions {
             // Take the soft membership mask
 
             Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
-            // Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
-
-            // A_solver A
-            float[][][] RiN;
-            RiN = new float[p.nz][p.ni][p.nj];
+            float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri[0]);
-            float[][][] RoN;
-            RoN = new float[p.nz][p.ni][p.nj];
+            float[][][] RoN = new float[p.nz][p.ni][p.nj];
 
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-
-            // A_solver=null; //for testing
 
             if (!Analysis.p.looptest) {
                 if (p.findregionthresh) {
@@ -239,16 +209,10 @@ class TwoRegions extends NRegions {
                 else {
                     Analysis.compute_connected_regions_a(255 * p.thresh, null);
                 }
-                // A_solver=null; // for testing
-                // test
-                // IJ.log("start test" + "nlevels " +p.nlevels);
                 if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
-//                    Analysis.setregionsThresholds(Analysis.regionslist[0]);
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
-
-                    // Tools.showmem();
 
                     final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
@@ -267,7 +231,6 @@ class TwoRegions extends NRegions {
 
                 // Here we solved the patches and the regions that come from the patches
                 // we rescale the intensity to the original one
-
                 for (final Region r : Analysis.regionslist[0]) {
                     r.intensity = r.intensity * (max - min) + min;
                 }
@@ -307,14 +270,12 @@ class TwoRegions extends NRegions {
                 }
 
                 // we run find connected regions
-
                 final LabelImage img = new LabelImage(Analysis.regions[0]);
                 img.connectedComponents();
 
                 final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
 
                 // Run on all pixels of the label to add pixels to the regions
-
                 final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
                 while (rit.hasNext()) {
                     final Point p = rit.next();
@@ -341,7 +302,6 @@ class TwoRegions extends NRegions {
                 final int sy = p.nj * p.oversampling2ndstep * p.interpolation;
                 int sz = 1;
                 int osz = 1;
-                // IJ.log("sx " + sx);
                 if (p.nz == 1) {
                     sz = 1;
                     osz = 1;
@@ -359,25 +319,16 @@ class TwoRegions extends NRegions {
                 }
 
             }
-            // else
-            // Analysis.A_solverX=A_solver; // add for loop settings
         }
         else {
             Analysis.setMaskbTworegions(A_solver.w3kbest[0]);
-            // Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
-
-            // A_solver A
-            float[][][] RiN;
-            RiN = new float[p.nz][p.ni][p.nj];
+            float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri[0]);
-            float[][][] RoN;
-            RoN = new float[p.nz][p.ni][p.nj];
+            float[][][] RoN = new float[p.nz][p.ni][p.nj];
 
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-
-            // A_solver=null;
 
             if (!Analysis.p.looptest) {
                 if (p.findregionthresh) {
@@ -385,11 +336,9 @@ class TwoRegions extends NRegions {
                 }
                 else {
                     Analysis.compute_connected_regions_b(255 * p.thresh, null);
-                    // A_solver=null;
                 }
 
                 if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
-//                    Analysis.setregionsThresholds(Analysis.regionslist[1]);
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
@@ -411,7 +360,6 @@ class TwoRegions extends NRegions {
 
                 // Here we solved the patches and the regions that come from the patches
                 // we rescale the intensity to the original one
-
                 for (final Region r : Analysis.regionslist[1]) {
                     r.intensity = r.intensity * (max - min) + min;
                 }
@@ -422,15 +370,12 @@ class TwoRegions extends NRegions {
         // correct the level number
         p.nlevels = 2;
         DoneSignal.countDown();
-
     }
 
     /**
      * Merge the soft mask
-     *
      * @param A_solver the solver used to produce the soft mask
      */
-
     private void mergeSoftMask(ASplitBregmanSolver A_solver) {
         if (p.dispSoftMask) {
             if (p.nz > 1) {
@@ -441,5 +386,4 @@ class TwoRegions extends NRegions {
             }
         }
     }
-
 }

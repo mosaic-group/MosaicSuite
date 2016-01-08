@@ -22,10 +22,6 @@ public class RScript {
     private final String Ch1Name;
     private final String Ch2Name;
 
-    // generate file
-
-    // parameters data
-
     public RScript(String path, String file1, String file2, String file3, int nbgroups, int[] nbimages, String[] groupnames, String ch1, String ch2) {
         try {
             Script = new PrintWriter(path + File.separator + "R_analysis.R");
@@ -42,7 +38,6 @@ public class RScript {
         GroupNames = groupnames;
         Ch1Name = ch1;
         Ch2Name = ch2;
-
     }
 
     public void writeScript() {
@@ -132,7 +127,5 @@ public class RScript {
                 e.printStackTrace();
             }
         }
-
     }
-
 }

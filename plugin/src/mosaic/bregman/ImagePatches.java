@@ -101,8 +101,7 @@ class ImagePatches {
      * Patch creation, distribution and assembly
      */
     private void distribute_regions() {
-        // assuming rvoronoi and regionslists (objects) in same order (and same
-        // length)
+        // assuming rvoronoi and regionslists (objects) in same order (and same length)
 
         final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
         ThreadPoolExecutor threadPool;

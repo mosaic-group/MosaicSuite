@@ -26,7 +26,6 @@ class SingleRegionTask implements Runnable {
         this.channel = channel;
         this.l = level;
         dct2d = new DoubleDCT_2D(AS.ni, AS.nj);
-
     }
 
     @Override
@@ -113,8 +112,6 @@ class SingleRegionTask implements Runnable {
         }
 
         AS.normtab[l] = 0;
-
         AS.energytab[l] = Tools.computeEnergy(AS.speedData[l], AS.w3k[l], AS.temp3[l], AS.temp4[l], AS.p.ldata, AS.p.lreg_[channel]);
-
     }
 }
