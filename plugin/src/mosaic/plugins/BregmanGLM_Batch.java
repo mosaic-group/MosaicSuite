@@ -30,20 +30,6 @@ public class BregmanGLM_Batch implements Segmentation {
     public static boolean test_mode = false;
     public static String test_path = null;
     
-    private enum outputF {
-        MASK(2), OBJECT(0);
-
-        private final int numVal;
-
-        outputF(int numVal) {
-            this.numVal = numVal;
-        }
-
-        public int getNumVal() {
-            return numVal;
-        }
-    }
-    
     @Override
     public int setup(String arg0, ImagePlus active_img) {
         // init basic structure
@@ -108,8 +94,7 @@ public class BregmanGLM_Batch implements Segmentation {
     }
 
     @Override
-    public void run(ImageProcessor imp) {
-    }
+    public void run(ImageProcessor imp) {}
 
     /**
      * Returns handler for (un)serializing Parameters objects.
@@ -151,6 +136,20 @@ public class BregmanGLM_Batch implements Segmentation {
 
     // =================== Implementation of Segmentation interface
 
+    private enum outputF {
+        MASK(2), OBJECT(0);
+
+        private final int numVal;
+
+        outputF(int numVal) {
+            this.numVal = numVal;
+        }
+
+        public int getNumVal() {
+            return numVal;
+        }
+    }
+    
     /**
      * Get Mask images name output
      *

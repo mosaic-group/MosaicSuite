@@ -297,13 +297,8 @@ public class Analysis {
             }
         }
 
-        if (p.debug) {
-            fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);// &&(!p.refinement)
-        }
-        else {
-            fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);
-        }
-
+        fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);
+       
         regions[0] = fcr.tempres;
         regionslist[0] = fcr.results;
         if (!p.mode_voronoi2) {
