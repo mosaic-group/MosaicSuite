@@ -13,7 +13,6 @@ import mosaic.bregman.Analysis;
 class RScriptListener implements ActionListener {
 
     private final GenericDialog gd;
-    private int nbgroups;
     private final int posx;
     private final int posy;
 
@@ -25,25 +24,21 @@ class RScriptListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
-        nbgroups = new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
-
+        int nbgroups = new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
         if (nbgroups > 5) {
-
             Analysis.p.nbimages = new int[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
                 Analysis.p.nbimages[i] = 1;
             }
+            
             Analysis.p.groupnames = new String[nbgroups];
-
             for (int i = 0; i < nbgroups; i++) {
                 Analysis.p.groupnames[i] = "Condition " + (i + 1) + " name";
             }
+            
             Analysis.p.nbconditions = nbgroups;
         }
 
-        final RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
-        rw.run();
+        new RScriptWindow(nbgroups, posx, posy).run();
     }
-
 }

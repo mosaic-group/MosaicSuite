@@ -24,31 +24,24 @@ public class SegmentationGUI {
     }
 
     public static int getParameters() {
-        final GenericDialog gd = new GenericDialog("Segmentation options");
-
         final Font bf = new Font(null, Font.BOLD, 12);
 
+        final GenericDialog gd = new GenericDialog("Segmentation options");
         gd.setInsets(-10, 0, 3);
-
         gd.addMessage("    Segmentation parameters ", bf);
 
-        final Panel pp = new Panel();
         final Button help_b = new Button("help");
-
-        pp.add(help_b);
-
         help_b.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-
                 final Point p = gd.getLocationOnScreen();
-
                 new SegmentationGUIHelp(p.x, p.y);
-
             }
         });
 
+        final Panel pp = new Panel();
+        pp.add(help_b);
         gd.addPanel(pp);
 
         gd.addNumericField("Regularization_(>0)_ch1", Analysis.p.lreg_[0], 3);
@@ -56,19 +49,6 @@ public class SegmentationGUI {
 
         gd.addNumericField("Minimum_object_intensity_channel_1_(0_to_1)", Analysis.p.min_intensity, 3);
         gd.addNumericField("                        _channel_2_(0_to_1)", Analysis.p.min_intensityY, 3);
-
-        ////////////// Patches positioning
-
-        // FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
-        // p.setPreferredSize(new Dimension(565, 30));
-        // p.setLayout(null);
-        // p.setBackground(Color.black);
-
-        // Button b = new Button("Preview cell mask");
-        // b.addActionListener(new HelpOpenerActionListener(p,gd));
-        // p.add(b);
-
-        //////////////
 
         gd.addCheckbox("Subpixel_segmentation", Analysis.p.subpixel);
         gd.addCheckbox("Exclude_Z_edge", Analysis.p.exclude_z_edges);

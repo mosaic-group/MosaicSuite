@@ -221,7 +221,7 @@ class RegionStatisticsSolver {
     }
 
     void cluster_region(float[][][] Ri, float[][][] Ro, ArrayList<Region> regionslist) {
-        int nk = 3;// 3
+        int nk = 3;
         final double[] pixel = new double[1];
         final double[] levels = new double[nk];
 

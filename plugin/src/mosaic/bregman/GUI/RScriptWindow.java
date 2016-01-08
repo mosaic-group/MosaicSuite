@@ -31,7 +31,6 @@ class RScriptWindow {
         gd.addStringField("Channel_2", Analysis.p.ch2, 20);
 
         gd.addMessage("Number of images per condition", bf);
-
         for (int i = 0; i < nbgroups; i++) {
             gd.addNumericField("Conditon_" + (i + 1), Analysis.p.nbimages[i], 0);
         }
@@ -50,15 +49,11 @@ class RScriptWindow {
 
         Analysis.p.ch1 = gd.getNextString();
         Analysis.p.ch2 = gd.getNextString();
-
         for (int i = 0; i < nbgroups; i++) {
             Analysis.p.groupnames[i] = gd.getNextString();
         }
-
         for (int i = 0; i < nbgroups; i++) {
             Analysis.p.nbimages[i] = (int) gd.getNextNumber();
         }
-
     }
-
 }
