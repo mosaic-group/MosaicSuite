@@ -88,11 +88,8 @@ public class Matlab {
     /**
      * Generates two matrices as Matlab's command 'meshgrid'
      *
-     * @param aVector1
-     *            - row values
-     * @param aVector2
-     *            - col values
-     * @return
+     * @param aVector1 - row values
+     * @param aVector2 - col values
      */
     public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
         // Adjust data but do not change users input - if needed make a copy.
@@ -231,10 +228,8 @@ public class Matlab {
     /**
      * Implementation of 'imresize' Matlab function for bicubic interpolation
      *
-     * @param aM
-     *            Input image
-     * @param scale
-     *            scale of image
+     * @param aM Input image
+     * @param scale scale of image
      * @return scaled image
      */
     public static Matrix imresize(Matrix aM, double scale) {

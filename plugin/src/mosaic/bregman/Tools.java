@@ -10,6 +10,7 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 class Tools {
     final private int ni, nj, nz, nlevels;
+    
     Tools(int nni, int nnj, int nnz) {
         this(nni, nnj, nnz, 1);
     }
@@ -21,64 +22,30 @@ class Tools {
         this.nlevels = levels;
     }
 
-    // public void showmem() {
-    /// Get current size of heap in bytes
-    // long heapSize = Runtime.getRuntime().totalMemory();
-    //
-    /// Get maximum size of heap in bytes. The heap cannot grow beyond this
-    /// size.
-    /// Any attempt will result in an OutOfMemoryException.
-    // long heapMaxSize = Runtime.getRuntime().maxMemory();
-    //
-    /// Get amount of free memory within the heap in bytes. This size will
-    /// increase
-    /// after garbage collection and decrease as new objects are created.
-    // long heapFreeSize = Runtime.getRuntime().freeMemory();
-    //
-    // long used = heapSize - heapFreeSize;
-    //
-    // IJ.log(" ");
-    // IJ.log("Total mem" + round(heapSize / Math.pow(2, 20), 2));
-    // IJ.log("Max mem" + round(heapMaxSize / Math.pow(2, 20), 2));
-    // IJ.log("Free mem" + round(heapFreeSize / Math.pow(2, 20), 2));
-    // IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
-    // IJ.log(" ");
-    // }
-
     // convolution with symmetric boundaries extension
     static void convolve2D(double[][] out, double[][] in, int icols, int irows, psf<DoubleType> psf) {
-        int i, j, m, n, mm, nn;
-        int kCenterX, kCenterY; // center index of kernel
-        double sum; // temp accumulation buffer
-        int rowIndex, colIndex;
-        // IJ.log("apres xmin "+ icols + "ymin" + irows);
-
-        // check validity of params
-        // if (!in || !out || !kernel) return ;
-        //if (ix <= 0 || kx <= 0) return ;
-
         // find center position of kernel (half of kernel size)
         final int sz[] = psf.getSuggestedImageSize();
-        kCenterX = sz[0] / 2;
-        kCenterY = sz[1] / 2;
+        int kCenterX = sz[0] / 2;
+        int kCenterY = sz[1] / 2;
         final double kernel[][] = psf.getImage2DAsDoubleArray();
 
-        for (i = 0; i < icols; ++i) // columns
+        for (int i = 0; i < icols; ++i) // columns
         {
-            for (j = 0; j < irows; ++j) // rows
+            for (int j = 0; j < irows; ++j) // rows
             {
-                sum = 0; // init to 0 before sum
-                for (m = 0; m < sz[0]; ++m) // kernel cols
+                double sum = 0; // init to 0 before sum
+                for (int m = 0; m < sz[0]; ++m) // kernel cols
                 {
-                    mm = sz[0] - 1 - m; // col index of flipped kernel
+                    int mm = sz[0] - 1 - m; // col index of flipped kernel
 
-                    for (n = 0; n < sz[1]; ++n) // kernel rows
+                    for (int n = 0; n < sz[1]; ++n) // kernel rows
                     {
-                        nn = sz[1] - 1 - n; // row index of flipped kernel
+                        int nn = sz[1] - 1 - n; // row index of flipped kernel
 
                         // index of input signal, used for checking boundary
-                        colIndex = i + m - kCenterX;
-                        rowIndex = j + n - kCenterY;
+                        int colIndex = i + m - kCenterX;
+                        int rowIndex = j + n - kCenterY;
 
                         if (rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols) {
                             sum += in[colIndex][rowIndex] * kernel[mm][nn];
@@ -113,29 +80,24 @@ class Tools {
     }
 
     static void convolve2Dseparable(double[][] out, double[][] in, int icols, int irows, psf<DoubleType> psf, double[][] temp, int iStart, int iEnd) {
-        int i, j, m, n, mm, nn;
-        int kCenterX, kCenterY; // center index of kernel
-        double sum; // temp accumulation buffer
-        int rowIndex, colIndex;
-
         final int[] sz = psf.getSuggestedImageSize();
+        int kCenterX = sz[0] / 2;
+        int kCenterY = sz[1] / 2;
         final double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
         final double kernely[] = psf.getSeparableImageAsDoubleArray(1);
 
-        kCenterX = sz[0] / 2;
-        kCenterY = sz[1] / 2;
-        for (i = iStart; i < iEnd; ++i) // columns
+        for (int i = iStart; i < iEnd; ++i) // columns
         {
-            for (j = 0; j < irows; ++j) // rows
+            for (int j = 0; j < irows; ++j) // rows
             {
-                sum = 0; // init to 0 before sum
-                for (m = 0; m < sz[0]; ++m) // kernel cols
+                double sum = 0; // init to 0 before sum
+                for (int m = 0; m < sz[0]; ++m) // kernel cols
                 {
-                    mm = sz[0] - 1 - m; // col index of flipped kernel
+                    int mm = sz[0] - 1 - m; // col index of flipped kernel
 
                     // index of input signal, used for checking boundary
-                    colIndex = i + m - kCenterX;
-                    rowIndex = j;
+                    int colIndex = i + m - kCenterX;
+                    int rowIndex = j;
 
                     if (colIndex >= 0 && colIndex < icols) {
                         sum += in[colIndex][rowIndex] * kernelx[mm];
@@ -156,18 +118,18 @@ class Tools {
         }
 
         // convolve in y (j coordinate), vertical
-        for (i = iStart; i < iEnd; ++i) // columns
+        for (int i = iStart; i < iEnd; ++i) // columns
         {
-            for (j = 0; j < irows; ++j) // rows
+            for (int j = 0; j < irows; ++j) // rows
             {
-                sum = 0; // init to 0 before sum
-                for (n = 0; n < sz[1]; ++n) // kernel rows
+                double sum = 0; // init to 0 before sum
+                for (int n = 0; n < sz[1]; ++n) // kernel rows
                 {
-                    nn = sz[1] - 1 - n; // row index of flipped kernel
+                    int nn = sz[1] - 1 - n; // row index of flipped kernel
 
                     // index of input signal, used for checking boundary
-                    colIndex = i;
-                    rowIndex = j + n - kCenterY;
+                    int colIndex = i;
+                    int rowIndex = j + n - kCenterY;
 
                     if (rowIndex >= 0 && rowIndex < irows) {
                         sum += temp[colIndex][rowIndex] * kernely[nn];
@@ -373,7 +335,6 @@ class Tools {
             }
         }
 
-        // IJ.log("cols " + cols + "rows" + rows);
         for (int z = 0; z < nz; z++) {
             for (int i = 2 * k + 1; i < cols; i++) {
                 for (int j = 2 * k + 1; j < rows; j++) {
@@ -1031,7 +992,6 @@ class Tools {
     ) {
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, p.PSF, temp);
 
-        // for (int z=0; z<nz; z++){
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -1040,8 +1000,6 @@ class Tools {
             }
         }
 
-        // }
-        // nllMeanPoisson2(speedData, image, speedData, 1, ldata);
         nllMean(speedData, image, speedData);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
