@@ -10,13 +10,11 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
     public ASplitBregmanSolverTwoRegions(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, speedData, mask, md, channel, ap);
-
     }
 
     @Override
     protected void step() throws InterruptedException {
         final long lStartTime = new Date().getTime(); // start time
-        // energy=0;
 
         LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);
         LocalTools.subtab(temp2[l], temp2[l], b2yk[l]);
@@ -35,7 +33,6 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
         }
 
         // temp1=uk
-
         dct2d.forward(temp1[l][0], true);
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
@@ -69,7 +66,6 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
                 for (int j = 0; j < nj; j++) {
                     b1k[l][z][i][j] = b1k[l][z][i][j] + temp1[l][z][i][j] - w1k[l][z][i][j];
                     b3k[l][z][i][j] = b3k[l][z][i][j] + temp1[l][z][i][j] - w3k[l][z][i][j];
-
                 }
             }
         }
@@ -77,7 +73,6 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
         // %-- w2k sub-problem
         LocalTools.fgradx2D(temp3[l], temp1[l]);
         LocalTools.fgrady2D(temp4[l], temp1[l]);
-
         LocalTools.addtab(temp1[l], temp3[l], b2xk[l]);
         LocalTools.addtab(temp2[l], temp4[l], b2yk[l]);
         // temp1=w2xk temp2=w2yk
@@ -89,27 +84,11 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
                 for (int j = 0; j < nj; j++) {
                     b2xk[l][z][i][j] = b2xk[l][z][i][j] + temp3[l][z][i][j] - temp1[l][z][i][j];
                     b2yk[l][z][i][j] = b2yk[l][z][i][j] + temp4[l][z][i][j] - temp2[l][z][i][j];
-                    // mask[l][z][i][j]=w3k[l][z][i][j];
                 }
             }
         }
 
-        // normtab[l]=0;
-        // for (int z=0; z<nz; z++){
-        // for (int i=0; i<ni; i++) {
-        // for (int j=0; j<nj; j++) {
-        /// l2normtab[l]+=Math.sqrt(Math.pow(w3k[l][z][i][j]-w3kp[l][z][i][j],2));
-        // normtab[l]+=Math.abs(w3k[l][z][i][j]-w3kp[l][z][i][j]);
-        // }
-        // }
-        // }
-
-        // Tools.copytab(w3kp[l], w3k[l]);
-
         energytab[l] = LocalTools.computeEnergy(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg_[channel]);
-
-        // doneSignal2.await();
-
         energy += energytab[l];
 
         if (p.livedisplay) {
@@ -117,11 +96,7 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
         }
 
         final long lEndTime = new Date().getTime(); // end time
-
         final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
-        // IJ.log("Elapsed milliseconds: " + difference);
-
     }
-
 }

@@ -138,7 +138,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
         }
 
         final long lEndTime = new Date().getTime(); // end time
-
         final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
     }
@@ -183,14 +182,12 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
             }
         }
 
-        // IJ.log("cr " + cr + "cc " + cc );
         temp2[l][0][0][0] = 1;
 
         LocalTools.dctshift(temp3[l], temp1[l], cc, cr);
         dct2d.forward(temp3[l][0], true);
         dct2d.forward(temp2[l][0], true);
 
-        // IJ.log("c0 " + c0 + "c1 " + c1);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {

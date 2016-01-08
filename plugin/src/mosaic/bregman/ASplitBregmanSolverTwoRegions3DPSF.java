@@ -25,14 +25,12 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         // Reallocate temps
         // Unfortunatelly is allocated in ASplitBregmanSolver
-
         this.temp4 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         this.temp3 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         this.temp2 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         this.temp1 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         this.compute_eigenPSF3D();
-
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -74,12 +72,10 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             LocalTools.fgradx2D(temp1[i], w3k[i]);
             LocalTools.fgrady2D(temp2[i], w3k[i]);
         }
-
     }
 
     /**
      * Multithread split bregman
-     *
      * @throws InterruptedException
      */
     private void step_multit() throws InterruptedException {
@@ -120,7 +116,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
             // Check if we can create threads
-
             t[nt] = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
                     jStart + jchunk, nt, this, LocalTools));
             t[nt].start();
@@ -164,16 +159,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
         }
 
-        // int centerim=p.nz/2;
         if (p.livedisplay && p.firstphase) {
             md.display2regions3D(w3k[l], "Mask", channel);
         }
 
         final long lEndTime = new Date().getTime(); // end time
-
         final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
-        // IJ.log("Elapsed milliseconds: " + difference);
     }
 
     /**
@@ -201,16 +193,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
         }
 
-        // int centerim=p.nz/2;
         if (p.livedisplay && p.firstphase) {
             md.display2regions3D(w3k[l], "Mask", channel);
         }
 
         final long lEndTime = new Date().getTime(); // end time
-
         final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
-        // IJ.log("Elapsed milliseconds: " + difference);
     }
 
     @Override
