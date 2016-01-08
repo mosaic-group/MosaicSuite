@@ -22,14 +22,8 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
  * @author Pietro Incardona
  */
 public class CSVOutput {
-
-    // Region3DTrack
     public static final String[] Region3DTrack_map = new String[] { "Frame", "x", "y", "z", "Size", "Intensity", "Surface" };
-
-    // Region3DRscript
     private static final String[] Region3DRScript_map = new String[] { "Image_ID", "Object_ID", "Size", "Perimeter", "Length", "Intensity", "Coord_X", "Coord_Y", "Coord_Z", };
-
-    // Region3DColocRscript
     private static final String[] Region3DColocRScript_map = new String[] { "Image_ID", "Object_ID", "Size", "Perimeter", "Length", "Intensity", "Overlap_with_ch", "Coloc_object_size",
             "Coloc_object_intensity", "Single_Coloc", "Coloc_image_intensity", "Coord_X", "Coord_Y", "Coord_Z", };
 
@@ -50,10 +44,7 @@ public class CSVOutput {
     @SuppressWarnings("unchecked")
     public static void initCSV(int oc_s) {
         Region3DTrackCellProcessor = getRegion3DTrackCellProcessor();
-
-        Region3DRScriptCellProcessor = new CellProcessor[] { new ParseInt(), new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(),
-                new ParseDouble(), new ParseDouble(), };
-
+        Region3DRScriptCellProcessor = new CellProcessor[] { new ParseInt(), new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), };
         Region3DColocRScriptCellProcessor = new CellProcessor[] { new ParseInt(), new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(),
                 new ParseDouble(), new ParseDouble(), new ParseBool(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), };
 
@@ -81,12 +72,7 @@ public class CSVOutput {
         oc[2].converter = new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
         oc[2].delimiter = ';';
 
-        if (oc_s == -1) {
-            occ = oc[0];
-        }
-        else {
-            occ = oc[oc_s];
-        }
+        occ = (oc_s == -1) ? oc[0] : oc[oc_s];
     }
 
     /**
@@ -104,7 +90,6 @@ public class CSVOutput {
 
     /**
      * Get an CSV object with the selected format
-     *
      * @return CSV
      */
     public static CSV<? extends Outdata<Region>> getCSV() {
