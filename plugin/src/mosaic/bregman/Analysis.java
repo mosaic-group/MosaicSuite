@@ -98,7 +98,7 @@ public class Analysis {
         }
 
         imgA.setStack(img2.getTitle(), imga_s);
-        setimagea();
+        imagea = setImage(imgA);
 
         imgB = new ImagePlus();
         final ImageStack imgb_s = new ImageStack(p.ni, p.nj);
@@ -117,7 +117,7 @@ public class Analysis {
         }
 
         imgB.setStack(img2.getTitle(), imgb_s);
-        setimageb();
+        imageb = setImage(imgB);
     }
 
     /**
@@ -164,7 +164,7 @@ public class Analysis {
         }
 
         imgA.setStack(img2.getTitle(), imga_s);
-        setimagea();
+        imagea = setImage(imgA);
     }
 
     static double[] pearson_corr() {
@@ -391,25 +391,23 @@ public class Analysis {
         return (sum / objects);
     }
 
-    private static void setimagea() {
-        double maxa = 0;
-        double mina = Double.POSITIVE_INFINITY;
+    private static double[][][] setImage(ImagePlus aImage) {
+        double[][][] image = new double[p.nz][p.ni][p.nj];
 
-        ImageProcessor imp;
-
-        imagea = new double[p.nz][p.ni][p.nj];
+        double max = 0;
+        double min = Double.POSITIVE_INFINITY;
 
         for (int z = 0; z < p.nz; z++) {
-            imgA.setSlice(z + 1);
-            imp = imgA.getProcessor();
+            aImage.setSlice(z + 1);
+            ImageProcessor imp = aImage.getProcessor();
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
-                    imagea[z][i][j] = imp.getPixel(i, j);
-                    if (imagea[z][i][j] > maxa) {
-                        maxa = imagea[z][i][j];
+                    image[z][i][j] = imp.getPixel(i, j);
+                    if (image[z][i][j] > max) {
+                        max = image[z][i][j];
                     }
-                    if (imagea[z][i][j] < mina) {
-                        mina = imagea[z][i][j];
+                    if (image[z][i][j] < min) {
+                        min = image[z][i][j];
                     }
                 }
             }
@@ -418,43 +416,12 @@ public class Analysis {
         for (int z = 0; z < p.nz; z++) {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
-                    imagea[z][i][j] = (imagea[z][i][j] - mina) / (maxa - mina);
+                    image[z][i][j] = (image[z][i][j] - min) / (max - min);
                 }
             }
         }
-    }
-
-    private static void setimageb() {
-        double maxb = 0;
-        double minb = Double.POSITIVE_INFINITY;
-
-        ImageProcessor imp;
-
-        imageb = new double[p.nz][p.ni][p.nj];
-
-        for (int z = 0; z < p.nz; z++) {
-            imgB.setSlice(z + 1);
-            imp = imgB.getProcessor();
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    imageb[z][i][j] = imp.getPixel(i, j);
-                    if (imageb[z][i][j] > maxb) {
-                        maxb = imageb[z][i][j];
-                    }
-                    if (imageb[z][i][j] < minb) {
-                        minb = imageb[z][i][j];
-                    }
-                }
-            }
-        }
-
-        for (int z = 0; z < p.nz; z++) {
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    imageb[z][i][j] = (imageb[z][i][j] - minb) / (maxb - minb);
-                }
-            }
-        }
+        
+        return image;
     }
 
     static double colocsegB() {
