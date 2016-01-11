@@ -425,6 +425,18 @@ public class BLauncher {
         }
     }
 
+    static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
+        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(Analysis.regionslist[channel]);
+
+        // Set frame
+        for (int i = 0; i < v.size(); i++) {
+            v.get(i).setFrame(f);
+        }
+
+        // Convert it back to original type.
+        return v;
+    }
+    
     /*
      * It segment the image and give co-localization analysis result
      * for a 2 channels image
@@ -508,7 +520,7 @@ public class BLauncher {
 
                 // Choose the Rscript coloc format
                 CSVOutput.occ = CSVOutput.oc[2];
-                Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount, 1);
+                Vector<? extends Outdata<Region>> obl = getObjectsList(hcount, 1);
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
                 IpCSV.clearMetaInformation();
@@ -517,7 +529,7 @@ public class BLauncher {
 
                 // Write channel 1
 
-                obl = Analysis.getObjectsList(hcount, 0);
+                obl = getObjectsList(hcount, 0);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
@@ -540,7 +552,7 @@ public class BLauncher {
                     append = true;
                 }
 
-                final Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount, 0);
+                final Vector<? extends Outdata<Region>> obl = getObjectsList(hcount, 0);
                 final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();

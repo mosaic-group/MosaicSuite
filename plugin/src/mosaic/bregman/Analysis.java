@@ -2,7 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
@@ -39,32 +38,29 @@ public class Analysis {
                                           "*_coloc.zip" };
 
     static String currentImage = "currentImage";
-
     static ImagePlus imgA;
     private static ImagePlus imgB;
-    public static Parameters p = new Parameters();
-
     private static byte[][][] maskA;
     private static byte[][][] maskB;
+    static double[][][] imagea;
+    static double[][][] imageb;
     static boolean[][][] cellMaskABinary;
     static boolean[][][] cellMaskBBinary;
     private static boolean[][][] overallCellMaskBinary;
 
+    public static Parameters p = new Parameters();
     static int frame;
 
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
     // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
-    // Minimum norm
     public static double norm_min = 0.0;
 
     static short[][][][] regions;
     static ArrayList<Region> regionslist[];
 
-    static double[][][] imageb;
-    static double[][][] imagea;
-
     final static ImagePlus out_soft_mask[] = new ImagePlus[2];
+    
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void init() {
@@ -73,7 +69,9 @@ public class Analysis {
     }
 
     static void loadChannels(ImagePlus img2, int aNumOfChannels) {
-        setDimensions(img2);
+        p.ni = img2.getWidth();
+        p.nj = img2.getHeight();
+        p.nz = img2.getNSlices();
         final int currentFrame = img2.getFrame();
         final int bits = img2.getBitDepth();
 
@@ -93,12 +91,6 @@ public class Analysis {
         imgA = new ImagePlus();
         imgA.setStack(img2.getTitle(), img_s);
         imagea = setImage(imgA);
-    }
-
-    private static void setDimensions(ImagePlus img2) {
-        p.ni = img2.getWidth();
-        p.nj = img2.getHeight();
-        p.nz = img2.getNSlices();
     }
 
     private static double[][][] setImage(ImagePlus aImage) {
@@ -149,24 +141,6 @@ public class Analysis {
             img_s.addSlice("", impt);
         }
         return img_s;
-    }
-
-    /**
-     * Get the objects list and set the frame
-     * @param f Frame
-     * @param channel
-     * @return Vector with objects
-     */
-    static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
-        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
-
-        // Set frame
-        for (int i = 0; i < v.size(); i++) {
-            v.get(i).setFrame(f);
-        }
-
-        // Convert it back to original type.
-        return v;
     }
 
     static double[] pearson_corr() {
@@ -306,17 +280,39 @@ public class Analysis {
         return sum / objects;
     }
 
+    static double colocsegABnumber() {
+        return colocNumber(regionslist[0]);
+    }
+
+    static double colocsegBAnumber() {
+        return colocNumber(regionslist[1]);
+    }
+
+    private static double colocNumber(final ArrayList<Region> currentRegion) {
+        int objects = currentRegion.size();
+        int objectscoloc = 0;
+        for (Region r : currentRegion) {
+            if (r.colocpositive) {
+                objectscoloc++;
+            }
+        }
+
+        return ((double) objectscoloc) / objects;
+    }
+    
     static double colocsegAB() {
+        return colocRegions(regionslist[0], regionslist[1], regions[1]);
+    }
+
+    static double colocsegBA() {
+        return colocRegions(regionslist[1], regionslist[0], regions[0]);
+    }
+
+    private static double colocRegions(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {
         double totalsignal = 0;
         double colocsignal = 0;
-
-        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            if (regioncoloc(r, regionslist[1], regions[1])) {
-                // TODO: if condition intentionally left here - not sure if it does any changes
-            }
-
+        for (Region r : currentRegionList) {
+            regioncoloc(r, secondRegionList, region);
             totalsignal += r.rsize * r.intensity;
             colocsignal += r.rsize * r.intensity * r.overlap;
         }
@@ -325,79 +321,18 @@ public class Analysis {
     }
 
     static double colocsegABsize() {
-        double totalsize = 0;
-        double colocsize = 0;
-
-        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            final Region r = it.next();
-            if (regioncoloc(r, regionslist[1], regions[1])) {
-                // TODO: if condition intentionally left here - not sure if it does any changes
-            }
-
-            totalsize += r.rsize;
-            colocsize += r.rsize * r.overlap;
-        }
-
-        return (colocsize / totalsize);
-    }
-
-    static double colocsegABnumber() {
-        int objectscoloc = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            if (r.colocpositive) {
-                objectscoloc++;
-            }
-        }
-
-        return (((double) objectscoloc) / objects);
-    }
-
-    static double colocsegBAnumber() {
-        int objectscoloc = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            if (r.colocpositive) {
-                objectscoloc++;
-            }
-        }
-
-        return (((double) objectscoloc) / objects);
-    }
-
-    static double colocsegBA() {
-        double totalsignal = 0;
-        double colocsignal = 0;
-
-        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            if (regioncoloc(r, regionslist[0], regions[0])) {
-                // TODO: if condition intentionally left here - not sure if it does any changes
-            }
-
-            totalsignal += r.rsize * r.intensity;
-            colocsignal += r.rsize * r.intensity * r.overlap;
-        }
-
-        return (colocsignal / totalsignal);
+        return colocRegionsSize(regionslist[0], regionslist[1], regions[1]);
     }
 
     static double colocsegBAsize() {
+        return colocRegionsSize(regionslist[1], regionslist[0], regions[0]);
+    }
+
+    private static double colocRegionsSize(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {
         double totalsize = 0;
         double colocsize = 0;
-
-        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            if (regioncoloc(r, regionslist[0], regions[0])) {
-                // TODO: if condition intentionally left here - not sure if it does any changes (via regioncoloc method)
-            }
-
+        for (Region r : currentRegionList) {
+            regioncoloc(r, secondRegionList, region);
             totalsize += r.rsize;
             colocsize += r.rsize * r.overlap;
         }
@@ -406,18 +341,15 @@ public class Analysis {
     }
 
     private static boolean regioncoloc(Region r, ArrayList<Region> regionlist, short[][][] regions) {
-        boolean positive = false;
         int count = 0;
         int countcoloc = 0;
         int previousvalcoloc = 0;
-        int valcoloc;
         boolean oneColoc = true;
         double intColoc = 0;
         double sizeColoc = 0;
         final int osxy = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
-            valcoloc = regions[p.pz][p.px][p.py];
+        for (Pix p : r.pixels) {
+            int valcoloc = regions[p.pz][p.px][p.py];
             if (valcoloc > 0) {
                 countcoloc++;
                 if (previousvalcoloc != 0 && valcoloc != previousvalcoloc) {
@@ -430,8 +362,7 @@ public class Analysis {
             count++;
         }
 
-        positive = ((double) countcoloc) / count > p.colocthreshold;
-        r.colocpositive = positive;
+        r.colocpositive = ((double) countcoloc) / count > p.colocthreshold;
         r.overlap = (float) Tools.round(((double) countcoloc) / count, 3);
         r.over_size = (float) Tools.round((sizeColoc) / countcoloc, 3);
         if (p.nz == 1) {
@@ -444,35 +375,25 @@ public class Analysis {
         r.over_int = (float) Tools.round((intColoc) / countcoloc, 3);
         r.singlec = oneColoc;
 
-        return (positive);
+        return r.colocpositive;
     }
 
     static void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
-        int x, y, z;
-        for (final Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            x = r.pixels.get(0).px;
-            y = r.pixels.get(0).py;
-            z = r.pixels.get(0).pz;
-
+        for (Region r : regionlist) {
+            int x = r.pixels.get(0).px;
+            int y = r.pixels.get(0).py;
+            int z = r.pixels.get(0).pz;
             r.rvoronoi = regionsvoronoi.get((int) ri[z][x][y]);
         }
     }
     
     private static double regionsum(Region r, double[][][] image) {
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        int fz2;
-        if (Analysis.p.nz > 1) {
-            fz2 = factor2;
-        }
-        else {
-            fz2 = 1;
-        }
+        int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
 
         int count = 0;
         double sum = 0;
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (Pix p : r.pixels) {
             sum += image[p.pz / fz2][p.px / factor2][p.py / factor2];
             count++;
         }
@@ -482,13 +403,11 @@ public class Analysis {
     }
 
     static void regionCenter(Region r) {
-
         int count = 0;
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (Pix p : r.pixels) {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
@@ -499,7 +418,6 @@ public class Analysis {
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
         if (Analysis.p.subpixel) {
-
             r.cx = r.cx / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
             r.cy = r.cy / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
             r.cz = r.cz / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
@@ -641,8 +559,6 @@ public class Analysis {
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
-        int index = 1;
-
         for (int z = 0; z < p.nz * fz2; z++) {
             for (int i = 0; i < p.ni * factor2; i++) {
                 for (int j = 0; j < p.nj * factor2; j++) {
@@ -651,18 +567,14 @@ public class Analysis {
             }
         }
 
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            // r.value=index; keep old index in csv file : do not (because
-            // displaying happens before, with the previous values)
-            setRegionLabel(r, regions, index);
-            index++;
+        int index = 1;
+        for (Region r : regionslist) {
+            setRegionLabel(r, regions, index++);
         }
     }
 
     private static void setRegionLabel(Region r, short[][][] regions, int label) {
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix px = it.next();
+        for (Pix px : r.pixels) {
             regions[px.pz][px.px][px.py] = (short) label;
         }
     }
