@@ -44,11 +44,11 @@ public class Analysis {
     private static ImagePlus imgB;
     public static Parameters p = new Parameters();
 
-    private static byte[][][] maskA;// =new double [p.nz][p.ni][p.nj];
-    private static byte[][][] maskB;// =new double [p.nz][p.ni][p.nj];
-    static boolean[][][] cellMaskABinary;// =new double [p.nz][p.ni][p.nj];
-    static boolean[][][] cellMaskBBinary;// =new double [p.nz][p.ni][p.nj];
-    private static boolean[][][] overallCellMaskBinary;// =new double
+    private static byte[][][] maskA;
+    private static byte[][][] maskB;
+    static boolean[][][] cellMaskABinary;
+    static boolean[][][] cellMaskBBinary;
+    private static boolean[][][] overallCellMaskBinary;
 
     static int frame;
 
@@ -61,334 +61,44 @@ public class Analysis {
     static short[][][][] regions;
     static ArrayList<Region> regionslist[];
 
-    private static CountDownLatch DoneSignala;
-    private static CountDownLatch DoneSignalb;
-    static double[][][] imageb;// = new double [p.nz][p.ni][p.nj];
-    static double[][][] imagea;// = new double [p.nz][p.ni][p.nj];
+    static double[][][] imageb;
+    static double[][][] imagea;
 
+    final static ImagePlus out_soft_mask[] = new ImagePlus[2];
+    
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void init() {
         regions = new short[2][][][];
         regionslist = new ArrayList[2];
     }
 
-    static void load2channels(ImagePlus img2) {
-        p.ni = img2.getWidth();
-        p.nj = img2.getHeight();
-        p.nz = img2.getNSlices();
-
-        final int f = img2.getFrame();
-
-        imgA = new ImagePlus();
+    static void loadChannels(ImagePlus img2, int aNumOfChannels) {
+        setDimensions(img2);
+        final int currentFrame = img2.getFrame();
         final int bits = img2.getBitDepth();
 
-        final ImageStack imga_s = new ImageStack(p.ni, p.nj);
+        setupChannel1(img2, currentFrame, bits);
+        if (aNumOfChannels > 1) setupChannel2(img2, currentFrame, bits);
+    }
 
-        // channel 1
-        for (int z = 0; z < p.nz; z++) {
-            img2.setPosition(1, z + 1, f);
-            ImageProcessor impt;
-            if (bits == 32) {
-                impt = img2.getProcessor().convertToShort(false);
-            }
-            else {
-                impt = img2.getProcessor();
-            }
-            imga_s.addSlice("", impt);
-        }
-
-        imgA.setStack(img2.getTitle(), imga_s);
-        imagea = setImage(imgA);
-
+    private static void setupChannel2(ImagePlus img2, final int currentFrame, final int bits) {
+        final ImageStack img_s = generateImgStack(img2, currentFrame, bits, 2);
         imgB = new ImagePlus();
-        final ImageStack imgb_s = new ImageStack(p.ni, p.nj);
-
-        // channel 2
-        for (int z = 0; z < p.nz; z++) {
-            img2.setPosition(2, z + 1, f);
-            ImageProcessor impt;
-            if (bits == 32) {
-                impt = img2.getProcessor().convertToShort(false);
-            }
-            else {
-                impt = img2.getProcessor();
-            }
-            imgb_s.addSlice("", impt);
-        }
-
-        imgB.setStack(img2.getTitle(), imgb_s);
+        imgB.setStack(img2.getTitle(), img_s);
         imageb = setImage(imgB);
     }
 
-    /**
-     * Get the objects list and set the frame
-     *
-     * @param f Frame
-     * @param channel
-     * @return Vector with objects
-     */
-    static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
-        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
-
-        // Set frame
-        for (int i = 0; i < v.size(); i++) {
-            v.get(i).setFrame(f);
-        }
-
-        // Convert it back to original type.
-        return v;
-    }
-
-    static void load1channel(ImagePlus img2) {
-        p.ni = img2.getWidth();
-        p.nj = img2.getHeight();
-        p.nz = img2.getNSlices();
-
-        final int f = img2.getFrame();
-
+    private static void setupChannel1(ImagePlus img2, final int currentFrame, final int bits) {
+        final ImageStack img_s = generateImgStack(img2, currentFrame, bits, 1);
         imgA = new ImagePlus();
-
-        final ImageStack imga_s = new ImageStack(p.ni, p.nj);
-        final int bits = img2.getBitDepth();
-        // channel 1
-        for (int z = 0; z < p.nz; z++) {
-            img2.setPosition(1, z + 1, f);
-            ImageProcessor impt;
-            if (bits == 32) {
-                impt = img2.getProcessor().convertToShort(false);
-            }
-            else {
-                impt = img2.getProcessor();
-            }
-            imga_s.addSlice("", impt);
-        }
-
-        imgA.setStack(img2.getTitle(), imga_s);
+        imgA.setStack(img2.getTitle(), img_s);
         imagea = setImage(imgA);
     }
 
-    static double[] pearson_corr() {
-        final Pearson ps = new Pearson(imgA, imgB, p);
-        return ps.run();
-    }
-
-    final static ImagePlus out_soft_mask[] = new ImagePlus[2];
-
-    /* Segment channel1 */
-    static void segmentA() {
-
-        // NRxegions nreg= new NRegions(img, p);
-        // nreginos
-        // PSF only working in two region problem
-        // 3D only working for two problem
-        currentImage = imgA.getTitle();
-
-        DoneSignala = new CountDownLatch(1);
-
-        // for this plugin AFAIK is always TwoRegion
-        TwoRegions rg = null;
-
-        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
-            new Thread(rg = new TwoRegions(imgA, p, DoneSignala, 0)).start();
-        }
-        else {
-            new Thread(new NRegions(imgA, p, DoneSignala, 0)).start();
-        }
-
-        try {
-            Analysis.DoneSignala.await();
-        }
-        catch (final InterruptedException ex) {
-        }
-
-        // Merge frames
-        if (p.dispSoftMask) {
-            if (out_soft_mask[0] == null) {
-                out_soft_mask[0] = new ImagePlus();
-            }
-
-            if (rg != null) MosaicUtils.MergeFrames(out_soft_mask[0], rg.out_soft_mask[0]);
-            else {throw new RuntimeException("rg is null");}
-            out_soft_mask[0].setStack(out_soft_mask[0].getStack());
-        }
-    }
-
-    static void segmentb() {
-        // NRegions nreg= new NRegions(img, p);
-        currentImage = imgB.getTitle();
-        DoneSignalb = new CountDownLatch(1);
-
-        // for this plugin AFAIK is always TwoRegion
-        TwoRegions rg = null;
-
-        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
-            new Thread(rg = new TwoRegions(imgB, p, DoneSignalb, 1)).start();
-        }
-        else {
-            new Thread(new NRegions(imgB, p, DoneSignalb, 1)).start();
-        }
-
-        try {
-            Analysis.DoneSignalb.await();
-        }
-        catch (final InterruptedException ex) {
-        }
-
-        // Merge software
-        if (p.dispSoftMask) {
-            if (out_soft_mask[1] == null) {
-                out_soft_mask[1] = new ImagePlus();
-            }
-
-            if (rg != null)  MosaicUtils.MergeFrames(out_soft_mask[1], rg.out_soft_mask[1]);
-            else {throw new RuntimeException("rg is null");}
-            out_soft_mask[1].setStack(out_soft_mask[1].getStack());
-        }
-    }
-
-    static void compute_connected_regions_a(double d, float[][][] RiN) {
-        // IJ.log("connected ana"+d);
-        final ImagePlus maska_im = new ImagePlus();
-        final ImageStack maska_ims = new ImageStack(p.ni, p.nj);
-
-        for (int z = 0; z < p.nz; z++) {
-            final byte[] maska_bytes = new byte[p.ni * p.nj];
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    maska_bytes[j * p.ni + i] = maskA[z][i][j];
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
-            bp.setPixels(maska_bytes);
-            maska_ims.addSlice("", bp);
-        }
-
-        maska_im.setStack("test Ma", maska_ims);
-
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);// maska_im
-        // only
-        float[][][] Ri;
-        if (p.mode_voronoi2) {
-            Ri = new float[p.nz][p.ni][p.nj];
-            for (int z = 0; z < p.nz; z++) {
-                for (int i = 0; i < p.ni; i++) {
-                    for (int j = 0; j < p.nj; j++) {
-                        Ri[z][i][j] = (float) p.min_intensity;
-                    }
-                }
-            }
-        }
-        else {
-            if (RiN == null) {
-                Ri = new float[p.nz][p.ni][p.nj];
-                for (int z = 0; z < p.nz; z++) {
-                    for (int i = 0; i < p.ni; i++) {
-                        for (int j = 0; j < p.nj; j++) {
-                            Ri[z][i][j] = (float) d;
-                        }
-                    }
-                }
-            }
-            else {
-                Ri = RiN;
-            }
-        }
-
-        fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);
-       
-        regions[0] = fcr.tempres;
-        regionslist[0] = fcr.results;
-        if (!p.mode_voronoi2) {
-            if (p.nz > 1) {
-                IJ.log(regionslist[0].size() + " objects found in X, mean volume : " + Tools.round(meansize(regionslist[0]), 2) + " pixels.");
-            }
-            else {
-                IJ.log(regionslist[0].size() + " objects found in X, mean area : " + Tools.round(meansize(regionslist[0]), 2) + " pixels.");
-            }
-        }
-    }
-
-    static void compute_connected_regions_b(double d, float[][][] RiN) {
-        final ImagePlus maskb_im = new ImagePlus();
-        final ImageStack maskb_ims = new ImageStack(p.ni, p.nj);
-
-        boolean cellmask;
-
-        for (int z = 0; z < p.nz; z++) {
-            final byte[] maskb_bytes = new byte[p.ni * p.nj];
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    cellmask = true;
-
-                    if (cellmask) {
-                        maskb_bytes[j * p.ni + i] = maskB[z][i][j];
-                    }
-                    else {
-                        maskb_bytes[j * p.ni + i] = 0;
-                    }
-
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
-            bp.setPixels(maskb_bytes);
-            maskb_ims.addSlice("", bp);
-        }
-
-        maskb_im.setStack("", maskb_ims);
-        final FindConnectedRegions fcr = new FindConnectedRegions(maskb_im);
-
-        float[][][] Ri;
-
-        if (p.mode_voronoi2) {
-            Ri = new float[p.nz][p.ni][p.nj];
-            for (int z = 0; z < p.nz; z++) {
-                for (int i = 0; i < p.ni; i++) {
-                    for (int j = 0; j < p.nj; j++) {
-                        Ri[z][i][j] = (float) p.min_intensityY;
-                    }
-                }
-            }
-        }
-        else {
-            if (RiN == null) {// ==true for testing with minimum intensity
-                Ri = new float[p.nz][p.ni][p.nj];
-                for (int z = 0; z < p.nz; z++) {
-                    for (int i = 0; i < p.ni; i++) {
-                        for (int j = 0; j < p.nj; j++) {
-                            Ri[z][i][j] = (float) d;
-                        }
-                    }
-                }
-            }
-            else {
-                Ri = RiN;
-            }
-        }
-
-        fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensityY, Ri);
-
-        regions[1] = fcr.tempres;
-        regionslist[1] = fcr.results;
-        if (!p.mode_voronoi2) {
-            if (p.nz > 1) {
-                IJ.log(regionslist[1].size() + " objects found in Y, mean volume : " + Tools.round(meansize(regionslist[1]), 2) + " pixels.");
-            }
-            else {
-                IJ.log(regionslist[1].size() + " objects found in Y, mean area : " + Tools.round(meansize(regionslist[1]), 2) + " pixels.");
-            }
-        }
-    }
-
-    static double colocsegA() {
-        double sum = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            sum += regionsum(r, imageb);
-        }
-
-        return (sum / objects);
+    private static void setDimensions(ImagePlus img2) {
+        p.ni = img2.getWidth();
+        p.nj = img2.getHeight();
+        p.nz = img2.getNSlices();
     }
 
     private static double[][][] setImage(ImagePlus aImage) {
@@ -423,17 +133,177 @@ public class Analysis {
         
         return image;
     }
+    
+    private static ImageStack generateImgStack(ImagePlus img2, final int currentFrame, final int bits, int channel) {
+        final ImageStack img_s = new ImageStack(p.ni, p.nj);
 
-    static double colocsegB() {
-        double sum = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            sum += regionsum(r, imagea);
+        for (int z = 0; z < p.nz; z++) {
+            img2.setPosition(channel, z + 1, currentFrame);
+            ImageProcessor impt;
+            if (bits == 32) {
+                impt = img2.getProcessor().convertToShort(false);
+            }
+            else {
+                impt = img2.getProcessor();
+            }
+            img_s.addSlice("", impt);
+        }
+        return img_s;
+    }
+
+    /**
+     * Get the objects list and set the frame
+     * @param f Frame
+     * @param channel
+     * @return Vector with objects
+     */
+    static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
+        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
+
+        // Set frame
+        for (int i = 0; i < v.size(); i++) {
+            v.get(i).setFrame(f);
         }
 
-        return (sum / objects);
+        // Convert it back to original type.
+        return v;
+    }
+
+    static double[] pearson_corr() {
+        final Pearson ps = new Pearson(imgA, imgB, p);
+        return ps.run();
+    }
+
+    static void segmentA() {
+        segmentImg(imgA, 0);
+    }
+    
+    static void segmentB() {
+        segmentImg(imgB, 1);
+    }
+    
+    private static void segmentImg(final ImagePlus img, final int channel) {
+        // PSF only working in two region problem
+        // 3D only working for two problem
+        
+        currentImage = img.getTitle();
+        CountDownLatch doneSignal = new CountDownLatch(1);
+
+        // for this plugin AFAIK is always TwoRegion
+        TwoRegions rg = null;
+
+        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
+            new Thread(rg = new TwoRegions(img, p, doneSignal, channel)).start();
+        }
+        else {
+            new Thread(new NRegions(img, p, doneSignal, channel)).start();
+        }
+
+        try {
+            doneSignal.await();
+        }
+        catch (final InterruptedException ex) {
+        }
+
+        if (p.dispSoftMask) {
+            if (out_soft_mask[channel] == null) {
+                out_soft_mask[channel] = new ImagePlus();
+            }
+
+            if (rg != null) MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask[channel]);
+            else {throw new RuntimeException("rg is null");}
+            out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
+        }
+    }
+
+
+    static void compute_connected_regions_a(double d, float[][][] RiN) {
+        final FindConnectedRegions fcr = processConnectedRegions(d, RiN, p.min_intensity, maskA);
+        regions[0] = fcr.tempres;
+        regionslist[0] = fcr.results;
+        logFoundObjects(regionslist[0], "X");
+    }
+
+    static void compute_connected_regions_b(double d, float[][][] RiN) {
+        final FindConnectedRegions fcr = processConnectedRegions(d, RiN, p.min_intensityY, maskB);
+        regions[1] = fcr.tempres;
+        regionslist[1] = fcr.results;
+        logFoundObjects(regionslist[1], "Y");
+    }
+
+    private static void logFoundObjects(final ArrayList<Region> currentRegionList, final String label) {
+        if (!p.mode_voronoi2) {
+            String meanName = (p.nz > 1) ? "volume" : "area";
+            IJ.log(currentRegionList.size() + " objects found in " + label + ", mean " + meanName + ": " + Tools.round(meansize(currentRegionList), 2) + " pixels.");
+        }
+    }
+    
+    private static FindConnectedRegions processConnectedRegions(double d, float[][][] RiN, double intensity, byte[][][] mask) {
+        final ImagePlus mask_im = new ImagePlus();
+        final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
+
+        for (int z = 0; z < p.nz; z++) {
+            final byte[] mask_bytes = new byte[p.ni * p.nj];
+            for (int i = 0; i < p.ni; i++) {
+                for (int j = 0; j < p.nj; j++) {
+                    mask_bytes[j * p.ni + i] = mask[z][i][j];
+                }
+            }
+            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+            bp.setPixels(mask_bytes);
+            mask_ims.addSlice("", bp);
+        }
+
+        mask_im.setStack("", mask_ims);
+        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
+        
+        float[][][] Ri;
+        if (p.mode_voronoi2) {
+            Ri = new float[p.nz][p.ni][p.nj];
+            for (int z = 0; z < p.nz; z++) {
+                for (int i = 0; i < p.ni; i++) {
+                    for (int j = 0; j < p.nj; j++) {
+                        Ri[z][i][j] = (float) intensity;
+                    }
+                }
+            }
+        }
+        else {
+            if (RiN == null) {// ==true for testing with minimum intensity
+                Ri = new float[p.nz][p.ni][p.nj];
+                for (int z = 0; z < p.nz; z++) {
+                    for (int i = 0; i < p.ni; i++) {
+                        for (int j = 0; j < p.nj; j++) {
+                            Ri[z][i][j] = (float) d;
+                        }
+                    }
+                }
+            }
+            else {
+                Ri = RiN;
+            }
+        }
+
+        fcr.run(d, p.maxves_size, p.minves_size, 255 * intensity, Ri);
+        
+        return fcr;
+    }
+
+    static double colocsegA() {
+        return coloc(regionslist[0], imageb);
+    }
+
+    static double colocsegB() {
+        return coloc(regionslist[1], imagea);
+    }
+    
+    private static double coloc(final ArrayList<Region> currentRegion, double[][][] image) {
+        int objects = currentRegion.size();
+        double sum = 0;
+        for (Region r : currentRegion) {
+            sum += regionsum(r, image);
+        }
+        return sum / objects;
     }
 
     static double colocsegAB() {
@@ -636,26 +506,21 @@ public class Analysis {
         }
     }
 
-    /**
-     * Allocate a byte maskA based on the double mask
-     */
     static void setMaskaTworegions(double[][][] mask) {
         maskA = new byte[p.nz][p.ni][p.nj];
-        for (int z = 0; z < p.nz; z++) {
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    maskA[z][i][j] = (byte) ((int) (255 * mask[z][i][j]));
-                }
-            }
-        }
+        copyScaledMask(maskA, mask);
     }
 
     static void setMaskbTworegions(double[][][] mask) {
         maskB = new byte[p.nz][p.ni][p.nj];
+        copyScaledMask(maskB, mask);
+    }
+    
+    private static void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
         for (int z = 0; z < p.nz; z++) {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
-                    maskB[z][i][j] = (byte) ((int) (255 * mask[z][i][j]));
+                    aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
                 }
             }
         }
@@ -663,58 +528,37 @@ public class Analysis {
 
     static void setmaska(int[][][] mask) {
         maskA = new byte[p.nz][p.ni][p.nj];
-        for (int z = 0; z < p.nz; z++) {
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    maskA[z][i][j] = (byte) ((mask[z][i][j]));
-                }
-            }
-        }
+        copyMask(maskA, mask);
     }
 
     static void setmaskb(int[][][] mask) {
         maskB = new byte[p.nz][p.ni][p.nj];
+        copyMask(maskB, mask);
+    }
+
+    private static void copyMask(byte[][][] aDestination, int[][][] aSource) {
         for (int z = 0; z < p.nz; z++) {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
-                    maskB[z][i][j] = (byte) ((mask[z][i][j]));
+                    aDestination[z][i][j] = (byte) ((aSource[z][i][j]));
                 }
             }
         }
     }
 
     static double meansurface(ArrayList<Region> regionslist) {
+        final int objects = regionslist.size();
         double totalsize = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
+        for (Region r : regionslist) {
             totalsize += r.perimeter;
         }
 
         return (totalsize / objects);
     }
 
-    static double meanlength(ArrayList<Region> regionslist) {
-        double totalsize = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            totalsize += r.length;
-        }
-
-        return (totalsize / objects);
-    }
-
     static double meansize(ArrayList<Region> regionslist) {
-        double totalsize = 0;
-        int objects = 0;
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            objects++;
-            totalsize += r.points;
-        }
+        final int objects = regionslist.size();
+        double totalsize = totalsize(regionslist);
 
         if (Analysis.p.subpixel) {
             return (totalsize / objects) / (Math.pow(Analysis.p.oversampling2ndstep * Analysis.p.interpolation, 2));
@@ -723,46 +567,44 @@ public class Analysis {
             return (totalsize / objects);
         }
     }
+    
+    static double meanlength(ArrayList<Region> regionslist) {
+        final int objects = regionslist.size();
+        double totalsize = 0;
+        for (Region r : regionslist) {
+            totalsize += r.length;
+        }
+        
+        return (totalsize / objects);
+    }
 
     static double totalsize(ArrayList<Region> regionslist) {
         double totalsize = 0;
-
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-
+        for (Region r : regionslist) {
             totalsize += r.points;
         }
-
-        return (totalsize);
+        
+        return totalsize;
     }
 
     static ArrayList<Region> removeExternalObjects(ArrayList<Region> regionslist) {
         final ArrayList<Region> newregionlist = new ArrayList<Region>();
-
-        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            final Region r = it.next();
+        for (Region r : regionslist) {
             if (isInside(r)) {
                 newregionlist.add(r);
             }
         }
-        regionslist = newregionlist;
 
         return newregionlist;
     }
 
     private static boolean isInside(Region r) {
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        int fz2;
-        if (Analysis.p.nz > 1) {
-            fz2 = factor2;
-        }
-        else {
-            fz2 = 1;
-        }
+        int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
+
         double size = 0;
         int inside = 0;
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix px = it.next();
+        for (Pix px : r.pixels) {
             if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
                 inside++;
             }
@@ -778,15 +620,14 @@ public class Analysis {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
                     if (p.usecellmaskX && p.usecellmaskY) {
-                        mask[z][i][j] = cellMaskABinary[z][i][j]// >254
-                                && cellMaskBBinary[z][i][j];// >254;
+                        mask[z][i][j] = cellMaskABinary[z][i][j] && cellMaskBBinary[z][i][j];
                     }
                     else if (p.usecellmaskX) {
                         mask[z][i][j] = cellMaskABinary[z][i][j];
-                    }// >254;}
+                    }
                     else if (p.usecellmaskY) {
                         mask[z][i][j] = cellMaskBBinary[z][i][j];
-                    }// >254;}
+                    }
                     else {
                         mask[z][i][j] = true;
                     }
@@ -820,7 +661,6 @@ public class Analysis {
     }
 
     private static void setRegionLabel(Region r, short[][][] regions, int label) {
-
         for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             final Pix px = it.next();
             regions[px.pz][px.px][px.py] = (short) label;

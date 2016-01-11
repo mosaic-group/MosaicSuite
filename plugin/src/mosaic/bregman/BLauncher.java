@@ -438,13 +438,8 @@ public class BLauncher {
         ij.Prefs.blackBackground = false;
         Analysis.p.nchannels = img2.getNChannels();
 
-        if (Analysis.p.nchannels == 2) {
-            Analysis.load2channels(img2);
-        }
+        Analysis.loadChannels(img2, Analysis.p.nchannels);
 
-        if (Analysis.p.nchannels == 1) {
-            Analysis.load1channel(img2);
-        }
         if (Analysis.p.mode_voronoi2) {
             if (Analysis.p.nz > 1) {
                 Analysis.p.max_nsb = 151;
@@ -468,7 +463,7 @@ public class BLauncher {
         Analysis.segmentA();
 
         if (Analysis.p.nchannels == 2) {
-            Analysis.segmentb();
+            Analysis.segmentB();
         }
 
         // TODO : why is it needed to reassign p.ni ...??
