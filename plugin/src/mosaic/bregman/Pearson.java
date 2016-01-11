@@ -47,10 +47,9 @@ class Pearson {
         }
         final int os = p.model_oversampling;
 
-        ImageProcessor imp;
         for (int z = 0; z < nz / osz; z++) {
             ipA.setSlice(z + 1);
-            imp = ipA.getProcessor();
+            ImageProcessor imp = ipA.getProcessor();
             for (int i = 0; i < ni / os; i++) {
                 for (int j = 0; j < nj / os; j++) {
                     imageA[z][i][j] = imp.getPixel(i, j);
@@ -63,7 +62,7 @@ class Pearson {
 
         for (int z = 0; z < nz / osz; z++) {
             ipB.setSlice(z + 1);
-            imp = ipB.getProcessor();
+            ImageProcessor imp = ipB.getProcessor();
             for (int i = 0; i < ni / os; i++) {
                 for (int j = 0; j < nj / os; j++) {
                     imageB[z][i][j] = imp.getPixel(i, j);
@@ -74,22 +73,10 @@ class Pearson {
             }
         }
 
-        double tx, ty;
-        if (Analysis.p.usecellmaskX) {
-            tx = Analysis.p.thresholdcellmask * maxA;
-        }
-        else {
-            tx = 0;
-        }
-        if (Analysis.p.usecellmaskY) {
-            ty = Analysis.p.thresholdcellmasky * maxB;
-        }
-        else {
-            ty = 0;
-        }
+        double tx = (Analysis.p.usecellmaskX) ? Analysis.p.thresholdcellmask * maxA : 0; 
+        double ty = (Analysis.p.usecellmaskY) ? Analysis.p.thresholdcellmasky * maxB : 0;
         cellmaskA = createBinaryCellMask(tx, ipA, 0, osz);
         cellmaskB = createBinaryCellMask(ty, ipB, 1, osz);
-
     }
 
     public double[] run() {
@@ -222,10 +209,8 @@ class Pearson {
         maska_im.setStack("Cell mask channel " + (channel + 1), maska_ims);
 
         IJ.run(maska_im, "Invert", "stack");
-        //
         IJ.run(maska_im, "Fill Holes", "stack");
         IJ.run(maska_im, "Open", "stack");
-
         IJ.run(maska_im, "Invert", "stack");
 
         for (int z = 0; z < nz; z++) {

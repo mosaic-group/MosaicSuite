@@ -460,19 +460,15 @@ public class GenericGUI {
             // save locally
             BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", tempParams);
 
-            // Check if we selected a directory
-            File[] fileslist = null;
-            File fl = null;
-
             ClusterSession.setPreferredSlotPerProcess(4);
             String Background = null;
 
             if (aImp == null) {
-                fl = new File(Analysis.p.wd);
+                File fl = new File(Analysis.p.wd);
                 if (fl.isDirectory() == true) {
                     // we have a directory
 
-                    fileslist = fl.listFiles();
+                    File[] fileslist = fl.listFiles();
                     ClusterSession.processFiles(fileslist, "Squassh", "", Analysis.out);
                 }
                 else if (fl.isFile()) {
@@ -532,7 +528,6 @@ public class GenericGUI {
                 imgch2 = null;
             }// close previosuly opened images
 
-            String path;
             // with JFileChooser
             final JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -541,7 +536,7 @@ public class GenericGUI {
             if (selFile == null) {
                 return;
             }
-            path = selFile.getAbsolutePath();
+            String path = selFile.getAbsolutePath();
 
             final boolean processdirectory = (new File(path)).isDirectory();
             if (!processdirectory) {

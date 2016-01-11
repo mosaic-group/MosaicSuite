@@ -2,7 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
@@ -10,8 +9,6 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
 
 
@@ -144,8 +141,7 @@ public class Analysis {
     }
 
     static double[] pearson_corr() {
-        final Pearson ps = new Pearson(imgA, imgB, p);
-        return ps.run();
+        return new Pearson(imgA, imgB, p).run();
     }
 
     static void segmentA() {

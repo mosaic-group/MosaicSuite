@@ -156,6 +156,11 @@ public class BLauncher {
         }
     }
 
+    public BLauncher(ImagePlus aImp_) {
+        // start processing
+        start(aImp_);
+    }
+
     private void start(ImagePlus aImp_) {
         aImp = aImp_;
         PrintWriter out = null;
@@ -185,11 +190,6 @@ public class BLauncher {
         if (out != null) {
             out.close();
         }
-    }
-
-    public BLauncher(ImagePlus aImp_) {
-        // start processing
-        start(aImp_);
     }
 
     /**
@@ -419,7 +419,7 @@ public class BLauncher {
             bcolocheadless(img);
             IJ.log("");
         }
-        catch (final Exception e) {// Catch exception if any
+        catch (final Exception e) {
             e.printStackTrace();
             System.err.println("Error launcher file processing: " + e.getMessage());
         }
