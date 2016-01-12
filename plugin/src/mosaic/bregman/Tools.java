@@ -1132,52 +1132,50 @@ class Tools {
     }
     
     public static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, boolean aShowAndSave) {
-        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
-
-        final ImageStack maska_ims = new ImageStack(aWidth, aHeight);
+        final ImageStack maskStack = new ImageStack(aWidth, aHeight);
         for (int z = 0; z < aDepth; z++) {
             img.setSlice(z + 1);
-            ImageProcessor imp = img.getProcessor();
-            final byte[] maska_bytes = new byte[aWidth * aHeight];
+            ImageProcessor ip = img.getProcessor();
+            final byte[] mask = new byte[aWidth * aHeight];
             for (int i = 0; i < aWidth; i++) {
                 for (int j = 0; j < aHeight; j++) {
-                    if (imp.getPixelValue(i, j) > aThreshold) {
-                        maska_bytes[j * aWidth + i] = (byte) 255;
+                    if (ip.getPixelValue(i, j) > aThreshold) {
+                        mask[j * aWidth + i] = (byte) 255;
                     }
                     else {
-                        maska_bytes[j * aWidth + i] = 0;
+                        mask[j * aWidth + i] = 0;
                     }
-
                 }
             }
             final ByteProcessor bp = new ByteProcessor(aWidth, aHeight);
-            bp.setPixels(maska_bytes);
-            maska_ims.addSlice("", bp);
+            bp.setPixels(mask);
+            maskStack.addSlice("", bp);
         }
 
-        final ImagePlus maska_im = new ImagePlus("Cell mask channel " + (aChannel + 1), maska_ims);
-        IJ.run(maska_im, "Invert", "stack");
-        IJ.run(maska_im, "Fill Holes", "stack");
-        IJ.run(maska_im, "Open", "stack");
-        IJ.run(maska_im, "Invert", "stack");
+        final ImagePlus maskImg = new ImagePlus("Cell mask channel " + (aChannel + 1), maskStack);
+        IJ.run(maskImg, "Invert", "stack");
+        IJ.run(maskImg, "Fill Holes", "stack");
+        IJ.run(maskImg, "Open", "stack");
+        IJ.run(maskImg, "Invert", "stack");
 
+        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
         for (int z = 0; z < aDepth; z++) {
-            maska_im.setSlice(z + 1);
-            ImageProcessor imp = maska_im.getProcessor();
+            maskImg.setSlice(z + 1);
+            ImageProcessor ip = maskImg.getProcessor();
             for (int i = 0; i < aWidth; i++) {
                 for (int j = 0; j < aHeight; j++) {
-                    cellmask[z][i][j] = imp.getPixelValue(i, j) != 0;
+                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
                 }
             }
         }
         if (aShowAndSave) {
             if (Analysis.p.dispwindows && Analysis.p.livedisplay) {
-                maska_im.show();
+                maskImg.show();
             }
 
             if (Analysis.p.save_images) {
                 String savepath = Analysis.p.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (aChannel == 0 ? 1 : 2) + ".zip";
-                IJ.saveAs(maska_im, "ZIP", savepath);
+                IJ.saveAs(maskImg, "ZIP", savepath);
             }
         }
         

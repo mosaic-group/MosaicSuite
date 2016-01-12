@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import ij.IJ;
 import ij.WindowManager;
 import mosaic.bregman.GUI.GenericGUI;
+import mosaic.utils.ArrayOps;
 
 
 class ImagePatches {
@@ -90,7 +91,7 @@ class ImagePatches {
                 }
             }
         }
-        fill_refined();
+        ArrayOps.fillArray(regions_refined, (short) 0);
     }
 
     public void run() {
@@ -157,11 +158,10 @@ class ImagePatches {
             // LinkedBlockingQueue<Runnable>();
             final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
 
-            ObjectProperties Op;
             // calculate regions intensities
             for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
                 final Region r = it.next();
-                Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
+                ObjectProperties Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
                 threadPool2.execute(Op);
             }
 
@@ -192,14 +192,8 @@ class ImagePatches {
 
             // if changed, reassemble
             if (changed == true) {
-                for (int i = 0; i < regions_refined.length; i++) {
-                    for (int j = 0; j < regions_refined[i].length; j++) {
-                        for (int k = 0; k < regions_refined[i][j].length; k++) {
-                            regions_refined[i][j][k] = 0;
-                        }
-                    }
-                }
-                assemble(regionslist_refined);
+                ArrayOps.fillArray(regions_refined, (short) 0);
+                assemble(regionslist_refined, regions_refined);
             }
 
             regionslist_refined = regionslist_refined_filter;
@@ -218,33 +212,15 @@ class ImagePatches {
         }
     }
 
-    private void assemble(ArrayList<Region> regionslist_refined) {
-        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                final Pix v = it2.next();
-                // count number of free edges
-                regions_refined[v.pz][v.px][v.py] = (short) r.value;
-
-            }
-        }
-    }
-
     /**
      * Assemble the result
-     *
      * @param regionslist_refined List of regions to assemble
      * @param regions_refined regions refined
      */
     static public void assemble(Collection<Region> regionslist_refined, short[][][] regions_refined) {
-        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                final Pix v = it2.next();
+        for (final Region r : regionslist_refined) {
+            for (final Pix v : r.pixels) {
                 regions_refined[v.pz][v.px][v.py] = (short) r.value;
-
             }
         }
     }
@@ -294,8 +270,6 @@ class ImagePatches {
                     if (ap.interpolated_object[z][i][j] == 1) {
                         regions_refined[z + ap.offsetz * osz][i + ap.offsetx * osxy][j + ap.offsety * osxy] = (short) r.value;
                         rpixels.add(new Pix(z + ap.offsetz * osz, i + ap.offsetx * osxy, j + ap.offsety * osxy));
-                        // rpixels.add(new
-                        // Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,i+ap.offsetx*osxy));
                         pixcount++;
                     }
                 }
@@ -305,15 +279,5 @@ class ImagePatches {
         r.pixels = rpixels;
         r.rsize = pixcount;
         r.intensity = ap.cin * (ap.intmax - ap.intmin) + ap.intmin;
-    }
-
-    private void fill_refined() {
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    regions_refined[z][i][j] = 0;
-                }
-            }
-        }
     }
 }

@@ -124,4 +124,14 @@ public class ArrayOpsTest extends CommonBase {
 
         compareArrays(expected, input);
     }
+    
+    @Test
+    public void testFillArrayShort3D() {
+        short[][][] input = new short[22][33][44];
+        ArrayOps.fillArray(input, (short)5);
+        for (int i = 0; i < input.length; ++i)
+            for (int j = 0; j < input[0].length; ++j)
+                for (int z = 0; z < input[0][0].length; ++z)
+                    assertEquals((short)5, input[i][j][z]);
+    }
 }

@@ -15,20 +15,16 @@ class ObjectProperties implements Runnable {
     private double intmin, intmax;
     private final double[][][] image;
     private final Region region;
-    private final double[][][][] temp1;
-    private final double[][][][] temp2;
-    private final double[][][][] temp3;
     private double cin;
     private double[][][] patch;
     private final short[][][] regions;
-    private final int margin;
-    private final int zmargin;
+
     private int sx, sy, sz;// size for object
     private final int nx, ny, nz;// size of full oversampled work zone
     private final Parameters p;
     private int cx, cy, cz;// coord of patch in full work zone (offset)
     private final int osxy, osz;
-    private double[][][][] mask;// nregions nslices ni nj
+    private double[][][] mask;// nregions nslices ni nj
     private final byte[] imagecolor_c1;
 
     public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, byte[] color_c1, short[][][] regs) {
@@ -40,17 +36,12 @@ class ObjectProperties implements Runnable {
         this.ny = ny;
         this.nz = nz;
         this.imagecolor_c1 = color_c1;
-        margin = 5;
-        zmargin = 2;
 
         this.osxy = osxy;
         this.osz = osz;
 
         set_patch_geom(region);
 
-        temp1 = new double[1][sz][sx][sy];
-        temp2 = new double[1][sz][sx][sy];
-        temp3 = new double[1][sz][sx][sy];
         // set size
         p.ni = sx;
         p.nj = sy;
@@ -80,7 +71,7 @@ class ObjectProperties implements Runnable {
         fill_patch(image);
         normalize();
         fill_mask(region);
-        estimate_int(mask[0]);
+        estimate_int(mask);
         region.intensity = cin * (intmax - intmin) + intmin;
         if (p.nz == 1) {
             region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy), 3);
@@ -131,26 +122,24 @@ class ObjectProperties implements Runnable {
     }
 
     private void estimate_int(double[][][] mask) {
-        RegionStatisticsSolver RSS;
-
-        RSS = new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], patch, 10, p);
+        double[][][] temp1 = new double[sz][sx][sy];
+        double[][][] temp2 = new double[sz][sx][sy];
+        double[][][] temp3 = new double[sz][sx][sy];
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, temp3, patch, 10, p);
         RSS.eval(mask);
 
-        // cout=RSS.betaMLEout;
         cin = RSS.betaMLEin;
     }
 
     private void set_patch_geom(Region r) {
-        int xmin, ymin, zmin, xmax, ymax, zmax;
-        xmin = nx;
-        ymin = ny;
-        zmin = nz;
-        xmax = 0;
-        ymax = 0;
-        zmax = 0;
+        int xmin = nx;
+        int ymin = ny;
+        int zmin = nz;
+        int xmax = 0;
+        int ymax = 0;
+        int zmax = 0;
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for ( Pix p : r.pixels) {
             if (p.px < xmin) {
                 xmin = p.px;
             }
@@ -171,17 +160,15 @@ class ObjectProperties implements Runnable {
             }
         }
 
+        final int margin = 5;
+        final int zmargin = 2;
         xmin = Math.max(0, xmin - margin);
         xmax = Math.min(nx, xmax + margin + 1);
 
         ymin = Math.max(0, ymin - margin);
         ymax = Math.min(ny, ymax + margin + 1);
 
-        if (nz > 1) {// if (zmax-zmin>0){
-            // do whole column
-            // zmin=0;
-            // zmax=p.nz-1;
-            // old one
+        if (nz > 1) {
             zmin = Math.max(0, zmin - zmargin);
             zmax = Math.min(nz, zmax + zmargin + 1);
         }
@@ -230,22 +217,20 @@ class ObjectProperties implements Runnable {
     }
 
     private void fill_mask(Region r) {
-        this.mask = new double[1][sz][sx][sy];
+        mask = new double[sz][sx][sy];
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    this.mask[0][z][i][j] = 0;
+                    mask[z][i][j] = 0;
                 }
             }
         }
-
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
-            int rz, rx, ry;
-            rz = (p.pz - cz);
-            rx = (p.px - cx);
-            ry = (p.py - cy);
-            this.mask[0][rz][rx][ry] = 1;
+        
+        for (Pix p : r.pixels) {
+            int rz = (p.pz - cz);
+            int rx = (p.px - cx);
+            int ry = (p.py - cy);
+            mask[rz][rx][ry] = 1;
         }
     }
 
@@ -265,12 +250,10 @@ class ObjectProperties implements Runnable {
     private void regionPerimeter(Region r, short[][][] regionsA) {
         // 2 Dimensions only
         double pr = 0;
-        // int rvalue= r.value;
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            int edges = 0;
-            final Pix v = it.next();
+        for (Pix v : r.pixels) {
             // count number of free edges
+            int edges = 0;
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1) {
                 // not on edges of image
                 if (regionsA[v.pz][v.px - 1][v.py] == 0) {
@@ -290,8 +273,7 @@ class ObjectProperties implements Runnable {
                 edges++;
             }
 
-            pr += edges; // real number of edges (should be used with the
-            // subpixel)
+            pr += edges; // real number of edges (should be used with the subpixel)
         }
 
         r.perimeter = pr;
@@ -304,17 +286,12 @@ class ObjectProperties implements Runnable {
     private void regionPerimeter3D(Region r, short[][][] regionsA) {
         // 2 Dimensions only
         double pr = 0;
-        // int rvalue= r.value;
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            int edges = 0;
-            final Pix v = it.next();
+        for (Pix v : r.pixels) {
             // count number of free edges
-            if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {// not
-                // on
-                // edges
-                // of
-                // image
+            int edges = 0;
+            // not on edges of image
+            if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {
                 if (regionsA[v.pz][v.px - 1][v.py] == 0) {
                     edges++;
                 }
@@ -357,8 +334,7 @@ class ObjectProperties implements Runnable {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (Pix p : r.pixels) {
             if (!Analysis.p.refinement) {
                 sum += image[p.pz][p.px][p.py];
             }
@@ -385,16 +361,11 @@ class ObjectProperties implements Runnable {
     }
 
     private void setlength(Region r, short[][][] regionsA) {
-        // 2D only yet
-        final ImagePlus skeleton = new ImagePlus();
-
         final ImageStack is = new ImageStack(sx, sy);
-
         for (int k = 0; k < sz; k++) {
             final byte[] mask_bytes = new byte[sx * sy];
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-
                     if (regionsA[cz + k][cx + i][cy + j] > 0) {
                         mask_bytes[j * sx + i] = (byte) 255;
                     }
@@ -403,17 +374,14 @@ class ObjectProperties implements Runnable {
                     }
                 }
             }
-
             final ByteProcessor bp = new ByteProcessor(sx, sy);
             bp.setPixels(mask_bytes);
-
             is.addSlice(bp);
         }
 
-        skeleton.setStack(is);
+        final ImagePlus skeleton = new ImagePlus("", is);
 
         // do voronoi in 2D on Z projection
-        //IJ.run(skeleton, "Skeletonize (2D/3D)", "");
         Skeletonize3D_ skel = new Skeletonize3D_();
         skel.setup("", skeleton);
         skel.run(skeleton.getProcessor());
@@ -425,8 +393,7 @@ class ObjectProperties implements Runnable {
         int length = 0;
         final ImageStack is = skel.getStack();
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix v = it.next();
+        for (Pix v : r.pixels) {
             // count number of pixels in skeleton
             if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) {
                 length++;
