@@ -68,6 +68,10 @@ class SamplePearsonCorrelationCoefficient {
                              calculateCoefficient(iImageA, iImageB, iMaskA, iMaskB, 0, 0, true) };
     }
 
+    /**
+     * Check for details:
+     * https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
+     */
     private double calculateCoefficient(double[][][] aA, double[][][] aB, boolean [][][] aMaskA, boolean[][][] aMaskB, int aThresholdA, int aThresholdB, boolean aUseMask) {
         double sumA = 0;
         double sumB = 0;
