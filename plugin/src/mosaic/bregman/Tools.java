@@ -4,6 +4,10 @@ package mosaic.bregman;
 import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -1125,5 +1129,58 @@ class Tools {
         y = (int) y;
         y /= factor;
         return y;
+    }
+    
+    public static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, boolean aShowAndSave) {
+        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
+
+        final ImageStack maska_ims = new ImageStack(aWidth, aHeight);
+        for (int z = 0; z < aDepth; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            final byte[] maska_bytes = new byte[aWidth * aHeight];
+            for (int i = 0; i < aWidth; i++) {
+                for (int j = 0; j < aHeight; j++) {
+                    if (imp.getPixelValue(i, j) > aThreshold) {
+                        maska_bytes[j * aWidth + i] = (byte) 255;
+                    }
+                    else {
+                        maska_bytes[j * aWidth + i] = 0;
+                    }
+
+                }
+            }
+            final ByteProcessor bp = new ByteProcessor(aWidth, aHeight);
+            bp.setPixels(maska_bytes);
+            maska_ims.addSlice("", bp);
+        }
+
+        final ImagePlus maska_im = new ImagePlus("Cell mask channel " + (aChannel + 1), maska_ims);
+        IJ.run(maska_im, "Invert", "stack");
+        IJ.run(maska_im, "Fill Holes", "stack");
+        IJ.run(maska_im, "Open", "stack");
+        IJ.run(maska_im, "Invert", "stack");
+
+        for (int z = 0; z < aDepth; z++) {
+            maska_im.setSlice(z + 1);
+            ImageProcessor imp = maska_im.getProcessor();
+            for (int i = 0; i < aWidth; i++) {
+                for (int j = 0; j < aHeight; j++) {
+                    cellmask[z][i][j] = imp.getPixelValue(i, j) != 0;
+                }
+            }
+        }
+        if (aShowAndSave) {
+            if (Analysis.p.dispwindows && Analysis.p.livedisplay) {
+                maska_im.show();
+            }
+
+            if (Analysis.p.save_images) {
+                String savepath = Analysis.p.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (aChannel == 0 ? 1 : 2) + ".zip";
+                IJ.saveAs(maska_im, "ZIP", savepath);
+            }
+        }
+        
+        return cellmask;
     }
 }

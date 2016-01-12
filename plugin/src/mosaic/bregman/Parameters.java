@@ -17,7 +17,7 @@ public class Parameters implements Serializable {
     boolean mode_classic = false; 
     public boolean mode_voronoi2 = true;
     public boolean debug = false;
-    int model_oversampling = 1;
+    int model_oversampling = 1; // Already deleted in code - before removing updated config file.
     double ldata = 1;
     double gamma = 1;// was 10 : use 1 for two region PSF version
     double tol = 1e-7;// 1e-5

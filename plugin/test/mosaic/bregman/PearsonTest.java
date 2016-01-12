@@ -2,8 +2,6 @@ package mosaic.bregman;
 
 import static org.junit.Assert.assertArrayEquals;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 
 import ij.ImagePlus;
@@ -31,10 +29,9 @@ public class PearsonTest {
         parameters.ni = 5;
         parameters.nj = 5;
         parameters.nz = 1;
-        parameters.model_oversampling = 1;
         
         double[] result = new Pearson(ipA, ipB, parameters).run();
-        assertArrayEquals(new double[]{0, 0, 0}, result, 1e-6);
+        assertArrayEquals(new double[]{0, 0}, result, 1e-6);
     }
     
     @Test
@@ -55,10 +52,9 @@ public class PearsonTest {
         parameters.ni = 5;
         parameters.nj = 5;
         parameters.nz = 1;
-        parameters.model_oversampling = 1;
         
         double[] result = new Pearson(ipA, ipB, parameters).run();
-        assertArrayEquals(new double[]{1, 1, 1}, result, 1e-6);
+        assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
     @Test
@@ -79,14 +75,13 @@ public class PearsonTest {
         parameters.ni = 5;
         parameters.nj = 5;
         parameters.nz = 1;
-        parameters.model_oversampling = 1;
         parameters.usecellmaskY = true;
         parameters.thresholdcellmasky = 0.5;
         parameters.usecellmaskX = true;
         parameters.thresholdcellmask = 0.25;
         
         double[] result = new Pearson(ipA, ipB, parameters).run();
-        assertArrayEquals(new double[]{1, 1, 1}, result, 1e-6);
+        assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
     @Test
@@ -111,10 +106,9 @@ public class PearsonTest {
         parameters.ni = 3;
         parameters.nj = 3;
         parameters.nz = 3;
-        parameters.model_oversampling = 1;
         
         double[] result = new Pearson(ipA, ipB, parameters).run();
-        assertArrayEquals(new double[]{1, 1, 1}, result, 1e-6);
+        assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
     @Test
@@ -152,10 +146,9 @@ public class PearsonTest {
         parameters.ni = 3;
         parameters.nj = 3;
         parameters.nz = 3;
-        parameters.model_oversampling = 1;
         
         double[] result = new Pearson(ipA, ipB, parameters).run();
-        assertArrayEquals(new double[]{0.25, 0.25, 0.25}, result, 1e-6);
+        assertArrayEquals(new double[]{0.25, 0.25}, result, 1e-6);
   
     }
     

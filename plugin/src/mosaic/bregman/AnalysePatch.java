@@ -622,8 +622,7 @@ class AnalysePatch implements Runnable {
             final Clusterer km = new KMeans(nk, 100);
             /*
              * Cluster the data, it will be returned as an array of data sets,
-             * with
-             * each dataset representing a cluster.
+             * with each dataset representing a cluster.
              */
             final Dataset[] data2 = km.cluster(data);
 

@@ -371,8 +371,7 @@ public class BLauncher {
 
         if (Analysis.p.nchannels == 2) {
             double corr_mask, corr;
-            double[] temp;
-            temp = Analysis.pearson_corr();
+            double[] temp = Analysis.pearson_corr();
             corr = temp[0];
             corr_mask = temp[1];
 
