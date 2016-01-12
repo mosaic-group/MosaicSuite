@@ -2,6 +2,8 @@ package mosaic.utils.math;
 
 import java.util.Arrays;
 
+import edu.mines.jtk.util.Array;
+
 public class StatisticsUtils {
     
     public static class MinMaxMean {
@@ -143,5 +145,24 @@ public class StatisticsUtils {
             // return linear interpolation based on diff value
             return lower + diff * (upper - lower);
         }
+    }
+    
+    /**
+     * Calculates sample Pearson correlation coefficient for provided sample values
+     */
+    public static double samplePearsonCorrelationCoefficient(double[] aX, double[] aY) {
+        double xMean = Array.sum(aX)/aX.length;
+        double yMean = Array.sum(aY)/aY.length;
+ 
+        double numerator = 0;
+        double denA = 0;
+        double denB = 0;
+        for (int j = 0; j < aX.length; j++) {
+            numerator += (aX[j] - xMean) * (aY[j] - yMean);
+            denA += Math.pow((aX[j] - xMean), 2);
+            denB += Math.pow((aY[j] - yMean), 2);
+        }
+
+        return numerator / (Math.sqrt(denA * denB));
     }
 }

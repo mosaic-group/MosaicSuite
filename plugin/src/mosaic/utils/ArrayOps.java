@@ -1,6 +1,5 @@
 package mosaic.utils;
 
-
 public class ArrayOps {
     
     static public class MinMax<T> {

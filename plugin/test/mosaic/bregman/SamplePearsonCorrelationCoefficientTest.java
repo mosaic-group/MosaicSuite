@@ -9,7 +9,7 @@ import ij.ImageStack;
 import ij.process.FloatProcessor;
 
 
-public class PearsonTest {
+public class SamplePearsonCorrelationCoefficientTest {
 
     @Test
     public void test1_2D() {
@@ -25,12 +25,8 @@ public class PearsonTest {
                                 {0, 1, 0, 0, 0},
                                 {1, 0, 0, 0, 0}};
         ImagePlus ipB = new ImagePlus("", new FloatProcessor(imgB));
-        Parameters parameters = new Parameters();
-        parameters.ni = 5;
-        parameters.nj = 5;
-        parameters.nz = 1;
         
-        double[] result = new Pearson(ipA, ipB, parameters).run();
+        double[] result = new SamplePearsonCorrelationCoefficient(ipA, ipB, false, 0, false, 0).run();
         assertArrayEquals(new double[]{0, 0}, result, 1e-6);
     }
     
@@ -48,12 +44,8 @@ public class PearsonTest {
                                 {0, 1, 0, 0, 0},
                                 {1, 0, 0, 0, 0}};
         ImagePlus ipB = new ImagePlus("", new FloatProcessor(imgB));
-        Parameters parameters = new Parameters();
-        parameters.ni = 5;
-        parameters.nj = 5;
-        parameters.nz = 1;
         
-        double[] result = new Pearson(ipA, ipB, parameters).run();
+        double[] result = new SamplePearsonCorrelationCoefficient(ipA, ipB, false, 0, false, 0).run();
         assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
@@ -71,16 +63,8 @@ public class PearsonTest {
                                 {0, 1, 1, 1, 0},
                                 {0, 0, 0, 0, 0}};
         ImagePlus ipB = new ImagePlus("", new FloatProcessor(imgB));
-        Parameters parameters = new Parameters();
-        parameters.ni = 5;
-        parameters.nj = 5;
-        parameters.nz = 1;
-        parameters.usecellmaskY = true;
-        parameters.thresholdcellmasky = 0.5;
-        parameters.usecellmaskX = true;
-        parameters.thresholdcellmask = 0.25;
         
-        double[] result = new Pearson(ipA, ipB, parameters).run();
+        double[] result = new SamplePearsonCorrelationCoefficient(ipA, ipB, true, 0.5, true, 0.25).run();
         assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
@@ -102,12 +86,7 @@ public class PearsonTest {
         ImagePlus ipA = new ImagePlus("", is);
         ImagePlus ipB = new ImagePlus("", is);
         
-        Parameters parameters = new Parameters();
-        parameters.ni = 3;
-        parameters.nj = 3;
-        parameters.nz = 3;
-        
-        double[] result = new Pearson(ipA, ipB, parameters).run();
+        double[] result = new SamplePearsonCorrelationCoefficient(ipA, ipB, false, 0, false, 0).run();
         assertArrayEquals(new double[]{1, 1}, result, 1e-6);
     }
     
@@ -142,14 +121,7 @@ public class PearsonTest {
         for (int i = 0; i < 3; i++) isb.addSlice(new FloatProcessor(imgB[i]));
         ImagePlus ipB = new ImagePlus("", isb);
         
-        Parameters parameters = new Parameters();
-        parameters.ni = 3;
-        parameters.nj = 3;
-        parameters.nz = 3;
-        
-        double[] result = new Pearson(ipA, ipB, parameters).run();
+        double[] result = new SamplePearsonCorrelationCoefficient(ipA, ipB, false, 0, false, 0).run();
         assertArrayEquals(new double[]{0.25, 0.25}, result, 1e-6);
-  
     }
-    
 }

@@ -141,7 +141,7 @@ public class Analysis {
     }
 
     static double[] pearson_corr() {
-        return new Pearson(imgA, imgB, p).run();
+        return new SamplePearsonCorrelationCoefficient(imgA, imgB, p.usecellmaskX, p.thresholdcellmask, p.usecellmaskY, p.thresholdcellmasky).run();
     }
 
     static void segmentA() {
