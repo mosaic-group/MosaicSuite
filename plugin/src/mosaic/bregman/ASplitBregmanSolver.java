@@ -261,9 +261,6 @@ class ASplitBregmanSolver {
             this.regions_intensity_findthresh(w3kbest[0]);
         }
 
-        if (!p.mode_voronoi2) {
-            IJ.showStatus("Segmentation Done");
-        }
         if (p.livedisplay && p.firstphase) {
             if (p.nlevels <= 2 && p.nz == 1) {
                 md.display2regions(w3kbest[0][0], "Mask", channel);
@@ -376,7 +373,7 @@ class ASplitBregmanSolver {
         final double total = Analysis.totalsize(regionslistr);
         IJ.log(na + " Voronoi1 cells found, total area : " + Tools.round(total, 2) + " pixels.");
 
-        RSS.cluster_region(Ri[0], Ro[0], regionslistr);
+        RSS.cluster_region(Ri[0], regionslistr);
     }
 
     void regions_intensity_findthresh(double[][][] mask) {
@@ -464,12 +461,7 @@ class ASplitBregmanSolver {
             }
         }
 
-        if (p.mode_voronoi2) {
-            fcr.run(thr, p.ni * p.nj * p.nz, 0, 0, Ri[0]);// min size was 5
-        }
-        else {
-            fcr.run(thr, p.ni * p.nj * p.nz, 5, 0, Ri[0]);// min size was 5
-        }
+        fcr.run(thr, p.ni * p.nj * p.nz, 0, 0, Ri[0]);// min size was 5
 
         if (p.dispvoronoi) {
             if (nz == 1) {
@@ -541,12 +533,7 @@ class ASplitBregmanSolver {
 
         final long lStartTime = new Date().getTime();
 
-        if (p.mode_voronoi2) {
-            new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
-        }
-        else {
-            new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], w3kbest[0], 10, p).cluster_region(Ri[0], Ro[0], regionslist);
-        }
+        new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
 
         final long lEndTime = new Date().getTime(); // end time
         final long difference = lEndTime - lStartTime; // check different

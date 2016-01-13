@@ -4,7 +4,6 @@ package mosaic.bregman;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
@@ -161,7 +160,7 @@ public class Analysis {
 
         // for this plugin AFAIK is always TwoRegion
         TwoRegions rg = null;
-
+        System.out.println("============ split " + p.usePSF + " " + p.nz + " " + p.nlevels);
         if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
             new Thread(rg = new TwoRegions(img, p, doneSignal, channel)).start();
         }
@@ -187,28 +186,19 @@ public class Analysis {
     }
 
 
-    static void compute_connected_regions_a(double d, float[][][] RiN) {
-        final FindConnectedRegions fcr = processConnectedRegions(d, RiN, p.min_intensity, maskA);
+    static void compute_connected_regions_a(double d) {
+        final FindConnectedRegions fcr = processConnectedRegions(d, p.min_intensity, maskA);
         regions[0] = fcr.tempres;
         regionslist[0] = fcr.results;
-        logFoundObjects(regionslist[0], "X");
     }
 
-    static void compute_connected_regions_b(double d, float[][][] RiN) {
-        final FindConnectedRegions fcr = processConnectedRegions(d, RiN, p.min_intensityY, maskB);
+    static void compute_connected_regions_b(double d) {
+        final FindConnectedRegions fcr = processConnectedRegions(d, p.min_intensityY, maskB);
         regions[1] = fcr.tempres;
         regionslist[1] = fcr.results;
-        logFoundObjects(regionslist[1], "Y");
-    }
-
-    private static void logFoundObjects(final ArrayList<Region> currentRegionList, final String label) {
-        if (!p.mode_voronoi2) {
-            String meanName = (p.nz > 1) ? "volume" : "area";
-            IJ.log(currentRegionList.size() + " objects found in " + label + ", mean " + meanName + ": " + Tools.round(meansize(currentRegionList), 2) + " pixels.");
-        }
     }
     
-    private static FindConnectedRegions processConnectedRegions(double d, float[][][] RiN, double intensity, byte[][][] mask) {
+    private static FindConnectedRegions processConnectedRegions(double d, double intensity, byte[][][] mask) {
         final ImagePlus mask_im = new ImagePlus();
         final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
 
@@ -227,30 +217,12 @@ public class Analysis {
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
         
-        float[][][] Ri;
-        if (p.mode_voronoi2) {
-            Ri = new float[p.nz][p.ni][p.nj];
-            for (int z = 0; z < p.nz; z++) {
-                for (int i = 0; i < p.ni; i++) {
-                    for (int j = 0; j < p.nj; j++) {
-                        Ri[z][i][j] = (float) intensity;
-                    }
+        float[][][] Ri = new float[p.nz][p.ni][p.nj];
+        for (int z = 0; z < p.nz; z++) {
+            for (int i = 0; i < p.ni; i++) {
+                for (int j = 0; j < p.nj; j++) {
+                    Ri[z][i][j] = (float) intensity;
                 }
-            }
-        }
-        else {
-            if (RiN == null) {// ==true for testing with minimum intensity
-                Ri = new float[p.nz][p.ni][p.nj];
-                for (int z = 0; z < p.nz; z++) {
-                    for (int i = 0; i < p.ni; i++) {
-                        for (int j = 0; j < p.nj; j++) {
-                            Ri[z][i][j] = (float) d;
-                        }
-                    }
-                }
-            }
-            else {
-                Ri = RiN;
             }
         }
 

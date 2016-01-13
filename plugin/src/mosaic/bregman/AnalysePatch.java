@@ -43,7 +43,6 @@ class AnalysePatch implements Runnable {
     private int margin;
     private int zmargin;
     private final int ox, oy, oz;// size of full image
-    private final int wmar;// weights margin
     // size of patch
     int sx;
     int sy;
@@ -92,15 +91,11 @@ class AnalysePatch implements Runnable {
         this.os = oversampling;
         this.r = r;
         this.channel = channel;
-        wmar = 4;
         ox = pa.ni;
         oy = pa.nj;
         oz = pa.nz;
 
-        margin = 4;// add margin to size of object to create patch
-        if (pa.mode_voronoi2) {
-            margin = 6;
-        }
+        margin = 6;
         zmargin = 1;// was 2
         this.regions_refined = regionsf;
 
@@ -128,12 +123,7 @@ class AnalysePatch implements Runnable {
         temp3 = new double[sz][sx][sy];
 
         // create weights mask (binary)
-        if (p.mode_voronoi2) {
-            voronoi_mask(r.rvoronoi);// mask for voronoi region into weights
-        }
-        else {
-            fill_weights(r);
-        }
+        voronoi_mask(r.rvoronoi);// mask for voronoi region into weights
 
         // create patch image with oversampling
         this.patch = new double[sz][sx][sy];
@@ -187,35 +177,28 @@ class AnalysePatch implements Runnable {
         // (15 % compensated in find_best_t_and_int...)
 
         // estimate ints
-        if (p.mode_voronoi2) {
-            if (p.debug) {
-                IJ.log("object :" + r.value);
-            }
-            if (p.mode_intensity == 0) {
-                find_best_thresh_and_int(w3kpatch[0]);
-            }
-            else {
-                if (p.mode_intensity == 1) {
-                    estimate_int_weighted(mask);
-                }
-                else if (p.mode_intensity == 2) {
-                    estimate_int_clustering(p.mode_intensity - 1);// (-1 to correct for old numbering)
-                }
-            }
-            p.cl[0] = Math.max(cout, 0);
-            p.cl[1] = Math.max(0.75 * (firstminval - intmin) / (intmax - intmin), cin);
-
-            if (p.mode_intensity == 3)// mode high
-            {
-                p.cl[0] = p.betaMLEoutdefault;
-                p.cl[1] = 1;
-                t_high = cin;
-            }
+        if (p.debug) {
+            IJ.log("object :" + r.value);
+        }
+        if (p.mode_intensity == 0) {
+            find_best_thresh_and_int(w3kpatch[0]);
         }
         else {
-            estimate_int_weighted(mask);
-            p.cl[0] = cout;
-            p.cl[1] = cin;
+            if (p.mode_intensity == 1) {
+                estimate_int_weighted(mask);
+            }
+            else if (p.mode_intensity == 2) {
+                estimate_int_clustering(p.mode_intensity - 1);// (-1 to correct for old numbering)
+            }
+        }
+        p.cl[0] = Math.max(cout, 0);
+        p.cl[1] = Math.max(0.75 * (firstminval - intmin) / (intmax - intmin), cin);
+
+        if (p.mode_intensity == 3)// mode high
+        {
+            p.cl[0] = p.betaMLEoutdefault;
+            p.cl[1] = 1;
+            t_high = cin;
         }
 
         rescaled_min_int_all = Math.max(0, (rescaled_min_int - cout) / (cin - cout)); //cin
@@ -311,9 +294,6 @@ class AnalysePatch implements Runnable {
                 IJ.log("best thresh : " + t + "region" + r.value);
             }
             set_object(A_solver.w3kbest[0], t);
-            if (p.mode_classic) {
-                estimate_int_weighted(object);
-            }
             if (interpolation > 1) {
                 build_interpolated_object(A_solver.w3kbest[0], t);
                 object = interpolated_object;
@@ -434,13 +414,11 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        if (p.mode_voronoi2) {
-            for (int z = 0; z < sz; z++) {
-                for (int i = 0; i < sx; i++) {
-                    for (int j = 0; j < sy; j++) {
-                        if (weights[z][i][j] == 0) {
-                            this.patch[z][i][j] = 0;
-                        }
+        for (int z = 0; z < sz; z++) {
+            for (int i = 0; i < sx; i++) {
+                for (int j = 0; j < sy; j++) {
+                    if (weights[z][i][j] == 0) {
+                        this.patch[z][i][j] = 0;
                     }
                 }
             }
@@ -456,13 +434,11 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        if (p.mode_voronoi2) {
-            for (int z = 0; z < sz; z++) {
-                for (int i = 0; i < sx; i++) {
-                    for (int j = 0; j < sy; j++) {
-                        if (weights[z][i][j] == 0) {
-                            this.w3kpatch[0][z][i][j] = 0;
-                        }
+        for (int z = 0; z < sz; z++) {
+            for (int i = 0; i < sx; i++) {
+                for (int j = 0; j < sy; j++) {
+                    if (weights[z][i][j] == 0) {
+                        this.w3kpatch[0][z][i][j] = 0;
                     }
                 }
             }
@@ -596,14 +572,9 @@ class AnalysePatch implements Runnable {
                         pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
                     }
                     final Instance instance = new DenseInstance(pixel);
-                    if (p.mode_voronoi2) {
-                        if (weights[z][i][j] == 1) {
-                            data.add(instance);
-                            cpt_vals++;
-                        }
-                    }
-                    else {
+                    if (weights[z][i][j] == 1) {
                         data.add(instance);
+                        cpt_vals++;
                     }
                 }
             }
@@ -710,45 +681,6 @@ class AnalysePatch implements Runnable {
             for (int z = rz; z < rz + osz; z++) {
                 for (int i = rx; i < rx + os; i++) {
                     for (int j = ry; j < ry + os; j++) {
-                        this.weights[z][i][j] = 1;
-                    }
-                }
-            }
-        }
-    }
-
-    private void fill_weights(Region r) {
-        this.weights = new double[sz][sx][sy];
-
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    this.weights[z][i][j] = 0;
-                }
-            }
-        }
-
-        for (final Pix p : r.pixels) {
-            int rzmin, rxmin, rymin;
-            int rzmax, rxmax, rymax;
-            if (sz > 1) {
-                rzmin = Math.max(0, os * (p.pz - offsetz) - wmar);
-                rzmax = Math.min(sz, rzmin + osz + 2 * wmar);
-            }
-            else {
-                rzmin = 0;
-                rzmax = 1;
-            }
-
-            rxmin = Math.max(0, os * (p.px - offsetx) - wmar);
-            rymin = Math.max(0, os * (p.py - offsety) - wmar);
-
-            rxmax = Math.min(sx, rxmin + os + 2 * wmar);
-            rymax = Math.min(sy, rymin + os + 2 * wmar);
-
-            for (int z = rzmin; z < rzmax; z++) {
-                for (int i = rxmin; i < rxmax; i++) {
-                    for (int j = rymin; j < rymax; j++) {
                         this.weights[z][i][j] = 1;
                     }
                 }

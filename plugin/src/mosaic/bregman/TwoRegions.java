@@ -196,24 +196,16 @@ class TwoRegions extends NRegions {
 
             if (!Analysis.p.looptest) {
                 if (p.findregionthresh) {
-                    Analysis.compute_connected_regions_a(255 * p.thresh, RiN);
+                    Analysis.compute_connected_regions_a(255 * p.thresh);
                 }
                 else {
-                    Analysis.compute_connected_regions_a(255 * p.thresh, null);
+                    Analysis.compute_connected_regions_a(255 * p.thresh);
                 }
-                if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
+                if (Analysis.p.refinement) {
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
 
-                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
-                    A_solver = null;
-                    ipatches.run();
-                    Analysis.regionslist[0] = ipatches.regionslist_refined;
-                    Analysis.regions[0] = ipatches.regions_refined;
-                }
-
-                if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
                     final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
@@ -322,25 +314,17 @@ class TwoRegions extends NRegions {
 
             if (!Analysis.p.looptest) {
                 if (p.findregionthresh) {
-                    Analysis.compute_connected_regions_b(255 * p.thresh, RiN);
+                    Analysis.compute_connected_regions_b(255 * p.thresh);
                 }
                 else {
-                    Analysis.compute_connected_regions_b(255 * p.thresh, null);
+                    Analysis.compute_connected_regions_b(255 * p.thresh);
                 }
 
-                if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
+                if (Analysis.p.refinement) {
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
 
-                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
-                    A_solver = null;
-                    ipatches.run();
-                    Analysis.regionslist[1] = ipatches.regionslist_refined;
-                    Analysis.regions[1] = ipatches.regions_refined;
-                }
-
-                if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
                     final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();

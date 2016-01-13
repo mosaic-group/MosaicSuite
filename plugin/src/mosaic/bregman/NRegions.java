@@ -181,6 +181,7 @@ class NRegions implements Runnable {
     public void run() {
         md = new MasksDisplay(ni, nj, nz, nl, p.cl, p);
         md.firstdisp = p.livedisplay;
+        System.out.println("============ split");
         ASplitBregmanSolver A_solver = new ASplitBregmanSolver(p, image, Ei, mask, md, channel);
 
         try {
@@ -195,10 +196,10 @@ class NRegions implements Runnable {
             Analysis.setmaska(A_solver.maxmask);
             if (!Analysis.p.looptest) {
                 if (p.nlevels == 2) {
-                    Analysis.compute_connected_regions_a(0.5, null);
+                    Analysis.compute_connected_regions_a(0.5);
                 }
                 else {
-                    Analysis.compute_connected_regions_a(1.5, null);
+                    Analysis.compute_connected_regions_a(1.5);
                 }
             }
         }
@@ -206,10 +207,10 @@ class NRegions implements Runnable {
             Analysis.setmaskb(A_solver.maxmask);
             if (!Analysis.p.looptest) {
                 if (p.nlevels == 2) {
-                    Analysis.compute_connected_regions_b(0.5, null);
+                    Analysis.compute_connected_regions_b(0.5);
                 }
                 else {
-                    Analysis.compute_connected_regions_b(1.5, null);
+                    Analysis.compute_connected_regions_b(1.5);
                 }
             }
         }

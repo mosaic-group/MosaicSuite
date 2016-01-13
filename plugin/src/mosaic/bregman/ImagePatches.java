@@ -16,7 +16,6 @@ import mosaic.utils.ArrayOps;
 
 class ImagePatches {
 
-    private final int interp;
     private int jobs_done;
     private int nb_jobs;
     private final int osxy;
@@ -49,7 +48,6 @@ class ImagePatches {
 
         this.channel = channeli;
         this.p = pa;
-        this.interp = pa.interpolation;
         this.osxy = p.oversampling2ndstep * pa.interpolation;
         this.globalList = new ArrayList<Region>();
         this.regionslist_refined = regionslist;
@@ -125,20 +123,7 @@ class ImagePatches {
                 p.oversampling2ndstep = 1;
             }
             ap = new AnalysePatch(image, r, p, p.oversampling2ndstep, channel, regions_refined, this);
-            if (p.mode_voronoi2) {
-                threadPool.execute(ap);
-            }
-
-            // add refined result into regions refined :
-            if (!p.mode_voronoi2) {
-
-                if (interp == 1) {
-                    assemble_result(ap, r);
-                }
-                else {
-                    assemble_result_interpolated(ap, r);
-                }
-            }
+            threadPool.execute(ap);
         }
 
         threadPool.shutdown();
@@ -149,51 +134,49 @@ class ImagePatches {
         catch (final InterruptedException ex) {
         }
 
-        if (p.mode_voronoi2) {
-            regionslist_refined = globalList;
+        regionslist_refined = globalList;
 
-            // final LinkedBlockingQueue<Runnable> queue2 = new
-            // LinkedBlockingQueue<Runnable>();
-            final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
+        // final LinkedBlockingQueue<Runnable> queue2 = new
+        // LinkedBlockingQueue<Runnable>();
+        final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
 
-            // calculate regions intensities
-            for (final Region r : regionslist_refined) {
-                ObjectProperties Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
-                threadPool2.execute(Op);
-            }
-
-            threadPool2.shutdown();
-            try {
-                threadPool2.awaitTermination(1, TimeUnit.DAYS);
-            }
-            catch (final InterruptedException ex) {}
-
-            // here we analyse the patch
-            // if we have a big region with intensity near the background
-            // kill that region
-            boolean changed = false;
-
-            final ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
-
-            for (final Region r : regionslist_refined) {
-                if (r.intensity * (max - min) + min > p.min_region_filter_intensities) {
-                    regionslist_refined_filter.add(r);
-                }
-                else {
-                    changed = true;
-                }
-            }
-
-            regionslist_refined = regionslist_refined_filter;
-
-            // if changed, reassemble
-            if (changed == true) {
-                ArrayOps.fill(regions_refined, (short) 0);
-                assemble(regionslist_refined, regions_refined);
-            }
-
-            regionslist_refined = regionslist_refined_filter;
+        // calculate regions intensities
+        for (final Region r : regionslist_refined) {
+            ObjectProperties Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
+            threadPool2.execute(Op);
         }
+
+        threadPool2.shutdown();
+        try {
+            threadPool2.awaitTermination(1, TimeUnit.DAYS);
+        }
+        catch (final InterruptedException ex) {}
+
+        // here we analyse the patch
+        // if we have a big region with intensity near the background
+        // kill that region
+        boolean changed = false;
+
+        final ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
+
+        for (final Region r : regionslist_refined) {
+            if (r.intensity * (max - min) + min > p.min_region_filter_intensities) {
+                regionslist_refined_filter.add(r);
+            }
+            else {
+                changed = true;
+            }
+        }
+
+        regionslist_refined = regionslist_refined_filter;
+
+        // if changed, reassemble
+        if (changed == true) {
+            ArrayOps.fill(regions_refined, (short) 0);
+            assemble(regionslist_refined, regions_refined);
+        }
+
+        regionslist_refined = regionslist_refined_filter;
 
         final int no = regionslist_refined.size();
         if (channel == 0) {
@@ -233,45 +216,5 @@ class ImagePatches {
 
         IJ.showStatus("Computing segmentation  " + Tools.round(55 + (45 * ((double) jobs_done) / (nb_jobs)), 2) + "%");
         IJ.showProgress(0.55 + 0.45 * (jobs_done) / (nb_jobs));
-    }
-
-    private void assemble_result(AnalysePatch ap, Region r) {
-        final ArrayList<Pix> rpixels = new ArrayList<Pix>();
-        int pixcount = 0;
-        for (int z = 0; z < ap.sz; z++) {
-            for (int i = 0; i < ap.sx; i++) {
-                for (int j = 0; j < ap.sy; j++) {
-                    if (ap.object[z][i][j] == 1) {
-                        regions_refined[z + ap.offsetz * osz][i + ap.offsetx * osxy][j + ap.offsety * osxy] = (short) r.value;
-                        rpixels.add(new Pix(z + ap.offsetz * osz, i + ap.offsetx * osxy, j + ap.offsety * osxy));
-                        pixcount++;
-                    }
-                }
-            }
-        }
-        // assign new pixel list to region and refined size
-        r.pixels = rpixels;
-        r.rsize = pixcount;
-        r.intensity = ap.cin * (ap.intmax - ap.intmin) + ap.intmin;
-    }
-
-    private void assemble_result_interpolated(AnalysePatch ap, Region r) {
-        final ArrayList<Pix> rpixels = new ArrayList<Pix>();
-        int pixcount = 0;
-        for (int z = 0; z < ap.isz; z++) {
-            for (int i = 0; i < ap.isx; i++) {
-                for (int j = 0; j < ap.isy; j++) {
-                    if (ap.interpolated_object[z][i][j] == 1) {
-                        regions_refined[z + ap.offsetz * osz][i + ap.offsetx * osxy][j + ap.offsety * osxy] = (short) r.value;
-                        rpixels.add(new Pix(z + ap.offsetz * osz, i + ap.offsetx * osxy, j + ap.offsety * osxy));
-                        pixcount++;
-                    }
-                }
-            }
-        }
-        // assign new pixel list to region and refined size
-        r.pixels = rpixels;
-        r.rsize = pixcount;
-        r.intensity = ap.cin * (ap.intmax - ap.intmin) + ap.intmin;
     }
 }

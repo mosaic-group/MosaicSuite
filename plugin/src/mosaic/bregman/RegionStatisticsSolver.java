@@ -218,7 +218,7 @@ class RegionStatisticsSolver {
         }
     }
 
-    void cluster_region(float[][][] Ri, float[][][] Ro, ArrayList<Region> regionslist) {
+    void cluster_region(float[][][] Ri, ArrayList<Region> regionslist) {
         int nk = 3;
         final double[] pixel = new double[1];
         final double[] levels = new double[nk];
@@ -262,22 +262,11 @@ class RegionStatisticsSolver {
             final int nkm1 = Math.max(nk - 1, 0);
             betaMLEout = levels[nkm1];
 
-            if (p.mode_voronoi2) {
-                for (final Pix p : r.pixels) {
-                    final int i = p.px;
-                    final int j = p.py;
-                    final int z = p.pz;
-                    Ri[z][i][j] = regionslist.indexOf(r);
-                }
-            }
-            else {
-                for (final Pix p : r.pixels) {
-                    final int i = p.px;
-                    final int j = p.py;
-                    final int z = p.pz;
-                    Ri[z][i][j] = (float) (255 * betaMLEin);
-                    Ro[z][i][j] = (float) (255 * betaMLEout);
-                }
+            for (final Pix p : r.pixels) {
+                final int i = p.px;
+                final int j = p.py;
+                final int z = p.pz;
+                Ri[z][i][j] = regionslist.indexOf(r);
             }
         }
     }

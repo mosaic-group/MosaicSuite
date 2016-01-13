@@ -14,7 +14,7 @@ public class Parameters implements Serializable {
     public final int oc_s = 1;
 
     // ================================ this guys are set only in Parameters class and used as const values later on
-    boolean mode_classic = false; 
+    boolean mode_classic = false; // Already deleted in code - before removing updated config file.
     public boolean mode_voronoi2 = true;
     public boolean debug = false;
     int model_oversampling = 1; // Already deleted in code - before removing updated config file.
@@ -27,7 +27,7 @@ public class Parameters implements Serializable {
     double colocthreshold = 0.5;
     int RegionsIntensitymodulo = 3000;
     int energyEvaluationModulo = 5;
-    boolean fastsquassh = false;
+    boolean fastsquassh = false; // Already deleted in code - before removing updated config file.
     int overs = 2;
     boolean usePSF = true;
     

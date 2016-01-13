@@ -447,15 +447,13 @@ public class BLauncher {
 
         Analysis.loadChannels(img2, Analysis.p.nchannels);
 
-        if (Analysis.p.mode_voronoi2) {
-            if (Analysis.p.nz > 1) {
-                Analysis.p.max_nsb = 151;
-                Analysis.p.interpolation = 2;
-            }
-            else {
-                Analysis.p.max_nsb = 151;
-                Analysis.p.interpolation = 4;
-            }
+        if (Analysis.p.nz > 1) {
+            Analysis.p.max_nsb = 151;
+            Analysis.p.interpolation = 2;
+        }
+        else {
+            Analysis.p.max_nsb = 151;
+            Analysis.p.interpolation = 4;
         }
 
         int nni, nnj, nnz;
@@ -572,7 +570,7 @@ public class BLauncher {
 
         // build stack and imageplus for objects
         objS = new ImageStack(di, dj);
-
+        System.out.println(regions.length + " " + regions[0].length + " " + regions[0][0].length);
         for (int z = 0; z < dz; z++) {
             final byte[] mask_bytes = new byte[di * dj];
             for (int i = 0; i < di; i++) {
