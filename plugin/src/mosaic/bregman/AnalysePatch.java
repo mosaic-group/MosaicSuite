@@ -67,9 +67,9 @@ class AnalysePatch implements Runnable {
     final Region r;
     private final int channel;
     private double rescaled_min_int, rescaled_min_int_all;
-    private final double[][][][] temp1;
-    private final double[][][][] temp2;
-    private final double[][][][] temp3;
+    private final double[][][] temp1;
+    private final double[][][] temp2;
+    private final double[][][] temp3;
     private double[][][] weights;
     final double firstminval;
     private final double[][][][] w3kpatch;
@@ -127,9 +127,9 @@ class AnalysePatch implements Runnable {
 
         // compute patch geometry :
         set_patch_geom(r, oversampling);
-        temp1 = new double[1][sz][sx][sy];
-        temp2 = new double[1][sz][sx][sy];
-        temp3 = new double[1][sz][sx][sy];
+        temp1 = new double[sz][sx][sy];
+        temp2 = new double[sz][sx][sy];
+        temp3 = new double[sz][sx][sy];
 
         // create weights mask (binary)
         if (p.mode_voronoi2) {
@@ -539,7 +539,7 @@ class AnalysePatch implements Runnable {
         if (p.debug) {
             IJ.log("estimate int weighted");
         }
-        RSS = new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], patch, weights, 10, p);
+        RSS = new RegionStatisticsSolver(temp1, temp2, temp3, patch, weights, 10, p);
         RSS.eval(mask);
 
         cout = RSS.betaMLEout;
@@ -773,19 +773,19 @@ class AnalysePatch implements Runnable {
      */
     private double find_best_thresh(double[][][] w3kbest) {
         double energy = Double.MAX_VALUE;
-        double threshold = 0.75;// defulat value for threshold
-        double temp;
+        double threshold = 0.75;
         for (double t = 1; t > min_thresh; t -= 0.02) { // mint
             ///rescaled_min_int_all*0.85
             // 0.5*cout
             set_object(w3kbest, t);
 
             if (obj && !border_attained) {
+                double temp;
                 if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
 
                 if (p.debug) {
@@ -820,10 +820,10 @@ class AnalysePatch implements Runnable {
                 estimate_int_weighted(object);
 
                 if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
 
                 if (p.debug == true) {

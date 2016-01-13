@@ -1,13 +1,12 @@
 package mosaic.bregman;
 
 
-import java.util.Iterator;
-
 import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.GaussPSF;
+import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;
 
 class ObjectProperties implements Runnable {
@@ -99,8 +98,7 @@ class ObjectProperties implements Runnable {
         final int c0 = (int) Math.min(255, 255 * region.intensity); // Red
         final int c2 = (int) Math.min(255, 255 * Math.pow(region.intensity, 2)); // Blue
 
-        for (final Iterator<Pix> it2 = region.pixels.iterator(); it2.hasNext();) {
-            final Pix p = it2.next();
+        for (final Pix p : region.pixels) {
             // set correct color
             final int t = p.pz * nx * ny * 3 + p.px * ny * 3;
             imagecolor_c1[t + p.py * 3 + 0] = (byte) c0;
@@ -115,7 +113,7 @@ class ObjectProperties implements Runnable {
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    this.patch[z][i][j] = image[(cz + z) / osz][(cx + i) / osxy][(cy + j) / osxy];
+                    this.patch[z][i][j] = image[(cz + z) / osz][(cx + i) / osxy] [(cy + j) / osxy];
                 }
             }
         }
@@ -218,13 +216,7 @@ class ObjectProperties implements Runnable {
 
     private void fill_mask(Region r) {
         mask = new double[sz][sx][sy];
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    mask[z][i][j] = 0;
-                }
-            }
-        }
+        ArrayOps.fill(mask, 0);
         
         for (Pix p : r.pixels) {
             int rz = (p.pz - cz);
@@ -329,7 +321,6 @@ class ObjectProperties implements Runnable {
     }
 
     private void regionIntensityAndCenter(Region r, double[][][] image) {
-        int count = 0;
         double sum = 0;
         double sumx = 0;
         double sumy = 0;
@@ -342,8 +333,9 @@ class ObjectProperties implements Runnable {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
-            count++;
         }
+        
+        int count = r.pixels.size();
 
         if (!Analysis.p.refinement) {
             r.intensity = (sum / (count));

@@ -24,6 +24,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import mosaic.bregman.Analysis;
+import mosaic.bregman.Tools;
+import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 
 
 public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
@@ -424,27 +427,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     // find min and max values in channel 1
     private void initpreviewch1(ImagePlus img) {
-
         ni = img.getWidth();
         nj = img.getHeight();
         nz = img.getNSlices();
-
-        ImageProcessor imp;
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max) {
-                        max = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min) {
-                        min = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
-
+        MinMax<Double> mm = Tools.findMinMax(img);
+        min = mm.getMin();
+        max = mm.getMax();
     }
 
     // find min and max values in channel 2

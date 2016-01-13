@@ -9,10 +9,11 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.psf;
+import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-class Tools {
+public class Tools {
     final private int ni, nj, nz, nlevels;
     
     Tools(int nni, int nnj, int nnz) {
@@ -562,13 +563,11 @@ class Tools {
             if (thr == 1) {
                 thr = 0.5;// should not have threhold to 1: creates
             }
-            // empty mask and wrong behavior in dct3D
-            // computation
+            // empty mask and wrong behavior in dct3D computation
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
                         if (image[z][i][j] >= thr) {
-                            // image[z][i][j]<=cltemp[l+2])
                             res[l][z][i][j] = 1;
                         }
                         else {
@@ -608,7 +607,6 @@ class Tools {
     }
 
     void fgradx2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
-
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni - 1; i++) {
                 for (int j = tStart; j < tEnd; j++) {
@@ -631,7 +629,6 @@ class Tools {
     // if x and y do same chunk : possibility to remove one synchronization
     // after each gradient computation
     void fgrady2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
-
         for (int z = 0; z < nz; z++) {
             for (int i = tStart; i < tEnd; i++) {
                 for (int j = 0; j < nj - 1; j++) {
@@ -647,7 +644,6 @@ class Tools {
     }
 
     private void bgradxdbc2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
-
         for (int z = 0; z < nz; z++) {
             for (int i = 1; i < ni - 1; i++) {
                 for (int j = tStart; j < tEnd; j++) {
@@ -717,18 +713,15 @@ class Tools {
     }
 
     void shrink2D(double[][][] res1, double[][][] res2, double[][][] u1, double[][][] u2, double t, int iStart, int iEnd) {
-        double norm = 0;
-        double u1tmp, u2tmp;
-
-        for (int z = 0; z < nz; z++) {// todo : shrink3D
+        for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
-                    u1tmp = u1[z][i][j];
-                    u2tmp = u2[z][i][j];
-                    norm = Math.sqrt(u1tmp * u1tmp + u2tmp * u2tmp);
+                    double u1tmp = u1[z][i][j];
+                    double u2tmp = u2[z][i][j];
+                    double norm = Math.sqrt(u1tmp * u1tmp + u2tmp * u2tmp);
                     if (norm >= t) {
-                        res1[z][i][j] = u1[z][i][j] - t * u1[z][i][j] / norm;
-                        res2[z][i][j] = u2[z][i][j] - t * u2[z][i][j] / norm;
+                        res1[z][i][j] = u1tmp - t * u1tmp / norm;
+                        res2[z][i][j] = u2tmp - t * u2tmp / norm;
                     }
                     else {
                         res1[z][i][j] = 0;
@@ -744,16 +737,13 @@ class Tools {
     }
 
     void shrink3D(double[][][] res1, double[][][] res2, double[][][] res3, double[][][] u1, double[][][] u2, double[][][] u3, double t, int iStart, int iEnd) {
-        double norm = 0;
-        double u1tmp, u2tmp, u3tmp;
-
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
-                    u1tmp = u1[z][i][j];
-                    u2tmp = u2[z][i][j];
-                    u3tmp = u3[z][i][j];
-                    norm = Math.sqrt(u1tmp * u1tmp + u2tmp * u2tmp + u3tmp * u3tmp);
+                    double u1tmp = u1[z][i][j];
+                    double u2tmp = u2[z][i][j];
+                    double u3tmp = u3[z][i][j];
+                    double norm = Math.sqrt(u1tmp * u1tmp + u2tmp * u2tmp + u3tmp * u3tmp);
                     if (norm >= t) {
                         res1[z][i][j] = u1tmp - t * u1tmp / norm;
                         res2[z][i][j] = u2tmp - t * u2tmp / norm;
@@ -770,7 +760,6 @@ class Tools {
     }
 
     double computeEnergy(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg) {
-
         fgradx2D(maskx, mask);
         fgrady2D(masky, mask);
 
@@ -934,10 +923,7 @@ class Tools {
             }
         }
 
-        if (Sync8 != null) {
-            Sync8.countDown();
-            Sync8.await();
-        }
+        synchronizedWait(Sync8);
 
         fgradx2D(temp, mask, jStart, jEnd);
         double tmp;
@@ -950,10 +936,8 @@ class Tools {
             }
         }
 
-        if (Sync10 != null) {
-            Sync10.countDown();
-            Sync10.await();
-        }
+        synchronizedWait(Sync10);
+        
         fgrady2D(temp, mask, iStart, iEnd);
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -973,10 +957,8 @@ class Tools {
             }
         }
 
-        if (Sync9 != null) {
-            Sync9.countDown();
-            Sync9.await();
-        }
+        synchronizedWait(Sync9);
+        
         double energyPrior = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -1084,10 +1066,7 @@ class Tools {
             throws InterruptedException {
         bgradxdbc2D(res, m1, jStart, jEnd);
         bgradydbc2D(temp, m2, iStart, iEnd);
-        if (Sync2 != null) {
-            Sync2.countDown();
-            Sync2.await();
-        }
+        synchronizedWait(Sync2);
         addtab(res, res, temp, iStart, iEnd);
         bgradzdbc2D(m1, m3, iStart, iEnd);
         addtab(res, res, m1, iStart, iEnd);
@@ -1119,6 +1098,38 @@ class Tools {
                 }
             }
         }
+    }
+
+    static public void synchronizedWait(final CountDownLatch aSyncLatch) throws InterruptedException {
+        if (aSyncLatch != null) {
+            aSyncLatch.countDown();
+            aSyncLatch.await();
+        }
+    }
+
+    public static MinMax<Double> findMinMax(ImagePlus img) {
+        int ni = img.getWidth();
+        int nj = img.getHeight();
+        int nz = img.getNSlices();
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+        
+        for (int z = 0; z < nz; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (imp.getPixel(i, j) > max) {
+                        max = imp.getPixel(i, j);
+                    }
+                    if (imp.getPixel(i, j) < min) {
+                        min = imp.getPixel(i, j);
+                    }
+                }
+            }
+        }
+        
+        return new MinMax<Double>(min, max);
     }
 
     // Round y to z-places after comma

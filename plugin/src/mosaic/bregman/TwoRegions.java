@@ -317,7 +317,6 @@ class TwoRegions extends NRegions {
                     final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, null, Analysis.regions[0]);
                     obj.run();
                 }
-
             }
         }
         else {

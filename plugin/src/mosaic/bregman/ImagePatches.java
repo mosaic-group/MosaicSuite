@@ -91,7 +91,7 @@ class ImagePatches {
                 }
             }
         }
-        ArrayOps.fillArray(regions_refined, (short) 0);
+        ArrayOps.fill(regions_refined, (short) 0);
     }
 
     public void run() {
@@ -192,7 +192,7 @@ class ImagePatches {
 
             // if changed, reassemble
             if (changed == true) {
-                ArrayOps.fillArray(regions_refined, (short) 0);
+                ArrayOps.fill(regions_refined, (short) 0);
                 assemble(regionslist_refined, regions_refined);
             }
 
@@ -249,7 +249,6 @@ class ImagePatches {
                     if (ap.object[z][i][j] == 1) {
                         regions_refined[z + ap.offsetz * osz][i + ap.offsetx * osxy][j + ap.offsety * osxy] = (short) r.value;
                         rpixels.add(new Pix(z + ap.offsetz * osz, i + ap.offsetx * osxy, j + ap.offsety * osxy));
-                        // rpixels.add(new Pix(z,i,j));
                         pixcount++;
                     }
                 }

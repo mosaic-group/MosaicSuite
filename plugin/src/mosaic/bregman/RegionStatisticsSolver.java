@@ -3,7 +3,6 @@ package mosaic.bregman;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.core.Dataset;
@@ -96,7 +95,6 @@ class RegionStatisticsSolver {
      * @param Mask
      */
     public void eval(double[][][] Mask) {
-
         final int ni = p.ni;
         final int nj = p.nj;
         final int nz = p.nz;
@@ -225,18 +223,15 @@ class RegionStatisticsSolver {
         final double[] pixel = new double[1];
         final double[] levels = new double[nk];
 
-        for (final Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
-            final Region r = itr.next();
+        for (final Region r : regionslist) {
             final Dataset data = new DefaultDataset();
             if (r.points < 6) {
                 continue;
             }
-            for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-                final Pix p = it.next();
+            for (final Pix p : r.pixels) {
                 final int i = p.px;
                 final int j = p.py;
                 final int z = p.pz;
-                // IJ.log("i j z " +i +" " +j+ " "+ z +"val" + image[z][i][j]);
                 pixel[0] = image[z][i][j];
                 final Instance instance = new DenseInstance(pixel);
                 data.add(instance);
@@ -248,8 +243,7 @@ class RegionStatisticsSolver {
                 xm.setNumClusters(3);// 3
                 xm.setMaxIterations(100);
             }
-            catch (final Exception ex) {
-            }
+            catch (final Exception ex) {}
 
             /* Wrap Weka clusterer in bridge */
             final Clusterer jmlxm = new WekaClusterer(xm);
@@ -269,9 +263,7 @@ class RegionStatisticsSolver {
             betaMLEout = levels[nkm1];
 
             if (p.mode_voronoi2) {
-                for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-
-                    final Pix p = it.next();
+                for (final Pix p : r.pixels) {
                     final int i = p.px;
                     final int j = p.py;
                     final int z = p.pz;
@@ -279,9 +271,7 @@ class RegionStatisticsSolver {
                 }
             }
             else {
-                for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-
-                    final Pix p = it.next();
+                for (final Pix p : r.pixels) {
                     final int i = p.px;
                     final int j = p.py;
                     final int z = p.pz;
@@ -293,12 +283,8 @@ class RegionStatisticsSolver {
     }
 
     void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
-
-        for (final Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
-            final Region r = itr.next();
-            for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-
-                final Pix p = it.next();
+        for (final Region r : regionslist) {
+            for (final Pix p : r.pixels) {
                 final int i = p.px;
                 final int j = p.py;
                 final int z = p.pz;

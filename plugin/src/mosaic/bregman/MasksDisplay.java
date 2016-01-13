@@ -2,7 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 
 import ij.IJ;
@@ -265,7 +264,7 @@ class MasksDisplay {
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    temp[j * p.ni + i] = (byte) ((int) (255 * array[z][i][j]));// (float)
+                    temp[j * p.ni + i] = (byte) ((int) (255 * array[z][i][j]));
                 }
             }
             final ImageProcessor bp = new ByteProcessor(ni, nj);
@@ -340,25 +339,10 @@ class MasksDisplay {
 
         final byte[] imagecolor = new byte[nz * ni * nj * 3];
 
-        // set all to zero
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                final int t = z * ni * nj * 3 + i * nj * 3;
-                for (int j = 0; j < nj; j++) {
-                    imagecolor[t + j * 3 + 0] = 0;// Red channel
-                    imagecolor[t + j * 3 + 1] = 0;// Green channel
-                    imagecolor[t + j * 3 + 2] = 0;// Blue channel
-                }
-            }
-        }
-
         // set green pixels
         imagecolor[1] = (byte) 255;
-        for (final Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                final Pix p = it2.next();
+        for (final Region r : regionslistA) {
+            for (final Pix p : r.pixels) {
                 final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
                 imagecolor[t + p.py * 3 + 1] = (byte) 255;
                 // green
@@ -366,11 +350,8 @@ class MasksDisplay {
         }
 
         // set red pixels
-        for (final Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
-            final Region r = it.next();
-
-            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                final Pix p = it2.next();
+        for (final Region r : regionslistB) {
+            for (final Pix p : r.pixels) {
                 final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
                 imagecolor[t + p.py * 3 + 0] = (byte) 255;
             }
@@ -404,8 +385,7 @@ class MasksDisplay {
         if (Analysis.p.save_images) {
             IJ.run(this.imgcoloc, "RGB Color", "");
 
-            savepath = MosaicUtils.removeExtension(savepath);
-            savepath = savepath + "_coloc" + ".zip";
+            savepath = MosaicUtils.removeExtension(savepath) + "_coloc.zip";
             IJ.saveAs(this.imgcoloc, "ZIP", savepath);
         }
     }

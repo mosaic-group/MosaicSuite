@@ -73,18 +73,12 @@ class ZoneTask3D implements Runnable {
         LocalTools.subtab(AS.temp2[AS.l], AS.temp2[AS.l], AS.b2yk[AS.l], iStart, iEnd);
         LocalTools.subtab(AS.temp4[AS.l], AS.w2zk[AS.l], AS.b2zk[AS.l], iStart, iEnd);
 
-        if (Sync1 != null) {
-            Sync1.countDown();
-            Sync1.await();
-        }
+        Tools.synchronizedWait(Sync1);
 
         // use w2zk as temp
         LocalTools.mydivergence3D(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l], AS.temp4[AS.l], AS.w2zk[AS.l], Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
 
-        if (Sync12 != null) {
-            Sync12.countDown();
-            Sync12.await();
-        }
+        Tools.synchronizedWait(Sync12);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -94,17 +88,11 @@ class ZoneTask3D implements Runnable {
             }
         }
 
-        if (Sync3 != null) {
-            Sync3.countDown();
-            Sync3.await();
-        }
+        Tools.synchronizedWait(Sync3);
 
         Tools.convolve3Dseparable(AS.temp4[AS.l], AS.temp2[AS.l], AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp1[AS.l], iStart, iEnd);
 
-        if (Sync11 != null) {
-            Sync11.countDown();
-            Sync11.await();
-        }
+        Tools.synchronizedWait(Sync11);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -137,11 +125,7 @@ class ZoneTask3D implements Runnable {
 
         Tools.convolve3Dseparable(AS.temp2[AS.l], AS.temp1[AS.l], AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp3[AS.l], iStart, iEnd);
 
-        // synchro
-        if (Sync10 != null) {
-            Sync10.countDown();
-            Sync10.await();
-        }
+        Tools.synchronizedWait(Sync10);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -195,24 +179,18 @@ class ZoneTask3D implements Runnable {
                 for (int j = 0; j < AS.nj; j++) {
                     AS.b1k[AS.l][z][i][j] = AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j] - AS.w1k[AS.l][z][i][j];
                     AS.b3k[AS.l][z][i][j] = AS.b3k[AS.l][z][i][j] + AS.temp1[AS.l][z][i][j] - AS.w3k[AS.l][z][i][j];
-                    // mask[l][z][i][j]=w3k[l][z][i][j];
                 }
             }
         }
 
-        if (Sync5 != null) {
-            Sync5.countDown();
-            Sync5.await();
-        }
+        Tools.synchronizedWait(Sync5);
 
         LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
         LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
         LocalTools.fgradz2D(AS.ukz[AS.l], AS.temp1[AS.l], iStart, iEnd);
 
-        if (Sync6 != null) {
-            Sync6.countDown();
-            Sync6.await();
-        }
+        Tools.synchronizedWait(Sync6);
+        
         LocalTools.addtab(AS.temp1[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
         LocalTools.addtab(AS.temp2[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l], iStart, iEnd);
         LocalTools.addtab(AS.w2zk[AS.l], AS.ukz[AS.l], AS.b2zk[AS.l], iStart, iEnd);
@@ -225,15 +203,11 @@ class ZoneTask3D implements Runnable {
                     AS.b2xk[AS.l][z][i][j] = AS.b2xk[AS.l][z][i][j] + AS.temp3[AS.l][z][i][j] - AS.temp1[AS.l][z][i][j];
                     AS.b2yk[AS.l][z][i][j] = AS.b2yk[AS.l][z][i][j] + AS.temp4[AS.l][z][i][j] - AS.temp2[AS.l][z][i][j];
                     AS.b2zk[AS.l][z][i][j] = AS.b2zk[AS.l][z][i][j] + AS.ukz[AS.l][z][i][j] - AS.w2zk[AS.l][z][i][j];
-                    // mask[l][z][i][j]=w3k[l][z][i][j];
                 }
             }
         }
 
-        if (Sync7 != null) {
-            Sync7.countDown();
-            Sync7.await();
-        }
+        Tools.synchronizedWait(Sync7);
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {

@@ -8,6 +8,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.BackgroundSubtracter;
 import ij.process.ImageProcessor;
+import mosaic.utils.ArrayOps.MinMax;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -48,14 +49,13 @@ class NRegions implements Runnable {
         }
 
         this.p = params;
-
         this.DoneSignal = DoneSignal;
+        this.channel = channel;
         
         this.nl = p.nlevels;
         this.ni = p.ni;
         this.nj = p.nj;
         this.nz = p.nz;
-        this.channel = channel;
 
         LocalTools = new Tools(ni, nj, nz, nl);
 
@@ -68,30 +68,18 @@ class NRegions implements Runnable {
             Ei = null;
         }
 
-        max = 0;
         min = Double.POSITIVE_INFINITY;
-        // change : use max value instead of 65536
+        max = 0;
 
         /* Search for maximum and minimum value, normalization */
         if (Analysis.norm_max == 0) {
-            for (int z = 0; z < nz; z++) {
-                img.setSlice(z + 1);
-                ImageProcessor imp = img.getProcessor();
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        if (imp.getPixel(i, j) > max) {
-                            max = imp.getPixel(i, j);
-                        }
-                        if (imp.getPixel(i, j) < min) {
-                            min = imp.getPixel(i, j);
-                        }
-                    }
-                }
-            }
+            MinMax<Double> mm = Tools.findMinMax(img);
+            min = mm.getMin();
+            max = mm.getMax();
         }
         else {
-            max = Analysis.norm_max;
             min = Analysis.norm_min;
+            max = Analysis.norm_max;
         }
 
         if (p.usecellmaskX && channel == 0) {
@@ -163,7 +151,7 @@ class NRegions implements Runnable {
         }
 
         if (p.nlevels > 2) {
-            p.cl = cluster();
+            p.cl = cluster_int(nl);
         }
 
         if (p.nlevels == 2 || p.nlevels == 1) {
@@ -198,10 +186,10 @@ class NRegions implements Runnable {
         try {
             A_solver.first_run();
         }
-        catch (final InterruptedException ex) {
-        }
+        catch (final InterruptedException ex) {}
 
-        final double minInt = Analysis.p.min_intensity;
+        // Save old value of min_intensity and restore it later
+        final double minIntensityBackup = Analysis.p.min_intensity;
         Analysis.p.min_intensity = 0;
         if (channel == 0) {
             Analysis.setmaska(A_solver.maxmask);
@@ -212,9 +200,7 @@ class NRegions implements Runnable {
                 else {
                     Analysis.compute_connected_regions_a(1.5, null);
                 }
-                A_solver = null;
             }
-
         }
         else {
             Analysis.setmaskb(A_solver.maxmask);
@@ -225,17 +211,15 @@ class NRegions implements Runnable {
                 else {
                     Analysis.compute_connected_regions_b(1.5, null);
                 }
-                A_solver = null;
             }
-
         }
-        Analysis.p.min_intensity = minInt;
+        // Restore old value
+        Analysis.p.min_intensity = minIntensityBackup;
 
         DoneSignal.countDown();
     }
 
-    // TODO: Merge this method with cluster_int -> they do literally same thing
-    private double[] cluster() {
+    private double[] cluster_int(int aNumOfLevels) {
         // get imagedata
         final Dataset data = new DefaultDataset();
         final double[] pixel = new double[1];
@@ -251,38 +235,10 @@ class NRegions implements Runnable {
 
         // Cluster the data, it will be returned as an array of data sets, with
         // each dataset representing a cluster.
-        final Clusterer km = new KMeans(nl);
+        final Clusterer km = new KMeans(aNumOfLevels);
+        final double[] levels = new double[Math.max(2, aNumOfLevels)];
         final Dataset[] data2 = km.cluster(data);
-        final double[] levels = new double[Math.max(2, nl)];
-        for (int i = 0; i < nl; i++) {
-            final Instance inst = DatasetTools.average(data2[i]);
-            levels[i] = inst.value(0);
-        }
-        Arrays.sort(levels);
-
-        return levels;
-    }
-
-    private double[] cluster_int(int nll) {
-        // get imagedata
-        final Dataset data = new DefaultDataset();
-        final double[] pixel = new double[1];
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    pixel[0] = image[z][i][j];
-                    final Instance instance = new DenseInstance(pixel);
-                    data.add(instance);
-                }
-            }
-        }
-
-        // Cluster the data, it will be returned as an array of data sets, with
-        // each dataset representing a cluster.
-        final Clusterer km = new KMeans(nll);
-        final double[] levels = new double[nll];
-        final Dataset[] data2 = km.cluster(data);
-        for (int i = 0; i < nll; i++) {
+        for (int i = 0; i < aNumOfLevels; i++) {
             final Instance inst = DatasetTools.average(data2[i]);
             levels[i] = inst.value(0);
         }
