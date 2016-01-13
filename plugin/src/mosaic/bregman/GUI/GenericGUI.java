@@ -77,7 +77,7 @@ public class GenericGUI {
      */
     public void closeAll() {
         if (hd != null) {
-            hd.closeAll();
+            hd.closeAllImages();
         }
     }
 

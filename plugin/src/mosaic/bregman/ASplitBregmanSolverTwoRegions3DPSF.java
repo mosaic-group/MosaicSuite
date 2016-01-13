@@ -4,6 +4,8 @@ package mosaic.bregman;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+import mosaic.utils.ArrayOps;
+
 
 class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D {
 
@@ -107,8 +109,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         final Thread t[] = new Thread[p.nthreads];
 
         // Force the allocation of the buffers internally
-        // if you do not do you can have race conditions in the
-        // multi thread part
+        // if you do not do you can have race conditions in the multi thread part
         // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
         p.PSF.getSeparableImageAsDoubleArray(0);
         p.PSF.getSeparableImageAsDoubleArray(1);
@@ -220,13 +221,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4[l]);
 
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp2[l][z][i][j] = 0;
-                }
-            }
-        }
+        ArrayOps.fill( temp2[l], 0);
 
         sz = p.PSF.getSuggestedImageSize();
         for (int z = 0; z < sz[2]; z++) {
@@ -242,13 +237,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         final int cs = (sz[2] / 2) + 1;
 
         // temp1 = e1
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp1[l][z][i][j] = 0;
-                }
-            }
-        }
+        ArrayOps.fill(temp1[l], 0);
 
         temp1[l][0][0][0] = 1;
         LocalTools.dctshift3D(temp3[l], temp2[l], cr, cc, cs);

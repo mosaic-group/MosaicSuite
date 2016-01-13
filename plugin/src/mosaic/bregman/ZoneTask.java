@@ -57,8 +57,7 @@ class ZoneTask implements Runnable {
         try {
             doWork();
         }
-        catch (final InterruptedException ex) {
-        }
+        catch (final InterruptedException ex) {}
 
         ZoneDoneSignal.countDown();
     }
@@ -67,14 +66,11 @@ class ZoneTask implements Runnable {
         LocalTools.subtab(AS.temp1[AS.l], AS.w2xk[AS.l], AS.b2xk[AS.l], iStart, iEnd);
         LocalTools.subtab(AS.temp2[AS.l], AS.w2yk[AS.l], AS.b2yk[AS.l], iStart, iEnd);
 
-        // synchro
-        Sync1.countDown();
-        Sync1.await();
+        Tools.synchronizedWait(Sync1);
 
         LocalTools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l], AS.temp4[AS.l], Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
 
-        Sync12.countDown();
-        Sync12.await();
+        Tools.synchronizedWait(Sync12);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -83,13 +79,12 @@ class ZoneTask implements Runnable {
                 }
             }
         }
-        Sync3.countDown();
-        Sync3.await();
+        
+        Tools.synchronizedWait(Sync3);
 
         Tools.convolve2Dseparable(AS.temp4[AS.l][0], AS.temp2[AS.l][0], AS.ni, AS.nj, AS.p.PSF, AS.temp1[AS.l][0], iStart, iEnd);
 
-        Sync11.countDown();
-        Sync11.await();
+        Tools.synchronizedWait(Sync11);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -104,9 +99,7 @@ class ZoneTask implements Runnable {
 
         Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.PSF, AS.temp3[AS.l][0], iStart, iEnd);
 
-        // synchro
-        Sync10.countDown();
-        Sync10.await();
+        Tools.synchronizedWait(Sync10);
 
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < AS.nj; j++) {
@@ -169,15 +162,13 @@ class ZoneTask implements Runnable {
             }
         }
 
-        Sync5.countDown();
-        Sync5.await();
+        Tools.synchronizedWait(Sync5);
 
         LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
         LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
-        //
-        Sync6.countDown();
-        Sync6.await();
-        //
+
+        Tools.synchronizedWait(Sync6);
+
         LocalTools.addtab(AS.w2xk[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
         LocalTools.addtab(AS.w2yk[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l], iStart, iEnd);
         LocalTools.shrink2D(AS.w2xk[AS.l], AS.w2yk[AS.l], AS.w2xk[AS.l], AS.w2yk[AS.l], AS.p.gamma, iStart, iEnd);
@@ -191,13 +182,11 @@ class ZoneTask implements Runnable {
             }
         }
 
-        Sync7.countDown();
-        Sync7.await();
+        Tools.synchronizedWait(Sync7);
 
         if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {
             AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l], AS.p.ldata, AS.p.lreg_[AS.channel], AS.p, AS.c0, AS.c1, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9);
         }
-
     }
 }

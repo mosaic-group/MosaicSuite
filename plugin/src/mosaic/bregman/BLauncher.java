@@ -34,11 +34,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
 
 
-/*
- * Colocalization analysis class
- */
 public class BLauncher {
-
     private double colocAB;
     private double colocABnumber;
     private double colocABsize;
@@ -496,9 +492,6 @@ public class BLauncher {
             md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(), Analysis.regionslist[0], Analysis.regionslist[1], ip);
 
             if (Analysis.p.save_images) {
-                // Write object 2 list
-                String savepath = MosaicUtils.ValidFolderFromImage(aImp);
-
                 // Calculate colocalization quantities
                 colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(), 4);
                 colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(), 4);
@@ -509,6 +502,7 @@ public class BLauncher {
                 colocA = mosaic.bregman.Tools.round(Analysis.colocsegA(), 4);
                 colocB = mosaic.bregman.Tools.round(Analysis.colocsegB(), 4);
 
+                String savepath = MosaicUtils.ValidFolderFromImage(aImp);
                 final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
@@ -527,7 +521,6 @@ public class BLauncher {
                 CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
 
                 // Write channel 1
-
                 obl = getObjectsList(hcount, 0);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
@@ -542,25 +535,15 @@ public class BLauncher {
                 String savepath = null;
                 savepath = MosaicUtils.ValidFolderFromImage(aImp);
 
-                boolean append = false;
-
-                if (hcount == 0) {
-                    append = false;
-                }
-                else {
-                    append = true;
-                }
-
                 final Vector<? extends Outdata<Region>> obl = getObjectsList(hcount, 0);
                 final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, append);
+                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (hcount != 0));
             }
 
             hcount++;
-
         }
         ij.Prefs.blackBackground = tempBlackbackground;
 
@@ -611,12 +594,9 @@ public class BLauncher {
         objcts.setStack("Objects", objS);
 
         // build image in bytes
-        ImageStack imgS;
-        ImagePlus img = new ImagePlus();
 
         // build stack and imageplus for the image
-        imgS = new ImageStack(Analysis.p.ni, Analysis.p.nj);
-
+        ImageStack imgS = new ImageStack(Analysis.p.ni, Analysis.p.nj);
         for (int z = 0; z < Analysis.p.nz; z++) {
             final byte[] mask_bytes = new byte[Analysis.p.ni * Analysis.p.nj];
             for (int i = 0; i < Analysis.p.ni; i++) {
@@ -627,16 +607,13 @@ public class BLauncher {
 
             final ByteProcessor bp = new ByteProcessor(Analysis.p.ni, Analysis.p.nj);
             bp.setPixels(mask_bytes);
-
             imgS.addSlice("", bp);
         }
 
-        img.setStack("Image", imgS);
+        ImagePlus img = new ImagePlus("Image", imgS);
 
-        // resize z
         final Resizer re = new Resizer();
         img = re.zScale(img, dz, ImageProcessor.NONE);
-        // img.duplicate().show();
         final ImageStack imgS2 = new ImageStack(di, dj);
         for (int z = 0; z < dz; z++) {
             img.setSliceWithoutUpdate(z + 1);
@@ -683,7 +660,6 @@ public class BLauncher {
      */
     private void displayintensities(ArrayList<Region> regionslist, int dz, int di, int dj, int channel, boolean sep) {
         // build stack and imageplus
-
         final ImgFactory<ShortType> imgFactory = new ArrayImgFactory<ShortType>();
 
         // create an 3d-Img
@@ -763,12 +739,8 @@ public class BLauncher {
         final int height = regions[0][0].length;
         final int depth = regions.length;
 
-        ImageStack labS;
-        label = new ImagePlus();
-
         // build stack and imageplus
-        labS = new ImageStack(width, height);
-
+        ImageStack labS = new ImageStack(width, height);
         final int min = 0;
         final int max = Math.max(max_r, 255);
         for (int z = 0; z < depth; z++) {
@@ -785,7 +757,8 @@ public class BLauncher {
         }
 
         labS.setColorModel(backgroundAndSpectrum(Math.min(max_r, 255)));
-        label.setStack("Regions " + chan_s[channel - 1], labS);
+        
+        label = new ImagePlus("Regions " + chan_s[channel - 1], labS);
 
         if (sep == false) {
             updateImages(out_label, label, getSegmentationName(channel - 1), Analysis.p.dispcolors, channel);
@@ -847,12 +820,9 @@ public class BLauncher {
         }
     }
 
-    /**
-     * Close all images
-     */
-    public void closeAll() {
-        for (int i = 0; i < ip.size(); i++) {
-            ip.get(i).close();
+    public void closeAllImages() {
+        for (ImagePlus img : ip) {
+            img.close();
         }
     }
 }

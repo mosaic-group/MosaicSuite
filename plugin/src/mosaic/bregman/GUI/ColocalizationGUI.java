@@ -1,13 +1,6 @@
 package mosaic.bregman.GUI;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-
 import java.awt.Checkbox;
 import java.awt.Font;
 import java.awt.Panel;
@@ -23,9 +16,14 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.Tools;
-import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 
 
