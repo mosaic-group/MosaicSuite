@@ -56,7 +56,6 @@ class TwoRegions extends NRegions {
      * @param pt vector of particles
      * @param radius of the sphere
      */
-
     private void drawParticles(double[][][] out, double[][][] mask, Vector<Particle> pt, int radius) {
         // Iterate on all particles
 
@@ -73,16 +72,9 @@ class TwoRegions extends NRegions {
         final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
         final MaskOnSpaceMapper rg_m = new MaskOnSpaceMapper(cm, sz);
 
-        final Iterator<Particle> pt_it = pt.iterator();
-
-        while (pt_it.hasNext()) {
-            final Particle ptt = pt_it.next();
-
+        for (Particle ptt : pt) {
             // Draw the sphere
-
-            final Point p_c = new Point((int) (ptt.iX), (int) (ptt.iY), (int) (ptt.iZ));
-
-            rg_m.setMiddlePoint(p_c);
+            rg_m.setMiddlePoint(new Point((int) (ptt.iX), (int) (ptt.iY), (int) (ptt.iZ)));
 
             while (rg_m.hasNext()) {
                 final Point p = rg_m.nextPoint();
@@ -104,15 +96,13 @@ class TwoRegions extends NRegions {
      * @param frame frame number
      * @return a vector with particles related to one frame
      */
-
     private Vector<Particle> getPart(Vector<Particle> part, int frame) {
         final Vector<Particle> pp = new Vector<Particle>();
 
         // get the particle related to one frame
-
-        for (int i = 0; i < part.size(); i++) {
-            if (part.get(i).getFrame() == frame) {
-                pp.add(part.get(i));
+        for (Particle p : part) {
+            if (p.getFrame() == frame) {
+                pp.add(p);
             }
         }
 
@@ -122,7 +112,6 @@ class TwoRegions extends NRegions {
     /**
      * Run the split Bregman + patch refinement
      */
-
     @Override
     public void run() {
         // This store the output mask
@@ -134,35 +123,38 @@ class TwoRegions extends NRegions {
         p.nlevels = 1;
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
-        if (p.usePSF && p.nz > 1) {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
-            psf.setVar(var);
-            p.PSF = psf;
+        if (p.usePSF) {
+            if (p.nz > 1) {
+                final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
+                final DoubleType[] var = new DoubleType[3];
+                var[0] = new DoubleType(p.sigma_gaussian);
+                var[1] = new DoubleType(p.sigma_gaussian);
+                var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
+                psf.setVar(var);
+                p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
-        }
-        else if (p.usePSF && p.nz == 1) {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            psf.setVar(var);
-            p.PSF = psf;
+                A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
+            }
+            else {
+                final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
+                final DoubleType[] var = new DoubleType[2];
+                var[0] = new DoubleType(p.sigma_gaussian);
+                var[1] = new DoubleType(p.sigma_gaussian);
+                psf.setVar(var);
+                p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, SpeedData, mask, md, channel, null);
-
-        }
-        else if (!p.usePSF && p.nz > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3D(p, image, SpeedData, mask, md, channel, null);
-        }
+                A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, SpeedData, mask, md, channel, null);
+            }
+        } 
         else {
-            A_solver = new ASplitBregmanSolverTwoRegions(p, image, SpeedData, mask, md, channel, null);
+            if (p.nz > 1) {
+                A_solver = new ASplitBregmanSolverTwoRegions3D(p, image, SpeedData, mask, md, channel, null);
+            }
+            else {
+                A_solver = new ASplitBregmanSolverTwoRegions(p, image, SpeedData, mask, md, channel, null);
+            }
         }
-
+        
         if (Analysis.p.patches_from_file == null) {
             try {
                 A_solver.first_run();
@@ -296,7 +288,6 @@ class TwoRegions extends NRegions {
                 }
 
                 // Now we run Object properties on this regions list
-
                 final int osxy = p.oversampling2ndstep * p.interpolation;
                 final int sx = p.ni * p.oversampling2ndstep * p.interpolation;
                 final int sy = p.nj * p.oversampling2ndstep * p.interpolation;
@@ -362,7 +353,6 @@ class TwoRegions extends NRegions {
                 for (final Region r : Analysis.regionslist[1]) {
                     r.intensity = r.intensity * (max - min) + min;
                 }
-
             }
         }
 

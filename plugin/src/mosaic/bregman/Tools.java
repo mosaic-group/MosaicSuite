@@ -584,7 +584,6 @@ public class Tools {
     }
 
     void fgradz2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
-
         for (int z = 0; z < nz - 1; z++) {
             for (int i = tStart; i < tEnd; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -640,7 +639,6 @@ public class Tools {
                 res[z][i][nj - 1] = 0;
             }
         }
-
     }
 
     private void bgradxdbc2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
@@ -658,7 +656,6 @@ public class Tools {
                 res[z][0][j] = im[z][0][j];
             }
         }
-
     }
 
     private void bgradzdbc2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
@@ -686,7 +683,6 @@ public class Tools {
                 res[nz - 1][i][j] = -im[nz - 2][i][j];
             }
         }
-
     }
 
     private void bgradydbc2D(double[][][] res, double[][][] im, int tStart, int tEnd) {
@@ -778,7 +774,6 @@ public class Tools {
     }
 
     double computeEnergy3D(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] maskz, double ldata, double lreg) {
-
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -805,11 +800,10 @@ public class Tools {
         return energy;
     }
 
-    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, Parameters p, double c0,
+    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
             double c1, double[][][] image) {
-
-        if (p.PSF.isSeparable() == true) {
-            Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], 0, ni);
+        if (aPsf.isSeparable() == true) {
+            Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], 0, ni);
         }
         else {
             IJ.error("Error: non-separable PSF calculation are not implemented");
@@ -847,12 +841,11 @@ public class Tools {
 
         final double energy = ldata * energyData + lreg * energyPrior;
         return energy;
-
     }
 
-    double computeEnergyPSF(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg, Parameters p, double c0, double c1, double[][][] image,
+    double computeEnergyPSF(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
             int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9) throws InterruptedException {
-        Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], iStart, iEnd);
+        Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], iStart, iEnd);
 
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < nj; j++) {
@@ -860,26 +853,20 @@ public class Tools {
             }
         }
 
-        // }
-        // nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
         nllMean(speedData, image, speedData, iStart, iEnd);
         double energyData = 0;
-        // for (int z=0; z<nz; z++){
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < nj; j++) {
                 energyData += speedData[0][i][j];
             }
         }
-        // }
 
-        Sync8.countDown();
-        Sync8.await();
+        synchronizedWait(Sync8);
         fgradx2D(maskx, mask, jStart, jEnd);
         fgrady2D(masky, mask, iStart, iEnd);
 
-        Sync9.countDown();
-        Sync9.await();
-
+        synchronizedWait(Sync9);
+        
         double energyPrior = 0;
         double mkx, mky;
         for (int z = 0; z < nz; z++) {
@@ -897,12 +884,11 @@ public class Tools {
         return energy;
     }
 
-    double computeEnergyPSF3D(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double ldata, double lreg, Parameters p, double c0, double c1, double[][][] image,
+    double computeEnergyPSF3D(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
             int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10) throws InterruptedException {
 
-        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, p.PSF, temp, iStart, iEnd);
+        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp, iStart, iEnd);
 
-        // for (int z=0; z<nz; z++){
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -911,8 +897,6 @@ public class Tools {
             }
         }
 
-        // }
-        // nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
         nllMean(speedData, image, speedData, iStart, iEnd);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
@@ -972,11 +956,8 @@ public class Tools {
         return energy;
     }
 
-    double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, Parameters p, double c0,
-            double c1, double[][][] image
-
-    ) {
-        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, p.PSF, temp);
+    double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
+        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -1016,6 +997,7 @@ public class Tools {
                 }
             }
         }
+
         fgradz2D(temp, mask);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -1053,8 +1035,7 @@ public class Tools {
     void mydivergence(double[][][] res, double[][][] m1, double[][][] m2, double[][][] temp, CountDownLatch Sync2, int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
         bgradxdbc2D(res, m1, jStart, jEnd);
         bgradydbc2D(temp, m2, iStart, iEnd);
-        Sync2.countDown();
-        Sync2.await();
+        synchronizedWait(Sync2);
         addtab(res, res, temp, iStart, iEnd);
     }
 
@@ -1062,8 +1043,7 @@ public class Tools {
         mydivergence3D(res, m1, m2, m3, 0, ni, 0, nj);
     }
 
-    void mydivergence3D(double[][][] res, double[][][] m1, double[][][] m2, double[][][] m3, double[][][] temp, CountDownLatch Sync2, int iStart, int iEnd, int jStart, int jEnd)
-            throws InterruptedException {
+    void mydivergence3D(double[][][] res, double[][][] m1, double[][][] m2, double[][][] m3, double[][][] temp, CountDownLatch Sync2, int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
         bgradxdbc2D(res, m1, jStart, jEnd);
         bgradydbc2D(temp, m2, iStart, iEnd);
         synchronizedWait(Sync2);
@@ -1081,13 +1061,11 @@ public class Tools {
     }
 
     void max_mask(int[][][] res, double[][][][] mask) {
-        double max;
-        int index_max;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    max = 0;
-                    index_max = 0;
+                    double max = 0;
+                    int index_max = 0;
                     for (int l = 0; l < nlevels; l++) {
                         if ((mask[l][z][i][j]) >= max) {
                             max = mask[l][z][i][j];

@@ -211,7 +211,7 @@ class ZoneTask3D implements Runnable {
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {
-            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l], AS.p.ldata, AS.p.lreg_[AS.channel], AS.p, AS.c0, AS.c1, AS.image, iStart,
+            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l], AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.c0, AS.c1, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13);
         }
     }

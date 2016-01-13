@@ -1,6 +1,9 @@
 package mosaic.bregman;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -8,11 +11,6 @@ import ij.plugin.Resizer;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-
 import mosaic.core.psf.GaussPSF;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
@@ -60,9 +58,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] patch;
     double[][][] object;
     double[][][] interpolated_object;
-    private final double[][][][] mask;// nregions nslices ni nj
-    // TODO: It is never created but used in code.
-    private final double[][][][] speedData = null;// nregions nslices ni nj
+    private final double[][][] mask;// nregions nslices ni nj
     private final Parameters p;
     final Region r;
     private final int channel;
@@ -151,7 +147,7 @@ class AnalysePatch implements Runnable {
         this.object = new double[sz][sx][sy];
 
         // create mask
-        this.mask = new double[1][sz][sx][sy];
+        this.mask = new double[sz][sx][sy];
         fill_mask(r);
 
         // set size
@@ -200,7 +196,7 @@ class AnalysePatch implements Runnable {
             }
             else {
                 if (p.mode_intensity == 1) {
-                    estimate_int_weighted(mask[0]);
+                    estimate_int_weighted(mask);
                 }
                 else if (p.mode_intensity == 2) {
                     estimate_int_clustering(p.mode_intensity - 1);// (-1 to correct for old numbering)
@@ -217,7 +213,7 @@ class AnalysePatch implements Runnable {
             }
         }
         else {
-            estimate_int_weighted(mask[0]);
+            estimate_int_weighted(mask);
             p.cl[0] = cout;
             p.cl[1] = cin;
         }
@@ -263,7 +259,7 @@ class AnalysePatch implements Runnable {
                 p.cl[1] = p.betaMLEindefault;
             }
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, patch, speedData, w3kpatch, md, channel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, patch, null, w3kpatch, md, channel, this);// mask instead of w3kpatch
         }
         else {
             // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
@@ -273,7 +269,7 @@ class AnalysePatch implements Runnable {
                 p.cl[1] = p.betaMLEindefault;
             }
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, patch, speedData, w3kpatch, md, channel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, patch, null, w3kpatch, md, channel, this);// mask instead of w3kpatch
         }
 
         try {
@@ -370,8 +366,7 @@ class AnalysePatch implements Runnable {
         ymax = 0;
         zmax = 0;
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (final Pix p : r.pixels) {
             if (p.px < xmin) {
                 xmin = p.px;
             }
@@ -675,20 +670,19 @@ class AnalysePatch implements Runnable {
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    this.mask[0][z][i][j] = 0;
+                    this.mask[z][i][j] = 0;
                 }
             }
         }
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (final Pix p : r.pixels) {
             int rz = os * (p.pz - offsetz);
             int rx = os * (p.px - offsetx);
             int ry = os * (p.py - offsety);
             for (int z = rz; z < rz + osz; z++) {
                 for (int i = rx; i < rx + os; i++) {
                     for (int j = ry; j < ry + os; j++) {
-                        this.mask[0][z][i][j] = 1;
+                        this.mask[z][i][j] = 1;
                     }
                 }
             }
@@ -705,12 +699,10 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
-            int rz, rx, ry;
-            rz = os * (p.pz - offsetz);
-            rx = os * (p.px - offsetx);
-            ry = os * (p.py - offsety);
+        for (final Pix p : r.pixels) {
+            int rz = os * (p.pz - offsetz);
+            int rx = os * (p.px - offsetx);
+            int ry = os * (p.py - offsety);
             if (rz < 0 || rz + osz > sz || rx < 0 || rx + os > sx || ry < 0 || ry + os > sy) {
                 continue;
             }
@@ -736,8 +728,7 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            final Pix p = it.next();
+        for (final Pix p : r.pixels) {
             int rzmin, rxmin, rymin;
             int rzmax, rxmax, rymax;
             if (sz > 1) {
@@ -782,10 +773,10 @@ class AnalysePatch implements Runnable {
             if (obj && !border_attained) {
                 double temp;
                 if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
                 }
 
                 if (p.debug) {
@@ -803,7 +794,6 @@ class AnalysePatch implements Runnable {
     double find_best_thresh_and_int(double[][][] w3kbest) {
         double energy = Double.MAX_VALUE;
         double threshold = 0.75;
-        double temp;
         double tbest = 0.95;
         double cinbest, coutbest, cin_previous, cout_previous;
         double min_energy = 0;
@@ -819,11 +809,12 @@ class AnalysePatch implements Runnable {
             if (obj && !border_attained) {
                 estimate_int_weighted(object);
 
+                double temp;
                 if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
+                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
                 }
 
                 if (p.debug == true) {
@@ -918,16 +909,13 @@ class AnalysePatch implements Runnable {
     }
 
     private void assemble(ArrayList<Region> localList) {
-        for (final Iterator<Region> it = localList.iterator(); it.hasNext();) {
+        for (final Region r : localList) {
             final ArrayList<Pix> npixels = new ArrayList<Pix>();
-            final Region r = it.next();
 
-            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                final Pix v = it2.next();
+            for (final Pix v : r.pixels) {
                 npixels.add(new Pix(v.pz + offsetz * fsz, v.px + offsetx * fsxy, v.py + offsety * fsxy));
                 // count number of free edges
                 regions_refined[v.pz + offsetz * fsz][v.px + offsetx * fsxy][v.py + offsety * fsxy] = (short) r.value;
-
             }
             r.pixels = npixels;
         }

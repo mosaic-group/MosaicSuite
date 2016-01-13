@@ -4,7 +4,6 @@ package mosaic.bregman;
 import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -115,8 +114,7 @@ class ImagePatches {
 
         nb_jobs = regionslist_refined.size();
         AnalysePatch ap;
-        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            final Region r = it.next();
+        for (final Region r : regionslist_refined) {
             if (p.interpolation > 1) {
                 p.subpixel = true;
             }
@@ -159,8 +157,7 @@ class ImagePatches {
             final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
 
             // calculate regions intensities
-            for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-                final Region r = it.next();
+            for (final Region r : regionslist_refined) {
                 ObjectProperties Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
                 threadPool2.execute(Op);
             }
@@ -169,8 +166,7 @@ class ImagePatches {
             try {
                 threadPool2.awaitTermination(1, TimeUnit.DAYS);
             }
-            catch (final InterruptedException ex) {
-            }
+            catch (final InterruptedException ex) {}
 
             // here we analyse the patch
             // if we have a big region with intensity near the background
@@ -227,8 +223,7 @@ class ImagePatches {
 
     public synchronized void addRegionstoList(ArrayList<Region> localList) {
         int index;// build index of region (will be r.value)
-        for (final Iterator<Region> it = localList.iterator(); it.hasNext();) {
-            final Region r = it.next();
+        for (final Region r : localList) {
             index = globalList.size() + 1;
             r.value = index;
             globalList.add(r);
