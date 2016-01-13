@@ -159,14 +159,9 @@ public class Analysis {
         CountDownLatch doneSignal = new CountDownLatch(1);
 
         // for this plugin AFAIK is always TwoRegion
-        TwoRegions rg = null;
         System.out.println("============ split " + p.usePSF + " " + p.nz + " " + p.nlevels);
-        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
-            new Thread(rg = new TwoRegions(img, p, doneSignal, channel)).start();
-        }
-        else {
-            new Thread(new NRegions(img, p, doneSignal, channel)).start();
-        }
+        TwoRegions rg = new TwoRegions(img, p, doneSignal, channel);
+        new Thread(rg).start();
 
         try {
             doneSignal.await();
@@ -179,8 +174,7 @@ public class Analysis {
                 out_soft_mask[channel] = new ImagePlus();
             }
 
-            if (rg != null) MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask[channel]);
-            else {throw new RuntimeException("rg is null");}
+            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask[channel]);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
     }
