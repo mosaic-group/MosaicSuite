@@ -10,12 +10,13 @@ import java.util.concurrent.CountDownLatch;
 import ij.IJ;
 import ij.ImagePlus;
 import mosaic.core.detection.Particle;
-import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -32,7 +33,7 @@ class TwoRegions extends NRegions {
     public TwoRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
         super(img, params, DoneSignal, channel);
 
-        if (p.nlevels > 1 || !p.usePSF) {
+        if (p.nlevels > 1) {
             // save memory when Ei not needed
             SpeedData = new double[1][nz][ni][nj];// only one level used
 
@@ -120,41 +121,33 @@ class TwoRegions extends NRegions {
         ASplitBregmanSolver A_solver = null;
         p.cl[0] = p.betaMLEoutdefault;
         p.cl[1] = p.betaMLEindefault;
+        
+        // TODO: This causes troubles when soft mask is calculated for 2 channel images. Should be investigated. Why it is 1 not 2 or just taken from img?
         p.nlevels = 1;
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
-        if (p.usePSF) {
-            if (p.nz > 1) {
-                final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-                final DoubleType[] var = new DoubleType[3];
-                var[0] = new DoubleType(p.sigma_gaussian);
-                var[1] = new DoubleType(p.sigma_gaussian);
-                var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
-                psf.setVar(var);
-                p.PSF = psf;
+        if (p.nz > 1) {
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
+            final DoubleType[] var = new DoubleType[3];
+            var[0] = new DoubleType(p.sigma_gaussian);
+            var[1] = new DoubleType(p.sigma_gaussian);
+            var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
+            psf.setVar(var);
+            p.PSF = psf;
 
-                A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
-            }
-            else {
-                final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-                final DoubleType[] var = new DoubleType[2];
-                var[0] = new DoubleType(p.sigma_gaussian);
-                var[1] = new DoubleType(p.sigma_gaussian);
-                psf.setVar(var);
-                p.PSF = psf;
-
-                A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, SpeedData, mask, md, channel, null);
-            }
-        } 
-        else {
-            if (p.nz > 1) {
-                A_solver = new ASplitBregmanSolverTwoRegions3D(p, image, SpeedData, mask, md, channel, null);
-            }
-            else {
-                A_solver = new ASplitBregmanSolverTwoRegions(p, image, SpeedData, mask, md, channel, null);
-            }
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
         }
-        
+        else {
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
+            final DoubleType[] var = new DoubleType[2];
+            var[0] = new DoubleType(p.sigma_gaussian);
+            var[1] = new DoubleType(p.sigma_gaussian);
+            psf.setVar(var);
+            p.PSF = psf;
+
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, SpeedData, mask, md, channel, null);
+        }
+
         if (Analysis.p.patches_from_file == null) {
             try {
                 A_solver.first_run();
@@ -355,6 +348,10 @@ class TwoRegions extends NRegions {
                 out_soft_mask[channel] = md.display2regions3Dnew(A_solver.w3k[channel], "Mask", channel, false);
             }
             else {
+                System.out.println("============ " + channel );
+                System.out.println(Debug.getArrayDims(out_soft_mask));
+                System.out.println(Debug.getArrayDims(A_solver.w3k));
+                
                 out_soft_mask[channel] = md.display2regionsnew(A_solver.w3k[channel][0], "Mask", channel, false);
             }
         }

@@ -41,14 +41,6 @@ public class VisualizationGUI {
         bgroup2[6] = Analysis.p.save_images;
 
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
-        // gd.addCheckbox("Live segmentation",true);
-        // gd.addCheckbox("Random color objects",true);
-        // gd.addCheckbox("Intensities reconstruction",false);
-        // gd.addCheckbox("Objects labels",false);
-        // gd.addCheckbox("Outline overlay",false);
-        // gd.addCheckbox("Display colocalization",false);
-        //
-        // gd.addCheckbox("Save object data in .csv file and save images", false);
 
         final Button b = new Button("Output options");
         b.addActionListener(new ActionListener() {
@@ -64,10 +56,7 @@ public class VisualizationGUI {
         });
 
         gd.add(b);
-
-        // IJ.log(" la" + Analysis.p.nbconditions);
         gd.addMessage("    R script data analysis settings", bf);
-
         gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
 
         final Button rscript = new Button("Set condition names and number of images per condition");
@@ -94,7 +83,6 @@ public class VisualizationGUI {
             Analysis.p.dispSoftMask = gd.getNextBoolean();
             Analysis.p.save_images = gd.getNextBoolean();
         }
-        // IJ.log(Analysis.p.wd);
 
         Analysis.p.nbconditions = (int) gd.getNextNumber();
 

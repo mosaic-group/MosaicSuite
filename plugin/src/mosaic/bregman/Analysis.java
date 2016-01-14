@@ -127,15 +127,10 @@ public class Analysis {
 
         for (int z = 0; z < p.nz; z++) {
             img2.setPosition(channel, z + 1, currentFrame);
-            ImageProcessor impt;
-            if (bits == 32) {
-                impt = img2.getProcessor().convertToShort(false);
-            }
-            else {
-                impt = img2.getProcessor();
-            }
+            ImageProcessor impt = (bits == 32) ? img2.getProcessor().convertToShort(false) : img2.getProcessor();
             img_s.addSlice("", impt);
         }
+        
         return img_s;
     }
 
@@ -159,7 +154,7 @@ public class Analysis {
         CountDownLatch doneSignal = new CountDownLatch(1);
 
         // for this plugin AFAIK is always TwoRegion
-        System.out.println("============ split " + p.usePSF + " " + p.nz + " " + p.nlevels);
+        System.out.println("============ split " + p.nz + " " + p.nlevels);
         TwoRegions rg = new TwoRegions(img, p, doneSignal, channel);
         new Thread(rg).start();
 

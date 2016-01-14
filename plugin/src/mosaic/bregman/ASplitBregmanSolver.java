@@ -1,6 +1,10 @@
 package mosaic.bregman;
 
 
+import java.util.ArrayList;
+import java.util.Date;
+
+import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -9,14 +13,8 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
 
-import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
-
-
-class ASplitBregmanSolver {
+abstract class ASplitBregmanSolver {
 
     protected final Tools LocalTools;
     protected final DoubleDCT_2D dct2d;
@@ -27,7 +25,6 @@ class ASplitBregmanSolver {
     private ArrayList<Region> regionslistr;
     protected final MasksDisplay md;
     protected final double[][][] image;
-    private double norm;
     protected final double[][][][] speedData;
 
     protected final double[][] eigenLaplacian;
@@ -280,48 +277,49 @@ class ASplitBregmanSolver {
             IJ.log("Total phase one time: " + totaltime / 1000 + "s");
         }
     }
+    abstract protected void step() throws InterruptedException;
+//    protected void step() throws InterruptedException {
+//        final long lStartTime = new Date().getTime(); // start time
+//        final CountDownLatch RegionsTasksDoneSignal = new CountDownLatch(nl);// subprob  1 and 3
+//        final CountDownLatch UkDoneSignal = new CountDownLatch(nl);
+//        final CountDownLatch W3kDoneSignal = new CountDownLatch(1);
+//
+//        for (int l = 0; l < nl; l++) {
+//            new Thread(new SingleRegionTask(RegionsTasksDoneSignal, UkDoneSignal, W3kDoneSignal, l, channel, this, LocalTools)).start();
+//        }
+//
+//        // %-- w3k subproblem
+//        UkDoneSignal.await();
+//
+//        ProjectSimplexSpeed.project(w3k, temp4, ni, nj, nl);
+//
+//        W3kDoneSignal.countDown();
+//        RegionsTasksDoneSignal.await();
+//
+//        LocalTools.max_mask(maxmask, w3k);
+//
+//        double norm = 0;
+//        energy = 0;
+//        for (int l = 0; l < nl; l++) {
+//            energy += energytab[l];
+//            norm = Math.max(norm, normtab[l]);
+//        }
+//
+//        if (p.livedisplay) {
+//            md.display(maxmask, "Masks");
+//        }
+//
+//        final long lEndTime = new Date().getTime(); // end time
+//        final long difference = lEndTime - lStartTime; 
+//        totaltime += difference;
+//    }
 
-    protected void step() throws InterruptedException {
-        final long lStartTime = new Date().getTime(); // start time
-        final CountDownLatch RegionsTasksDoneSignal = new CountDownLatch(nl);// subprob  1 and 3
-        final CountDownLatch UkDoneSignal = new CountDownLatch(nl);
-        final CountDownLatch W3kDoneSignal = new CountDownLatch(1);
-
-        for (int l = 0; l < nl; l++) {
-            new Thread(new SingleRegionTask(RegionsTasksDoneSignal, UkDoneSignal, W3kDoneSignal, l, channel, this, LocalTools)).start();
-        }
-
-        // %-- w3k subproblem
-        UkDoneSignal.await();
-
-        ProjectSimplexSpeed.project(w3k, temp4, ni, nj, nl);
-
-        W3kDoneSignal.countDown();
-        RegionsTasksDoneSignal.await();
-
-        LocalTools.max_mask(maxmask, w3k);
-
-        norm = 0;
-        energy = 0;
-        for (int l = 0; l < nl; l++) {
-            energy += energytab[l];
-            norm = Math.max(norm, normtab[l]);
-        }
-
-        if (p.livedisplay) {
-            md.display(maxmask, "Masks");
-        }
-
-        final long lEndTime = new Date().getTime(); // end time
-        final long difference = lEndTime - lStartTime; 
-        totaltime += difference;
-    }
-
-    protected void init() {
-        if (p.debug) {
-            IJ.log("init super");
-        }
-    }
+    abstract protected void init();
+//    protected void init() {
+//        if (p.debug) {
+//            IJ.log("init super");
+//        }
+//    }
 
     protected void compute_eigenPSF() { }
 

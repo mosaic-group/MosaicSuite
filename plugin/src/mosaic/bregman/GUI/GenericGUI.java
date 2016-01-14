@@ -72,21 +72,11 @@ public class GenericGUI {
         gui_use_cluster = bl;
     }
 
-    /**
-     * Close all opened image
-     */
-    public void closeAll() {
-        if (hd != null) {
-            hd.closeAllImages();
-        }
-    }
-
     static public void setwindowlocation(int x, int y, Window w) {
         int wx, wy;
         wx = w.getWidth();
         wy = w.getHeight();
         w.setLocation(Math.min(x, screensizex - wx), Math.min(y, screensizey - wy));
-
     }
 
     /**
@@ -508,7 +498,6 @@ public class GenericGUI {
     }
 
     private class FileOpenerActionListener implements ActionListener {
-
         TextArea ta;
 
         public FileOpenerActionListener(TextArea ta) {
@@ -553,7 +542,6 @@ public class GenericGUI {
 
         public HelpOpenerActionListener(GenericDialog gd) {
             this.gd = gd;
-
         }
 
         @Override
@@ -564,16 +552,12 @@ public class GenericGUI {
     }
 
     private class Helpwindow extends HelpGUI {
-
-        JFrame frame;
-        private final JPanel panel;
-
         public Helpwindow(int x, int y) {
-            frame = new JFrame();
+            JFrame frame = new JFrame();
             frame.setSize(555, 480);
             frame.setLocation(x + 500, y - 50);
 
-            panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
             panel.setPreferredSize(new Dimension(575, 720));
 
             final JPanel pref = new JPanel(new GridBagLayout());
@@ -600,6 +584,5 @@ public class GenericGUI {
 
             frame.setVisible(true);
         }
-
     }
 }

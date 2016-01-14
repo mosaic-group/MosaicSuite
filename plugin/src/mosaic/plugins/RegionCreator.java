@@ -26,6 +26,7 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.Cursor;
@@ -177,7 +178,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     private int[] calculateGridPoint(int spacing) {
         // Calculate the grid size
         int szi = 0;
-
+        System.out.println("Max object size: " + spacing);
+        System.out.println("Spacing: " + Debug.getArrayDims(Spacing) + " " + Arrays.toString(Spacing));
+        System.out.println("Image_sz: " + Debug.getArrayDims(Image_sz) + " " + Arrays.toString(Image_sz));
         for (int i = 0; i < Image_sz.length - 1; i++) {
             if (Image_sz[i] != 1) {
                 szi++;
@@ -191,9 +194,12 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Calculate the number of grid point
         for (int i = 0; i < szi; i++) {
-            gs[i] = (int) ((Image_sz[i] - spacing / Spacing[i]) / (spacing / Spacing[i]));
+            int numOfObjects = (int) (Image_sz[i]/(spacing + Spacing[i]));
+            if (Image_sz[i] - (long) (numOfObjects * (spacing + Spacing[i])) < Spacing[i]) numOfObjects--;
+            if (numOfObjects < 0) numOfObjects = 0;
+            gs[i] = numOfObjects; //(int) ((Image_sz[i] - spacing / Spacing[i]) / (spacing / Spacing[i]));
         }
-
+        System.out.println("gs: " + Debug.getArrayDims(gs) + " " + Arrays.toString(gs));
         return gs;
     }
 
@@ -252,7 +258,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Grid of possible region
         final Img<T> out = createImage(cls);
-
+        
         final Cursor<T> c = out.cursor();
         while (c.hasNext()) {
             c.next();
@@ -265,6 +271,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
             // set intensity
             int gs[] = null;
+            System.out.println("MAX: max_radius: " + max_radius);
             gs = calculateGridPoint(2 * max_radius + 1);
             final long np = totalGridPoint(gs);
             if (np == 0) {
@@ -345,7 +352,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         String ImgTitle = new String();
         ImgTitle += "Regions_size_" + max_radius + "_" + min_radius + "_" + max_int + "_" + min_int;
 
-        ImageJFunctions.show(out, ImgTitle);
+        ImageJFunctions.show(out, ImgTitle).setDimensions(1, (int)Image_sz[2], (int)Image_sz[3]);
 
         // Output ground truth
         final CSV<Region3DTrack> P_csv = new CSV<Region3DTrack>(Region3DTrack.class);

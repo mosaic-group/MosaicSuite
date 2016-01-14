@@ -41,7 +41,7 @@ class ImagePatches {
             pa.interpolation = 1;
         }
         else {
-            pa.oversampling2ndstep = pa.overs;
+            pa.oversampling2ndstep = 2;
         }
 
         this.w3kbest = w3k;
@@ -117,7 +117,7 @@ class ImagePatches {
                 p.subpixel = true;
             }
             if (p.subpixel) {
-                p.oversampling2ndstep = p.overs;
+                p.oversampling2ndstep = 2;
             }
             else {
                 p.oversampling2ndstep = 1;
