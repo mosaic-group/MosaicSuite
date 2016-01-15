@@ -278,48 +278,7 @@ abstract class ASplitBregmanSolver {
         }
     }
     abstract protected void step() throws InterruptedException;
-//    protected void step() throws InterruptedException {
-//        final long lStartTime = new Date().getTime(); // start time
-//        final CountDownLatch RegionsTasksDoneSignal = new CountDownLatch(nl);// subprob  1 and 3
-//        final CountDownLatch UkDoneSignal = new CountDownLatch(nl);
-//        final CountDownLatch W3kDoneSignal = new CountDownLatch(1);
-//
-//        for (int l = 0; l < nl; l++) {
-//            new Thread(new SingleRegionTask(RegionsTasksDoneSignal, UkDoneSignal, W3kDoneSignal, l, channel, this, LocalTools)).start();
-//        }
-//
-//        // %-- w3k subproblem
-//        UkDoneSignal.await();
-//
-//        ProjectSimplexSpeed.project(w3k, temp4, ni, nj, nl);
-//
-//        W3kDoneSignal.countDown();
-//        RegionsTasksDoneSignal.await();
-//
-//        LocalTools.max_mask(maxmask, w3k);
-//
-//        double norm = 0;
-//        energy = 0;
-//        for (int l = 0; l < nl; l++) {
-//            energy += energytab[l];
-//            norm = Math.max(norm, normtab[l]);
-//        }
-//
-//        if (p.livedisplay) {
-//            md.display(maxmask, "Masks");
-//        }
-//
-//        final long lEndTime = new Date().getTime(); // end time
-//        final long difference = lEndTime - lStartTime; 
-//        totaltime += difference;
-//    }
-
     abstract protected void init();
-//    protected void init() {
-//        if (p.debug) {
-//            IJ.log("init super");
-//        }
-//    }
 
     private void regions_intensity(double[][][] mask) {
         final double thresh = 0.4;

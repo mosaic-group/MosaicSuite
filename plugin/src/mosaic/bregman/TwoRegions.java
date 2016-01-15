@@ -123,7 +123,8 @@ class TwoRegions extends NRegions {
         p.cl[1] = p.betaMLEindefault;
         
         // TODO: This causes troubles when soft mask is calculated for 2 channel images. Should be investigated. Why it is 1 not 2 or just taken from img?
-        p.nlevels = 1;
+        //       It is temporarily changed to 2 but it is unknown if has any efect on segmentaiton output.
+        p.nlevels = 2;
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
         if (p.nz > 1) {
@@ -343,15 +344,15 @@ class TwoRegions extends NRegions {
      * @param A_solver the solver used to produce the soft mask
      */
     private void mergeSoftMask(ASplitBregmanSolver A_solver) {
+        System.out.println("============ " + channel );
+        System.out.println(Debug.getArrayDims(out_soft_mask));
+        System.out.println(Debug.getArrayDims(A_solver.w3k));
+        
         if (p.dispSoftMask) {
             if (p.nz > 1) {
                 out_soft_mask[channel] = md.display2regions3Dnew(A_solver.w3k[channel], "Mask", channel, false);
             }
             else {
-                System.out.println("============ " + channel );
-                System.out.println(Debug.getArrayDims(out_soft_mask));
-                System.out.println(Debug.getArrayDims(A_solver.w3k));
-                
                 out_soft_mask[channel] = md.display2regionsnew(A_solver.w3k[channel][0], "Mask", channel, false);
             }
         }

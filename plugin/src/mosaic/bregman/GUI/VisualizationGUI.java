@@ -47,9 +47,7 @@ public class VisualizationGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-
                 final OutputGUI og = new OutputGUI();
-
                 CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc, Analysis.p.oc_s);
             }
 
