@@ -142,7 +142,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
         totaltime += difference;
     }
 
-    @Override
     public void compute_eigenPSF() {
         this.c0 = p.cl[0];
         this.c1 = p.cl[1];

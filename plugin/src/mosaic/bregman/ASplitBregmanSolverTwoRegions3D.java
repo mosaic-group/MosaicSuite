@@ -1,8 +1,6 @@
 package mosaic.bregman;
 
 
-import java.util.Date;
-
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
 
@@ -45,96 +43,96 @@ abstract class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoReg
         }
     }
 
-    @Override
-    protected void step() throws InterruptedException {
-        final long lStartTime = new Date().getTime(); // start time
-
-        LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);
-        LocalTools.subtab(temp2[l], temp2[l], b2yk[l]);
-        LocalTools.subtab(temp4[l], w2zk[l], b2zk[l]);
-
-        // temp3=divwb
-        LocalTools.mydivergence3D(temp3[l], temp1[l], temp2[l], temp4[l]);// , temp3[l]);
-
-        // RHS = -divwb+w2k-b2k+w3k-b3k;
-        // temp1=RHS
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp1[l][z][i][j] = -temp3[l][z][i][j] + w1k[l][z][i][j] - b1k[l][z][i][j] + w3k[l][z][i][j] - b3k[l][z][i][j];
-                }
-            }
-        }
-
-        // temp1=uk
-        dct3d.forward(temp1[l], true);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (eigenLaplacian[i][j] != 0) {
-                        temp1[l][z][i][j] = temp1[l][z][i][j] / eigenLaplacian3D[z][i][j];
-                    }
-                }
-            }
-        }
-        dct3d.inverse(temp1[l], true);
-
-        // %-- w1k subproblem
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    w1k[l][z][i][j] = -(p.ldata / p.lreg_[channel]) * p.gamma * speedData[l][z][i][j] + b1k[l][z][i][j] + temp1[l][z][i][j];
-                }
-            }
-        }
-
-        // %-- w3k subproblem
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    w3k[l][z][i][j] = Math.max(Math.min(temp1[l][z][i][j] + b3k[l][z][i][j], 1), 0);
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    b1k[l][z][i][j] = b1k[l][z][i][j] + temp1[l][z][i][j] - w1k[l][z][i][j];
-                    b3k[l][z][i][j] = b3k[l][z][i][j] + temp1[l][z][i][j] - w3k[l][z][i][j];
-                }
-            }
-        }
-
-        // %-- w2k sub-problem
-        // temp4=ukx, temp3=uky
-        LocalTools.fgradx2D(temp3[l], temp1[l]);
-        LocalTools.fgrady2D(temp4[l], temp1[l]);
-        LocalTools.fgradz2D(ukz[l], temp1[l]);
-
-        LocalTools.addtab(temp1[l], temp3[l], b2xk[l]);
-        LocalTools.addtab(temp2[l], temp4[l], b2yk[l]);
-        LocalTools.addtab(w2zk[l], ukz[l], b2zk[l]);
-        // temp1=w2xk temp2=w2yk
-        LocalTools.shrink3D(temp1[l], temp2[l], w2zk[l], temp1[l], temp2[l], w2zk[l], p.gamma);
-        // do shrink3D
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    b2xk[l][z][i][j] = b2xk[l][z][i][j] + temp3[l][z][i][j] - temp1[l][z][i][j];
-                    b2yk[l][z][i][j] = b2yk[l][z][i][j] + temp4[l][z][i][j] - temp2[l][z][i][j];
-                    b2zk[l][z][i][j] = b2zk[l][z][i][j] + ukz[l][z][i][j] - w2zk[l][z][i][j];
-                }
-            }
-        }
-
-        energytab[l] = LocalTools.computeEnergy3D(speedData[l], w3k[l], temp3[l], temp4[l], ukz[l], p.ldata, p.lreg_[channel]);
-        energy += energytab[l];
-
-        final long lEndTime = new Date().getTime(); // end time
-
-        final long difference = lEndTime - lStartTime; // check different
-        totaltime += difference;
-    }
+//    @Override
+//    protected void step() throws InterruptedException {
+//        final long lStartTime = new Date().getTime(); // start time
+//
+//        LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);
+//        LocalTools.subtab(temp2[l], temp2[l], b2yk[l]);
+//        LocalTools.subtab(temp4[l], w2zk[l], b2zk[l]);
+//
+//        // temp3=divwb
+//        LocalTools.mydivergence3D(temp3[l], temp1[l], temp2[l], temp4[l]);// , temp3[l]);
+//
+//        // RHS = -divwb+w2k-b2k+w3k-b3k;
+//        // temp1=RHS
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    temp1[l][z][i][j] = -temp3[l][z][i][j] + w1k[l][z][i][j] - b1k[l][z][i][j] + w3k[l][z][i][j] - b3k[l][z][i][j];
+//                }
+//            }
+//        }
+//
+//        // temp1=uk
+//        dct3d.forward(temp1[l], true);
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    if (eigenLaplacian[i][j] != 0) {
+//                        temp1[l][z][i][j] = temp1[l][z][i][j] / eigenLaplacian3D[z][i][j];
+//                    }
+//                }
+//            }
+//        }
+//        dct3d.inverse(temp1[l], true);
+//
+//        // %-- w1k subproblem
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    w1k[l][z][i][j] = -(p.ldata / p.lreg_[channel]) * p.gamma * speedData[l][z][i][j] + b1k[l][z][i][j] + temp1[l][z][i][j];
+//                }
+//            }
+//        }
+//
+//        // %-- w3k subproblem
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    w3k[l][z][i][j] = Math.max(Math.min(temp1[l][z][i][j] + b3k[l][z][i][j], 1), 0);
+//                }
+//            }
+//        }
+//
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    b1k[l][z][i][j] = b1k[l][z][i][j] + temp1[l][z][i][j] - w1k[l][z][i][j];
+//                    b3k[l][z][i][j] = b3k[l][z][i][j] + temp1[l][z][i][j] - w3k[l][z][i][j];
+//                }
+//            }
+//        }
+//
+//        // %-- w2k sub-problem
+//        // temp4=ukx, temp3=uky
+//        LocalTools.fgradx2D(temp3[l], temp1[l]);
+//        LocalTools.fgrady2D(temp4[l], temp1[l]);
+//        LocalTools.fgradz2D(ukz[l], temp1[l]);
+//
+//        LocalTools.addtab(temp1[l], temp3[l], b2xk[l]);
+//        LocalTools.addtab(temp2[l], temp4[l], b2yk[l]);
+//        LocalTools.addtab(w2zk[l], ukz[l], b2zk[l]);
+//        // temp1=w2xk temp2=w2yk
+//        LocalTools.shrink3D(temp1[l], temp2[l], w2zk[l], temp1[l], temp2[l], w2zk[l], p.gamma);
+//        // do shrink3D
+//
+//        for (int z = 0; z < nz; z++) {
+//            for (int i = 0; i < ni; i++) {
+//                for (int j = 0; j < nj; j++) {
+//                    b2xk[l][z][i][j] = b2xk[l][z][i][j] + temp3[l][z][i][j] - temp1[l][z][i][j];
+//                    b2yk[l][z][i][j] = b2yk[l][z][i][j] + temp4[l][z][i][j] - temp2[l][z][i][j];
+//                    b2zk[l][z][i][j] = b2zk[l][z][i][j] + ukz[l][z][i][j] - w2zk[l][z][i][j];
+//                }
+//            }
+//        }
+//
+//        energytab[l] = LocalTools.computeEnergy3D(speedData[l], w3k[l], temp3[l], temp4[l], ukz[l], p.ldata, p.lreg_[channel]);
+//        energy += energytab[l];
+//
+//        final long lEndTime = new Date().getTime(); // end time
+//
+//        final long difference = lEndTime - lStartTime; // check different
+//        totaltime += difference;
+//    }
 }

@@ -59,8 +59,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
     @Override
     protected void init() {
-        this.compute_eigenPSF();
-
         Tools.convolve3Dseparable(temp3[l], w3k[l], ni, nj, nz, p.PSF, temp4[l]);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {

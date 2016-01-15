@@ -321,8 +321,6 @@ abstract class ASplitBregmanSolver {
 //        }
 //    }
 
-    protected void compute_eigenPSF() { }
-
     private void regions_intensity(double[][][] mask) {
         final double thresh = 0.4;
 
