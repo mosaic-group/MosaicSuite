@@ -2,52 +2,27 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Vector;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.Debug;
 
 
 class MasksDisplay {
+    private final int iWidth, iHeigth, iDepth;
 
-    private final ImagePlus imgcoloc;
-    private final int[][] colors;
-    private final ColorProcessor cp;
-    private final ImagePlus img;
-    private final int ni, nj, nz, nlevels;
-    boolean firstdisp = true;
-    private boolean firstdispa = true;
-    private boolean firstdispb = true;
-    private final Parameters parameters;
-    private final ImagePlus imgda, imgdb;
+    private final ImagePlus iColocImg = new ImagePlus();
+    private final ImagePlus iAImg = new ImagePlus(); 
+    private final ImagePlus iBImg = new ImagePlus();
 
-    MasksDisplay(int ni, int nj, int nz, int nlevels, double[] cl, Parameters params) {
-        this.imgda = new ImagePlus();
-        this.imgdb = new ImagePlus();
-        this.ni = ni;
-        this.nj = nj;
-        this.nlevels = nlevels;
-        this.nz = nz;
-        this.parameters = params;
-        this.colors = new int[this.nlevels][3];
-        this.cp = new ColorProcessor(ni, nj);
-        this.img = new ImagePlus();
-
-        this.imgcoloc = new ImagePlus();
-
-        // heatmap R=x, G=sqrt(x), B=x**2 on kmeans found intensities
-        for (int l = 0; l < this.nlevels; l++) {
-            colors[l][1] = (int) Math.min(255, 255 * Math.sqrt(cl[l])); // Green
-            colors[l][0] = (int) Math.min(255, 255 * cl[l]); // Red
-            colors[l][2] = (int) Math.min(255, 255 * Math.pow(cl[l], 2)); // Blue
-        }
+    MasksDisplay(int ni, int nj, int nz) {
+        iWidth = ni;
+        iHeigth = nj;
+        iDepth = nz;
     }
 
     /**
@@ -58,12 +33,12 @@ class MasksDisplay {
      * @return the generated ImagePlus
      */
     ImagePlus generateImgFromArray(double[][][] aImgArray, String aTitle) {
-        final ImageStack stack = new ImageStack(ni, nj);
+        final ImageStack stack = new ImageStack(iWidth, iHeigth);
     
-        for (int z = 0; z < nz; z++) {
-            final float[][] pixels = new float[ni][nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
+        for (int z = 0; z < iDepth; z++) {
+            final float[][] pixels = new float[iWidth][iHeigth];
+            for (int i = 0; i < iWidth; i++) {
+                for (int j = 0; j < iHeigth; j++) {
                     pixels[i][j] = (float) aImgArray[z][i][j];
                 }
             }
@@ -76,19 +51,6 @@ class MasksDisplay {
         return img;
     }
 
-    void display(int[][][] maxmask, String s) {
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                cp.putPixel(i, j, colors[maxmask[0][i][j]]);
-            }
-        }
-        img.setProcessor(s, cp);
-        if (firstdisp) {
-            img.show();
-            firstdisp = false;
-        }
-    }
-
     /**
      * Display the soft membership
      *
@@ -97,31 +59,65 @@ class MasksDisplay {
      * @param channel channel
      */
     void display2regions(double[][] array, String s, int channel) {
+        final ImageProcessor ims = convertArrayToImageProcessor(array);
 
-        final float[][] temp = new float[ni][nj];
+        if (channel == 0) {
+            iAImg.setProcessor(s + " X", ims);
+            iAImg.show();
+            iAImg.changes = false;
+        }
+        else {
+            iBImg.setProcessor(s + " Y", ims);
+            iBImg.show();
+            iBImg.changes = false;
+        }
+    }
 
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
+    private ImageProcessor convertArrayToImageProcessor(double[][] array) {
+        final float[][] temp = new float[iWidth][iHeigth];
+        for (int i = 0; i < iWidth; i++) {
+            for (int j = 0; j < iHeigth; j++) {
                 temp[i][j] = (float) array[i][j];
             }
         }
-
         final ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0) {
-            imgda.setProcessor(s + " X", imp);
-            if (firstdispa) {
-                imgda.show();
-                firstdispa = false;
+        return imp;
+    }
+
+    /**
+     * Display the soft membership
+     *
+     * @param array 3D array of double
+     * @param s String of the image
+     * @param channel channel
+     */
+    void display2regions3D(double[][][] array, String s, int channel) {
+    
+        Debug.print("display2regions3D", iWidth, iHeigth);
+        
+        int aScaleInput = 255;
+        final ImageStack ims = new ImageStack(iWidth, iHeigth);
+        for (int z = 0; z < iDepth; z++) {
+            final byte[] temp = new byte[iWidth * iHeigth];
+            for (int j = 0; j < iHeigth; j++) {
+                for (int i = 0; i < iWidth; i++) {
+                    temp[j * iWidth + i] = (byte) ((int) (aScaleInput * array[z][i][j]));
+                }
             }
-            imgda.changes = false;
+            final ImageProcessor bp = new ByteProcessor(iWidth, iHeigth);
+            bp.setPixels(temp);
+            ims.addSlice("", bp);
+        }
+
+        if (channel == 0) {
+            iAImg.setStack(s + " X", ims);
+            iAImg.resetDisplayRange();
+            iAImg.show();
         }
         else {
-            imgdb.setProcessor(s + " Y", imp);
-            if (firstdispb) {
-                imgdb.show();
-                firstdispb = false;
-            }
-            imgdb.changes = false;
+            iBImg.setStack(s + " Y", ims);
+            iBImg.resetDisplayRange();
+            iBImg.show();
         }
     }
 
@@ -134,100 +130,20 @@ class MasksDisplay {
      * @param vs visualize or not
      * @return ImagePlus image
      */
-    ImagePlus display2regionsnew(float[][] array, String s, int channel, boolean vs) {
-
-        final float[][] temp = new float[ni][nj];
-        final ImagePlus imgtemp = new ImagePlus();
-
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                temp[i][j] = array[i][j];
-            }
-        }
-
-        final ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0) {
-            imgtemp.setProcessor(s + "X", imp);
-        }
-        else {
-            imgtemp.setProcessor(s + "Y", imp);
-        }
-        if (vs == true) {
-            imgtemp.show();
-        }
-        return imgtemp;
+    void display2regionsnew(float[][] array, String s, int channel) {
+        final ImageProcessor imp = new FloatProcessor(array);
+        showImgProcessor(s, channel, imp);
     }
 
-    /**
-     * Display the soft membership
-     *
-     * @param array 2D array of double
-     * @param s String of the image
-     * @param channel channel
-     * @return the imagePlus
-     */
-    ImagePlus display2regionsnewd(double[][] array, String s, int channel) {
-
-        final float[][] temp = new float[ni][nj];
+    private void showImgProcessor(String aPrefixTitle, int aChannel, final ImageProcessor aImgProcessor) {
         final ImagePlus imgtemp = new ImagePlus();
-
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                temp[i][j] = (float) array[i][j];
-            }
-        }
-
-        final ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0) {
-            imgtemp.setProcessor(s + "X", imp);
+        if (aChannel == 0) {
+            imgtemp.setProcessor(aPrefixTitle + "X", aImgProcessor);
         }
         else {
-            imgtemp.setProcessor(s + "Y", imp);
+            imgtemp.setProcessor(aPrefixTitle + "Y", aImgProcessor);
         }
         imgtemp.show();
-        return imgtemp;
-    }
-
-    /**
-     * Display the soft membership
-     *
-     * @param array 3D array of double
-     * @param s String of the image
-     * @param channel channel
-     */
-    void display2regions3D(double[][][] array, String s, int channel) {
-
-        Debug.print("display2regions3D", ni, nj, parameters.ni, parameters.nj);
-        ImageStack ims3d = new ImageStack(ni, nj);
-        for (int z = 0; z < nz; z++) {
-            final byte[] temp = new byte[ni * nj];
-
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp[j * parameters.ni + i] = (byte) ((int) (255 * array[z][i][j]));
-                }
-            }
-            final ImageProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(temp);
-            ims3d.addSlice("", bp);
-        }
-
-        if (channel == 0) {
-            imgda.setStack(s + " X", ims3d);
-            imgda.resetDisplayRange();
-            if (firstdispa) {
-                imgda.show();
-                firstdispa = false;
-            }
-        }
-        else {
-            imgdb.setStack(s + " Y", ims3d);
-            imgdb.resetDisplayRange();
-            if (firstdispb) {
-                imgdb.show();
-                firstdispb = false;
-            }
-        }
     }
 
     /**
@@ -239,94 +155,91 @@ class MasksDisplay {
      * @return the imagePlus
      */
     ImagePlus display2regions3Dnew(float[][][] array, String s, int channel) {
-
-        final ImageStack ims3da = new ImageStack(ni, nj);
-        final ImagePlus imgd = new ImagePlus();
-        Debug.print("display2regions3Dnew", ni, nj, parameters.ni, parameters.nj);
-        for (int z = 0; z < nz; z++) {
-            final byte[] temp = new byte[ni * nj];
-
-            for (int j = 0; j < nj; j++) {
-                for (int i = 0; i < ni; i++) {
-                    temp[j * parameters.ni + i] = (byte) ((int) (array[z][i][j]));// (float)
+    
+        Debug.print("display2regions3Dnew", iWidth, iHeigth);
+        
+        int aScaleInput = 1;
+        final ImageStack ims3d = new ImageStack(iWidth, iHeigth);
+        for (int z = 0; z < iDepth; z++) {
+            final byte[] temp = new byte[iWidth * iHeigth];
+            for (int j = 0; j < iHeigth; j++) {
+                for (int i = 0; i < iWidth; i++) {
+                    temp[j * iWidth + i] = (byte) ((int) (aScaleInput * array[z][i][j]));
                 }
             }
-            final ImageProcessor bp = new ByteProcessor(ni, nj);
+            final ImageProcessor bp = new ByteProcessor(iWidth, iHeigth);
             bp.setPixels(temp);
-            ims3da.addSlice("", bp);
+            ims3d.addSlice("", bp);
         }
-
+    
+        final ImagePlus imgd = new ImagePlus();
         if (channel == 0) {
-            imgd.setStack(s + " X", ims3da);
+            imgd.setStack(s + " X", ims3d);
         }
         else {
-            imgd.setStack(s + " Y", ims3da);
+            imgd.setStack(s + " Y", ims3d);
         }
         imgd.resetDisplayRange();
         imgd.show();
-
+    
         return imgd;
     }
 
     /**
-     * Display the colocalization image
+     * Display the soft membership
      *
-     * @param savepath path + filename "_coloc.zip" is appended to the name, extension is removed
-     * @param regionslistA Regions list A
-     * @param regionslistB Regions list B
+     * @param array 2D array of double
+     * @param s String of the image
+     * @param channel channel
+     * @return the imagePlus
      */
-    void displaycoloc(String savepath, ArrayList<Region> regionslistA, ArrayList<Region> regionslistB, Vector<ImagePlus> ip) {
+    void display2regionsnewd(double[][] array, String s, int channel) {
+        final ImageProcessor imp = convertArrayToImageProcessor(array);
+        showImgProcessor(s, channel, imp);
+    }
 
-        final byte[] imagecolor = new byte[nz * ni * nj * 3];
+    /**
+     * Produces the colocalization image
+     * @param aRegionsListA Regions list A
+     * @param aRegionsListB Regions list B
+     */
+    ImagePlus generateColocImg(ArrayList<Region> aRegionsListA, ArrayList<Region> aRegionsListB) {
+        final byte[] imagecolor = new byte[iDepth * iWidth * iHeigth * 3];
 
         // set green pixels
-        imagecolor[1] = (byte) 255;
-        for (final Region r : regionslistA) {
+        for (final Region r : aRegionsListA) {
             for (final Pix p : r.pixels) {
-                final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
+                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
                 imagecolor[t + p.py * 3 + 1] = (byte) 255;
-                // green
             }
         }
 
         // set red pixels
-        for (final Region r : regionslistB) {
+        for (final Region r : aRegionsListB) {
             for (final Pix p : r.pixels) {
-                final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
+                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
                 imagecolor[t + p.py * 3 + 0] = (byte) 255;
             }
         }
 
+        // Merge them into one Color image
         final int[] tabt = new int[3];
-
-        ImageStack imgcolocastack = new ImageStack(ni, nj);
-        for (int z = 0; z < nz; z++) {
-            final ColorProcessor cpcoloc = new ColorProcessor(ni, nj);
-            for (int i = 0; i < ni; i++) {
-                final int t = z * ni * nj * 3 + i * nj * 3;
-                for (int j = 0; j < nj; j++) {
+        ImageStack imgcolocastack = new ImageStack(iWidth, iHeigth);
+        for (int z = 0; z < iDepth; z++) {
+            final ColorProcessor colorProc = new ColorProcessor(iWidth, iHeigth);
+            for (int i = 0; i < iWidth; i++) {
+                final int t = z * iWidth * iHeigth * 3 + i * iHeigth * 3;
+                for (int j = 0; j < iHeigth; j++) {
                     tabt[0] = imagecolor[t + j * 3 + 0] & 0xFF;
                     tabt[1] = imagecolor[t + j * 3 + 1] & 0xFF;
                     tabt[2] = imagecolor[t + j * 3 + 2] & 0xFF;
-                    cpcoloc.putPixel(i, j, tabt);
+                    colorProc.putPixel(i, j, tabt);
                 }
             }
-            imgcolocastack.addSlice("Colocalization", cpcoloc);
-
+            imgcolocastack.addSlice("Colocalization", colorProc);
         }
-        this.imgcoloc.setStack("Colocalization", imgcolocastack);
-
-        ip.add(this.imgcoloc);
-
-        if (Analysis.p.dispwindows) {
-            this.imgcoloc.show();
-        }
-
-        if (Analysis.p.save_images) {
-            IJ.run(this.imgcoloc, "RGB Color", "");
-
-            savepath = MosaicUtils.removeExtension(savepath) + "_coloc.zip";
-            IJ.saveAs(this.imgcoloc, "ZIP", savepath);
-        }
+        iColocImg.setStack("Colocalization", imgcolocastack);
+        
+        return iColocImg;
     }
 }

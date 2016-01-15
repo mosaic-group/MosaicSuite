@@ -270,10 +270,6 @@ abstract class ASplitBregmanSolver {
                 IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
                 IJ.log("Total phase one time: " + totaltime / 1000 + "s");
             }
-
-            if (p.nlevels > 2) {
-                md.display(maxmask, "Masks");
-            }
         }
     }
     
@@ -310,7 +306,6 @@ abstract class ASplitBregmanSolver {
 
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-
         ArrayOps.fill(Ri[0], (float) thr);
 
         fcr.run(thr, 512 * 512, 2, 0, Ri[0]);
@@ -397,17 +392,9 @@ abstract class ASplitBregmanSolver {
         mask_im.setStack("Voronoi", mask_ims3);
 
         // Here we are elaborating the Voronoi mask to get a nice subdivision
-        // mask_im.duplicate().show();
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    Ri[0][z][i][j] = (float) thr;
-                }
-            }
-        }
+        ArrayOps.fill(Ri[0], (float) thr);
 
         fcr.run(thr, p.ni * p.nj * p.nz, 0, 0, Ri[0]);// min size was 5
 
@@ -492,7 +479,7 @@ abstract class ASplitBregmanSolver {
 
         if (p.dispvoronoi) {
             if (p.nz == 1) {
-                md.display2regionsnew(Ri[0][0], "Regions thresholds", channel, true);
+                md.display2regionsnew(Ri[0][0], "Regions thresholds", channel);
             }
             else {
                 md.display2regions3Dnew(Ri[0], "Regions thresholds", channel);

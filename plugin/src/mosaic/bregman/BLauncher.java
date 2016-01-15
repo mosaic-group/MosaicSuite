@@ -47,7 +47,7 @@ public class BLauncher {
     private int hcount = 0;
     private ImagePlus aImp;
 
-    private final Vector<ImagePlus> ip = new Vector<ImagePlus>();
+    private final Vector<ImagePlus> allImages = new Vector<ImagePlus>();
 
     private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private final String choice2[] = { "Poisson", "Gauss" };
@@ -490,10 +490,18 @@ public class BLauncher {
             final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
             int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
 
-            final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p.nlevels, Analysis.p.cl, Analysis.p);
-            md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(), Analysis.regionslist[0], Analysis.regionslist[1], ip);
-
+            final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p);
+            ImagePlus colocImg = md.generateColocImg(Analysis.regionslist[0], Analysis.regionslist[1]);
+            allImages.add(colocImg);
+            if (Analysis.p.dispwindows) {
+                colocImg.show();
+            }
+            
             if (Analysis.p.save_images) {
+                // Handle colocation image
+                IJ.run(colocImg, "RGB Color", "");
+                IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle()) + "_coloc.zip");
+                
                 // Calculate colocalization quantities
                 colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(), 4);
                 colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(), 4);
@@ -640,7 +648,7 @@ public class BLauncher {
             updateImages(out_over, over, getOutlineName(channel - 1), Analysis.p.dispoutline, channel);
         }
         else {
-            ip.add(over);
+            allImages.add(over);
             out_over[channel - 1] = over;
             over.show();
             over.setTitle(getOutlineName(channel - 1));
@@ -691,7 +699,7 @@ public class BLauncher {
             updateImages(out_disp, intensities2, getIntensitiesName(channel - 1), Analysis.p.dispint, channel);
         }
         else {
-            ip.add(intensities2);
+            allImages.add(intensities2);
             out_disp[channel - 1] = intensities2;
             intensities2.show();
             intensities2.setTitle(getIntensitiesName(channel - 1));
@@ -767,7 +775,7 @@ public class BLauncher {
         }
         else {
             out_label[channel - 1] = label;
-            ip.add(label);
+            allImages.add(label);
             label.show();
             label.setTitle(getSegmentationName(channel - 1));
         }
@@ -791,7 +799,7 @@ public class BLauncher {
         }
         else {
             out_label_gray[channel - 1] = label_;
-            ip.add(label_);
+            allImages.add(label_);
             label_.show();
             label_.setTitle(getMaskName(channel - 1));
         }
@@ -811,7 +819,7 @@ public class BLauncher {
         }
         else {
             ipd[channel - 1] = ips;
-            ip.add(ips);
+            allImages.add(ips);
             ipd[channel - 1].setTitle(title);
         }
 
@@ -823,7 +831,7 @@ public class BLauncher {
     }
 
     public void closeAllImages() {
-        for (ImagePlus img : ip) {
+        for (ImagePlus img : allImages) {
             img.close();
         }
     }

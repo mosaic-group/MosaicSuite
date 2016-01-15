@@ -228,7 +228,7 @@ class AnalysePatch implements Runnable {
      */
     @Override
     public void run() {
-        final MasksDisplay md = new MasksDisplay(sx, sy, sz, 2, p.cl, p);
+        final MasksDisplay md = new MasksDisplay(sx, sy, sz, p);
 
         p.nthreads = 1;
         p.firstphase = false;
