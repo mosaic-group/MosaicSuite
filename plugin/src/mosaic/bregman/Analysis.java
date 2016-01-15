@@ -165,6 +165,9 @@ public class Analysis {
         }
 
         if (p.dispSoftMask) {
+            // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
+            if (channel > 1) return;
+            
             if (out_soft_mask[channel] == null) {
                 out_soft_mask[channel] = new ImagePlus();
             }
@@ -173,7 +176,6 @@ public class Analysis {
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
     }
-
 
     static void compute_connected_regions_a(double d) {
         final FindConnectedRegions fcr = processConnectedRegions(d, p.min_intensity, maskA);

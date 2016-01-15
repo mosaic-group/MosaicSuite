@@ -19,9 +19,9 @@ public class Parameters implements Serializable {
     final public boolean debug = false;
     final int model_oversampling = 1; // Already deleted in code - before removing updated config file.
     final double ldata = 1;
-    final double gamma = 1;// was 10 : use 1 for two region PSF version
-    final double tol = 1e-7;// 1e-5
-    final boolean displowlevels = true;
+    final double gamma = 1;
+    final double tol = 1e-7;
+    final boolean displowlevels = true; // Already deleted in code - before removing updated config file.
     final boolean looptest = false;
     final int maxves_size = -1;
     final double colocthreshold = 0.5;

@@ -12,6 +12,7 @@ import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
+import mosaic.utils.ArrayOps;
 
 
 abstract class ASplitBregmanSolver {
@@ -258,25 +259,24 @@ abstract class ASplitBregmanSolver {
             this.regions_intensity_findthresh(w3kbest[0]);
         }
 
-        if (p.livedisplay && p.firstphase) {
-            if (p.nlevels <= 2 && p.nz == 1) {
-                md.display2regions(w3kbest[0][0], "Mask", channel);
-            }
-        }
-        if (p.livedisplay && p.nz > 1 && p.nlevels <= 2 && p.firstphase) {
-            md.display2regions3D(w3kbest[0], "Mask", channel);
-        }
-
         if (p.livedisplay) {
+            if (p.firstphase) {
+                if (p.nlevels <= 2 && p.nz == 1) {
+                    md.display2regions(w3kbest[0][0], "Mask", channel);
+                }
+                if (p.nlevels <= 2 && p.nz > 1) {
+                    md.display2regions3D(w3kbest[0], "Mask__", channel);
+                }
+                IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
+                IJ.log("Total phase one time: " + totaltime / 1000 + "s");
+            }
+
             if (p.nlevels > 2) {
                 md.display(maxmask, "Masks");
             }
         }
-        if (p.livedisplay && p.firstphase) {
-            IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
-            IJ.log("Total phase one time: " + totaltime / 1000 + "s");
-        }
     }
+    
     abstract protected void step() throws InterruptedException;
     abstract protected void init();
 
@@ -300,7 +300,6 @@ abstract class ASplitBregmanSolver {
             final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
             bp.setPixels(mask_bytes);
             mask_ims.addSlice("", bp);
-
         }
         
         final ImagePlus mask_im = new ImagePlus("Regions", mask_ims);
@@ -312,13 +311,7 @@ abstract class ASplitBregmanSolver {
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
 
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    Ri[0][z][i][j] = (float) thr;
-                }
-            }
-        }
+        ArrayOps.fill(Ri[0], (float) thr);
 
         fcr.run(thr, 512 * 512, 2, 0, Ri[0]);
 

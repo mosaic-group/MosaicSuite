@@ -159,7 +159,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         }
 
         if (p.livedisplay && p.firstphase) {
-            md.display2regions3D(w3k[l], "Mask", channel);
+            md.display2regions3D(w3k[l], "Mask3", channel);
         }
 
         final long lEndTime = new Date().getTime(); // end time
@@ -193,7 +193,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         }
 
         if (p.livedisplay && p.firstphase) {
-            md.display2regions3D(w3k[l], "Mask", channel);
+            md.display2regions3D(w3k[l], "Mask4", channel);
         }
 
         final long lEndTime = new Date().getTime(); // end time

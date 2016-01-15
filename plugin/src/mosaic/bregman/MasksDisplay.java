@@ -12,11 +12,10 @@ import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.Debug;
 
 
 class MasksDisplay {
-
-    private ImageStack imgcolocastack;
 
     private final ImagePlus imgcoloc;
     private final int[][] colors;
@@ -26,9 +25,7 @@ class MasksDisplay {
     boolean firstdisp = true;
     private boolean firstdispa = true;
     private boolean firstdispb = true;
-    private final Parameters p;
-
-    private ImageStack ims3d;
+    private final Parameters parameters;
     private final ImagePlus imgda, imgdb;
 
     MasksDisplay(int ni, int nj, int nz, int nlevels, double[] cl, Parameters params) {
@@ -38,7 +35,7 @@ class MasksDisplay {
         this.nj = nj;
         this.nlevels = nlevels;
         this.nz = nz;
-        this.p = params;
+        this.parameters = params;
         this.colors = new int[this.nlevels][3];
         this.cp = new ColorProcessor(ni, nj);
         this.img = new ImagePlus();
@@ -51,15 +48,32 @@ class MasksDisplay {
             colors[l][0] = (int) Math.min(255, 255 * cl[l]); // Red
             colors[l][2] = (int) Math.min(255, 255 * Math.pow(cl[l], 2)); // Blue
         }
+    }
 
-        if (!p.displowlevels) {
-            colors[0][1] = 0;
-            colors[0][0] = 0;
-            colors[0][2] = 0;
-            colors[1][1] = 0;
-            colors[1][0] = 0;
-            colors[1][2] = 0;
+    /**
+     * Display the soft membership
+     *
+     * @param aImgArray 3D array with image data [z][x][y]
+     * @param aTitle Title of the image.
+     * @return the generated ImagePlus
+     */
+    ImagePlus generateImgFromArray(double[][][] aImgArray, String aTitle) {
+        final ImageStack stack = new ImageStack(ni, nj);
+    
+        for (int z = 0; z < nz; z++) {
+            final float[][] pixels = new float[ni][nj];
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    pixels[i][j] = (float) aImgArray[z][i][j];
+                }
+            }
+            stack.addSlice("", new FloatProcessor(pixels));
         }
+    
+        final ImagePlus img = new ImagePlus(aTitle, stack);
+        img.changes = false;
+        
+        return img;
     }
 
     void display(int[][][] maxmask, String s) {
@@ -180,96 +194,22 @@ class MasksDisplay {
      * @param array 3D array of double
      * @param s String of the image
      * @param channel channel
-     * @param vs visualize or not the image
-     * @return the imagePlus
-     */
-    ImagePlus display2regionsnew(double[][] array, String s, int channel, boolean vs) {
-
-        final float[][] temp = new float[ni][nj];
-        final ImagePlus imgtemp = new ImagePlus();
-
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                temp[i][j] = (float) array[i][j];
-            }
-        }
-
-        final ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0) {
-            imgtemp.setProcessor(s + "X", imp);
-        }
-        else {
-            imgtemp.setProcessor(s + "Y", imp);
-        }
-
-        if (vs == true) {
-            imgtemp.show();
-        }
-        imgtemp.changes = false;
-        return imgtemp;
-    }
-
-    /**
-     * Display the soft membership
-     *
-     * @param array 3D array of double
-     * @param s String of the image
-     * @param channel channel
-     * @param vs Visualize or not the soft mask
-     * @return the imagePlus
-     */
-    ImagePlus display2regions3Dnew(double[][][] array, String s, int channel, boolean vs) {
-        final ImageStack img3temp = new ImageStack(ni, nj);
-
-        final ImagePlus imgtemp = new ImagePlus();
-
-        for (int z = 0; z < nz; z++) {
-            final float[][] temp = new float[ni][nj];
-
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp[i][j] = (float) array[z][i][j];
-                }
-            }
-            final ImageProcessor imp = new FloatProcessor(temp);
-            img3temp.addSlice("", imp);
-        }
-
-        if (channel == 0) {
-            imgtemp.setStack(s + "X", img3temp);
-        }
-        else {
-            imgtemp.setStack(s + "Y", img3temp);
-        }
-
-        if (vs == true) {
-            imgtemp.show();
-        }
-        imgtemp.changes = false;
-        return imgtemp;
-    }
-
-    /**
-     * Display the soft membership
-     *
-     * @param array 3D array of double
-     * @param s String of the image
-     * @param channel channel
      */
     void display2regions3D(double[][][] array, String s, int channel) {
 
-        this.ims3d = new ImageStack(ni, nj);
+        Debug.print("display2regions3D", ni, nj, parameters.ni, parameters.nj);
+        ImageStack ims3d = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
             final byte[] temp = new byte[ni * nj];
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    temp[j * p.ni + i] = (byte) ((int) (255 * array[z][i][j]));
+                    temp[j * parameters.ni + i] = (byte) ((int) (255 * array[z][i][j]));
                 }
             }
             final ImageProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(temp);
-            this.ims3d.addSlice("", bp);
+            ims3d.addSlice("", bp);
         }
 
         if (channel == 0) {
@@ -302,13 +242,13 @@ class MasksDisplay {
 
         final ImageStack ims3da = new ImageStack(ni, nj);
         final ImagePlus imgd = new ImagePlus();
-
+        Debug.print("display2regions3Dnew", ni, nj, parameters.ni, parameters.nj);
         for (int z = 0; z < nz; z++) {
             final byte[] temp = new byte[ni * nj];
 
             for (int j = 0; j < nj; j++) {
                 for (int i = 0; i < ni; i++) {
-                    temp[j * p.ni + i] = (byte) ((int) (array[z][i][j]));// (float)
+                    temp[j * parameters.ni + i] = (byte) ((int) (array[z][i][j]));// (float)
                 }
             }
             final ImageProcessor bp = new ByteProcessor(ni, nj);
@@ -359,7 +299,7 @@ class MasksDisplay {
 
         final int[] tabt = new int[3];
 
-        this.imgcolocastack = new ImageStack(ni, nj);
+        ImageStack imgcolocastack = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
             final ColorProcessor cpcoloc = new ColorProcessor(ni, nj);
             for (int i = 0; i < ni; i++) {
@@ -371,7 +311,7 @@ class MasksDisplay {
                     cpcoloc.putPixel(i, j, tabt);
                 }
             }
-            this.imgcolocastack.addSlice("Colocalization", cpcoloc);
+            imgcolocastack.addSlice("Colocalization", cpcoloc);
 
         }
         this.imgcoloc.setStack("Colocalization", imgcolocastack);

@@ -323,11 +323,12 @@ public class MosaicUtils {
 
     /**
      * This function merge the frames of the image a2 into a1
-     *
      * @param a1 Image a1
      * @param a2 Image a2
      */
     static public void MergeFrames(ImagePlus a1, ImagePlus a2) {
+        if (a1 == null || a2 == null) return;
+        
         // If a1 does not have an imageStack set it to a2 and return
         if (a1.getImageStack().getSize() == 0) {
             a1.setStack("Merge frames", a2.getImageStack().duplicate());
@@ -350,11 +351,9 @@ public class MosaicUtils {
 
     /**
      * Read a file and split the String by space
-     *
      * @param file
      * @return values array of String
      */
-
     public static String[] readAndSplit(String file) {
         // Z means: "The end of the input but for the final terminator, if any"
         String output = null;

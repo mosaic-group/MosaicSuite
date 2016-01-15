@@ -136,6 +136,16 @@ public class ArrayOpsTest extends CommonBase {
     }
     
     @Test
+    public void testFillArrayFloat3D() {
+        float[][][] input = new float[22][33][44];
+        ArrayOps.fill(input, 5.1f);
+        for (int i = 0; i < input.length; ++i)
+            for (int j = 0; j < input[0].length; ++j)
+                for (int z = 0; z < input[0][0].length; ++z)
+                    assertEquals(5.1f, input[i][j][z], 1e-9);
+    }
+    
+    @Test
     public void testFillArrayDouble3D() {
         double[][][] input = new double[22][33][44];
         ArrayOps.fill(input, 1.3);

@@ -124,7 +124,7 @@ class TwoRegions extends NRegions {
         
         // TODO: This causes troubles when soft mask is calculated for 2 channel images. Should be investigated. Why it is 1 not 2 or just taken from img?
         //       It is temporarily changed to 2 but it is unknown if has any efect on segmentaiton output.
-        p.nlevels = 2;
+        p.nlevels = 1;
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
         if (p.nz > 1) {
@@ -177,8 +177,6 @@ class TwoRegions extends NRegions {
         mergeSoftMask(A_solver);
 
         if (channel == 0) {
-            // Take the soft membership mask
-
             Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri[0]);
@@ -243,7 +241,7 @@ class TwoRegions extends NRegions {
                 for (final Region r : Analysis.regionslist[0]) {
                     for (final Pix p : r.pixels) {
                         final Integer id = p.px + p.py * ni + p.pz * ni * nj;
-                        lblInt.put(id, Float.valueOf((float) r.intensity));
+                        lblInt.put(id, (float) r.intensity);
                     }
                 }
 
@@ -260,7 +258,6 @@ class TwoRegions extends NRegions {
                     final int lbl = img.getLabel(p);
                     if (lbl != 0) {
                         // foreground
-
                         Region r = r_list.get(lbl);
                         if (r == null) {
                             r = new Region(lbl, 0);
@@ -344,17 +341,15 @@ class TwoRegions extends NRegions {
      * @param A_solver the solver used to produce the soft mask
      */
     private void mergeSoftMask(ASplitBregmanSolver A_solver) {
-        System.out.println("============ " + channel );
+        System.out.println("============ mergeSoftMask" + channel );
         System.out.println(Debug.getArrayDims(out_soft_mask));
         System.out.println(Debug.getArrayDims(A_solver.w3k));
         
+        // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
+        if (channel > 0) return;
+        
         if (p.dispSoftMask) {
-            if (p.nz > 1) {
-                out_soft_mask[channel] = md.display2regions3Dnew(A_solver.w3k[channel], "Mask", channel, false);
-            }
-            else {
-                out_soft_mask[channel] = md.display2regionsnew(A_solver.w3k[channel][0], "Mask", channel, false);
-            }
+                out_soft_mask[channel] = md.generateImgFromArray(A_solver.w3k[channel], "Mask" + ((channel == 0) ? "X" : "Y"));
         }
     }
 }

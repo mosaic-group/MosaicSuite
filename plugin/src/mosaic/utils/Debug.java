@@ -14,11 +14,18 @@ import com.google.gson.GsonBuilder;
  */
 public class Debug { // NO_UCD (code used only for debugging)
     /**
+     * This method should be used for outputing debug. Easy to turn off all messages or change it to logger.
+     * @param aDebugMessage
+     */
+    public static void debugPrint(String aDebugMessage) {
+        System.out.println(aDebugMessage);
+    }
+    
+    /**
      * prints output with additional new line of string taken from {@link Debug#getString}
      */
     public static void print(Object... aObjects) {
-        System.out.println(getString(aObjects));
-        System.out.println();
+        debugPrint(getString(aObjects) + "\n");
     }
 
     /**
@@ -77,5 +84,42 @@ public class Debug { // NO_UCD (code used only for debugging)
                 deepLength(deepElement, aOutputBuffer);
             }
         }
+    }
+    
+    /**
+     * @return String with requested number of entries of stack trace. If aNumberOfEntires == -1 then whole stack is printed.
+     */
+    public static String getStack(int aNumberOfEntries) {
+        // Skip two first lines which are entries for getStackTrace, getStack(,) and current getStack() methods.
+        return getStack(aNumberOfEntries, 3);
+    }
+    
+    /**
+     * @param aNumberOfEntries - how many lines of stack should be in output string?
+     * @param aSkipNumOfFirstLines - how many lines of stack skip? (default 2: skips entries for debug code
+     *                               and first line is a place of calling this method).
+     * @return String with requested number of entries of stack trace
+     */
+    public static String getStack(int aNumberOfEntries, int aSkipNumOfFirstLines) {
+        StringBuilder result = new StringBuilder();
+        // new Exception().printStackTrace();
+        int count = -aSkipNumOfFirstLines;
+        for (StackTraceElement ste : Thread.currentThread( ).getStackTrace()) {
+            // Skip requested number of first lines
+            if (count++ <= -1) continue;
+            
+            // Output requested number of stack trace
+            if (aNumberOfEntries != -1 && count > aNumberOfEntries) break;
+            result.append(ste.toString() + "\n");
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Prints whole stack trace.
+     */
+    public static void printStack() {
+        debugPrint(getStack(-1, 3));
     }
 }

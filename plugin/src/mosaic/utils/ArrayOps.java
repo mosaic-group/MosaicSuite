@@ -217,6 +217,20 @@ public class ArrayOps {
         }
     }
     
+    static public void fill(float[][][] aArray, float aValue) {
+        int lenX = aArray.length;
+        int lenY = aArray[0].length;
+        int lenZ = aArray[0][0].length;
+        
+        for (int x = 0; x < lenX; ++x) {
+            for (int y = 0; y < lenY; ++y) {
+                for (int z = 0; z < lenZ; ++z) {
+                    aArray[x][y][z] = aValue;
+                }
+            }
+        }
+    }
+    
     static public void fill(double[][][] aArray, double aValue) {
         int lenX = aArray.length;
         int lenY = aArray[0].length;

@@ -315,6 +315,10 @@ public class BLauncher {
             }
         }
         for (int i = 0; i < Analysis.out_soft_mask.length; i++) {
+            
+            // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
+            if (i > 0) break;
+            
             final String savepath = path + File.separator + getSoftMask(i) + ".tiff";
             if (Analysis.out_soft_mask[i] != null) {
                 IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);

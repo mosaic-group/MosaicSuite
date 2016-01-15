@@ -381,7 +381,6 @@ public class GenericGUI {
                 MosaicUtils.reorganize(Analysis.out_w, aImp.getShortTitle(), savepath, aImp.getNFrames());
 
                 // if it is a video Stitch all the csv
-
                 if (aImp.getNFrames() > 1) {
                     MosaicUtils.StitchCSV(savepath, Analysis.out, savepath + File.separator + aImp.getTitle());
 
