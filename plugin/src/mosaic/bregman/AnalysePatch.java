@@ -834,7 +834,7 @@ class AnalysePatch implements Runnable {
         fcr.run(thr, isx * isy * isz, 0 * fsxy, 0, Ri);// min size was 5
 
         // add to list with critical section
-        impa.addRegionstoList(fcr.results);
+        impa.addRegionsToList(fcr.results);
 
         // add to regions refined with correct indexes
         assemble(fcr.results);
@@ -844,10 +844,10 @@ class AnalysePatch implements Runnable {
         for (final Region r : localList) {
             final ArrayList<Pix> npixels = new ArrayList<Pix>();
 
-            for (final Pix v : r.pixels) {
-                npixels.add(new Pix(v.pz + offsetz * fsz, v.px + offsetx * fsxy, v.py + offsety * fsxy));
+            for (final Pix p : r.pixels) {
+                npixels.add(new Pix(p.pz + offsetz * fsz, p.px + offsetx * fsxy, p.py + offsety * fsxy));
                 // count number of free edges
-                regions_refined[v.pz + offsetz * fsz][v.px + offsetx * fsxy][v.py + offsety * fsxy] = (short) r.value;
+                regions_refined[p.pz + offsetz * fsz][p.px + offsetx * fsxy][p.py + offsety * fsxy] = (short) r.value;
             }
             r.pixels = npixels;
         }

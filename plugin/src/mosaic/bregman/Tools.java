@@ -10,6 +10,7 @@ import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.Debug;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -108,12 +109,14 @@ public class Tools {
                         sum += in[colIndex][rowIndex] * kernelx[mm];
                     }
                     else {
-                        if (colIndex < 0) {
-                            colIndex = -colIndex - 1;
-                        }
-                        if (colIndex > icols - 1) {
-                            colIndex = icols - (colIndex - icols) - 1;
-                        }
+                        do {
+                            if (colIndex < 0) {
+                                colIndex = -colIndex - 1;
+                            }
+                            if (colIndex > icols - 1) {
+                                colIndex = icols - (colIndex - icols) - 1;
+                            }
+                        } while (!(colIndex >= 0 && colIndex < icols));
                         sum += in[colIndex][rowIndex] * kernelx[mm];
                     }
 
@@ -140,12 +143,14 @@ public class Tools {
                         sum += temp[colIndex][rowIndex] * kernely[nn];
                     }
                     else {
-                        if (rowIndex < 0) {
-                            rowIndex = -rowIndex - 1;
-                        }
-                        if (rowIndex > irows - 1) {
-                            rowIndex = irows - (rowIndex - irows) - 1;
-                        }
+                        do {
+                            if (rowIndex < 0) {
+                                rowIndex = -rowIndex - 1;
+                            }
+                            if (rowIndex > irows - 1) {
+                                rowIndex = irows - (rowIndex - irows) - 1;
+                            }
+                        } while(!(rowIndex >= 0 && rowIndex < irows));
                         sum += temp[colIndex][rowIndex] * kernely[nn];
                     }
 
