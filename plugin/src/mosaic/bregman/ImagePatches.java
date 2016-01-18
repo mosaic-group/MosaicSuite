@@ -20,18 +20,16 @@ class ImagePatches {
     public ArrayList<Region> iRegionsListRefined;
     private final double[][][] iImage;
     private final int iChannel;
-    final double[][][] w3kbest;
+    private final double[][][] w3kbest;
     private final double iMax;
     private final double iMin;
 
-    private final int osxy;
-    private final int sx;
-    private final int sy;
+    private final int iOverSamplingInXY;
+    private final int iSizeX;
+    private final int iSizeY;
     
-    private final int osz; // oversampling
-    private final int sz;// size of full image with oversampling
-    
-    private byte[] imagecolor_c1;
+    private final int iOverSamplingInZ;
+    private final int iSizeZ;
     
     private final ArrayList<Region> iGlobalList;
     public final short[][][] iRegionsRefined;
@@ -58,34 +56,15 @@ class ImagePatches {
             iParameters.oversampling2ndstep = 2;
         }
 
-        osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
-        sx = iParameters.ni * iParameters.oversampling2ndstep * iParameters.interpolation;
-        sy = iParameters.nj * iParameters.oversampling2ndstep * iParameters.interpolation;
+        iOverSamplingInXY = iParameters.oversampling2ndstep * iParameters.interpolation;
+        iSizeX = iParameters.ni * iOverSamplingInXY;
+        iSizeY = iParameters.nj * iOverSamplingInXY;
 
-        sz = (iParameters.nz == 1) ?  1 : iParameters.nz * iParameters.oversampling2ndstep * iParameters.interpolation;
-        osz = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation; 
-        
-        if (iParameters.dispint) {
-            imagecolor_c1 = new byte[sz * sx * sy * 3]; // add fill background
-            int b0 = (int) Math.min(255, 255 * Analysis.p.betaMLEoutdefault);
-            int b1 = (int) Math.min(255, 255 * Math.sqrt(Analysis.p.betaMLEoutdefault));
-            int b2 = (int) Math.min(255, 255 * Math.pow(Analysis.p.betaMLEoutdefault, 2));
-
-            // set all to background
-            for (int z = 0; z < sz; z++) {
-                for (int i = 0; i < sx; i++) {
-                    for (int j = 0; j < sy; j++) {
-                        final int pointIdx = 3 * (z * sx * sy + i * sy + j);
-                        imagecolor_c1[pointIdx + 0] = (byte) b0; // Red
-                        imagecolor_c1[pointIdx + 1] = (byte) b1; // Green
-                        imagecolor_c1[pointIdx + 2] = (byte) b2; // Blue
-                    }
-                }
-            }
-        }
+        iOverSamplingInZ = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation; 
+        iSizeZ = iParameters.nz * iOverSamplingInZ;
         
         iGlobalList = new ArrayList<Region>();
-        iRegionsRefined = new short[sz][sx][sy];
+        iRegionsRefined = new short[iSizeZ][iSizeX][iSizeY];
         ArrayOps.fill(iRegionsRefined, (short) 0);
     }
 
@@ -100,7 +79,7 @@ class ImagePatches {
         // assuming rvoronoi and regionslists (objects) in same order (and same length)
 
         final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
 
         iNumberOfJobs = iRegionsListRefined.size();
         for (final Region r : iRegionsListRefined) {
@@ -113,7 +92,7 @@ class ImagePatches {
             else {
                 iParameters.oversampling2ndstep = 1;
             }
-            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, iParameters.oversampling2ndstep, iChannel, iRegionsRefined, this);
+            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, iParameters.oversampling2ndstep, iChannel, this, w3kbest);
             threadPool.execute(ap);
         }
 
@@ -126,12 +105,12 @@ class ImagePatches {
         }
 
         iRegionsListRefined = iGlobalList;
-
-
+        assemble(iRegionsListRefined, iRegionsRefined);
+        
         // calculate regions intensities
-        final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
+        final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
         for (final Region r : iRegionsListRefined) {
-            ObjectProperties op = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, imagecolor_c1, iRegionsRefined);
+            ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverSamplingInXY, iOverSamplingInZ, iRegionsRefined);
             threadPool2.execute(op);
         }
 
@@ -146,7 +125,6 @@ class ImagePatches {
         // here we analyse the patch
         // if we have a big region with intensity near the background kill that region
         boolean changed = false;
-
         final ArrayList<Region> regionslistRefinedFilter = new ArrayList<Region>();
         for (final Region r : iRegionsListRefined) {
             if (r.intensity * (iMax - iMin) + iMin > iParameters.min_region_filter_intensities) {

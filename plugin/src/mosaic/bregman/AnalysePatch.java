@@ -68,7 +68,6 @@ class AnalysePatch implements Runnable {
     private double[][][] weights;
     final double firstminval;
     private final double[][][][] w3kpatch;
-    private final short[][][] regions_refined;
     private double t_high;
     private ASplitBregmanSolver A_solver;
 
@@ -83,7 +82,7 @@ class AnalysePatch implements Runnable {
      * @param regionsf ?
      * @param impa ?
      */
-    public AnalysePatch(double[][][] image, Region r, Parameters pa, int oversampling, int channel, short[][][] regionsf, ImagePatches impa) {
+    public AnalysePatch(double[][][] image, Region r, Parameters pa, int oversampling, int channel, ImagePatches impa, double[][][] w3kbest) {
         cout = 0;
         cin = 1;
         mint = 0.2;
@@ -97,7 +96,6 @@ class AnalysePatch implements Runnable {
 
         margin = 6;
         zmargin = 1;// was 2
-        this.regions_refined = regionsf;
 
         // create local parameters
         this.p = new Parameters(pa);
@@ -131,7 +129,7 @@ class AnalysePatch implements Runnable {
 
         // for testing
         this.w3kpatch = new double[1][sz][sx][sy];
-        fill_w3kpatch(impa.w3kbest);
+        fill_w3kpatch(w3kbest);
 
         // create pbject (for result)
         this.object = new double[sz][sx][sy];
@@ -843,11 +841,8 @@ class AnalysePatch implements Runnable {
     private void assemble(ArrayList<Region> localList) {
         for (final Region r : localList) {
             final ArrayList<Pix> npixels = new ArrayList<Pix>();
-
             for (final Pix p : r.pixels) {
                 npixels.add(new Pix(p.pz + offsetz * fsz, p.px + offsetx * fsxy, p.py + offsety * fsxy));
-                // count number of free edges
-                regions_refined[p.pz + offsetz * fsz][p.px + offsetx * fsxy][p.py + offsety * fsxy] = (short) r.value;
             }
             r.pixels = npixels;
         }

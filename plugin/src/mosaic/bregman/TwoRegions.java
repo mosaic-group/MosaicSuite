@@ -288,7 +288,7 @@ class TwoRegions extends NRegions {
                 ImagePatches.assemble(r_list.values(), Analysis.regions[0]);
 
                 for (final Region r : r_list.values()) {
-                    final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, null, Analysis.regions[0]);
+                    final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, Analysis.regions[0]);
                     obj.run();
                 }
             }

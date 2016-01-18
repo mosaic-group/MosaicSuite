@@ -24,9 +24,8 @@ class ObjectProperties implements Runnable {
     private int cx, cy, cz;// coord of patch in full work zone (offset)
     private final int osxy, osz;
     private double[][][] mask;// nregions nslices ni nj
-    private final byte[] imagecolor_c1;
 
-    public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, byte[] color_c1, short[][][] regs) {
+    public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, short[][][] regs) {
         this.regions = regs;
         this.p = new Parameters(p1);
         this.image = im;
@@ -34,7 +33,6 @@ class ObjectProperties implements Runnable {
         this.nx = nx;
         this.ny = ny;
         this.nz = nz;
-        this.imagecolor_c1 = color_c1;
 
         this.osxy = osxy;
         this.osz = osz;
@@ -79,32 +77,10 @@ class ObjectProperties implements Runnable {
             region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
         }
 
-        if (p.dispint) {
-            fill_ints();
-        }
-
         if (p.save_images) {
             setIntensitiesandCenters(region, image);
             setPerimeter(region, regions);
             setlength(region, regions);
-        }
-    }
-
-    private void fill_ints() {
-        if (imagecolor_c1 == null) {
-            return;
-        }
-        final int c1 = (int) Math.min(255, 255 * Math.sqrt(region.intensity)); // Green
-        final int c0 = (int) Math.min(255, 255 * region.intensity); // Red
-        final int c2 = (int) Math.min(255, 255 * Math.pow(region.intensity, 2)); // Blue
-
-        for (final Pix p : region.pixels) {
-            // set correct color
-            final int t = p.pz * nx * ny * 3 + p.px * ny * 3;
-            imagecolor_c1[t + p.py * 3 + 0] = (byte) c0;
-            imagecolor_c1[t + p.py * 3 + 1] = (byte) c1;
-            imagecolor_c1[t + p.py * 3 + 2] = (byte) c2;
-            // green
         }
     }
 
