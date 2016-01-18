@@ -490,7 +490,7 @@ public class BLauncher {
             final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
             int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
 
-            final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p);
+            final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2);
             ImagePlus colocImg = md.generateColocImg(Analysis.regionslist[0], Analysis.regionslist[1]);
             allImages.add(colocImg);
             if (Analysis.p.dispwindows) {

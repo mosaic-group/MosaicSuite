@@ -116,7 +116,7 @@ class TwoRegions extends NRegions {
     @Override
     public void run() {
         // This store the output mask
-        md = new MasksDisplay(ni, nj, nz, p);
+        md = new MasksDisplay(ni, nj, nz);
 
         ASplitBregmanSolver A_solver = null;
         p.cl[0] = p.betaMLEoutdefault;
