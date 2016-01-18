@@ -33,6 +33,30 @@ public class Region implements Comparable<Region> {
     boolean singlec;
     double coloc_o_int;
 
+    public Pix[] getMinMaxCoordinates() {
+        int xmin = Integer.MAX_VALUE;
+        int ymin = Integer.MAX_VALUE;
+        int zmin = Integer.MAX_VALUE;
+        int xmax = Integer.MIN_VALUE;
+        int ymax = Integer.MIN_VALUE;
+        int zmax = Integer.MIN_VALUE;
+
+        for (final Pix p : pixels) {
+            if (p.px < xmin) xmin = p.px;
+            if (p.px > xmax) xmax = p.px;
+            if (p.py < ymin) ymin = p.py;
+            if (p.py > ymax) ymax = p.py;
+            if (p.pz < zmin) zmin = p.pz;
+            if (p.pz > zmax) zmax = p.pz;
+        }
+        if (pixels.size() == 0) System.out.println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+        
+        Pix aMin = new Pix(zmin, xmin, ymin);
+        Pix aMax = new Pix(zmax, xmax, ymax);
+        
+        return new Pix[] {aMin, aMax};
+    }
+    
     @Override
     public int compareTo(Region otherRegion) {
         return (value < otherRegion.value) ? 1 : ((value > otherRegion.value) ? -1 : 0);

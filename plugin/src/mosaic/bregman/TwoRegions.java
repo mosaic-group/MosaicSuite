@@ -28,26 +28,8 @@ import net.imglib2.type.numeric.real.DoubleType;
  */
 class TwoRegions extends NRegions {
 
-    private final double[][][][] SpeedData;
-
     public TwoRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
         super(img, params, DoneSignal, channel);
-
-        if (p.nlevels > 1) {
-            // save memory when Ei not needed
-            SpeedData = new double[1][nz][ni][nj];// only one level used
-
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        SpeedData[0][z][i][j] = Ei[1][z][i][j] - Ei[0][z][i][j];
-                    }
-                }
-            }
-        }
-        else {
-            SpeedData = null;
-        }
     }
 
     /**
@@ -66,10 +48,7 @@ class TwoRegions extends NRegions {
         sz[2] = out.length;
 
         // Create a circle Mask and an iterator
-        float[] spac = new float[3];
-        for (int i = 0; i < 3; i++) {
-            spac[i] = 1.0f;
-        }
+        float[] spac = new float[] {1.0f, 1.0f, 1.0f};
         final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
         final MaskOnSpaceMapper rg_m = new MaskOnSpaceMapper(cm, sz);
 
@@ -136,7 +115,7 @@ class TwoRegions extends NRegions {
             psf.setVar(var);
             p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, SpeedData, mask, md, channel, null);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, mask, md, channel, null);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
@@ -146,7 +125,7 @@ class TwoRegions extends NRegions {
             psf.setVar(var);
             p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, SpeedData, mask, md, channel, null);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null);
         }
 
         if (Analysis.p.patches_from_file == null) {
@@ -181,7 +160,6 @@ class TwoRegions extends NRegions {
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri[0]);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
-
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
@@ -193,6 +171,7 @@ class TwoRegions extends NRegions {
                 else {
                     Analysis.compute_connected_regions_a(255 * p.thresh);
                 }
+                
                 if (Analysis.p.refinement) {
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
@@ -201,8 +180,8 @@ class TwoRegions extends NRegions {
                     final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
-                    Analysis.regionslist[0] = ipatches.iRegionsListRefined;
-                    Analysis.regions[0] = ipatches.iRegionsRefined;
+                    Analysis.regionslist[0] = ipatches.getRegionsList();
+                    Analysis.regions[0] = ipatches.getRegions();
                 }
 
                 // Here we solved the patches and the regions that come from the patches
@@ -298,7 +277,6 @@ class TwoRegions extends NRegions {
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri[0]);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
-
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
@@ -319,8 +297,8 @@ class TwoRegions extends NRegions {
                     final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
-                    Analysis.regionslist[1] = ipatches.iRegionsListRefined;
-                    Analysis.regions[1] = ipatches.iRegionsRefined;
+                    Analysis.regionslist[1] = ipatches.getRegionsList();
+                    Analysis.regions[1] = ipatches.getRegions();
                 }
 
                 // Here we solved the patches and the regions that come from the patches

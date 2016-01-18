@@ -47,8 +47,8 @@ public class ArrayOps {
         final int arrayH = aArray.length;
     
         // Find min and max value of image
-        double min = Float.MAX_VALUE;
-        double max = -Float.MAX_VALUE;
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
                 final double pix = aArray[y][x];
@@ -61,6 +61,31 @@ public class ArrayOps {
             }
         }
     
+        return new MinMax<Double>(min, max);
+    }
+    
+    static public MinMax<Double> findMinMax(final double[][][] aArray) {
+        final int arrayW = aArray[0][0].length;
+        final int arrayH = aArray[0].length;
+        final int arrayZ = aArray.length;
+
+        // Find min and max value of image
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+        for (int z = 0; z < arrayZ; ++z) {
+            for (int y = 0; y < arrayH; ++y) {
+                for (int x = 0; x < arrayW; ++x) {
+                    final double pix = aArray[z][y][x];
+                    if (pix < min) {
+                        min = pix;
+                    }
+                    if (pix > max) {
+                        max = pix;
+                    }
+                }
+            }
+        }
+        
         return new MinMax<Double>(min, max);
     }
     
@@ -149,6 +174,38 @@ public class ArrayOps {
     /**
      * Normalize values in array to 0..1 range
      * @param aArray
+     * @return 
+     */
+    static public MinMax<Double> normalize(final double[][][] aArray) {
+        // Find min and max value of image
+        MinMax<Double> minMax = findMinMax(aArray);
+        double min = minMax.getMin();
+        double max = minMax.getMax();
+    
+        // Normalize with found values
+        normalize(aArray, min, max);
+        
+        return minMax;
+    }
+
+    static public void normalize(final double[][][] aArray, double aMin, double aMax) {
+        final int arrayW = aArray[0][0].length;
+        final int arrayH = aArray[0].length;
+        final int arrayZ = aArray.length;
+        if (aMax != aMin) {
+            for (int z = 0; z < arrayZ; ++z) {
+                for (int y = 0; y < arrayH; ++y) {
+                    for (int x = 0; x < arrayW; ++x) {
+                        aArray[z][y][x] = (aArray[z][y][x] - aMin) / (aMax - aMin);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Normalize values in array to 0..1 range
+     * @param aArray
      */
     static public void normalize(final float[] aArray) {
         // Find min and max value of image
@@ -195,7 +252,6 @@ public class ArrayOps {
         final int arrayW = aArray[0].length;
         final int arrayH = aArray.length;
     
-        // Normalize with found values
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
                 aArray[y][x] = aArray[y][x] * aMultiply + aShift;

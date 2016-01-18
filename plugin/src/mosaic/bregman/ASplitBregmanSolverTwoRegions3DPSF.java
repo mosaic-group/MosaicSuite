@@ -13,8 +13,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
     double c0, c1;
     public final double[] energytab2;
 
-    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
-        super(params, image, speedData, mask, md, channel, ap);
+    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+        super(params, image, mask, md, channel, ap);
 
         // Beta MLE in and out
         this.c0 = params.cl[0];

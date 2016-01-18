@@ -11,8 +11,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
     double c0, c1;
     public final double energytab2[];
 
-    public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
-        super(params, image, speedData, mask, md, channel, ap);
+    public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+        super(params, image, mask, md, channel, ap);
         this.c0 = params.cl[0];
         this.c1 = params.cl[1];
         eigenPSF = new double[nz][ni][nj];

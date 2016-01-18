@@ -12,8 +12,8 @@ abstract class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoReg
     public final double[][][] eigenLaplacian3D;
     public final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolverTwoRegions3D(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
-        super(params, image, speedData, mask, md, channel, ap);
+    public ASplitBregmanSolverTwoRegions3D(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+        super(params, image, mask, md, channel, ap);
         this.w2zk = new double[nl][nz][ni][nj];
         this.ukz = new double[nl][nz][ni][nj];
         this.b2zk = new double[nl][nz][ni][nj];

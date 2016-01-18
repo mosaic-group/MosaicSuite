@@ -17,7 +17,7 @@ class ImagePatches {
     private static final Logger logger = Logger.getLogger(ImagePatches.class);
     
     private final Parameters iParameters;
-    public ArrayList<Region> iRegionsListRefined;
+    private ArrayList<Region> iRegionsList;
     private final double[][][] iImage;
     private final int iChannel;
     private final double[][][] w3kbest;
@@ -31,8 +31,8 @@ class ImagePatches {
     private final int iOverSamplingInZ;
     private final int iSizeZ;
     
-    private final ArrayList<Region> iGlobalList;
-    public final short[][][] iRegionsRefined;
+    private final ArrayList<Region> iGlobalRegionsList;
+    private final short[][][] iRegions;
     
     private int iNumberOfJobs = 0;
     private int iNumOfDoneJobs = 0;
@@ -41,7 +41,7 @@ class ImagePatches {
     public ImagePatches(Parameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, int aChannel, double[][][] w3k, double aMin, double aMax) {
         logger.debug("ImagePatches ----------------------------");
         iParameters = aParameters;
-        iRegionsListRefined = aRegionsList;
+        iRegionsList = aRegionsList;
         iImage = aImage;
         iChannel = aChannel;
         w3kbest = w3k;
@@ -63,11 +63,19 @@ class ImagePatches {
         iOverSamplingInZ = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation; 
         iSizeZ = iParameters.nz * iOverSamplingInZ;
         
-        iGlobalList = new ArrayList<Region>();
-        iRegionsRefined = new short[iSizeZ][iSizeX][iSizeY];
-        ArrayOps.fill(iRegionsRefined, (short) 0);
+        iGlobalRegionsList = new ArrayList<Region>();
+        iRegions = new short[iSizeZ][iSizeX][iSizeY];
+        ArrayOps.fill(iRegions, (short) 0);
     }
 
+    public ArrayList<Region> getRegionsList() {
+        return iRegionsList;
+    }
+    
+    public short[][][] getRegions() {
+        return iRegions;
+    }
+    
     public void run() {
         distributeRegions();
     }
@@ -81,8 +89,8 @@ class ImagePatches {
         final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
 
-        iNumberOfJobs = iRegionsListRefined.size();
-        for (final Region r : iRegionsListRefined) {
+        iNumberOfJobs = iRegionsList.size();
+        for (final Region r : iRegionsList) {
             if (iParameters.interpolation > 1) {
                 iParameters.subpixel = true;
             }
@@ -104,13 +112,13 @@ class ImagePatches {
             e.printStackTrace();
         }
 
-        iRegionsListRefined = iGlobalList;
-        assemble(iRegionsListRefined, iRegionsRefined);
+        iRegionsList = iGlobalRegionsList;
+        assemble(iRegionsList, iRegions);
         
         // calculate regions intensities
         final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
-        for (final Region r : iRegionsListRefined) {
-            ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverSamplingInXY, iOverSamplingInZ, iRegionsRefined);
+        for (final Region r : iRegionsList) {
+            ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverSamplingInXY, iOverSamplingInZ, iRegions);
             threadPool2.execute(op);
         }
 
@@ -125,24 +133,24 @@ class ImagePatches {
         // here we analyse the patch
         // if we have a big region with intensity near the background kill that region
         boolean changed = false;
-        final ArrayList<Region> regionslistRefinedFilter = new ArrayList<Region>();
-        for (final Region r : iRegionsListRefined) {
+        final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
+        for (final Region r : iRegionsList) {
             if (r.intensity * (iMax - iMin) + iMin > iParameters.min_region_filter_intensities) {
-                regionslistRefinedFilter.add(r);
+                regionsListFiltered.add(r);
             }
             else {
                 changed = true;
             }
         }
-        iRegionsListRefined = regionslistRefinedFilter;
+        iRegionsList = regionsListFiltered;
         
         // if changed, reassemble
         if (changed == true) {
-            ArrayOps.fill(iRegionsRefined, (short) 0);
-            assemble(iRegionsListRefined, iRegionsRefined);
+            ArrayOps.fill(iRegions, (short) 0);
+            assemble(iRegionsList, iRegions);
         }
 
-        IJ.log(iRegionsListRefined.size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
+        IJ.log(iRegionsList.size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
     }
 
     /**
@@ -160,9 +168,9 @@ class ImagePatches {
 
     public synchronized void addRegionsToList(ArrayList<Region> localList) {
         for (final Region r : localList) {
-            int index = iGlobalList.size() + 1;
+            int index = iGlobalRegionsList.size() + 1;
             r.value = index;
-            iGlobalList.add(r);
+            iGlobalRegionsList.add(r);
         }
 
         iNumOfDoneJobs++;

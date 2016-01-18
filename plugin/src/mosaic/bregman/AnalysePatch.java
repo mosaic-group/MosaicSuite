@@ -12,6 +12,8 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
+import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -23,44 +25,54 @@ import net.sf.javaml.tools.DatasetTools;
 
 
 class AnalysePatch implements Runnable {
+    // size of original image 
+    private final int iSizeOrigX;
+    private final int iSizeOrigY;
+    private final int iSizeOrigZ;
 
-    // add oversampling here
-    private final Tools ATools;
-    private final ImagePatches impa;
-    private final int interpolation;
-    private int interpolationz;
+    // coordinate of patch in original image
+    private int iOffsetOrigX;
+    private int iOffsetOrigY;
+    private int iOffsetOrigZ;
+    
+    // size of patch (oversampled)
+    private int iSizeOversX;
+    private int iSizeOversY;
+    private int iSizeOversZ;
+    
+    // interpolated object sizes (interpolated and oversampled)
+    private int iSizeInterX;
+    private int iSizeInterY;
+    private int iSizeInterZ;
+    
+    private int iInterpolationXY;
+    private int iInterpolationZ;
+    
+    private int iOversamplingInXY;
+    private int iOverInterInXY; 
+    private int iOversamplingInZ;
+    private int iOverInterInZ;
+    
+    // Input parameters
+    final Region iInputRegion;
+    private final int iChannel;
+    private final ImagePatches iImagePatches;
+
+    private final Tools iLocalTools;
+    private final Parameters iLocalParams;
+    
     private boolean obj = false;
     private boolean border_attained = false;
     private double mint;// min threshold
     double cin, cout, cout_front;// estimated intensities
     double intmin, intmax;
-    private final int os;
-    private int osz;
-    // coordinate of pacth in original image
-    int offsetx;
-    int offsety;
-    int offsetz;
     private int margin;
     private int zmargin;
-    private final int ox, oy, oz;// size of full image
-    // size of patch
-    int sx;
-    int sy;
-    int sz;
-
-    private int fsxy, fsz;
-
-    int isx;
-    int isy;
-    int isz; // interpolated object sizes
     private double min_thresh;
     private final double[][][] patch;
     double[][][] object;
     double[][][] interpolated_object;
     private final double[][][] mask;// nregions nslices ni nj
-    private final Parameters p;
-    final Region r;
-    private final int channel;
     private double rescaled_min_int, rescaled_min_int_all;
     private final double[][][] temp1;
     private final double[][][] temp2;
@@ -74,149 +86,149 @@ class AnalysePatch implements Runnable {
     /**
      * Create patches
      *
-     * @param image Image
-     * @param r Region
-     * @param pa Paramenters for split Bregman
-     * @param oversampling level of overlampling
-     * @param channel ?
+     * @param aInputImage Image
+     * @param aInputRegion Region
+     * @param aParameters Paramenters for split Bregman
+     * @param aOversampling level of overlampling
+     * @param aChannel ?
      * @param regionsf ?
-     * @param impa ?
+     * @param aImagePatches ?
      */
-    public AnalysePatch(double[][][] image, Region r, Parameters pa, int oversampling, int channel, ImagePatches impa, double[][][] w3kbest) {
+    public AnalysePatch(double[][][] aInputImage, Region aInputRegion, Parameters aParameters, int aOversampling, int aChannel, ImagePatches aImagePatches, double[][][] w3kbest) {
+        iSizeOrigX = aParameters.ni;
+        iSizeOrigY = aParameters.nj;
+        iSizeOrigZ = aParameters.nz;
+
         cout = 0;
         cin = 1;
         mint = 0.2;
-        this.impa = impa;
-        this.os = oversampling;
-        this.r = r;
-        this.channel = channel;
-        ox = pa.ni;
-        oy = pa.nj;
-        oz = pa.nz;
+        iImagePatches = aImagePatches;
+        iInputRegion = aInputRegion;
+        iChannel = aChannel;
 
-        margin = 6;
-        zmargin = 1;// was 2
 
         // create local parameters
-        this.p = new Parameters(pa);
+        iLocalParams = new Parameters(aParameters);
 
-        // check that the margin is at least 8 time bigger than the PSF
-        final int[] sz_psf = p.PSF.getSuggestedImageSize();
+        // Setup patch margins
+        // old comment: check that the margin is at least 8 time bigger than the PSF
+        margin = 6;
+        zmargin = 1;// was 2
+        final int[] sz_psf = iLocalParams.PSF.getSuggestedImageSize();
         if (sz_psf[0] > margin) {
             margin = sz_psf[0];
         }
         if (sz_psf[1] > margin) {
             margin = sz_psf[1];
         }
-        if (sz_psf.length > 2 && sz_psf[2] > margin) {
+        if (sz_psf.length > 2 && sz_psf[2] > margin) { // TODO: shouldn't compare with zmargin?
             zmargin = sz_psf[2];
         }
 
-        this.interpolation = pa.interpolation;
-
-        // compute patch geometry :
-        set_patch_geom(r, oversampling);
-        temp1 = new double[sz][sx][sy];
-        temp2 = new double[sz][sx][sy];
-        temp3 = new double[sz][sx][sy];
+        // compute patch geometry
+        computePatchGeometry(aInputRegion, aOversampling, aParameters.interpolation);
+        
+        temp1 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        temp2 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        temp3 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
 
         // create weights mask (binary)
-        voronoi_mask(r.rvoronoi);// mask for voronoi region into weights
+        weights = voronoi_mask(aInputRegion.rvoronoi);// mask for voronoi region into weights
 
         // create patch image with oversampling
-        this.patch = new double[sz][sx][sy];
-        fill_patch(image);
+        patch = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        fill_patch(aInputImage, patch, weights, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
 
         // for testing
-        this.w3kpatch = new double[1][sz][sx][sy];
-        fill_w3kpatch(w3kbest);
-
+        w3kpatch = new double[1][iSizeOversZ][iSizeOversX][iSizeOversY];
+        fill_patch(w3kbest, w3kpatch[0], weights, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        
         // create pbject (for result)
-        this.object = new double[sz][sx][sy];
+        object = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
 
         // create mask
-        this.mask = new double[sz][sx][sy];
-        fill_mask(r);
+        mask = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        fill_mask(aInputRegion);
 
         // set size
-        p.ni = sx;
-        p.nj = sy;
-        p.nz = sz;
-        this.ATools = new Tools(p.ni, p.nj, p.nz);
+        iLocalParams.ni = iSizeOversX;
+        iLocalParams.nj = iSizeOversY;
+        iLocalParams.nz = iSizeOversZ;
+        iLocalTools = new Tools(iLocalParams.ni, iLocalParams.nj, iLocalParams.nz);
         // set psf
-        if (p.nz > 1) {
+        if (iLocalParams.nz > 1) {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
             final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
+            var[0] = new DoubleType(iLocalParams.sigma_gaussian);
+            var[1] = new DoubleType(iLocalParams.sigma_gaussian);
+            var[2] = new DoubleType(iLocalParams.sigma_gaussian / iLocalParams.zcorrec);
             psf.setVar(var);
-            p.PSF = psf;
+            iLocalParams.PSF = psf;
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
             final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
+            var[0] = new DoubleType(iLocalParams.sigma_gaussian);
+            var[1] = new DoubleType(iLocalParams.sigma_gaussian);
             psf.setVar(var);
-            p.PSF = psf;
+            iLocalParams.PSF = psf;
         }
         normalize();
 
         // double firstminval;
-        if (channel == 0) {
-            firstminval = p.min_intensity;
+        if (aChannel == 0) {
+            firstminval = iLocalParams.min_intensity;
         }
         else {
-            firstminval = p.min_intensityY;
+            firstminval = iLocalParams.min_intensityY;
         }
 
         rescaled_min_int_all = firstminval / 0.99; // first val with ~3% margin
         // (15 % compensated in find_best_t_and_int...)
 
         // estimate ints
-        if (p.debug) {
-            IJ.log("object :" + r.value);
+        if (iLocalParams.debug) {
+            IJ.log("object :" + aInputRegion.value);
         }
-        if (p.mode_intensity == 0) {
+        if (iLocalParams.mode_intensity == 0) {
             find_best_thresh_and_int(w3kpatch[0]);
         }
         else {
-            if (p.mode_intensity == 1) {
+            if (iLocalParams.mode_intensity == 1) {
                 estimate_int_weighted(mask);
             }
-            else if (p.mode_intensity == 2) {
-                estimate_int_clustering(p.mode_intensity - 1);// (-1 to correct for old numbering)
+            else if (iLocalParams.mode_intensity == 2) {
+                estimate_int_clustering(iLocalParams.mode_intensity - 1);// (-1 to correct for old numbering)
             }
         }
-        p.cl[0] = Math.max(cout, 0);
-        p.cl[1] = Math.max(0.75 * (firstminval - intmin) / (intmax - intmin), cin);
+        iLocalParams.cl[0] = Math.max(cout, 0);
+        iLocalParams.cl[1] = Math.max(0.75 * (firstminval - intmin) / (intmax - intmin), cin);
 
-        if (p.mode_intensity == 3)// mode high
+        if (iLocalParams.mode_intensity == 3)// mode high
         {
-            p.cl[0] = p.betaMLEoutdefault;
-            p.cl[1] = 1;
+            iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
+            iLocalParams.cl[1] = 1;
             t_high = cin;
         }
 
         rescaled_min_int_all = Math.max(0, (rescaled_min_int - cout) / (cin - cout)); //cin
-        if (p.debug) {
-            IJ.log(r.value + "min all " + rescaled_min_int_all);
+        if (iLocalParams.debug) {
+            IJ.log(aInputRegion.value + "min all " + rescaled_min_int_all);
         }
 
         // max iterations
-        p.max_nsb = 101;
-        p.nlevels = 1;
+        iLocalParams.max_nsb = 101;
+        iLocalParams.nlevels = 1;
         // betaMLE
         // done after launch :
-        p.RSSinit = false;
-        p.findregionthresh = false;
-        p.RSSmodulo = 501;
+        iLocalParams.RSSinit = false;
+        iLocalParams.findregionthresh = false;
+        iLocalParams.RSSmodulo = 501;
 
-        p.thresh = 0.75;
-        p.remask = false;
-        for (int i = 0; i < p.lreg_.length; i++) {
-            p.lreg_[i] = p.lreg_[i] * oversampling;// *(intmax-intmin);
+        iLocalParams.thresh = 0.75;
+        iLocalParams.remask = false;
+        for (int i = 0; i < iLocalParams.lreg_.length; i++) {
+            iLocalParams.lreg_[i] = iLocalParams.lreg_[i] * aOversampling;
         }
     }
 
@@ -226,40 +238,40 @@ class AnalysePatch implements Runnable {
      */
     @Override
     public void run() {
-        final MasksDisplay md = new MasksDisplay(sx, sy, sz);
+        final MasksDisplay md = new MasksDisplay(iSizeOversX, iSizeOversY, iSizeOversZ);
 
-        p.nthreads = 1;
-        p.firstphase = false;
+        iLocalParams.nthreads = 1;
+        iLocalParams.firstphase = false;
 
-        if (p.nz > 1) {
+        if (iLocalParams.nz > 1) {
             // Check the delta beta, if it is bigger than two ignore it, because
             // I cannot warrant stability
-            if (Math.abs(p.cl[0] - p.cl[1]) > 2.0) {
+            if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
                 // reset
-                p.cl[0] = p.betaMLEoutdefault;
-                p.cl[1] = p.betaMLEindefault;
+                iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
+                iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
             }
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, patch, null, w3kpatch, md, channel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParams, patch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
         }
         else {
             // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
-            if (Math.abs(p.cl[0] - p.cl[1]) > 2.0) {
+            if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
                 // reset
-                p.cl[0] = p.betaMLEoutdefault;
-                p.cl[1] = p.betaMLEindefault;
+                iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
+                iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
             }
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, patch, null, w3kpatch, md, channel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParams, patch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
         }
 
         try {
             A_solver.first_run();
 
-            cout = p.cl[0];
-            cin = p.cl[1];
+            cout = iLocalParams.cl[0];
+            cin = iLocalParams.cl[1];
 
-            final int ll = p.mode_intensity;
+            final int ll = iLocalParams.mode_intensity;
             if (ll == 0 || ll == 1) {
                 min_thresh = rescaled_min_int_all * 0.96;
             }
@@ -267,38 +279,37 @@ class AnalysePatch implements Runnable {
                 min_thresh = 0.25;
             }
 
-            if (p.debug) {
-                IJ.log("region" + r.value + "minth " + min_thresh);
+            if (iLocalParams.debug) {
+                IJ.log("region" + iInputRegion.value + "minth " + min_thresh);
 
             }
             double t = 0;
-            if (p.mode_intensity != 3) {
+            if (iLocalParams.mode_intensity != 3) {
                 t = find_best_thresh(A_solver.w3kbest[0]);
             }
 
-            if (p.mode_intensity == 3)// mode high
+            if (iLocalParams.mode_intensity == 3)// mode high
             {
 
                 estimate_int_clustering(2);// (-1
 
                 t_high = cin;
-                if (p.debug) {
-                    IJ.log("obj" + r.value + " effective t:" + t_high);
+                if (iLocalParams.debug) {
+                    IJ.log("obj" + iInputRegion.value + " effective t:" + t_high);
                 }
                 t = t_high - 0.04;
             }
 
-            if (p.debug) {
-                IJ.log("best thresh : " + t + "region" + r.value);
+            if (iLocalParams.debug) {
+                IJ.log("best thresh : " + t + "region" + iInputRegion.value);
             }
             set_object(A_solver.w3kbest[0], t);
-            if (interpolation > 1) {
+            if (iInterpolationXY > 1) {
                 build_interpolated_object(A_solver.w3kbest[0], t);
                 object = interpolated_object;
             }
 
             // assemble result into full image
-            // assemble_result_voronoi2();
             assemble_patch();
         }
         catch (final InterruptedException ex) {
@@ -308,21 +319,21 @@ class AnalysePatch implements Runnable {
     private void set_object(double[][][] w3kbest, double t) {
         obj = false;
         border_attained = false;
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
                     if (w3kbest[z][i][j] > t && weights[z][i][j] == 1) {
-                        this.object[z][i][j] = 1;
+                        object[z][i][j] = 1;
                         obj = true;
-                        if (sz <= 1) {
-                            if ((i == 0 && offsetx != 0) || (i == (sx - 1) && (offsetx + sx / os) != ox) || (j == 0 && offsety != 0) || (j == (sy - 1) && (offsety + sy / os) != oy)) {
+                        if (iSizeOversZ <= 1) {
+                            if ((i == 0 && iOffsetOrigX != 0) || (i == (iSizeOversX - 1) && (iOffsetOrigX + iSizeOversX / iOversamplingInXY) != iSizeOrigX) || (j == 0 && iOffsetOrigY != 0) || (j == (iSizeOversY - 1) && (iOffsetOrigY + iSizeOversY / iOversamplingInXY) != iSizeOrigY)) {
                                 border_attained = true;
                                 // }
                             }
                         }
                     }
                     else {
-                        this.object[z][i][j] = 0;
+                        object[z][i][j] = 0;
                     }
                 }
             }
@@ -332,111 +343,73 @@ class AnalysePatch implements Runnable {
     /**
      * Compute the geometry of the patch
      *
-     * @param r Region
-     * @param oversampling level of oversampling
+     * @param aInputRegion Region
+     * @param aOversampling level of oversampling
      */
-    private void set_patch_geom(Region r, int oversampling) {
-        int xmin, ymin, zmin, xmax, ymax, zmax;
-        xmin = ox;
-        ymin = oy;
-        zmin = oz;
-        xmax = 0;
-        ymax = 0;
-        zmax = 0;
-
-        for (final Pix p : r.pixels) {
-            if (p.px < xmin) {
-                xmin = p.px;
-            }
-            if (p.px > xmax) {
-                xmax = p.px;
-            }
-            if (p.py < ymin) {
-                ymin = p.py;
-            }
-            if (p.py > ymax) {
-                ymax = p.py;
-            }
-            if (p.pz < zmin) {
-                zmin = p.pz;
-            }
-            if (p.pz > zmax) {
-                zmax = p.pz;
-            }
-        }
-
+    private void computePatchGeometry(Region aInputRegion, int aOversampling, int aInterpolation) {
+        Pix[] mm = aInputRegion.getMinMaxCoordinates();
+        Pix min = mm[0]; Pix max = mm[1];
+        int xmin = min.px;
+        int ymin = min.py;
+        int zmin = min.pz;
+        int xmax = max.px;
+        int ymax = max.py;
+        int zmax = max.pz;
+        
+        // Adjust patch coordinates with margin and fit it into min/max coordinates
         xmin = Math.max(0, xmin - margin);
-        xmax = Math.min(ox, xmax + margin + 1);
-
+        xmax = Math.min(iSizeOrigX, xmax + margin + 1);
         ymin = Math.max(0, ymin - margin);
-        ymax = Math.min(oy, ymax + margin + 1);
-
-        if (p.nz > 1) {
+        ymax = Math.min(iSizeOrigY, ymax + margin + 1);
+        if (iLocalParams.nz > 1) {
             zmin = Math.max(0, zmin - zmargin);
-            zmax = Math.min(oz, zmax + zmargin + 1);
+            zmax = Math.min(iSizeOrigZ, zmax + zmargin + 1);
         }
 
-        this.offsetx = xmin;
-        this.offsety = ymin;
-        this.offsetz = zmin;
+        iOffsetOrigX = xmin;
+        iOffsetOrigY = ymin;
+        iOffsetOrigZ = zmin;
+        
+        iOversamplingInXY = aOversampling;
+        iSizeOversX = (xmax - xmin) * iOversamplingInXY;
+        iSizeOversY = (ymax - ymin) * iOversamplingInXY;
+        
+        iInterpolationXY = aInterpolation;
+        iSizeInterX = iSizeOversX * iInterpolationXY;
+        iSizeInterY = iSizeOversY * iInterpolationXY;
 
-        this.sx = (xmax - xmin) * oversampling;// todo :correct :+1 : done
-        this.sy = (ymax - ymin) * oversampling;// correct :+1
-
-        this.fsxy = oversampling * interpolation;
-        this.isx = sx * interpolation;
-        this.isy = sy * interpolation;
-
-        if (p.nz == 1) {// if (zmax-zmin==0){
-            this.osz = 1;
-            this.sz = 1;
-            this.fsz = 1;
-            this.isz = 1;
-            interpolationz = 1;
+        iOverInterInXY = iOversamplingInXY * iInterpolationXY;
+        
+        if (iLocalParams.nz == 1) {
+            iOversamplingInZ = 1;
+            iSizeOversZ = 1;
+            iInterpolationZ = 1;
+            iSizeInterZ = 1;
+            iOverInterInZ = 1;
         }
         else {
-            this.osz = os;
-            this.sz = (zmax - zmin) * oversampling;
-            this.fsz = oversampling * interpolation;
-            this.isz = sz * interpolation;
-            interpolationz = interpolation;
+            iOversamplingInZ = aOversampling;
+            iSizeOversZ = (zmax - zmin) * iOversamplingInZ;
+            iInterpolationZ = aInterpolation;
+            iSizeInterZ = iSizeOversZ * iInterpolationZ;
+            iOverInterInZ = iOversamplingInZ * iInterpolationZ;
         }
     }
 
-    private void fill_patch(double[][][] image) {
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    this.patch[z][i][j] = image[z / osz + offsetz][i / os + offsetx][j / os + offsety];
+    private void fill_patch(double[][][] aSourceImage, double[][][] aOutput, double[][][] aWeights, int aOversamplingXY, int aOversamplingZ, int aOffsetX, int aOffsetY, int aOffsetZ) {
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
+                    aOutput[z][i][j] = aSourceImage[z / aOversamplingZ + aOffsetZ][i / aOversamplingXY + aOffsetX][j / aOversamplingXY + aOffsetY];
                 }
             }
         }
 
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    if (weights[z][i][j] == 0) {
-                        this.patch[z][i][j] = 0;
-                    }
-                }
-            }
-        }
-    }
-
-    private void fill_w3kpatch(double[][][] w3k) {
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    this.w3kpatch[0][z][i][j] = w3k[z / osz + offsetz][i / os + offsetx][j / os + offsety];
-                }
-            }
-        }
-
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    if (weights[z][i][j] == 0) {
-                        this.w3kpatch[0][z][i][j] = 0;
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
+                    if (aWeights[z][i][j] == 0) {
+                        aOutput[z][i][j] = 0;
                     }
                 }
             }
@@ -444,95 +417,44 @@ class AnalysePatch implements Runnable {
     }
 
     private void normalize() {
-        intmin = Double.MAX_VALUE;
-        intmax = 0;
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    if (patch[z][i][j] > intmax) {
-                        intmax = patch[z][i][j];
-                    }
-                    if (patch[z][i][j] < intmin) {
-                        intmin = patch[z][i][j];
-                    }
-                }
-            }
-        }
-
-        if (channel == 0) {
-            rescaled_min_int = ((p.min_intensity - intmin) / (intmax - intmin));
-        }
-        else {
-            rescaled_min_int = ((p.min_intensityY - intmin) / (intmax - intmin));
-        }
-
-        // rescale between 0 and 1
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    patch[z][i][j] = (patch[z][i][j] - intmin) / (intmax - intmin);
-                }
-            }
-        }
-
-        if (p.mode_intensity == 3) {
-
-            double intmin2 = Double.MAX_VALUE;
-            double intmax2 = 0;
-            for (int z = 0; z < sz; z++) {
-                for (int i = 0; i < sx; i++) {
-                    for (int j = 0; j < sy; j++) {
-                        if (w3kpatch[0][z][i][j] > intmax2) {
-                            intmax2 = w3kpatch[0][z][i][j];
-                        }
-                        if (w3kpatch[0][z][i][j] < intmin2) {
-                            intmin2 = w3kpatch[0][z][i][j];
-                        }
-                    }
-                }
-            }
-
-            for (int z = 0; z < sz; z++) {
-                for (int i = 0; i < sx; i++) {
-                    for (int j = 0; j < sy; j++) {
-                        w3kpatch[0][z][i][j] = (w3kpatch[0][z][i][j] - intmin2) / (intmax2 - intmin2);
-                    }
-                }
-            }
+        MinMax<Double> minMax = ArrayOps.normalize(patch);
+        intmin = minMax.getMin();
+        intmax = minMax.getMax();
+        rescaled_min_int = ( ((iChannel == 0) ? iLocalParams.min_intensity : iLocalParams.min_intensityY) - intmin) / (intmax - intmin);
+        
+        if (iLocalParams.mode_intensity == 3) {
+            ArrayOps.normalize(w3kpatch[0]);
         }
     }
 
     private void estimate_int_weighted(double[][][] mask) {
-        RegionStatisticsSolver RSS;
-
-        if (p.debug) {
+        if (iLocalParams.debug) {
             IJ.log("estimate int weighted");
         }
-        RSS = new RegionStatisticsSolver(temp1, temp2, temp3, patch, weights, 10, p);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, temp3, patch, weights, 10, iLocalParams);
         RSS.eval(mask);
 
         cout = RSS.betaMLEout;
         cout_front = cout;
-        if (p.debug) {
-            IJ.log("r" + r.value + "RSS" + RSS.betaMLEin);
+        if (iLocalParams.debug) {
+            IJ.log("r" + iInputRegion.value + "RSS" + RSS.betaMLEin);
         }
         cin = /* Math.min(1, */RSS.betaMLEin/* ) */;
         mint = 0.25;
 
-        if (p.debug) {
+        if (iLocalParams.debug) {
             IJ.log("mint " + mint);
-            IJ.log("reg" + r.value + "rescaled min int" + rescaled_min_int);
+            IJ.log("reg" + iInputRegion.value + "rescaled min int" + rescaled_min_int);
             IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
         }
-
     }
 
     private void estimate_int_clustering(int level) {
         // clustering done on original image data (not on soft mask)
         // test doing it on soft mask ? // but original soft mask patch
         // extracted from whole image is not normalized..
-        if (p.debug) {
-            IJ.log("init obj:" + r.value);
+        if (iLocalParams.debug) {
+            IJ.log("init obj:" + iInputRegion.value);
         }
 
         int nk;
@@ -562,9 +484,9 @@ class AnalysePatch implements Runnable {
 
         int cpt_vals = 0;
         final Dataset data = new DefaultDataset();
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
                     pixel[0] = patch[z][i][j];
                     if (level == 2) {
                         pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
@@ -578,8 +500,8 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        if (p.debug) {
-            IJ.log("inst" + r.value + " nbvals" + cpt_vals);
+        if (iLocalParams.debug) {
+            IJ.log("inst" + iInputRegion.value + " nbvals" + cpt_vals);
         }
 
         if (cpt_vals > 3) {
@@ -610,7 +532,7 @@ class AnalysePatch implements Runnable {
 
             mint = 0.25;
 
-            if (p.debug) {
+            if (iLocalParams.debug) {
                 IJ.log("mint " + mint);
 
                 IJ.log("rescaled min int" + rescaled_min_int);
@@ -618,72 +540,73 @@ class AnalysePatch implements Runnable {
 
                 IJ.log("levels :");
                 for (int i = 0; i < nk; i++) {
-                    IJ.log("level r" + r.value + " " + (i + 1) + " : " + levels[i]);
+                    IJ.log("level r" + iInputRegion.value + " " + (i + 1) + " : " + levels[i]);
                 }
             }
         }
         else // too few values for clustering..
         {
             cin = 1;
-            cout_front = p.betaMLEoutdefault;
-            cout = p.betaMLEoutdefault;
+            cout_front = iLocalParams.betaMLEoutdefault;
+            cout = iLocalParams.betaMLEoutdefault;
             mint = 0.25;
 
-            if (p.debug) {
-                IJ.log("usuing default intensity for r" + r.value);
+            if (iLocalParams.debug) {
+                IJ.log("usuing default intensity for r" + iInputRegion.value);
             }
         }
     }
 
     private void fill_mask(Region r) {
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    this.mask[z][i][j] = 0;
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
+                    mask[z][i][j] = 0;
                 }
             }
         }
 
         for (final Pix p : r.pixels) {
-            int rz = os * (p.pz - offsetz);
-            int rx = os * (p.px - offsetx);
-            int ry = os * (p.py - offsety);
-            for (int z = rz; z < rz + osz; z++) {
-                for (int i = rx; i < rx + os; i++) {
-                    for (int j = ry; j < ry + os; j++) {
-                        this.mask[z][i][j] = 1;
+            int rz = iOversamplingInXY * (p.pz - iOffsetOrigZ);
+            int rx = iOversamplingInXY * (p.px - iOffsetOrigX);
+            int ry = iOversamplingInXY * (p.py - iOffsetOrigY);
+            for (int z = rz; z < rz + iOversamplingInZ; z++) {
+                for (int i = rx; i < rx + iOversamplingInXY; i++) {
+                    for (int j = ry; j < ry + iOversamplingInXY; j++) {
+                        mask[z][i][j] = 1;
                     }
                 }
             }
         }
     }
 
-    private void voronoi_mask(Region r) {
-        this.weights = new double[sz][sx][sy];
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    this.weights[z][i][j] = 0;
+    private double[][][] voronoi_mask(Region r) {
+        double[][][] tempWeights = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        for (int z = 0; z < iSizeOversZ; z++) {
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
+                    tempWeights[z][i][j] = 0;
                 }
             }
         }
 
         for (final Pix p : r.pixels) {
-            int rz = os * (p.pz - offsetz);
-            int rx = os * (p.px - offsetx);
-            int ry = os * (p.py - offsety);
-            if (rz < 0 || rz + osz > sz || rx < 0 || rx + os > sx || ry < 0 || ry + os > sy) {
+            int rz = iOversamplingInXY * (p.pz - iOffsetOrigZ);
+            int rx = iOversamplingInXY * (p.px - iOffsetOrigX);
+            int ry = iOversamplingInXY * (p.py - iOffsetOrigY);
+            if (rz < 0 || rz + iOversamplingInZ > iSizeOversZ || rx < 0 || rx + iOversamplingInXY > iSizeOversX || ry < 0 || ry + iOversamplingInXY > iSizeOversY) {
                 continue;
             }
 
-            for (int z = rz; z < rz + osz; z++) {
-                for (int i = rx; i < rx + os; i++) {
-                    for (int j = ry; j < ry + os; j++) {
-                        this.weights[z][i][j] = 1;
+            for (int z = rz; z < rz + iOversamplingInZ; z++) {
+                for (int i = rx; i < rx + iOversamplingInXY; i++) {
+                    for (int j = ry; j < ry + iOversamplingInXY; j++) {
+                        tempWeights[z][i][j] = 1;
                     }
                 }
             }
         }
+        return tempWeights;
     }
 
     /**
@@ -702,15 +625,15 @@ class AnalysePatch implements Runnable {
 
             if (obj && !border_attained) {
                 double temp;
-                if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
+                if (iLocalParams.nz == 1) {
+                    temp = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
+                    temp = iLocalTools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, patch);
                 }
 
-                if (p.debug) {
-                    IJ.log("energy " + temp + " t " + t + "region" + r.value);
+                if (iLocalParams.debug) {
+                    IJ.log("energy " + temp + " t " + t + "region" + iInputRegion.value);
                 }
                 if (temp < energy) {
                     energy = temp;
@@ -740,15 +663,15 @@ class AnalysePatch implements Runnable {
                 estimate_int_weighted(object);
 
                 double temp;
-                if (p.nz == 1) {
-                    temp = ATools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
+                if (iLocalParams.nz == 1) {
+                    temp = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, weights, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, patch);
                 }
                 else {
-                    temp = ATools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, p.ldata, p.lreg_[channel], p.PSF, cout_front, cin, patch);
+                    temp = iLocalTools.computeEnergyPSF3D_weighted(temp1, object, temp2, temp3, weights, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, patch);
                 }
 
-                if (p.debug == true) {
-                    IJ.log("energy and int " + temp + " t " + t + "region" + r.value + " cin " + cin + " cout " + cout + " obj " + obj);
+                if (iLocalParams.debug == true) {
+                    IJ.log("energy and int " + temp + " t " + t + "region" + iInputRegion.value + " cin " + cin + " cout " + cout + " obj " + obj);
                 }
                 if (temp < min_energy) {
                     min_energy = temp;
@@ -781,12 +704,12 @@ class AnalysePatch implements Runnable {
         }
 
         rescaled_min_int_all = Math.max((rescaled_min_int - cout) / (cin - cout), 0);
-        if (p.debug) {
-            IJ.log("fbest" + r.value + "min all " + rescaled_min_int_all);
+        if (iLocalParams.debug) {
+            IJ.log("fbest" + iInputRegion.value + "min all " + rescaled_min_int_all);
         }
 
-        if (p.debug) {
-            IJ.log(" best energy and int " + energy + " t " + tbest + "region" + r.value + " cin " + cin + " cout " + cout);
+        if (iLocalParams.debug) {
+            IJ.log(" best energy and int " + energy + " t " + tbest + "region" + iInputRegion.value + " cin " + cin + " cout " + cout);
         }
 
         return threshold;
@@ -796,43 +719,43 @@ class AnalysePatch implements Runnable {
     private void assemble_patch() {
         // find connected regions
         final ImagePlus maska_im = new ImagePlus();
-        final ImageStack maska_ims = new ImageStack(isx, isy);
+        final ImageStack maska_ims = new ImageStack(iSizeInterX, iSizeInterY);
 
-        for (int z = 0; z < isz; z++) {
-            final byte[] maska_bytes = new byte[isx * isy];
-            for (int i = 0; i < isx; i++) {
-                for (int j = 0; j < isy; j++) {
+        for (int z = 0; z < iSizeInterZ; z++) {
+            final byte[] maska_bytes = new byte[iSizeInterX * iSizeInterY];
+            for (int i = 0; i < iSizeInterX; i++) {
+                for (int j = 0; j < iSizeInterY; j++) {
                     if (object[z][i][j] >= 1) {
-                        maska_bytes[j * isx + i] = (byte) (object[z][i][j]);
+                        maska_bytes[j * iSizeInterX + i] = (byte) (object[z][i][j]);
                     }
                     else {
-                        maska_bytes[j * isx + i] = (byte) 0;
+                        maska_bytes[j * iSizeInterX + i] = (byte) 0;
                     }
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(isx, isy);
+            final ByteProcessor bp = new ByteProcessor(iSizeInterX, iSizeInterY);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }
 
         maska_im.setStack("test Mask vo2", maska_ims);
 
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, isx, isy, isz);// maska_im only
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, iSizeInterX, iSizeInterY, iSizeInterZ);// maska_im only
 
         final double thr = 0.5;
-        final float[][][] Ri = new float[isz][isx][isy];
-        for (int z = 0; z < isz; z++) {
-            for (int i = 0; i < isx; i++) {
-                for (int j = 0; j < isy; j++) {
+        final float[][][] Ri = new float[iSizeInterZ][iSizeInterX][iSizeInterY];
+        for (int z = 0; z < iSizeInterZ; z++) {
+            for (int i = 0; i < iSizeInterX; i++) {
+                for (int j = 0; j < iSizeInterY; j++) {
                     Ri[z][i][j] = (float) thr;
                 }
             }
         }
 
-        fcr.run(thr, isx * isy * isz, 0 * fsxy, 0, Ri);// min size was 5
+        fcr.run(thr, iSizeInterX * iSizeInterY * iSizeInterZ, 0 * iOverInterInXY, 0, Ri);// min size was 5
 
         // add to list with critical section
-        impa.addRegionsToList(fcr.results);
+        iImagePatches.addRegionsToList(fcr.results);
 
         // add to regions refined with correct indexes
         assemble(fcr.results);
@@ -842,7 +765,7 @@ class AnalysePatch implements Runnable {
         for (final Region r : localList) {
             final ArrayList<Pix> npixels = new ArrayList<Pix>();
             for (final Pix p : r.pixels) {
-                npixels.add(new Pix(p.pz + offsetz * fsz, p.px + offsetx * fsxy, p.py + offsety * fsxy));
+                npixels.add(new Pix(p.pz + iOffsetOrigZ * iOverInterInZ, p.px + iOffsetOrigX * iOverInterInXY, p.py + iOffsetOrigY * iOverInterInXY));
             }
             r.pixels = npixels;
         }
@@ -852,19 +775,19 @@ class AnalysePatch implements Runnable {
     private void build_interpolated_object(double[][][] cmask, double t) {
         ImagePlus iobject = new ImagePlus();
         ImageStack iobjectS;
-        interpolated_object = new double[isz][isx][isy];
+        interpolated_object = new double[iSizeInterZ][iSizeInterX][iSizeInterY];
 
         // build imageplus form non interpolated object
-        iobjectS = new ImageStack(sx, sy);
+        iobjectS = new ImageStack(iSizeOversX, iSizeOversY);
 
-        for (int z = 0; z < sz; z++) {
-            final float[] twoD_float = new float[sx * sy];
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    twoD_float[j * sx + i] = (float) cmask[z][i][j];
+        for (int z = 0; z < iSizeOversZ; z++) {
+            final float[] twoD_float = new float[iSizeOversX * iSizeOversY];
+            for (int i = 0; i < iSizeOversX; i++) {
+                for (int j = 0; j < iSizeOversY; j++) {
+                    twoD_float[j * iSizeOversX + i] = (float) cmask[z][i][j];
                 }
             }
-            final FloatProcessor fp = new FloatProcessor(sx, sy);
+            final FloatProcessor fp = new FloatProcessor(iSizeOversX, iSizeOversY);
             fp.setPixels(twoD_float);
             iobjectS.addSlice("", fp);
         }
@@ -872,39 +795,39 @@ class AnalysePatch implements Runnable {
 
         final Resizer re = new Resizer();
 
-        if (isz != sz) {
-            iobject = re.zScale(iobject, isz, ImageProcessor.BILINEAR);
+        if (iSizeInterZ != iSizeOversZ) {
+            iobject = re.zScale(iobject, iSizeInterZ, ImageProcessor.BILINEAR);
         }
 
-        final ImageStack imgS2 = new ImageStack(isx, isy);
-        for (int z = 0; z < isz; z++) {
+        final ImageStack imgS2 = new ImageStack(iSizeInterX, iSizeInterY);
+        for (int z = 0; z < iSizeInterZ; z++) {
             iobject.setSliceWithoutUpdate(z + 1);
             iobject.getProcessor().setInterpolationMethod(ImageProcessor.BILINEAR);
-            imgS2.addSlice("", iobject.getProcessor().resize(isx, isy, true));
+            imgS2.addSlice("", iobject.getProcessor().resize(iSizeInterX, iSizeInterY, true));
         }
         iobject.setStack(imgS2);
 
         // put data into interpolted object
         ImageProcessor imp;
-        for (int z = 0; z < isz; z++) {
+        for (int z = 0; z < iSizeInterZ; z++) {
             iobject.setSlice(z + 1);
             imp = iobject.getProcessor();
-            for (int i = 0; i < isx; i++) {
-                for (int j = 0; j < isy; j++) {
+            for (int i = 0; i < iSizeInterX; i++) {
+                for (int j = 0; j < iSizeInterY; j++) {
                     interpolated_object[z][i][j] = Float.intBitsToFloat(imp.getPixel(i, j));
                 }
             }
         }
 
         // threshold
-        for (int z = 0; z < isz; z++) {
-            for (int i = 0; i < isx; i++) {
-                for (int j = 0; j < isy; j++) {
-                    if (interpolated_object[z][i][j] > t && weights[z / interpolationz][i / interpolation][j / interpolation] == 1) {
-                        this.interpolated_object[z][i][j] = 1;
+        for (int z = 0; z < iSizeInterZ; z++) {
+            for (int i = 0; i < iSizeInterX; i++) {
+                for (int j = 0; j < iSizeInterY; j++) {
+                    if (interpolated_object[z][i][j] > t && weights[z / iInterpolationZ][i / iInterpolationXY][j / iInterpolationXY] == 1) {
+                        interpolated_object[z][i][j] = 1;
                     }
                     else {
-                        this.interpolated_object[z][i][j] = 0;
+                        interpolated_object[z][i][j] = 0;
                     }
                 }
             }

@@ -26,7 +26,6 @@ abstract class ASplitBregmanSolver {
     private ArrayList<Region> regionslistr;
     protected final MasksDisplay md;
     protected final double[][][] image;
-    protected final double[][][][] speedData;
 
     protected final double[][] eigenLaplacian;
 
@@ -66,12 +65,12 @@ abstract class ASplitBregmanSolver {
     private final RegionStatisticsSolver RSS;
     private AnalysePatch Ap = null;
 
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
-        this(params, image, speedData, mask, md, channel);
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+        this(params, image, mask, md, channel);
         this.Ap = ap;
     }
 
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel) {
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel) {
         this.LocalTools = new Tools(params.ni, params.nj, params.nz);
         this.channel = channel;
         bestNrj = Double.MAX_VALUE;
@@ -89,8 +88,6 @@ abstract class ASplitBregmanSolver {
         this.md = md;
         dct2d = new DoubleDCT_2D(ni, nj);
         this.image = image;
-        this.speedData = speedData;// used only for NRegions and two regions
-
 
         this.w1k = new double[nl][nz][ni][nj];
         this.w3k = new double[nl][nz][ni][nj];
@@ -224,8 +221,8 @@ abstract class ASplitBregmanSolver {
                 p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.intmin) / (Ap.intmax - Ap.intmin), Ap.cin);
                 this.init();
                 if (p.debug) {
-                    IJ.log("region" + Ap.r.value + " pcout" + p.cl[1]);
-                    IJ.log("region" + Ap.r.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
+                    IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
+                    IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
                 }
             }
 

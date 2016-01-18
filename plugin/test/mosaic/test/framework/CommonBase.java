@@ -518,4 +518,14 @@ public class CommonBase extends Info {
             }
         }
     }
+    
+    static protected void compareArrays(double[][][] expected, double[][][] result) {
+        for (int z = 0; z < expected.length; ++z) {
+            for (int i = 0; i < expected[0].length; ++i) {
+                for (int j = 0; j < expected[0][0].length; ++j) {
+                    assertEquals("Elements at [" + z + "][" + i + "][" + j + "] should be same", expected[z][i][j], result[z][i][j], 0.0f);
+                }
+            }
+        }
+    }
 }

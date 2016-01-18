@@ -106,34 +106,15 @@ class ObjectProperties implements Runnable {
     }
 
     private void set_patch_geom(Region r) {
-        int xmin = nx;
-        int ymin = ny;
-        int zmin = nz;
-        int xmax = 0;
-        int ymax = 0;
-        int zmax = 0;
-
-        for ( Pix p : r.pixels) {
-            if (p.px < xmin) {
-                xmin = p.px;
-            }
-            if (p.px > xmax) {
-                xmax = p.px;
-            }
-            if (p.py < ymin) {
-                ymin = p.py;
-            }
-            if (p.py > ymax) {
-                ymax = p.py;
-            }
-            if (p.pz < zmin) {
-                zmin = p.pz;
-            }
-            if (p.pz > zmax) {
-                zmax = p.pz;
-            }
-        }
-
+        Pix[] mm = r.getMinMaxCoordinates();
+        Pix min = mm[0]; Pix max = mm[1];
+        int xmin = min.px;
+        int ymin = min.py;
+        int zmin = min.pz;
+        int xmax = max.px;
+        int ymax = max.py;
+        int zmax = max.pz;
+        
         final int margin = 5;
         final int zmargin = 2;
         xmin = Math.max(0, xmin - margin);

@@ -12,4 +12,9 @@ class Pix {
         this.px = x;
         this.py = y;
     }
+    
+    @Override
+    public String toString() {
+        return "[" + pz + ", " + px + ", " + py + "]";
+    }
 }

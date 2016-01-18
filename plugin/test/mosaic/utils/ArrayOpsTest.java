@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.ArrayOps.MinMax;
 
 
 public class ArrayOpsTest extends CommonBase {
@@ -31,6 +32,25 @@ public class ArrayOpsTest extends CommonBase {
         final double[][] input = new double[][] {{ 0, 3},
                                                  {-1, 1},
                                                  { 2, 5}};
+
+        // Tested function
+        final ArrayOps.MinMax<Double> result = ArrayOps.findMinMax(input);
+
+        assertEquals("Min", expected.getMin(), result.getMin(), 0.001);
+        assertEquals("Max", expected.getMax(), result.getMax(), 0.001);
+    }
+    
+    @Test
+    public void testFindMinMaxDouble3D() {
+        final ArrayOps.MinMax<Double> expected = new ArrayOps.MinMax<Double>(-2.0, 9.0);
+
+        final double[][][] input = new double[][][] {{{ 0, 3},
+                                                      {-1, 9},
+                                                      { 2, 5}},
+                                                 
+                                                     {{ 0, 3},
+                                                      {-2, 1},
+                                                      { 2, 5}}};
 
         // Tested function
         final ArrayOps.MinMax<Double> result = ArrayOps.findMinMax(input);
@@ -87,6 +107,21 @@ public class ArrayOpsTest extends CommonBase {
         ArrayOps.normalize(input);
 
         compareArrays(expected, input);
+    }
+    
+    @Test
+    public void testNormalizeDouble3D() {
+        final double[][][] expected = new double[][][] {{{0.25}, {1}}, {{0}, {0.5}}, {{0.75}, {0.25}}};
+        final MinMax<Double> expectedMinMax = new MinMax<Double>(-1.0, 3.0);
+        
+        final double[][][] input = new double[][][] {{{0}, {3}}, {{-1}, {1}}, {{2}, {0}}};
+
+        // Tested function
+        MinMax<Double> result = ArrayOps.normalize(input);
+
+        compareArrays(expected, input);
+        assertEquals("Min", expectedMinMax.getMin(), result.getMin(), 0.001);
+        assertEquals("Max", expectedMinMax.getMax(), result.getMax(), 0.001);
     }
     
     @Test
