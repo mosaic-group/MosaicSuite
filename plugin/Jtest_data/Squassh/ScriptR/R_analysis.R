@@ -12,8 +12,8 @@ NR=1
 NCR=c(1) #Number of images per group (should have as many values as number of groups)
 
 #display parameters 
-objA="channel 1 name" 	#ch1 name
-objB="channel 2 name" 	#ch2 name
+objA="channel 1 name"         #ch1 name
+objB="channel 2 name"         #ch2 name
 ConditionsNames=c("Condition 1 name") #group names (should have as many names as number of groups)
 
 ###########################################################################################

@@ -2,7 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Date;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -15,10 +14,7 @@ import mosaic.utils.ArrayOps;
 
 
 abstract class ASplitBregmanSolver {
-
     protected final Tools LocalTools;
-    protected double totaltime = 0;
-    private boolean StopFlag;
 
     protected ArrayList<Region> regionsvoronoi;
     private ArrayList<Region> regionslistr;
@@ -36,14 +32,12 @@ abstract class ASplitBregmanSolver {
     protected final double[][][][] w2yk;
 
     protected final double[][][][] w3kbest;
-    private int iw3kbest;
     protected final double[][][][] b2xk;
     protected final double[][][][] b2yk;
 
     protected final double[][][][] b1k;
     protected final double[][][][] b3k;
 
-    protected final int[][][] maxmask;
 
     protected double[][][][] temp1;
     protected double[][][][] temp2;
@@ -53,11 +47,10 @@ abstract class ASplitBregmanSolver {
     protected final float[][][][] Ri;
     protected final float[][][][] Ro;
 
-    protected final double[] energytab;
-    protected final double[] normtab;
     protected final int ni, nj, nz;
     protected final int nl;
-    protected double energy, lastenergy;
+    protected double energy; 
+    private double lastenergy; // TODO: It should be initialized to some value.
     private double bestNrj;
     protected final Parameters p;
     private final RegionStatisticsSolver RSS;
@@ -90,10 +83,6 @@ abstract class ASplitBregmanSolver {
         
         this.energytab2 = new double[p.nthreads];
         
-        this.energytab = new double[nl];
-        this.normtab = new double[nl];
-
-        this.StopFlag = false;
         this.md = md;
 
         this.image = image;
@@ -113,8 +102,6 @@ abstract class ASplitBregmanSolver {
 
         this.Ri = new float[nl][nz][ni][nj];
         this.Ro = new float[nl][nz][ni][nj];
-
-        this.maxmask = new int[nz][ni][nj];
 
         int nzmin = (nz > 1) ?  Math.max(7, nz) : nz;
 
@@ -185,7 +172,6 @@ abstract class ASplitBregmanSolver {
         }
 
         stepk = 0;
-        totaltime = 0;
         final int modulo = p.dispEmodulo;
 
         if (p.firstphase) {
@@ -193,6 +179,8 @@ abstract class ASplitBregmanSolver {
             IJ.showProgress(0.0);
         }
 
+        boolean StopFlag = false;
+        int iw3kbest = 0;
         while (stepk < p.max_nsb && !StopFlag) {
             // Bregman step
             step();
@@ -274,7 +262,6 @@ abstract class ASplitBregmanSolver {
                     md.display2regions3D(w3kbest[0], "Mask__", channel);
                 }
                 IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
-                IJ.log("Total phase one time: " + totaltime / 1000 + "s");
             }
         }
     }
@@ -472,13 +459,7 @@ abstract class ASplitBregmanSolver {
             }
         }
 
-        final long lStartTime = new Date().getTime();
-
         new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
-
-        final long lEndTime = new Date().getTime(); // end time
-        final long difference = lEndTime - lStartTime; // check different
-        totaltime += difference;
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);

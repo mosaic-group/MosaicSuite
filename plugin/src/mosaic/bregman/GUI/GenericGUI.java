@@ -425,9 +425,7 @@ public class GenericGUI {
 
             if (Analysis.p.nchannels == 2) {
                 if (Analysis.p.save_images) {
-                    final RScript script = new RScript(savepath, file1, file2, file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
-                            Analysis.p.ch2);
-                    script.writeScript();
+                    new RScript(savepath, file1, file2, file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1, Analysis.p.ch2);
                 }
             }
         }

@@ -1,7 +1,6 @@
 package mosaic.bregman;
 
 
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
@@ -58,12 +57,9 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     protected void step() throws InterruptedException {
         // WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed from iteration to next iteration : do not change .
 
-        final long lStartTime = new Date().getTime(); // start time
-
         c0 = p.cl[0];
         c1 = p.cl[1];
 
-        // IJ.log("creates latch ");
         final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
         final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
         final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
@@ -131,10 +127,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         if (p.livedisplay && p.firstphase) {
             md.display2regions(w3k[levelOfMask][0], "Mask", channel);
         }
-
-        final long lEndTime = new Date().getTime(); // end time
-        final long difference = lEndTime - lStartTime; // check different
-        totaltime += difference;
     }
 
     public void compute_eigenPSF() {

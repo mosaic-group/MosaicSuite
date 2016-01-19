@@ -249,7 +249,7 @@ class FindConnectedRegions {
 
             // So now pointState should have no IN_QUEUE status points...
             Region region = byteImage ? new Region(foundValueInt, pointsInThisRegion) : 
-                                        new Region(pointsInThisRegion);
+                                        new Region(0, pointsInThisRegion);
 
             if (pointsInThisRegion < aMinimumPointsInRegion || pointsInThisRegion > aMaximumPointsInRegion) {
                 continue;

@@ -350,15 +350,13 @@ public class BLauncher {
                         + "Colocalization ch2 in ch1 (signal based)" + ";" + "Colocalization ch1 in ch2 (size based)" + ";" + "Colocalization ch2 in ch1 (size based)" + ";"
                         + "Colocalization ch1 in ch2 (objects numbers)" + ";" + "Colocalization ch2 in ch1 (objects numbers)" + ";" + "Mean ch2 intensity of ch1 objects" + ";"
                         + "Mean ch1 intensity of ch2 objects" + ";" + "Pearson correlation" + ";" + "Pearson correlation inside cell masks");
-
-                out.println();
-                out.flush();
             }
             else {
                 out.print("File" + ";" + "Image ID" + ";" + "Objects ch1" + ";" + "Mean size in ch1" + ";" + "Mean surface in ch1" + ";" + "Mean length in ch1");
-                out.println();
-                out.flush();
             }
+            out.println();
+            out.flush();
+            
             out.print("%Parameters:" + " " + "background removal " + " " + Analysis.p.removebackground + " " + "window size " + Analysis.p.size_rollingball + " " + "stddev PSF xy " + " "
                     + mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian / Analysis.p.zcorrec, 5) + " "
                     + "Regularization " + Analysis.p.lreg_[0] + " " + Analysis.p.lreg_[1] + " " + "Min intensity ch1 " + Analysis.p.min_intensity + " " + "Min intensity ch2 "
@@ -369,58 +367,46 @@ public class BLauncher {
             out.flush();
         }
 
+        final double meanSA = Analysis.meansurface(Analysis.regionslist[0]);
+        final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
         if (Analysis.p.nchannels == 2) {
-            double corr_mask, corr;
             double[] temp = Analysis.pearson_corr();
-            corr = temp[0];
-            corr_mask = temp[1];
-
-            final double meanSA = Analysis.meansurface(Analysis.regionslist[0]);
+            double corr = temp[0];
+            double corr_mask = temp[1];
             final double meanSB = Analysis.meansurface(Analysis.regionslist[1]);
-
-            final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
             final double meanLB = Analysis.meanlength(Analysis.regionslist[1]);
 
             out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.regionslist[1].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[1]), 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
                     + colocB + ";" + mosaic.bregman.Tools.round(corr, 4) + ";" + mosaic.bregman.Tools.round(corr_mask, 4));
-            out.println();
-            out.flush();
         }
         else {
-            final double meanSA = Analysis.meansurface(Analysis.regionslist[0]);
-            final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
-
             out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLA, 4));
-            out.println();
-            out.flush();
         }
+        out.println();
+        out.flush();
+        
         return out;
     }
 
     private void Headless_file() {
         try {
-            ImagePlus img = aImp;
-            if (img == null) {
+            if (aImp == null) {
                 IJ.error("No image to process");
                 return;
             }
-
-            if (img.getType() == ImagePlus.COLOR_RGB) {
+            if (aImp.getType() == ImagePlus.COLOR_RGB) {
                 IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
                 return;
             }
 
-            Analysis.p.nchannels = img.getNChannels();
-
-            bcolocheadless(img);
-            IJ.log("");
+            Analysis.p.nchannels = aImp.getNChannels();
+            bcolocheadless(aImp);
         }
         catch (final Exception e) {
             e.printStackTrace();
-            System.err.println("Error launcher file processing: " + e.getMessage());
         }
     }
 
@@ -451,26 +437,18 @@ public class BLauncher {
 
         Analysis.loadChannels(img2, Analysis.p.nchannels);
 
-        if (Analysis.p.nz > 1) {
-            Analysis.p.max_nsb = 151;
-            Analysis.p.interpolation = 2;
-        }
-        else {
-            Analysis.p.max_nsb = 151;
-            Analysis.p.interpolation = 4;
-        }
+        Analysis.p.max_nsb = 151;
+        Analysis.p.interpolation = (Analysis.p.nz > 1) ? 2 : 4;
 
-        int nni, nnj, nnz;
-        nni = Analysis.imgA.getWidth();
-        nnj = Analysis.imgA.getHeight();
-        nnz = Analysis.imgA.getNSlices();
+        int nni = Analysis.imgA.getWidth();
+        int nnj = Analysis.imgA.getHeight();
+        int nnz = Analysis.imgA.getNSlices();
 
         Analysis.p.ni = nni;
         Analysis.p.nj = nnj;
         Analysis.p.nz = nnz;
 
         Analysis.segmentA();
-
         if (Analysis.p.nchannels == 2) {
             Analysis.segmentB();
         }
@@ -577,11 +555,9 @@ public class BLauncher {
      * @param sep true = doea not fuse with the separate outline
      */
     private void displayoutline(short[][][] regions, double[][][] image, int dz, int di, int dj, int channel, boolean sep) {
-        ImageStack objS;
-        final ImagePlus objcts = new ImagePlus();
 
         // build stack and imageplus for objects
-        objS = new ImageStack(di, dj);
+        ImageStack objS = new ImageStack(di, dj);
         System.out.println(regions.length + " " + regions[0].length + " " + regions[0][0].length);
         for (int z = 0; z < dz; z++) {
             final byte[] mask_bytes = new byte[di * dj];
@@ -601,11 +577,8 @@ public class BLauncher {
             objS.addSlice("", bp);
 
         }
-        objcts.setStack("Objects", objS);
+        final ImagePlus objcts = new ImagePlus("Objects", objS);
 
-        // build image in bytes
-
-        // build stack and imageplus for the image
         ImageStack imgS = new ImageStack(Analysis.p.ni, Analysis.p.nj);
         for (int z = 0; z < Analysis.p.nz; z++) {
             final byte[] mask_bytes = new byte[Analysis.p.ni * Analysis.p.nj];
@@ -619,7 +592,6 @@ public class BLauncher {
             bp.setPixels(mask_bytes);
             imgS.addSlice("", bp);
         }
-
         ImagePlus img = new ImagePlus("Image", imgS);
 
         final Resizer re = new Resizer();
@@ -638,9 +610,7 @@ public class BLauncher {
             bip.invert();
         }
 
-        final ImagePlus tab[] = new ImagePlus[2];
-        tab[0] = objcts;
-        tab[1] = img;
+        final ImagePlus tab[] = new ImagePlus[] {objcts, img};
         final ImagePlus over = RGBStackMerge.mergeChannels(tab, false);
 
         // if we have already an outline overlay image merge the frame
@@ -827,12 +797,6 @@ public class BLauncher {
             // this force the update of the image
             ipd[channel - 1].setStack(ipd[channel - 1].getStack());
             ipd[channel - 1].show();
-        }
-    }
-
-    public void closeAllImages() {
-        for (ImagePlus img : allImages) {
-            img.close();
         }
     }
 }

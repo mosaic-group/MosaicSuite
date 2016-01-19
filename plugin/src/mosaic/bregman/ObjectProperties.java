@@ -6,6 +6,8 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.GaussPSF;
+import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
 class ObjectProperties implements Runnable {
@@ -77,7 +79,7 @@ class ObjectProperties implements Runnable {
         }
 
         if (p.save_images) {
-            setIntensitiesandCenters(region, image);
+            regionIntensityAndCenter(region, image);
             setPerimeter(region, regions);
             setlength(region, regions);
         }
@@ -95,12 +97,9 @@ class ObjectProperties implements Runnable {
     }
 
     private void estimate_int(double[][][] mask) {
-        double[][][] temp1 = new double[sz][sx][sy];
-        double[][][] temp2 = new double[sz][sx][sy];
-        double[][][] temp3 = new double[sz][sx][sy];
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, temp3, patch, 10, p);
+        double[][][][] temp = new double[3][sz][sx][sy];
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], temp[2], patch, 10, p);
         RSS.eval(mask);
-
         cin = RSS.betaMLEin;
     }
 
@@ -118,56 +117,33 @@ class ObjectProperties implements Runnable {
         final int zmargin = 2;
         xmin = Math.max(0, xmin - margin);
         xmax = Math.min(nx, xmax + margin + 1);
-
         ymin = Math.max(0, ymin - margin);
         ymax = Math.min(ny, ymax + margin + 1);
-
         if (nz > 1) {
             zmin = Math.max(0, zmin - zmargin);
             zmax = Math.min(nz, zmax + zmargin + 1);
         }
 
-        this.sx = (xmax - xmin);// todo :correct :+1 : done
-        this.sy = (ymax - ymin);// correct :+1
+        sx = (xmax - xmin);
+        sy = (ymax - ymin);
 
         cx = xmin;
         cy = ymin;
 
         if (nz == 1) {
-            this.sz = 1;
+            sz = 1;
             cz = 0;
         }
         else {
-            this.sz = (zmax - zmin);
+            sz = (zmax - zmin);
             cz = zmin;
         }
     }
 
     private void normalize() {
-        intmin = Double.MAX_VALUE;
-        intmax = 0;
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    if (patch[z][i][j] > intmax) {
-                        intmax = patch[z][i][j];
-                    }
-                    if (patch[z][i][j] < intmin) {
-                        intmin = patch[z][i][j];
-                    }
-                }
-            }
-        }
-
-        // rescale between 0 and 1
-        for (int z = 0; z < sz; z++) {
-            for (int i = 0; i < sx; i++) {
-                for (int j = 0; j < sy; j++) {
-                    patch[z][i][j] = (patch[z][i][j] - intmin) / (intmax - intmin);
-                }
-            }
-        }
-
+        MinMax<Double> minMax = ArrayOps.normalize(patch);
+        intmin = minMax.getMin();
+        intmax = minMax.getMax();
     }
 
     private void fill_mask(Region r) {
@@ -181,46 +157,31 @@ class ObjectProperties implements Runnable {
         }
     }
 
-    private void setIntensitiesandCenters(Region r, double[][][] image) {
-        regionIntensityAndCenter(r, image);
-    }
-
     private void setPerimeter(Region r, short[][][] regionsA) {
         if (p.nz == 1) {
-            regionPerimeter(r, regionsA);
+            regionPerimeter2D(r, regionsA);
         }
         else {
             regionPerimeter3D(r, regionsA);
         }
     }
 
-    private void regionPerimeter(Region r, short[][][] regionsA) {
-        // 2 Dimensions only
+    private void regionPerimeter2D(Region r, short[][][] regionsA) {
         double pr = 0;
 
         for (Pix v : r.pixels) {
-            // count number of free edges
-            int edges = 0;
+            int numOfFreeEdges = 0;
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1) {
                 // not on edges of image
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) {
-                    edges++;// !=rvalue
-                }
+                if (regionsA[v.pz][v.px - 1][v.py] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px + 1][v.py] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px][v.py - 1] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px][v.py + 1] == 0) numOfFreeEdges++;
             }
             else {
-                edges++;
+                numOfFreeEdges++;
             }
-
-            pr += edges; // real number of edges (should be used with the subpixel)
+            pr += numOfFreeEdges; // real number of edges (should be used with the subpixel)
         }
 
         r.perimeter = pr;
@@ -235,33 +196,20 @@ class ObjectProperties implements Runnable {
         double pr = 0;
 
         for (Pix v : r.pixels) {
-            // count number of free edges
-            int edges = 0;
+            int numOfFreeEdges = 0;
             // not on edges of image
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz + 1][v.px][v.py] == 0) {
-                    edges++;
-                }
-                if (regionsA[v.pz - 1][v.px][v.py] == 0) {
-                    edges++;
-                }
+                if (regionsA[v.pz][v.px - 1][v.py] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px + 1][v.py] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px][v.py - 1] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz][v.px][v.py + 1] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz + 1][v.px][v.py] == 0) numOfFreeEdges++;
+                if (regionsA[v.pz - 1][v.px][v.py] == 0) numOfFreeEdges++;
             }
             else {
-                edges++;
+                numOfFreeEdges++;
             }
-            pr += edges;
+            pr += numOfFreeEdges;
         }
 
         r.perimeter = pr;

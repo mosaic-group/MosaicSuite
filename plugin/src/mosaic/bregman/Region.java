@@ -13,10 +13,6 @@ public class Region implements Comparable<Region> {
         this.points = points;
     }
 
-    Region(int points) {
-        this.points = points;
-    }
-
     ArrayList<Pix> pixels = new ArrayList<Pix>();
     final int points;
     float rsize;
