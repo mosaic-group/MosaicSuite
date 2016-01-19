@@ -847,6 +847,71 @@ public class Tools {
         return energy;
     }
 
+    double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
+        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp);
+    
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    speedData[z][i][j] = (c1 - c0) * speedData[z][i][j] + c0;
+                }
+            }
+        }
+    
+        nllMean(speedData, image, speedData);
+        double energyData = 0;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    energyData += speedData[z][i][j] * weights[z][i][j];
+                }
+            }
+        }
+    
+        fgradx2D(temp, mask);
+        double tmp;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    tmp = temp[z][i][j];
+                    temp2[z][i][j] = tmp * tmp;
+                }
+            }
+        }
+    
+        fgrady2D(temp, mask);
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    tmp = temp[z][i][j];
+                    temp2[z][i][j] += tmp * tmp;
+                }
+            }
+        }
+    
+        fgradz2D(temp, mask);
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    tmp = temp[z][i][j];
+                    temp2[z][i][j] += tmp * tmp;
+                }
+            }
+        }
+    
+        double energyPrior = 0;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    energyPrior += Math.sqrt(temp2[z][i][j]);
+                }
+            }
+        }
+    
+        final double energy = ldata * energyData + lreg * energyPrior;
+        return energy;
+    }
+
     double computeEnergyPSF(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
             int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9) throws InterruptedException {
         Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], iStart, iEnd);
@@ -950,71 +1015,6 @@ public class Tools {
         double energyPrior = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyPrior += Math.sqrt(temp2[z][i][j]);
-                }
-            }
-        }
-
-        final double energy = ldata * energyData + lreg * energyPrior;
-        return energy;
-    }
-
-    double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
-        Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp);
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    speedData[z][i][j] = (c1 - c0) * speedData[z][i][j] + c0;
-                }
-            }
-        }
-
-        nllMean(speedData, image, speedData);
-        double energyData = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyData += speedData[z][i][j] * weights[z][i][j];
-                }
-            }
-        }
-
-        fgradx2D(temp, mask);
-        double tmp;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    tmp = temp[z][i][j];
-                    temp2[z][i][j] = tmp * tmp;
-                }
-            }
-        }
-
-        fgrady2D(temp, mask);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    tmp = temp[z][i][j];
-                    temp2[z][i][j] += tmp * tmp;
-                }
-            }
-        }
-
-        fgradz2D(temp, mask);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    tmp = temp[z][i][j];
-                    temp2[z][i][j] += tmp * tmp;
-                }
-            }
-        }
-
-        double energyPrior = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     energyPrior += Math.sqrt(temp2[z][i][j]);
                 }

@@ -4,7 +4,6 @@ package mosaic.bregman;
 import java.util.ArrayList;
 
 
-/* An inner class to make the results list sortable. */
 public class Region implements Comparable<Region> {
 
     boolean colocpositive = false;
@@ -49,7 +48,6 @@ public class Region implements Comparable<Region> {
             if (p.pz < zmin) zmin = p.pz;
             if (p.pz > zmax) zmax = p.pz;
         }
-        if (pixels.size() == 0) System.out.println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
         
         Pix aMin = new Pix(zmin, xmin, ymin);
         Pix aMax = new Pix(zmax, xmax, ymax);

@@ -218,7 +218,7 @@ abstract class ASplitBregmanSolver {
                 Ap.find_best_thresh_and_int(w3k[0]);
                 p.cl[0] = Math.max(0, Ap.cout);
                 // lower bound withg some margin
-                p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.intmin) / (Ap.intmax - Ap.intmin), Ap.cin);
+                p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
                 this.init();
                 if (p.debug) {
                     IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
