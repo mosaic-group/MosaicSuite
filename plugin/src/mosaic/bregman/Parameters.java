@@ -22,7 +22,7 @@ public class Parameters implements Serializable {
     final double gamma = 1;
     final double tol = 1e-7;
     final boolean displowlevels = true; // Already deleted in code - before removing updated config file.
-    final boolean looptest = false;
+    final boolean looptest = false; // Already deleted in code - before removing updated config file.
     final int maxves_size = -1;
     final double colocthreshold = 0.5;
     final int RegionsIntensitymodulo = 3000;
@@ -30,6 +30,9 @@ public class Parameters implements Serializable {
     final boolean fastsquassh = false; // Already deleted in code - before removing updated config file.
     final int overs = 2; // Already deleted in code - before removing updated config file.
     final boolean usePSF = true; // Already deleted in code - before removing updated config file.
+    final boolean automatic_int = false; // Already deleted in code - before removing updated config file.
+    final int dispEmodulo = 10; // Already deleted in code - before removing updated config file.
+    final boolean remask = false; // Already deleted in code - before removing updated config file.
     
     // ================================ parameters changed in GUI
     public String patches_from_file;
@@ -76,7 +79,6 @@ public class Parameters implements Serializable {
     // ==================================
     
     boolean firstphase = true;
-    final boolean automatic_int = false;
     int nlevels = 2;
     double[] cl;
     public double zcorrec = 1;// was 2
@@ -84,8 +86,6 @@ public class Parameters implements Serializable {
     boolean RSSinit = false;
     boolean findregionthresh = true;
     public int nthreads = 8;
-    final int dispEmodulo = 10;
-    boolean remask = false;
     public int nchannels = 2;
     double thresh = 0.75;
     double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
@@ -104,29 +104,18 @@ public class Parameters implements Serializable {
         this.save_images = p.save_images;
         this.wd = p.wd;
 
-//        this.debug = p.debug;
-//        this.model_oversampling = p.model_oversampling;
         this.interpolation = p.interpolation;
-//        this.ldata = p.ldata;
         for (int i = 0; i < this.lreg_.length; i++) {
             this.lreg_[i] = p.lreg_[i];
         }
-        // region non psf test
-//        this.gamma = p.gamma;
         this.size_rollingball = p.size_rollingball;
         this.max_nsb = p.max_nsb;
         this.nlevels = p.nlevels;
-//        this.tol = p.tol;
         this.removebackground = p.removebackground;
-//        this.displowlevels = p.displowlevels;
         this.livedisplay = p.livedisplay;
-        //this.usePSF = p.usePSF;
-//        this.looptest = p.looptest;
-//        this.maxves_size = p.maxves_size;
         this.minves_size = p.minves_size;
         this.min_intensity = p.min_intensity;// 0.1
         this.min_intensityY = p.min_intensityY;// 0.1
-//        this.colocthreshold = p.colocthreshold;
         this.sigma_gaussian = p.sigma_gaussian;
         this.zcorrec = p.zcorrec;// was 2
         this.RSSmodulo = p.RSSmodulo;
@@ -135,13 +124,11 @@ public class Parameters implements Serializable {
         this.regionthresh = p.regionthresh; // pour mitochondria 0.25
         this.regionthreshy = p.regionthreshy; // pour mitochondria 0.25
         this.dispvoronoi = p.dispvoronoi;
-//        this.RegionsIntensitymodulo = p.RegionsIntensitymodulo;
         this.nthreads = p.nthreads;
         this.usecellmaskX = p.usecellmaskX;
         this.usecellmaskY = p.usecellmaskY;
         this.thresholdcellmask = p.thresholdcellmask;
         this.thresholdcellmasky = p.thresholdcellmasky;
-//        this.energyEvaluationModulo = p.energyEvaluationModulo;
         this.regionSegmentLevel = p.regionSegmentLevel;
         this.nchannels = p.nchannels;
         this.thresh = p.thresh;
@@ -150,8 +137,6 @@ public class Parameters implements Serializable {
         this.min_region_filter_intensities = p.min_region_filter_intensities;
 
         this.dispSoftMask = p.dispSoftMask;
-//        this.fastsquassh = p.fastsquassh;
-//        this.overs = p.overs;
         this.dispint = p.dispint;
         this.displabels = p.displabels;
         this.dispcolors = p.dispcolors;
@@ -166,28 +151,19 @@ public class Parameters implements Serializable {
 
         final int max = Math.max(2, this.nlevels);
         this.cl = new double[max];
-
-//        this.mode_voronoi2 = p.mode_voronoi2;
-//        this.mode_classic = p.mode_classic;        
     }
 
     @Override
     public String toString() {
-        String str = new String();
-
-        str += "save_images=" + this.save_images + "\n";
+        String str = "save_images=" + this.save_images + "\n";
         str += "wd=" + this.wd + "\n";
-
         for (int i = 0; i < this.lreg_.length; i++) {
             str += "lreg_[" + i + "]" + this.lreg_[i] + "\n";
         }
-
         str += "size_rollingball=" + this.size_rollingball + "\n";
         str += "removebackground=" + this.removebackground + "\n";
-
         str += "min_intensity=" + this.min_intensity + "\n";
         str += "min_intensityY" + this.min_intensityY + "\n";
-
         str += "sigma_gaussian=" + this.sigma_gaussian + "\n";
         str += "zcorrec=" + this.zcorrec + "\n";
 

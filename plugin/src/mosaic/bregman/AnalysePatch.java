@@ -193,19 +193,17 @@ class AnalysePatch implements Runnable {
         if (iLocalParams.mode_intensity == 0) {
             find_best_thresh_and_int(w3kpatch[0]);
         }
-        else {
-            if (iLocalParams.mode_intensity == 1) {
-                estimate_int_weighted(mask);
-            }
-            else if (iLocalParams.mode_intensity == 2) {
-                estimate_int_clustering(iLocalParams.mode_intensity - 1);// (-1 to correct for old numbering)
-            }
+        else if (iLocalParams.mode_intensity == 1) {
+            estimate_int_weighted(mask);
         }
+        else if (iLocalParams.mode_intensity == 2) {
+            estimate_int_clustering(1);// (-1 to correct for old numbering)
+        }
+        
         iLocalParams.cl[0] = Math.max(cout, 0);
         iLocalParams.cl[1] = Math.max(0.75 * (firstminval - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
 
-        if (iLocalParams.mode_intensity == 3)// mode high
-        {
+        if (iLocalParams.mode_intensity == 3) {
             iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
             iLocalParams.cl[1] = 1;
             t_high = cin;
@@ -222,7 +220,6 @@ class AnalysePatch implements Runnable {
         iLocalParams.findregionthresh = false;
         iLocalParams.RSSmodulo = 501;
         iLocalParams.thresh = 0.75;
-        iLocalParams.remask = false;
         for (int i = 0; i < iLocalParams.lreg_.length; i++) {
             iLocalParams.lreg_[i] = iLocalParams.lreg_[i] * aOversampling;
         }
@@ -419,84 +416,45 @@ class AnalysePatch implements Runnable {
     }
 
     private void estimate_int_clustering(int level) {
-        // clustering done on original image data (not on soft mask)
-        // test doing it on soft mask ? // but original soft mask patch
-        // extracted from whole image is not normalized..
-        if (iLocalParams.debug) {
-            IJ.log("init obj:" + iInputRegion.value);
-        }
-
-        int nk;
-        if (level == 1) {
-            nk = 4;
-        }
-        else {
-            nk = 3;// 3level culstering for low (removed) and high, 4 levels for
-            // medium
-            //
-            // nk=4;//test high mode
-        }
-
-        int nk_in = 0;
-        // if (level==0)nk_in=1;//low
-        if (level == 2) {
-            nk_in = 2;// high
-        }
-        if (level == 1) {
-            nk_in = 2;// medium
-        }
-
-        // nk_in=3;// test high mode
-        // int nk=4;//3
+        int nk = (level == 1) ? 4 : 3;
+        int nk_in = 2;
+        
         final double[] pixel = new double[1];
-        final double[] levels = new double[nk];
 
         int cpt_vals = 0;
         final Dataset data = new DefaultDataset();
         for (int z = 0; z < iSizeOversZ; z++) {
             for (int i = 0; i < iSizeOversX; i++) {
                 for (int j = 0; j < iSizeOversY; j++) {
-                    pixel[0] = iPatch[z][i][j];
-                    if (level == 2) {
-                        pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
-                    }
-                    final Instance instance = new DenseInstance(pixel);
+                    pixel[0] = (level == 1) ? iPatch[z][i][j] : A_solver.w3kbest[0][z][i][j];
                     if (iRegionMask[z][i][j] == 1) {
-                        data.add(instance);
+                        data.add(new DenseInstance(pixel));
                         cpt_vals++;
                     }
                 }
             }
         }
 
-        if (iLocalParams.debug) {
-            IJ.log("inst" + iInputRegion.value + " nbvals" + cpt_vals);
-        }
-
         if (cpt_vals > 3) {
             final Clusterer km = new KMeans(nk, 100);
-            // Cluster the data, it will be returned as an array of data sets,
-            // with each dataset representing a cluster.
             final Dataset[] data2 = km.cluster(data);
-
-            nk = data2.length;// get number of clusters really found (usually =
-            // 3 = setNumClusters but not always)
+            nk = data2.length;// get number of clusters really found
+            
+            final double[] levels = new double[nk];
             for (int i = 0; i < nk; i++) {
-                // Instance inst =DatasetTools.minAttributes(data2[i]);
                 final Instance inst = DatasetTools.average(data2[i]);
                 levels[i] = inst.value(0);
             }
 
             Arrays.sort(levels);
             int nk2 = Math.min(nk_in, nk - 1);
-            cin = Math.max(iScaledIntensityMin, levels[nk2]);// -1;
+            cin = Math.max(iScaledIntensityMin, levels[nk2]);
             final int nkm1 = Math.max(nk2 - 1, 0);
             cout_front = levels[nkm1];
             cout = levels[0];
             if (level == 2) {
                 cout = cout_front;
             }
-
             mint = 0.25;
 
             if (iLocalParams.debug) {
@@ -509,16 +467,11 @@ class AnalysePatch implements Runnable {
                 }
             }
         }
-        else // too few values for clustering..
-        {
+        else {
             cin = 1;
             cout_front = iLocalParams.betaMLEoutdefault;
             cout = iLocalParams.betaMLEoutdefault;
             mint = 0.25;
-
-            if (iLocalParams.debug) {
-                IJ.log("usuing default intensity for r" + iInputRegion.value);
-            }
         }
     }
 

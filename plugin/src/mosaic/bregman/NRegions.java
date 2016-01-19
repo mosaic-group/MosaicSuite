@@ -152,16 +152,6 @@ abstract class NRegions implements Runnable {
             p.cl[1] = p.betaMLEindefault;
         }
 
-        if (Analysis.p.automatic_int) {
-            final double[] levs = cluster_int(5);
-            p.cl[0] = levs[0];// 0.0027356;
-            p.betaMLEoutdefault = levs[0];
-            p.cl[1] = levs[3];
-            p.betaMLEindefault = levs[3];
-            IJ.log("automatic background:" + Tools.round(p.cl[0], 3));
-            IJ.log("automatic foreground:" + Tools.round(p.cl[1], 3));
-        }
-
         LocalTools.createmask(mask, image, p.cl);
     }
 

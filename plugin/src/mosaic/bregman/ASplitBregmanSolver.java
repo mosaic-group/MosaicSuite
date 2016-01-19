@@ -140,11 +140,6 @@ abstract class ASplitBregmanSolver {
             IJ.log(String.format("Photometry init:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout, RSS.betaMLEin));
         }
 
-        if (p.remask) {
-            LocalTools.createmask(mask, image, p.cl);
-            md.display2regionsnewd(mask[0][0], "remask init", 0);
-        }
-
         for (int l = 0; l < nl; l++) {
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
@@ -172,7 +167,7 @@ abstract class ASplitBregmanSolver {
         }
 
         stepk = 0;
-        final int modulo = p.dispEmodulo;
+        final int modulo = 10;
 
         if (p.firstphase) {
             IJ.showStatus("Computing segmentation");
