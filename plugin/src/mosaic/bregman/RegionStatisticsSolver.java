@@ -271,7 +271,7 @@ class RegionStatisticsSolver {
         }
     }
 
-    void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
+    static void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
         for (final Region r : regionslist) {
             for (final Pix p : r.pixels) {
                 final int i = p.px;

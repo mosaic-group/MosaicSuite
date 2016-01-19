@@ -236,25 +236,18 @@ class AnalysePatch implements Runnable {
         iLocalParams.nthreads = 1;
         iLocalParams.firstphase = false;
 
-        if (iLocalParams.nz > 1) {
-            // Check the delta beta, if it is bigger than two ignore it, because
-            // I cannot warrant stability
-            if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
-                // reset
-                iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
-                iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
-            }
+        // Check the delta beta, if it is bigger than two ignore it, because
+        // I cannot warrant stability
+        if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
+            // reset
+            iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
+            iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
+        }
 
+        if (iLocalParams.nz > 1) {
             A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
         }
         else {
-            // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
-            if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
-                // reset
-                iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
-                iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
-            }
-
             A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
         }
 

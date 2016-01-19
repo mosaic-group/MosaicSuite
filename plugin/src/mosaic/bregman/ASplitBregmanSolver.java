@@ -446,15 +446,8 @@ abstract class ASplitBregmanSolver {
         }
 
         // use Ri to store voronoi regions indices
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    Ri[0][z][i][j] = 255;
-                }
-            }
-        }
-
-        new RegionStatisticsSolver(temp1[0], temp2[0], temp3, image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
+        ArrayOps.fill(Ri[0], 255);
+        RegionStatisticsSolver.cluster_region_voronoi2(Ri[0], regionslist);
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
