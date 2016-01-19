@@ -2,7 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 import ij.ImagePlus;
 import ij.ImageStack;

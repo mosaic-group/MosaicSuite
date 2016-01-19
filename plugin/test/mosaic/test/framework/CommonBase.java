@@ -503,6 +503,10 @@ public class CommonBase extends Info {
         return null;
     }
     
+//    static protected void compareArrays(Object[] expected, Object[] result) {
+//        assertTrue(Arrays.deepEquals(expected, result));
+//    }
+    
     static protected void compareArrays(float[][] expected, float[][] result) {
         for (int i = 0; i < expected.length; ++i) {
             for (int j = 0; j < expected[0].length; ++j) {
