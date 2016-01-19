@@ -13,7 +13,6 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
@@ -643,10 +642,7 @@ class AnalysePatch implements Runnable {
 
     // build local object list
     private void assemble_patch() {
-        // find connected regions
-        final ImagePlus maska_im = new ImagePlus();
         final ImageStack maska_ims = new ImageStack(iSizeOverInterX, iSizeOverInterY);
-
         for (int z = 0; z < iSizeOverInterZ; z++) {
             final byte[] maska_bytes = new byte[iSizeOverInterX * iSizeOverInterY];
             for (int i = 0; i < iSizeOverInterX; i++) {
@@ -659,26 +655,17 @@ class AnalysePatch implements Runnable {
                     }
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(iSizeOverInterX, iSizeOverInterY);
-            bp.setPixels(maska_bytes);
+            final ByteProcessor bp = new ByteProcessor(iSizeOverInterX, iSizeOverInterY, maska_bytes);
             maska_ims.addSlice("", bp);
         }
-
-        maska_im.setStack("test Mask vo2", maska_ims);
-
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, iSizeOverInterX, iSizeOverInterY, iSizeOverInterZ);// maska_im only
+        final ImagePlus maska_im = new ImagePlus("test Mask vo2", maska_ims);
 
         final double thr = 0.5;
-        final float[][][] Ri = new float[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
-        for (int z = 0; z < iSizeOverInterZ; z++) {
-            for (int i = 0; i < iSizeOverInterX; i++) {
-                for (int j = 0; j < iSizeOverInterY; j++) {
-                    Ri[z][i][j] = (float) thr;
-                }
-            }
-        }
+//        final float[][][] Ri = new float[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
+//        ArrayOps.fill(Ri, (float)thr);
 
-        fcr.run(thr, iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, 0, Ri);// min size was 5
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, iSizeOverInterX, iSizeOverInterY, iSizeOverInterZ);
+        fcr.run(thr, iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr);// min size was 5
 
         // add to list with critical section
         iImagePatches.addRegionsToList(fcr.results);

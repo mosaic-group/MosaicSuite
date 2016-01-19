@@ -2,7 +2,6 @@ package mosaic.plugins;
 
 import java.io.File;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import ij.macro.Interpreter;

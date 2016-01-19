@@ -208,16 +208,10 @@ public class Analysis {
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
         
-        float[][][] Ri = new float[p.nz][p.ni][p.nj];
-        for (int z = 0; z < p.nz; z++) {
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    Ri[z][i][j] = (float) intensity;
-                }
-            }
-        }
+//        float[][][] Ri = new float[p.nz][p.ni][p.nj];
+//        ArrayOps.fill(Ri, (float) intensity);
 
-        fcr.run(d, p.maxves_size, p.minves_size, 255 * intensity, Ri);
+        fcr.run(d, p.maxves_size, p.minves_size, (float) (255 * intensity));
         
         return fcr;
     }

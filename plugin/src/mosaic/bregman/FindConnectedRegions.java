@@ -56,7 +56,7 @@ class FindConnectedRegions {
     }
 
     @SuppressWarnings("null")
-    public void run(double aValuesOverDoubleThreshold, int aMaximumPointsInRegion, int aMinimumPointsInRegion, double minInt, float[][][] tr) {
+    public void run(double aValuesOverDoubleThreshold, int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold) {
         if (imagePlus == null) {
             IJ.error("No image to operate on.");
             return;
@@ -116,7 +116,7 @@ class FindConnectedRegions {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
                             final int value = sliceDataBytes[z][y * width + x] & 0xFF;
-                            if (value > maxValueInt && value > tr[z][x][y] && value > minInt) {
+                            if (value > maxValueInt && value > aThreshold) {
                                 initial_x = x;
                                 initial_y = y;
                                 initial_z = z;
@@ -138,7 +138,7 @@ class FindConnectedRegions {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
                             final float value = sliceDataFloats[z][y * width + x];
-                            if (value > tr[z][x][y]) {
+                            if (value > aThreshold) {
                                 initial_x = x;
                                 initial_y = y;
                                 initial_z = z;
@@ -152,8 +152,8 @@ class FindConnectedRegions {
 
                 if (foundValueFloat == Float.MIN_VALUE) {
                     break;
-                    // If the maximum value is below the level we care about, we're done.
                 }
+                // If the maximum value is below the level we care about, we're done.
                 if (foundValueFloat < aValuesOverDoubleThreshold) {
                     break;
                 }
@@ -219,14 +219,14 @@ class FindConnectedRegions {
                             if (byteImage) {
                                 final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
 
-                                if (neighbourValue <= tr[z][x][y] || neighbourValue <= minInt) {
+                                if (neighbourValue <= aThreshold) {
                                     continue;
                                 }
                             }
                             else {
                                 final float neighbourValue = sliceDataFloats[z][newSliceIndex];
 
-                                if (neighbourValue <= tr[z][x][y] || neighbourValue <= minInt) {
+                                if (neighbourValue <= aThreshold) {
                                     continue;
                                 }
                             }
@@ -282,9 +282,9 @@ class FindConnectedRegions {
             if (region.points <= aMaximumPointsInRegion) {
                 // check for z processing
 
-                if (Analysis.p.exclude_z_edges == true && tr.length != 1) {
+                if (Analysis.p.exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
                     Analysis.regionCenter(region);
-                    if (region.getcz() >= 1.0 && region.getcz() <= tr.length - 2) {
+                    if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
                         results.add(region);
                     }
                 }

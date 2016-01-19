@@ -305,7 +305,7 @@ abstract class ASplitBregmanSolver {
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
         ArrayOps.fill(Ri[0], (float) thr);
 
-        fcr.run(thr, 512 * 512, 2, 0, Ri[0]);
+        fcr.run(thr, 512 * 512, 2, (float) thr);
 
         this.regionslistr = fcr.results;
         final int na = regionslistr.size();
@@ -393,7 +393,7 @@ abstract class ASplitBregmanSolver {
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
         ArrayOps.fill(Ri[0], (float) thr);
 
-        fcr.run(thr, p.ni * p.nj * p.nz, 0, 0, Ri[0]);// min size was 5
+        fcr.run(thr, p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
 
         if (p.dispvoronoi) {
             if (nz == 1) {
