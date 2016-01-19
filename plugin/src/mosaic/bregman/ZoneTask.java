@@ -67,7 +67,7 @@ class ZoneTask implements Runnable {
 
         Tools.synchronizedWait(Sync1);
 
-        LocalTools.mydivergence(AS.temp3[AS.levelOfMask], AS.temp1[AS.levelOfMask], AS.temp2[AS.levelOfMask], AS.temp4[AS.levelOfMask], Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
+        LocalTools.mydivergence(AS.temp3, AS.temp1[AS.levelOfMask], AS.temp2[AS.levelOfMask], AS.temp4[AS.levelOfMask], Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
 
         Tools.synchronizedWait(Sync12);
 
@@ -88,7 +88,7 @@ class ZoneTask implements Runnable {
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.temp1[AS.levelOfMask][z][i][j] = -AS.temp3[AS.levelOfMask][z][i][j] + AS.w3k[AS.levelOfMask][z][i][j] - AS.b3k[AS.levelOfMask][z][i][j] + (AS.c1 - AS.c0) * AS.temp4[AS.levelOfMask][z][i][j];
+                    AS.temp1[AS.levelOfMask][z][i][j] = -AS.temp3[z][i][j] + AS.w3k[AS.levelOfMask][z][i][j] - AS.b3k[AS.levelOfMask][z][i][j] + (AS.c1 - AS.c0) * AS.temp4[AS.levelOfMask][z][i][j];
                 }
             }
         }
@@ -96,7 +96,7 @@ class ZoneTask implements Runnable {
         Sync4.countDown();
         Dct.await();
 
-        Tools.convolve2Dseparable(AS.temp2[AS.levelOfMask][0], AS.temp1[AS.levelOfMask][0], AS.ni, AS.nj, AS.p.PSF, AS.temp3[AS.levelOfMask][0], iStart, iEnd);
+        Tools.convolve2Dseparable(AS.temp2[AS.levelOfMask][0], AS.temp1[AS.levelOfMask][0], AS.ni, AS.nj, AS.p.PSF, AS.temp3[0], iStart, iEnd);
 
         Tools.synchronizedWait(Sync10);
 
@@ -115,7 +115,7 @@ class ZoneTask implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.temp3[AS.levelOfMask][0][i][j] = Math.pow(((AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma - AS.b1k[AS.levelOfMask][0][i][j] - AS.temp2[AS.levelOfMask][0][i][j]), 2) + 4
+                        AS.temp3[0][i][j] = Math.pow(((AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma - AS.b1k[AS.levelOfMask][0][i][j] - AS.temp2[AS.levelOfMask][0][i][j]), 2) + 4
                                 * (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma * AS.image[0][i][j];
                     }
                 }
@@ -124,7 +124,7 @@ class ZoneTask implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[AS.levelOfMask][0][i][j] = 0.5 * (AS.b1k[AS.levelOfMask][z][i][j] + AS.temp2[AS.levelOfMask][z][i][j] - (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma + Math.sqrt(AS.temp3[AS.levelOfMask][z][i][j]));
+                        AS.w1k[AS.levelOfMask][0][i][j] = 0.5 * (AS.b1k[AS.levelOfMask][z][i][j] + AS.temp2[AS.levelOfMask][z][i][j] - (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma + Math.sqrt(AS.temp3[z][i][j]));
                     }
                 }
             }
@@ -163,19 +163,19 @@ class ZoneTask implements Runnable {
 
         Tools.synchronizedWait(Sync5);
 
-        LocalTools.fgradx2D(AS.temp3[AS.levelOfMask], AS.temp1[AS.levelOfMask], jStart, jEnd);
+        LocalTools.fgradx2D(AS.temp3, AS.temp1[AS.levelOfMask], jStart, jEnd);
         LocalTools.fgrady2D(AS.temp4[AS.levelOfMask], AS.temp1[AS.levelOfMask], iStart, iEnd);
 
         Tools.synchronizedWait(Sync6);
 
-        LocalTools.addtab(AS.w2xk[AS.levelOfMask], AS.temp3[AS.levelOfMask], AS.b2xk[AS.levelOfMask], iStart, iEnd);
+        LocalTools.addtab(AS.w2xk[AS.levelOfMask], AS.temp3, AS.b2xk[AS.levelOfMask], iStart, iEnd);
         LocalTools.addtab(AS.w2yk[AS.levelOfMask], AS.temp4[AS.levelOfMask], AS.b2yk[AS.levelOfMask], iStart, iEnd);
         LocalTools.shrink2D(AS.w2xk[AS.levelOfMask], AS.w2yk[AS.levelOfMask], AS.w2xk[AS.levelOfMask], AS.w2yk[AS.levelOfMask], AS.p.gamma, iStart, iEnd);
         //
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.b2xk[AS.levelOfMask][z][i][j] = AS.b2xk[AS.levelOfMask][z][i][j] + AS.temp3[AS.levelOfMask][z][i][j] - AS.w2xk[AS.levelOfMask][z][i][j];
+                    AS.b2xk[AS.levelOfMask][z][i][j] = AS.b2xk[AS.levelOfMask][z][i][j] + AS.temp3[z][i][j] - AS.w2xk[AS.levelOfMask][z][i][j];
                     AS.b2yk[AS.levelOfMask][z][i][j] = AS.b2yk[AS.levelOfMask][z][i][j] + AS.temp4[AS.levelOfMask][z][i][j] - AS.w2yk[AS.levelOfMask][z][i][j];
                 }
             }
@@ -184,7 +184,7 @@ class ZoneTask implements Runnable {
         Tools.synchronizedWait(Sync7);
 
         if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {
-            AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1[AS.levelOfMask], AS.w3k[AS.levelOfMask], AS.temp3[AS.levelOfMask], AS.temp4[AS.levelOfMask], AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.c0, AS.c1, AS.image, iStart,
+            AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1[AS.levelOfMask], AS.w3k[AS.levelOfMask], AS.temp3, AS.temp4[AS.levelOfMask], AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.c0, AS.c1, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9);
         }
     }

@@ -36,11 +36,11 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][] aValues) {
-        Tools.convolve2D(temp3[levelOfMask][0], aValues, ni, nj, p.PSF);
+        Tools.convolve2D(temp3[0], aValues, ni, nj, p.PSF);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[levelOfMask][z][i][j] + c0;
+                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[z][i][j] + c0;
                 }
             }
         }
@@ -170,14 +170,14 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         temp2[levelOfMask][0][0][0] = 1;
 
-        LocalTools.dctshift(temp3[levelOfMask], temp1[levelOfMask], cc, cr);
-        dct2d.forward(temp3[levelOfMask][0], true);
+        LocalTools.dctshift(temp3, temp1[levelOfMask], cc, cr);
+        dct2d.forward(temp3[0], true);
         dct2d.forward(temp2[levelOfMask][0], true);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[levelOfMask][z][i][j] / temp2[levelOfMask][z][i][j];
+                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[z][i][j] / temp2[levelOfMask][z][i][j];
                 } 
             }
         }

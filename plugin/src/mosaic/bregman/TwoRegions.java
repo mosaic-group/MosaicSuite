@@ -9,6 +9,8 @@ import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.plugin.filter.BackgroundSubtracter;
+import ij.process.ImageProcessor;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -17,6 +19,7 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.Debug;
+import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -26,10 +29,126 @@ import net.imglib2.type.numeric.real.DoubleType;
  * Class that process the first Split bregman segmentation and refine with patches
  * @author Aurelien Ritz
  */
-class TwoRegions extends NRegions {
+class TwoRegions implements Runnable {
+    protected final double[][][] image;// 3D image
+    protected final double[][][][] mask;// nregions nslices ni nj
 
+    protected final Parameters p;
+
+    protected final int ni, nj, nz;// 3 dimensions
+    protected final int nl;
+    protected final int channel;
+    protected final CountDownLatch DoneSignal;
+
+    protected final Tools LocalTools;
+    protected double min, max;
+    
+    protected MasksDisplay md;
+    
     public TwoRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
-        super(img, params, DoneSignal, channel);
+        if (img.getBitDepth() == 32) {
+            IJ.log("Error converting float image to short");
+        }
+
+        this.p = params;
+        this.DoneSignal = DoneSignal;
+        this.channel = channel;
+        
+        this.nl = p.nlevels;
+        this.ni = p.ni;
+        this.nj = p.nj;
+        this.nz = p.nz;
+
+        LocalTools = new Tools(ni, nj, nz, nl);
+
+        image = new double[nz][ni][nj];
+        mask = new double[nl][nz][ni][nj];
+
+        /* Search for maximum and minimum value, normalization */
+        if (Analysis.norm_max == 0) {
+            MinMax<Double> mm = Tools.findMinMax(img);
+            min = mm.getMin();
+            max = mm.getMax();
+        }
+        else {
+            min = Analysis.norm_min;
+            max = Analysis.norm_max;
+        }
+
+        if (p.usecellmaskX && channel == 0) {
+            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.p.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
+        }
+        if (p.usecellmaskY && channel == 1) {
+            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.p.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
+        }
+
+        max = 0;
+        min = Double.POSITIVE_INFINITY;
+
+        for (int z = 0; z < nz; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            
+            if (p.removebackground) {
+                final BackgroundSubtracter bs = new BackgroundSubtracter();
+                bs.rollingBallBackground(imp, p.size_rollingball, false, false, false, true, true);
+            }
+
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    image[z][i][j] = imp.getPixel(i, j);
+                    if (image[z][i][j] > max) {
+                        max = image[z][i][j];
+                    }
+                    if (image[z][i][j] < min) {
+                        min = image[z][i][j];
+                    }
+                }
+            }
+        }
+
+        /* Again overload the parameter after background subtraction */
+        if (Analysis.norm_max != 0) {
+            max = Analysis.norm_max;
+            if (p.removebackground) {
+                // if we are removing the background we have no idea which is the minumum across 
+                // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
+                min = 0.0;
+            }
+            else {
+                min = Analysis.norm_min;
+            }
+        }
+
+        if (p.livedisplay && p.removebackground) {
+            final ImagePlus back = img.duplicate();
+            back.setTitle("Background reduction channel " + (channel + 1));
+            back.changes = false;
+            back.setDisplayRange(min, max);
+            back.show();
+        }
+
+        // normalize the image
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    image[z][i][j] = (image[z][i][j] - min) / (max - min);
+                    if (image[z][i][j] < 0.0) {
+                        image[z][i][j] = 0.0;
+                    }
+                    else if (image[z][i][j] > 1.0) {
+                        image[z][i][j] = 1.0;
+                    }
+                }
+            }
+        }
+
+        if (p.nlevels == 2 || p.nlevels == 1) {
+            p.cl[0] = p.betaMLEoutdefault;
+            p.cl[1] = p.betaMLEindefault;
+        }
+
+        LocalTools.createmask(mask, image, p.cl);
     }
 
     /**

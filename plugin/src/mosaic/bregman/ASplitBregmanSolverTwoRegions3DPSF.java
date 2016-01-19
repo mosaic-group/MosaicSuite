@@ -42,7 +42,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         // Reallocate temps
         // Unfortunatelly is allocated in ASplitBregmanSolver
         temp4 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp3 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp3 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         temp2 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         temp1 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
@@ -74,11 +74,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3[levelOfMask], aValues, ni, nj, nz, p.PSF, temp4[levelOfMask]);
+        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, p.PSF, temp4[levelOfMask]);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[levelOfMask][z][i][j] + c0;
+                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[z][i][j] + c0;
                 }
             }
         }
@@ -185,15 +185,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
 
-        LocalTools.dctshift3D(temp3[levelOfMask], temp2[levelOfMask], cr, cc, cs);
-        dct3d.forward(temp3[levelOfMask], true);
+        LocalTools.dctshift3D(temp3, temp2[levelOfMask], cr, cc, cs);
+        dct3d.forward(temp3, true);
         temp1[levelOfMask][0][0][0] = 1;
         dct3d.forward(temp1[levelOfMask], true);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[levelOfMask][z][i][j] / temp1[levelOfMask][z][i][j];
+                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[z][i][j] / temp1[levelOfMask][z][i][j];
                 }
             }
         }

@@ -41,7 +41,7 @@ abstract class ASplitBregmanSolver {
 
     protected double[][][][] temp1;
     protected double[][][][] temp2;
-    protected double[][][][] temp3;
+    protected double[][][] temp3;
     protected double[][][][] temp4;
 
     protected final float[][][][] Ri;
@@ -110,10 +110,10 @@ abstract class ASplitBregmanSolver {
 
         this.temp1 = new double[nl][nzmin][nimin][njmin];
         this.temp2 = new double[nl][nzmin][nimin][njmin];
-        this.temp3 = new double[nl][nzmin][nimin][njmin];
+        this.temp3 = new double[nzmin][nimin][njmin];
         this.temp4 = new double[nl][nzmin][nimin][njmin];
         
-        this.RSS = new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], image, 10, p);
+        this.RSS = new RegionStatisticsSolver(temp1[0], temp2[0], temp3, image, 10, p);
 
         // precompute eigenlaplacian
         this.eigenLaplacian = new double[ni][nj];
@@ -454,7 +454,7 @@ abstract class ASplitBregmanSolver {
             }
         }
 
-        new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
+        new RegionStatisticsSolver(temp1[0], temp2[0], temp3, image, 10, p).cluster_region_voronoi2(Ri[0], regionslist);
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
