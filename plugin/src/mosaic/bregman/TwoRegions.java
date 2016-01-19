@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -18,8 +17,8 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
-import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -30,28 +29,26 @@ import net.imglib2.type.numeric.real.DoubleType;
  * @author Aurelien Ritz
  */
 class TwoRegions implements Runnable {
-    protected final double[][][] image;// 3D image
-    protected final double[][][][] mask;// nregions nslices ni nj
+    private final double[][][] image;// 3D image
+    private final double[][][][] mask;// nregions nslices ni nj
 
-    protected final Parameters p;
+    private final Parameters p;
 
-    protected final int ni, nj, nz;// 3 dimensions
-    protected final int nl;
-    protected final int channel;
-    protected final CountDownLatch DoneSignal;
+    private final int ni, nj, nz;// 3 dimensions
+    private final int nl;
+    private final int channel;
 
-    protected final Tools LocalTools;
-    protected double min, max;
+    private final Tools LocalTools;
+    private double min, max;
     
-    protected MasksDisplay md;
+    private MasksDisplay md;
     
-    public TwoRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
+    public TwoRegions(ImagePlus img, Parameters params, int channel) {
         if (img.getBitDepth() == 32) {
             IJ.log("Error converting float image to short");
         }
 
         this.p = params;
-        this.DoneSignal = DoneSignal;
         this.channel = channel;
         
         this.nl = p.nlevels;
@@ -282,13 +279,7 @@ class TwoRegions implements Runnable {
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-
-            if (p.findregionthresh) {
-                Analysis.compute_connected_regions_a(255 * p.thresh);
-            }
-            else {
-                Analysis.compute_connected_regions_a(255 * p.thresh);
-            }
+            Analysis.compute_connected_regions_a(255 * p.thresh);
 
             if (Analysis.p.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
@@ -333,15 +324,6 @@ class TwoRegions implements Runnable {
             // run find connected region to recompute the regions again
             // recompute the statistics using the old intensity label image
 
-            final HashMap<Integer, Float> lblInt = new HashMap<Integer, Float>();
-
-            for (final Region r : Analysis.regionslist[0]) {
-                for (final Pix p : r.pixels) {
-                    final Integer id = p.px + p.py * ni + p.pz * ni * nj;
-                    lblInt.put(id, (float) r.intensity);
-                }
-            }
-
             // we run find connected regions
             final LabelImage img = new LabelImage(Analysis.regions[0]);
             img.connectedComponents();
@@ -358,12 +340,9 @@ class TwoRegions implements Runnable {
                     Region r = r_list.get(lbl);
                     if (r == null) {
                         r = new Region(lbl, 0);
-                        r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
                         r_list.put(lbl, r);
                     }
-                    else {
-                        r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
-                    }
+                    r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
                 }
             }
 
@@ -371,16 +350,8 @@ class TwoRegions implements Runnable {
             final int osxy = p.oversampling2ndstep * p.interpolation;
             final int sx = p.ni * p.oversampling2ndstep * p.interpolation;
             final int sy = p.nj * p.oversampling2ndstep * p.interpolation;
-            int sz = 1;
-            int osz = 1;
-            if (p.nz == 1) {
-                sz = 1;
-                osz = 1;
-            }
-            else {
-                sz = p.nz * p.oversampling2ndstep * p.interpolation;
-                osz = p.oversampling2ndstep * p.interpolation;
-            }
+            int sz = (p.nz == 1) ? 1 : p.nz * p.oversampling2ndstep * p.interpolation;
+            int osz = (p.nz == 1) ? 1 : p.oversampling2ndstep * p.interpolation;
 
             ImagePatches.assemble(r_list.values(), Analysis.regions[0]);
 
@@ -397,13 +368,7 @@ class TwoRegions implements Runnable {
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-
-            if (p.findregionthresh) {
-                Analysis.compute_connected_regions_b(255 * p.thresh);
-            }
-            else {
-                Analysis.compute_connected_regions_b(255 * p.thresh);
-            }
+            Analysis.compute_connected_regions_b(255 * p.thresh);
 
             if (Analysis.p.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
@@ -426,7 +391,6 @@ class TwoRegions implements Runnable {
 
         // correct the level number
         p.nlevels = 2;
-        DoneSignal.countDown();
     }
 
     /**

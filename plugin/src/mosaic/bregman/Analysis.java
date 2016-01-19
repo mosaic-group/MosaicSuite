@@ -151,18 +151,9 @@ public class Analysis {
         // 3D only working for two problem
         
         currentImage = img.getTitle();
-        CountDownLatch doneSignal = new CountDownLatch(1);
 
-        // for this plugin AFAIK is always TwoRegion
-        System.out.println("============ split " + p.nz + " " + p.nlevels);
-        TwoRegions rg = new TwoRegions(img, p, doneSignal, channel);
-        new Thread(rg).start();
-
-        try {
-            doneSignal.await();
-        }
-        catch (final InterruptedException ex) {
-        }
+        TwoRegions rg = new TwoRegions(img, p, channel);
+        rg.run();
 
         if (p.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
