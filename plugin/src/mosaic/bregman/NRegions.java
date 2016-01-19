@@ -29,7 +29,6 @@ abstract class NRegions implements Runnable {
 
     protected final double[][][] image;// 3D image
     protected final double[][][][] mask;// nregions nslices ni nj
-    protected final double[][][][] Ei;
 
     protected final Parameters p;
 
@@ -61,12 +60,6 @@ abstract class NRegions implements Runnable {
 
         image = new double[nz][ni][nj];
         mask = new double[nl][nz][ni][nj];
-        if (p.nlevels > 1) {
-            Ei = new double[nl][nz][ni][nj];
-        }
-        else {
-            Ei = null;
-        }
 
         min = Double.POSITIVE_INFINITY;
         max = 0;
@@ -170,55 +163,7 @@ abstract class NRegions implements Runnable {
         }
 
         LocalTools.createmask(mask, image, p.cl);
-        if (p.nlevels > 1) {
-            for (int i = 0; i < nl; i++) {
-                LocalTools.nllMean1(Ei[i], image, p.cl[i]);
-            }
-        }
     }
-
-//    @Override
-//    public void run() {
-//        md = new MasksDisplay(ni, nj, nz, nl, p.cl, p);
-//        md.firstdisp = p.livedisplay;
-//        System.out.println("============ split");
-//        ASplitBregmanSolver A_solver = new ASplitBregmanSolver(p, image, Ei, mask, md, channel);
-//
-//        try {
-//            A_solver.first_run();
-//        }
-//        catch (final InterruptedException ex) {}
-//
-//        // Save old value of min_intensity and restore it later
-//        final double minIntensityBackup = Analysis.p.min_intensity;
-//        Analysis.p.min_intensity = 0;
-//        if (channel == 0) {
-//            Analysis.setmaska(A_solver.maxmask);
-//            if (!Analysis.p.looptest) {
-//                if (p.nlevels == 2) {
-//                    Analysis.compute_connected_regions_a(0.5);
-//                }
-//                else {
-//                    Analysis.compute_connected_regions_a(1.5);
-//                }
-//            }
-//        }
-//        else {
-//            Analysis.setmaskb(A_solver.maxmask);
-//            if (!Analysis.p.looptest) {
-//                if (p.nlevels == 2) {
-//                    Analysis.compute_connected_regions_b(0.5);
-//                }
-//                else {
-//                    Analysis.compute_connected_regions_b(1.5);
-//                }
-//            }
-//        }
-//        // Restore old value
-//        Analysis.p.min_intensity = minIntensityBackup;
-//
-//        DoneSignal.countDown();
-//    }
 
     private double[] cluster_int(int aNumOfLevels) {
         // get imagedata

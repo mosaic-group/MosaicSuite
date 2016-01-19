@@ -65,6 +65,8 @@ abstract class ASplitBregmanSolver {
     private final RegionStatisticsSolver RSS;
     private AnalysePatch Ap = null;
 
+    final int levelOfMask = 0; // use mask etc of level 0
+    
     ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         this(params, image, mask, md, channel);
         this.Ap = ap;

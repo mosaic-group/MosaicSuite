@@ -4,15 +4,39 @@ package mosaic.bregman;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
-class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D {
 
+class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
+
+    public final double[][][][] w2zk;
+    public final double[][][][] b2zk;
+    public final double[][][][] ukz;
+    public final double[][][] eigenLaplacian3D;
+    public final DoubleDCT_3D dct3d;
     public final double[][][] eigenPSF;
     double c0, c1;
     public final double[] energytab2;
 
     public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
+        this.w2zk = new double[nl][nz][ni][nj];
+        this.ukz = new double[nl][nz][ni][nj];
+        this.b2zk = new double[nl][nz][ni][nj];
+        this.eigenLaplacian3D = new double[nz][ni][nj];
+        dct3d = new DoubleDCT_3D(nz, ni, nj);
+
+        for (int i = 0; i < nl; i++) {
+            LocalTools.fgradz2D(w2zk[i], mask[i]);
+        }
+
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    this.eigenLaplacian3D[z][i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))) + (2 - 2 * Math.cos((z) * Math.PI / (nz))));
+                }
+            }
+        }
 
         // Beta MLE in and out
         this.c0 = params.cl[0];
@@ -40,13 +64,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
         }
 
-        convolveAndScale(mask[l]);
+        convolveAndScale(mask[levelOfMask]);
         calculateGradientsXandY(mask);
     }
     
     @Override
     protected void init() {
-        convolveAndScale(w3k[l]);
+        convolveAndScale(w3k[levelOfMask]);
         calculateGradientsXandY(w3k);
     }
 
@@ -58,11 +82,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3[l], aValues, ni, nj, nz, p.PSF, temp4[l]);
+        Tools.convolve3Dseparable(temp3[levelOfMask], aValues, ni, nj, nz, p.PSF, temp4[levelOfMask]);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    w1k[l][z][i][j] = (c1 - c0) * temp3[l][z][i][j] + c0;
+                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[levelOfMask][z][i][j] + c0;
                 }
             }
         }
@@ -118,22 +142,22 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             
             Sync4.await();
             
-            dct3d.forward(temp1[l], true);
+            dct3d.forward(temp1[levelOfMask], true);
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
                         if ((1 + eigenLaplacian[i][j] + eigenPSF[0][i][j]) != 0) {
-                            temp1[l][z][i][j] = temp1[l][z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPSF[z][i][j]);
+                            temp1[levelOfMask][z][i][j] = temp1[levelOfMask][z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPSF[z][i][j]);
                         }
                     }
                 }
             }
-            dct3d.inverse(temp1[l], true);
+            dct3d.inverse(temp1[levelOfMask], true);
             
             Dct.countDown();
             
             // do fgradx without parallelization
-            LocalTools.fgradx2D(temp4[l], temp1[l]);
+            LocalTools.fgradx2D(temp4[levelOfMask], temp1[levelOfMask]);
             SyncFgradx.countDown();
             
             ZoneDoneSignal.await();
@@ -146,7 +170,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
             
             if (p.livedisplay && p.firstphase) {
-                md.display2regions3D(w3k[l], "Mask3", channel);
+                md.display2regions3D(w3k[levelOfMask], "Mask3", channel);
             }
             
             final long lEndTime = new Date().getTime(); // end time
@@ -160,13 +184,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         int[] sz = p.PSF.getSuggestedImageSize();
 
-        Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4[l]);
+        Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4[levelOfMask]);
 
         sz = p.PSF.getSuggestedImageSize();
         for (int z = 0; z < sz[2]; z++) {
             for (int i = 0; i < sz[0]; i++) {
                 for (int j = 0; j < sz[1]; j++) {
-                    temp2[l][z][i][j] = eigenPSF[z][i][j];
+                    temp2[levelOfMask][z][i][j] = eigenPSF[z][i][j];
                 }
             }
         }
@@ -175,15 +199,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
 
-        LocalTools.dctshift3D(temp3[l], temp2[l], cr, cc, cs);
-        dct3d.forward(temp3[l], true);
-        temp1[l][0][0][0] = 1;
-        dct3d.forward(temp1[l], true);
+        LocalTools.dctshift3D(temp3[levelOfMask], temp2[levelOfMask], cr, cc, cs);
+        dct3d.forward(temp3[levelOfMask], true);
+        temp1[levelOfMask][0][0][0] = 1;
+        dct3d.forward(temp1[levelOfMask], true);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[l][z][i][j] / temp1[l][z][i][j];
+                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[levelOfMask][z][i][j] / temp1[levelOfMask][z][i][j];
                 }
             }
         }
