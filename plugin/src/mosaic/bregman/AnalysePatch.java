@@ -554,8 +554,6 @@ class AnalysePatch implements Runnable {
         double energy = Double.MAX_VALUE;
         double threshold = 0.75;
         for (double t = 1; t > min_thresh; t -= 0.02) { // mint
-            ///rescaled_min_int_all*0.85
-            // 0.5*cout
             set_object(w3kbest, t);
 
             if (objectFound && !border_attained) {
@@ -581,7 +579,7 @@ class AnalysePatch implements Runnable {
 
     double find_best_thresh_and_int(double[][][] w3kbest) {
         double energy = Double.MAX_VALUE;
-        double threshold = 0.95;
+        double threshold = 0.75;
         double cinbest;
         double coutbest; 
         double cin_previous = cin;
@@ -589,7 +587,7 @@ class AnalysePatch implements Runnable {
 
         cinbest = 1;
         coutbest = 0.0001;
-        for (double thr = threshold; thr > rescaled_min_int_all * 0.96; thr -= 0.02) {
+        for (double thr = 0.95; thr > rescaled_min_int_all * 0.96; thr -= 0.02) {
             set_object(w3kbest, thr);
 
             if (objectFound && !border_attained) {
@@ -661,9 +659,6 @@ class AnalysePatch implements Runnable {
         final ImagePlus maska_im = new ImagePlus("test Mask vo2", maska_ims);
 
         final double thr = 0.5;
-//        final float[][][] Ri = new float[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
-//        ArrayOps.fill(Ri, (float)thr);
-
         final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, iSizeOverInterX, iSizeOverInterY, iSizeOverInterZ);
         fcr.run(thr, iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr);// min size was 5
 

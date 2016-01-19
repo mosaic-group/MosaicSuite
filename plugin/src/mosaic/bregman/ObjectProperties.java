@@ -6,7 +6,6 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.GaussPSF;
-import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;
 
 class ObjectProperties implements Runnable {
@@ -173,7 +172,6 @@ class ObjectProperties implements Runnable {
 
     private void fill_mask(Region r) {
         mask = new double[sz][sx][sy];
-        ArrayOps.fill(mask, 0);
         
         for (Pix p : r.pixels) {
             int rz = (p.pz - cz);

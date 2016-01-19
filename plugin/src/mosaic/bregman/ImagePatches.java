@@ -65,7 +65,6 @@ class ImagePatches {
         
         iGlobalRegionsList = new ArrayList<Region>();
         iRegions = new short[iSizeZ][iSizeX][iSizeY];
-        ArrayOps.fill(iRegions, (short) 0);
     }
 
     public ArrayList<Region> getRegionsList() {

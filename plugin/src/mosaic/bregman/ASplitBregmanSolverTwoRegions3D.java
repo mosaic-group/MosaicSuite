@@ -24,16 +24,6 @@ abstract class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoReg
             LocalTools.fgradz2D(w2zk[i], mask[i]);
         }
 
-        for (int l = 0; l < nl; l++) {
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        b2zk[l][z][i][j] = 0;
-                    }
-                }
-            }
-        }
-
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
