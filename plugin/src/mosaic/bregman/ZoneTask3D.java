@@ -51,7 +51,6 @@ class ZoneTask3D implements Runnable {
         this.jStart = jStart;
         this.iEnd = iEnd;
         this.jEnd = jEnd;
-
     }
 
     @Override
@@ -62,13 +61,10 @@ class ZoneTask3D implements Runnable {
         catch (final InterruptedException ex) {
         }
 
-        if (ZoneDoneSignal != null) {
-            ZoneDoneSignal.countDown();
-        }
+        ZoneDoneSignal.countDown();
     }
 
     private void doWork() throws InterruptedException {
-
         LocalTools.subtab(AS.temp1[AS.levelOfMask], AS.temp1[AS.levelOfMask], AS.b2xk[AS.levelOfMask], iStart, iEnd);
         LocalTools.subtab(AS.temp2[AS.levelOfMask], AS.temp2[AS.levelOfMask], AS.b2yk[AS.levelOfMask], iStart, iEnd);
         LocalTools.subtab(AS.temp4[AS.levelOfMask], AS.w2zk[AS.levelOfMask], AS.b2zk[AS.levelOfMask], iStart, iEnd);
@@ -102,26 +98,10 @@ class ZoneTask3D implements Runnable {
             }
         }
 
-        if (Sync4 != null) {
-            Sync4.countDown();
-        }
+        Sync4.countDown();
 
-        if (Dct != null) {
-            Dct.await();
-        }
-        else {
-            AS.dct3d.forward(AS.temp1[AS.levelOfMask], true);
-            for (int z = 0; z < AS.nz; z++) {
-                for (int i = 0; i < AS.ni; i++) {
-                    for (int j = 0; j < AS.nj; j++) {
-                        if ((1 + AS.eigenLaplacian[i][j] + AS.eigenPSF[0][i][j]) != 0) {
-                            AS.temp1[AS.levelOfMask][z][i][j] = AS.temp1[AS.levelOfMask][z][i][j] / (1 + AS.eigenLaplacian3D[z][i][j] + AS.eigenPSF[z][i][j]);
-                        }
-                    }
-                }
-            }
-            AS.dct3d.inverse(AS.temp1[AS.levelOfMask], true);
-        }
+        Dct.await();
+ 
 
         Tools.convolve3Dseparable(AS.temp2[AS.levelOfMask], AS.temp1[AS.levelOfMask], AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp3[AS.levelOfMask], iStart, iEnd);
 

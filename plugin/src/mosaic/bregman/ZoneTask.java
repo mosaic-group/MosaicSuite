@@ -49,7 +49,6 @@ class ZoneTask implements Runnable {
         this.jStart = jStart;
         this.iEnd = iEnd;
         this.jEnd = jEnd;
-
     }
 
     @Override
