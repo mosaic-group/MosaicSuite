@@ -13,6 +13,7 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
@@ -301,7 +302,7 @@ class AnalysePatch implements Runnable {
             }
             set_object(A_solver.w3kbest[0], t);
             if (iInterpolationXY > 1) {
-                object = build_interpolated_object(A_solver.w3kbest[0], t);
+                object = createInterpolatedObject(A_solver.w3kbest[0], t);
             }
 
             // assemble result into full image
@@ -696,54 +697,42 @@ class AnalysePatch implements Runnable {
         }
     }
 
-    // interpolation
-    private double[][][] build_interpolated_object(double[][][] cmask, double t) {
-        double[][][] interpolated_object = new double[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
-
-        // build imageplus form non interpolated object
-        ImageStack iobjectS = new ImageStack(iSizeOversX, iSizeOversY);
+    private double[][][] createInterpolatedObject(double[][][] aInputData, double aThreshold) {
+        // Build non interpolated image
+        ImageStack imgStack = new ImageStack(iSizeOversX, iSizeOversY);
         for (int z = 0; z < iSizeOversZ; z++) {
-            final float[] twoD_float = new float[iSizeOversX * iSizeOversY];
+            final float[] pixels = new float[iSizeOversX * iSizeOversY];
             for (int i = 0; i < iSizeOversX; i++) {
                 for (int j = 0; j < iSizeOversY; j++) {
-                    twoD_float[j * iSizeOversX + i] = (float) cmask[z][i][j];
+                    pixels[j * iSizeOversX + i] = (float) aInputData[z][i][j];
                 }
             }
-            final FloatProcessor fp = new FloatProcessor(iSizeOversX, iSizeOversY);
-            fp.setPixels(twoD_float);
-            iobjectS.addSlice("", fp);
+            final FloatProcessor fp = new FloatProcessor(iSizeOversX, iSizeOversY, pixels);
+            imgStack.addSlice("", fp);
         }
+        ImagePlus interpolatedImg = new ImagePlus("Object x", imgStack);
         
-        ImagePlus iobject = new ImagePlus("Object x", iobjectS);
-
+        // Interpolate in Z and XY planes
         if (iSizeOverInterZ != iSizeOversZ) {
-            iobject = new Resizer().zScale(iobject, iSizeOverInterZ, ImageProcessor.BILINEAR);
+            interpolatedImg = new Resizer().zScale(interpolatedImg, iSizeOverInterZ, ImageProcessor.BILINEAR);
         }
-
-        final ImageStack imgS2 = new ImageStack(iSizeOverInterX, iSizeOverInterY);
+        final ImageStack imgStackInter = new ImageStack(iSizeOverInterX, iSizeOverInterY);
         for (int z = 0; z < iSizeOverInterZ; z++) {
-            iobject.setSliceWithoutUpdate(z + 1);
-            iobject.getProcessor().setInterpolationMethod(ImageProcessor.BILINEAR);
-            imgS2.addSlice("", iobject.getProcessor().resize(iSizeOverInterX, iSizeOverInterY, true));
+            interpolatedImg.setSliceWithoutUpdate(z + 1);
+            interpolatedImg.getProcessor().setInterpolationMethod(ImageProcessor.BILINEAR);
+            imgStackInter.addSlice("", interpolatedImg.getProcessor().resize(iSizeOverInterX, iSizeOverInterY, true));
         }
-        iobject.setStack(imgS2);
+        interpolatedImg.setStack(imgStackInter);
 
-        // put data into interpolted object
+        // put thresholded data into interpolated object 
+        double[][][] interpolated_object = new double[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
         for (int z = 0; z < iSizeOverInterZ; z++) {
-            iobject.setSlice(z + 1);
-            ImageProcessor imp = iobject.getProcessor();
+            interpolatedImg.setSlice(z + 1);
+            ImageProcessor imp = interpolatedImg.getProcessor();
             for (int i = 0; i < iSizeOverInterX; i++) {
                 for (int j = 0; j < iSizeOverInterY; j++) {
-                    interpolated_object[z][i][j] = imp.getPixelValue(i, j);
-                }
-            }
-        }
-
-        // threshold
-        for (int z = 0; z < iSizeOverInterZ; z++) {
-            for (int i = 0; i < iSizeOverInterX; i++) {
-                for (int j = 0; j < iSizeOverInterY; j++) {
-                    if (interpolated_object[z][i][j] > t && iRegionMask[z / iInterpolationZ][i / iInterpolationXY][j / iInterpolationXY] == 1) {
+                    double value = imp.getPixelValue(i, j);
+                    if (value > aThreshold && iRegionMask[z / iInterpolationZ][i / iInterpolationXY][j / iInterpolationXY] == 1) {
                         interpolated_object[z][i][j] = 1;
                     }
                     else {
@@ -752,6 +741,7 @@ class AnalysePatch implements Runnable {
                 }
             }
         }
+
         return interpolated_object;
     }
 }

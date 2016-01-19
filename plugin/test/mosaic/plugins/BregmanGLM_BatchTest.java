@@ -210,7 +210,6 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
-//    @Ignore
     public void testCluster()  {
         
         // Define test data
