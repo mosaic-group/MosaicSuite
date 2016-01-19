@@ -13,17 +13,16 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     public final double[][][][] b2zk;
     public final double[][][][] ukz;
     public final double[][][] eigenLaplacian3D;
-    public final DoubleDCT_3D dct3d;
+
     public final double[][][] eigenPSF;
-    double c0, c1;
-    public final double[] energytab2;
+    public final DoubleDCT_3D dct3d;
 
     public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
-        this.w2zk = new double[nl][nz][ni][nj];
-        this.ukz = new double[nl][nz][ni][nj];
-        this.b2zk = new double[nl][nz][ni][nj];
-        this.eigenLaplacian3D = new double[nz][ni][nj];
+        w2zk = new double[nl][nz][ni][nj];
+        ukz = new double[nl][nz][ni][nj];
+        b2zk = new double[nl][nz][ni][nj];
+        eigenLaplacian3D = new double[nz][ni][nj];
         dct3d = new DoubleDCT_3D(nz, ni, nj);
 
         for (int i = 0; i < nl; i++) {
@@ -33,33 +32,27 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    this.eigenLaplacian3D[z][i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))) + (2 - 2 * Math.cos((z) * Math.PI / (nz))));
+                    eigenLaplacian3D[z][i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))) + (2 - 2 * Math.cos((z) * Math.PI / (nz))));
                 }
             }
         }
-
-        // Beta MLE in and out
-        this.c0 = params.cl[0];
-        this.c1 = params.cl[1];
-
-        this.energytab2 = new double[p.nthreads];
 
         final int[] sz = p.PSF.getSuggestedImageSize();
         eigenPSF = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         // Reallocate temps
         // Unfortunatelly is allocated in ASplitBregmanSolver
-        this.temp4 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        this.temp3 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        this.temp2 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        this.temp1 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp4 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp3 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp2 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp1 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         compute_eigenPSF3D();
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    this.eigenLaplacian3D[z][i][j] = this.eigenLaplacian3D[z][i][j] - 2;
+                    eigenLaplacian3D[z][i][j] = eigenLaplacian3D[z][i][j] - 2;
                 }
             }
         }
@@ -179,8 +172,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void compute_eigenPSF3D() {
-        this.c0 = p.cl[0];
-        this.c1 = p.cl[1];
+        c0 = p.cl[0];
+        c1 = p.cl[1];
 
         int[] sz = p.PSF.getSuggestedImageSize();
 

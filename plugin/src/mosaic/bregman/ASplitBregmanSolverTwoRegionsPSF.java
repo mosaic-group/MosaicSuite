@@ -4,47 +4,40 @@ package mosaic.bregman;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
+
 
 class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
     private final double[][][] eigenPSF;
-    double c0, c1;
-    public final double energytab2[];
-
+    protected final DoubleDCT_2D dct2d;
+    
     public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
-        this.c0 = params.cl[0];
-        this.c1 = params.cl[1];
+        dct2d = new DoubleDCT_2D(ni, nj);
         eigenPSF = new double[nz][ni][nj];
-        this.compute_eigenPSF();
-        this.energytab2 = new double[p.nthreads];
-
+        compute_eigenPSF();
+        
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                this.eigenLaplacian[i][j] = this.eigenLaplacian[i][j] - 2;
+                eigenLaplacian[i][j] = eigenLaplacian[i][j] - 2;
             }
         }
 
-        Tools.convolve2D(temp3[levelOfMask][0], mask[levelOfMask][0], ni, nj, p.PSF);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[levelOfMask][z][i][j] + c0;
-                }
-            }
-        }
-
-        for (int i = 0; i < nl; i++) {
-            LocalTools.fgradx2D(w2xk[i], mask[i]);
-            LocalTools.fgrady2D(w2yk[i], mask[i]);
-        }
+        convolveAndScale(mask[levelOfMask][0]);
+        calculateGradientsXandY(mask);
     }
 
     @Override
     protected void init() {
-        this.compute_eigenPSF();
+        compute_eigenPSF();
+        
+        convolveAndScale(w3k[levelOfMask][0]);
+        calculateGradientsXandY(w3k);
+    }
 
-        Tools.convolve2D(temp3[levelOfMask][0], w3k[levelOfMask][0], ni, nj, p.PSF);
+    private void convolveAndScale(double[][] aValues) {
+        Tools.convolve2D(temp3[levelOfMask][0], aValues, ni, nj, p.PSF);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -52,10 +45,12 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
                 }
             }
         }
+    }
 
+    private void calculateGradientsXandY(double[][][][] aValues) {
         for (int i = 0; i < nl; i++) {
-            LocalTools.fgradx2D(w2xk[i], w3k[i]);
-            LocalTools.fgrady2D(w2yk[i], w3k[i]);
+            LocalTools.fgradx2D(w2xk[i], aValues[i]);
+            LocalTools.fgrady2D(w2yk[i], aValues[i]);
         }
     }
 
@@ -65,8 +60,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         final long lStartTime = new Date().getTime(); // start time
 
-        this.c0 = p.cl[0];
-        this.c1 = p.cl[1];
+        c0 = p.cl[0];
+        c1 = p.cl[1];
 
         // IJ.log("creates latch ");
         final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
@@ -143,8 +138,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     }
 
     public void compute_eigenPSF() {
-        this.c0 = p.cl[0];
-        this.c1 = p.cl[1];
+        c0 = p.cl[0];
+        c1 = p.cl[1];
 
         final int[] sz = p.PSF.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPSF[0].length);

@@ -4,7 +4,6 @@ package mosaic.bregman;
 import java.util.ArrayList;
 import java.util.Date;
 
-import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -18,7 +17,6 @@ import mosaic.utils.ArrayOps;
 abstract class ASplitBregmanSolver {
 
     protected final Tools LocalTools;
-    protected final DoubleDCT_2D dct2d;
     protected double totaltime = 0;
     private boolean StopFlag;
 
@@ -67,6 +65,9 @@ abstract class ASplitBregmanSolver {
 
     final int levelOfMask = 0; // use mask etc of level 0
     
+    double c0, c1;
+    public final double energytab2[];
+    
     ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         this(params, image, mask, md, channel);
         this.Ap = ap;
@@ -83,12 +84,18 @@ abstract class ASplitBregmanSolver {
 
         this.nl = p.nlevels;
 
+        // Beta MLE in and out
+        this.c0 = params.cl[0];
+        this.c1 = params.cl[1];
+        
+        this.energytab2 = new double[p.nthreads];
+        
         this.energytab = new double[nl];
         this.normtab = new double[nl];
 
         this.StopFlag = false;
         this.md = md;
-        dct2d = new DoubleDCT_2D(ni, nj);
+
         this.image = image;
 
         this.w1k = new double[nl][nz][ni][nj];
