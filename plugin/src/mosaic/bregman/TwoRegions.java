@@ -35,7 +35,6 @@ class TwoRegions implements Runnable {
     private final Parameters p;
 
     private final int ni, nj, nz;// 3 dimensions
-    private final int nl;
     private final int channel;
 
     private final Tools LocalTools;
@@ -51,12 +50,11 @@ class TwoRegions implements Runnable {
         this.p = params;
         this.channel = channel;
         
-        this.nl = p.nlevels;
         this.ni = p.ni;
         this.nj = p.nj;
         this.nz = p.nz;
 
-        LocalTools = new Tools(ni, nj, nz, nl);
+        LocalTools = new Tools(ni, nj, nz);
 
         image = new double[nz][ni][nj];
         mask = new double[nz][ni][nj];
@@ -140,10 +138,8 @@ class TwoRegions implements Runnable {
             }
         }
 
-        if (p.nlevels == 2 || p.nlevels == 1) {
-            p.cl[0] = p.betaMLEoutdefault;
-            p.cl[1] = p.betaMLEindefault;
-        }
+        p.cl[0] = p.betaMLEoutdefault;
+        p.cl[1] = p.betaMLEindefault;
 
         LocalTools.createmask(mask, image, p.cl);
     }

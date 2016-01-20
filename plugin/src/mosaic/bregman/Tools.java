@@ -14,17 +14,12 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 
 public class Tools {
-    final private int ni, nj, nz, nlevels;
+    final private int ni, nj, nz;
     
     Tools(int nni, int nnj, int nnz) {
-        this(nni, nnj, nnz, 1);
-    }
-    
-    Tools(int nni, int nnj, int nnz, int levels) {
         this.ni = nni;
         this.nj = nnj;
         this.nz = nnz;
-        this.nlevels = levels;
     }
 
     // convolution with symmetric boundaries extension
@@ -449,10 +444,6 @@ public class Tools {
         }
     }
 
-    void addtab(double[][][] res, double[][][] m1, double[][][] m2) {
-        addtab(res, m1, m2, 0, ni);
-    }
-
     void addtab(double[][][] res, double[][][] m1, double[][][] m2, int iStart, int iEnd) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -461,10 +452,6 @@ public class Tools {
                 }
             }
         }
-    }
-
-    void subtab(double[][][] res, double[][][] m1, double[][][] m2) {
-        subtab(res, m1, m2, 0, ni);
     }
 
     void subtab(double[][][] res, double[][][] m1, double[][][] m2, int iStart, int iEnd) {
@@ -511,16 +498,6 @@ public class Tools {
         }
     }
 
-    void nllMean1(double[][][] res, double[][][] image, double mu) {
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    res[z][i][j] = noise(image[z][i][j], mu);
-                }
-            }
-        }
-    }
-
     private double noise(double im, double mu) {
         double res;
         if (mu < 0) {
@@ -548,25 +525,11 @@ public class Tools {
     }
 
     void createmask(double[][][] res, double[][][] image, double[] cl) {
-        // add 0 and 1 at extremities
-        final double[] cltemp = new double[nlevels + 2];
-        cltemp[0] = 0;
-        cltemp[nlevels + 1] = 1;
-        for (int l = 1; l < nlevels + 1; l++) {
-            cltemp[l] = cl[l - 1];
-        }
-        double thr;
-
-        if (nlevels > 2) {
-            thr = cl[0]; // cl[l]
-        }
-        else {
-            thr = cl[1];// if only two regions only first mask is used
-        }
+        double thr = cl[1];// if only two regions only first mask is used
         if (thr == 1) {
-            thr = 0.5;// should not have threhold to 1: creates
+            // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
+            thr = 0.5;
         }
-        // empty mask and wrong behavior in dct3D computation
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -706,10 +669,6 @@ public class Tools {
         }
     }
 
-    void shrink2D(double[][][] res1, double[][][] res2, double[][][] u1, double[][][] u2, double t) {
-        shrink2D(res1, res2, u1, u2, t, 0, ni);
-    }
-
     void shrink2D(double[][][] res1, double[][][] res2, double[][][] u1, double[][][] u2, double t, int iStart, int iEnd) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -728,10 +687,6 @@ public class Tools {
                 }
             }
         }
-    }
-
-    void shrink3D(double[][][] res1, double[][][] res2, double[][][] res3, double[][][] u1, double[][][] u2, double[][][] u3, double t) {
-        shrink3D(res1, res2, res3, u1, u2, u3, t, 0, ni);
     }
 
     void shrink3D(double[][][] res1, double[][][] res2, double[][][] res3, double[][][] u1, double[][][] u2, double[][][] u3, double t, int iStart, int iEnd) {
@@ -755,51 +710,6 @@ public class Tools {
                 }
             }
         }
-    }
-
-    double computeEnergy(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg) {
-        fgradx2D(maskx, mask);
-        fgrady2D(masky, mask);
-
-        double energyData = 0;
-        double energyPrior = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyData += speedData[z][i][j] * mask[z][i][j];
-                    energyPrior += Math.sqrt(Math.pow(maskx[z][i][j], 2) + Math.pow(masky[z][i][j], 2));
-                }
-            }
-        }
-
-        return ldata * energyData + lreg * energyPrior;
-    }
-
-    double computeEnergy3D(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] maskz, double ldata, double lreg) {
-        double energyData = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyData += speedData[z][i][j] * mask[z][i][j];
-                }
-            }
-        }
-
-        fgradx2D(maskx, mask);
-        fgrady2D(masky, mask);
-        fgradz2D(maskz, mask);
-
-        double energyPrior = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyPrior += Math.sqrt(Math.pow(maskx[z][i][j], 2) + Math.pow(masky[z][i][j], 2) + Math.pow(maskz[z][i][j], 2));
-                }
-            }
-        }
-        final double energy = ldata * energyData + lreg * energyPrior;
-
-        return energy;
     }
 
     double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
@@ -1023,26 +933,11 @@ public class Tools {
         return energy;
     }
 
-    void mydivergence(double[][][] res, double[][][] m1, double[][][] m2) {
-        mydivergence(res, m1, m2, 0, ni, 0, nj);
-    }
-
-    private void mydivergence(double[][][] res, double[][][] m1, double[][][] m2, int iStart, int iEnd, int jStart, int jEnd) {
-        bgradxdbc2D(res, m1, jStart, jEnd);
-        bgradydbc2D(m1, m2, iStart, iEnd);
-        addtab(res, res, m1, iStart, iEnd);
-
-    }
-
     void mydivergence(double[][][] res, double[][][] m1, double[][][] m2, double[][][] temp, CountDownLatch Sync2, int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
         bgradxdbc2D(res, m1, jStart, jEnd);
         bgradydbc2D(temp, m2, iStart, iEnd);
         synchronizedWait(Sync2);
         addtab(res, res, temp, iStart, iEnd);
-    }
-
-    void mydivergence3D(double[][][] res, double[][][] m1, double[][][] m2, double[][][] m3) {
-        mydivergence3D(res, m1, m2, m3, 0, ni, 0, nj);
     }
 
     void mydivergence3D(double[][][] res, double[][][] m1, double[][][] m2, double[][][] m3, double[][][] temp, CountDownLatch Sync2, int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
@@ -1054,15 +949,7 @@ public class Tools {
         addtab(res, res, m1, iStart, iEnd);
     }
 
-    private void mydivergence3D(double[][][] res, double[][][] m1, double[][][] m2, double[][][] m3, int iStart, int iEnd, int jStart, int jEnd) {
-        bgradxdbc2D(res, m1, jStart, jEnd);
-        bgradydbc2D(m1, m2, iStart, iEnd);
-        addtab(res, res, m1, iStart, iEnd);
-        bgradzdbc2D(m1, m3, iStart, iEnd);
-        addtab(res, res, m1, iStart, iEnd);
-    }
-
-    static public void synchronizedWait(final CountDownLatch aSyncLatch) throws InterruptedException {
+    static void synchronizedWait(final CountDownLatch aSyncLatch) throws InterruptedException {
         if (aSyncLatch != null) {
             aSyncLatch.countDown();
             aSyncLatch.await();
@@ -1104,7 +991,7 @@ public class Tools {
         return y;
     }
     
-    public static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, boolean aShowAndSave) {
+    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, boolean aShowAndSave) {
         final ImageStack maskStack = new ImageStack(aWidth, aHeight);
         for (int z = 0; z < aDepth; z++) {
             img.setSlice(z + 1);

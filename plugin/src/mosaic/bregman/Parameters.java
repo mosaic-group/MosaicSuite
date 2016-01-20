@@ -33,6 +33,7 @@ public class Parameters implements Serializable {
     final boolean automatic_int = false; // Already deleted in code - before removing updated config file.
     final int dispEmodulo = 10; // Already deleted in code - before removing updated config file.
     final boolean remask = false; // Already deleted in code - before removing updated config file.
+    final int nlevels = 1; // // Already deleted in code - before removing updated config file.
     
     // ================================ parameters changed in GUI
     public String patches_from_file;
@@ -79,7 +80,6 @@ public class Parameters implements Serializable {
     // ==================================
     
     boolean firstphase = true;
-    final int nlevels = 1; // Fixed to be 1, to be removed from code
     double[] cl;
     public double zcorrec = 1;// was 2
     int RSSmodulo = 5000;

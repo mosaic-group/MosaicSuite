@@ -241,10 +241,10 @@ abstract class ASplitBregmanSolver {
 
         if (p.livedisplay) {
             if (p.firstphase) {
-                if (p.nlevels <= 2 && p.nz == 1) {
+                if (p.nz == 1) {
                     md.display2regions(w3kbest[0], "Mask", channel);
                 }
-                if (p.nlevels <= 2 && p.nz > 1) {
+                if (p.nz > 1) {
                     md.display2regions3D(w3kbest, "Mask__", channel);
                 }
                 IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
