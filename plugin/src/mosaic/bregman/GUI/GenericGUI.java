@@ -275,7 +275,7 @@ public class GenericGUI {
         final Runtime runtime = Runtime.getRuntime();
         final int nrOfProcessors = runtime.availableProcessors();
         // IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);
-        Analysis.p.nthreads = nrOfProcessors;
+        Analysis.p.nthreads = (nrOfProcessors > 1) ? nrOfProcessors/2 : 1;
 
         run_mode rm = run_mode.LOCAL;
         if (gd.getNextBoolean() == true) {

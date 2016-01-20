@@ -85,7 +85,7 @@ public class Parameters implements Serializable {
     int RSSmodulo = 5000;
     boolean RSSinit = false;
     boolean findregionthresh = true;
-    public int nthreads = 8;
+    public int nthreads = 4;
     public int nchannels = 2;
     double thresh = 0.75;
     double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;

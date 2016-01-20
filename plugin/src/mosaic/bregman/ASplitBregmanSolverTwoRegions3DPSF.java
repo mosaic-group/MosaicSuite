@@ -82,6 +82,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
     @Override
     protected void step() throws InterruptedException {
+            System.out.println("STEP " + p.nthreads);
             final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
             final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
             final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
@@ -99,12 +100,12 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             final CountDownLatch Dct = new CountDownLatch(1);
             final CountDownLatch SyncFgradx = new CountDownLatch(1);
             
-            final int ichunk = p.ni / p.nthreads;
-            final int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
-            final int jchunk = p.nj / p.nthreads;
-            final int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
             int iStart = 0;
             int jStart = 0;
+            final int ichunk = p.ni / p.nthreads;
+            final int ilastchunk = p.ni - ichunk * (p.nthreads - 1);
+            final int jchunk = p.nj / p.nthreads;
+            final int jlastchunk = p.nj - jchunk * (p.nthreads - 1);
             
             // Force the allocation of the buffers internally
             // if you do not do you can have race conditions in the multi thread part
