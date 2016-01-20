@@ -25,30 +25,29 @@ abstract class ASplitBregmanSolver {
 
     protected int stepk;
     protected final int channel;
-    protected final double[][][][] w1k;
-    protected final double[][][][] w3k;
+    protected final double[][][] w1k;
+    protected final double[][][] w3k;
 
-    protected final double[][][][] w2xk;
-    protected final double[][][][] w2yk;
+    protected final double[][][] w2xk;
+    protected final double[][][] w2yk;
 
-    protected final double[][][][] w3kbest;
-    protected final double[][][][] b2xk;
-    protected final double[][][][] b2yk;
+    protected final double[][][] w3kbest;
+    protected final double[][][] b2xk;
+    protected final double[][][] b2yk;
 
-    protected final double[][][][] b1k;
-    protected final double[][][][] b3k;
+    protected final double[][][] b1k;
+    protected final double[][][] b3k;
 
 
-    protected double[][][][] temp1;
-    protected double[][][][] temp2;
+    protected double[][][] temp1;
+    protected double[][][] temp2;
     protected double[][][] temp3;
-    protected double[][][][] temp4;
+    protected double[][][] temp4;
 
-    protected final float[][][][] Ri;
-    protected final float[][][][] Ro;
+    protected final float[][][] Ri;
+    protected final float[][][] Ro;
 
     protected final int ni, nj, nz;
-    protected final int nl;
     protected double energy; 
     private double lastenergy; // TODO: It should be initialized to some value.
     private double bestNrj;
@@ -61,12 +60,12 @@ abstract class ASplitBregmanSolver {
     double c0, c1;
     public final double energytab2[];
     
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         this(params, image, mask, md, channel);
         this.Ap = ap;
     }
 
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel) {
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel) {
         this.LocalTools = new Tools(params.ni, params.nj, params.nz);
         this.channel = channel;
         bestNrj = Double.MAX_VALUE;
@@ -74,8 +73,6 @@ abstract class ASplitBregmanSolver {
         this.ni = params.ni;
         this.nj = params.nj;
         this.nz = params.nz;
-
-        this.nl = p.nlevels;
 
         // Beta MLE in and out
         this.c0 = params.cl[0];
@@ -87,33 +84,33 @@ abstract class ASplitBregmanSolver {
 
         this.image = image;
 
-        this.w1k = new double[nl][nz][ni][nj];
-        this.w3k = new double[nl][nz][ni][nj];
-        this.w3kbest = new double[nl][nz][ni][nj];
+        this.w1k = new double[nz][ni][nj];
+        this.w3k = new double[nz][ni][nj];
+        this.w3kbest = new double[nz][ni][nj];
 
-        this.b2xk = new double[nl][nz][ni][nj];
-        this.b2yk = new double[nl][nz][ni][nj];
+        this.b2xk = new double[nz][ni][nj];
+        this.b2yk = new double[nz][ni][nj];
 
-        this.b1k = new double[nl][nz][ni][nj];
-        this.b3k = new double[nl][nz][ni][nj];
+        this.b1k = new double[nz][ni][nj];
+        this.b3k = new double[nz][ni][nj];
 
-        this.w2xk = new double[nl][nz][ni][nj];
-        this.w2yk = new double[nl][1][ni][nj];// save memory w2yk not used in 3d case
+        this.w2xk = new double[nz][ni][nj];
+        this.w2yk = new double[1][ni][nj];// save memory w2yk not used in 3d case
 
-        this.Ri = new float[nl][nz][ni][nj];
-        this.Ro = new float[nl][nz][ni][nj];
+        this.Ri = new float[nz][ni][nj];
+        this.Ro = new float[nz][ni][nj];
 
         int nzmin = (nz > 1) ?  Math.max(7, nz) : nz;
 
         final int nimin = Math.max(7, ni);
         final int njmin = Math.max(7, nj);
 
-        this.temp1 = new double[nl][nzmin][nimin][njmin];
-        this.temp2 = new double[nl][nzmin][nimin][njmin];
+        this.temp1 = new double[nzmin][nimin][njmin];
+        this.temp2 = new double[nzmin][nimin][njmin];
         this.temp3 = new double[nzmin][nimin][njmin];
-        this.temp4 = new double[nl][nzmin][nimin][njmin];
+        this.temp4 = new double[nzmin][nimin][njmin];
         
-        this.RSS = new RegionStatisticsSolver(temp1[0], temp2[0], temp3, image, 10, p);
+        this.RSS = new RegionStatisticsSolver(temp1, temp2, temp3, image, 10, p);
 
         // precompute eigenlaplacian
         this.eigenLaplacian = new double[ni][nj];
@@ -123,16 +120,14 @@ abstract class ASplitBregmanSolver {
             }
         }
 
-        for (int i = 0; i < nl; i++) {
-            LocalTools.fgradx2D(temp1[i], mask[i]);
-            LocalTools.fgrady2D(temp2[i], mask[i]);
+        LocalTools.fgradx2D(temp1, mask);
+        LocalTools.fgrady2D(temp2, mask);
 
-            LocalTools.copytab(w1k[i], mask[i]);
-            LocalTools.copytab(w3k[i], mask[i]);
-        }
+        LocalTools.copytab(w1k, mask);
+        LocalTools.copytab(w3k, mask);
 
         if (p.RSSinit) {
-            RSS.eval(w3k[0]);
+            RSS.eval(w3k);
 
             p.cl[0] = RSS.betaMLEout;
             p.cl[1] = RSS.betaMLEin;
@@ -140,28 +135,24 @@ abstract class ASplitBregmanSolver {
             IJ.log(String.format("Photometry init:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout, RSS.betaMLEin));
         }
 
-        for (int l = 0; l < nl; l++) {
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        Ro[l][z][i][j] = (float) (p.cl[0]);
-                        Ri[l][z][i][j] = (float) (p.cl[1]);
-                    }
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    Ro[z][i][j] = (float) (p.cl[0]);
+                    Ri[z][i][j] = (float) (p.cl[1]);
                 }
             }
         }
     }
 
     void first_run() throws InterruptedException {
-        for (int l = 0; l < nl; l++) {
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        b2xk[l][z][i][j] = 0;
-                        b2yk[l][z][i][j] = 0;
-                        b1k[l][z][i][j] = 0;
-                        b3k[l][z][i][j] = 0;
-                    }
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    b2xk[z][i][j] = 0;
+                    b2yk[z][i][j] = 0;
+                    b1k[z][i][j] = 0;
+                    b3k[z][i][j] = 0;
                 }
             }
         }
@@ -181,7 +172,7 @@ abstract class ASplitBregmanSolver {
             step();
 
             if (energy < bestNrj) {
-                LocalTools.copytab(w3kbest[0], w3k[0]);
+                LocalTools.copytab(w3kbest, w3k);
                 iw3kbest = stepk;
                 bestNrj = energy;
             }
@@ -199,7 +190,7 @@ abstract class ASplitBregmanSolver {
                 IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));
             }
             if ((stepk + 1) % p.RSSmodulo == 0 && stepk != 0) {
-                RSS.eval(w3k[0]);
+                RSS.eval(w3k);
                 p.cl[0] = RSS.betaMLEout;
                 p.cl[1] = RSS.betaMLEin;
                 this.init();
@@ -207,7 +198,7 @@ abstract class ASplitBregmanSolver {
             }
 
             if (!p.firstphase && p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
-                Ap.find_best_thresh_and_int(w3k[0]);
+                Ap.find_best_thresh_and_int(w3k);
                 p.cl[0] = Math.max(0, Ap.cout);
                 // lower bound withg some margin
                 p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
@@ -220,7 +211,7 @@ abstract class ASplitBregmanSolver {
 
             if (p.RegionsIntensitymodulo == stepk && stepk != 0) {
                 IJ.log("best energy at" + iw3kbest);
-                this.regions_intensity(w3kbest[0]);
+                this.regions_intensity(w3kbest);
                 this.init();
             }
 
@@ -236,7 +227,7 @@ abstract class ASplitBregmanSolver {
 
         if (iw3kbest < 50) { // use what iteration threshold ?
             final int iw3kbestold = iw3kbest;
-            LocalTools.copytab(w3kbest[0], w3k[0]);
+            LocalTools.copytab(w3kbest, w3k);
             iw3kbest = stepk - 1;
             bestNrj = energy;
             if (p.livedisplay && p.firstphase) {
@@ -245,16 +236,16 @@ abstract class ASplitBregmanSolver {
         }
 
         if (p.findregionthresh) {
-            this.regions_intensity_findthresh(w3kbest[0]);
+            this.regions_intensity_findthresh(w3kbest);
         }
 
         if (p.livedisplay) {
             if (p.firstphase) {
                 if (p.nlevels <= 2 && p.nz == 1) {
-                    md.display2regions(w3kbest[0][0], "Mask", channel);
+                    md.display2regions(w3kbest[0], "Mask", channel);
                 }
                 if (p.nlevels <= 2 && p.nz > 1) {
-                    md.display2regions3D(w3kbest[0], "Mask__", channel);
+                    md.display2regions3D(w3kbest, "Mask__", channel);
                 }
                 IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
             }
@@ -294,7 +285,7 @@ abstract class ASplitBregmanSolver {
 
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        ArrayOps.fill(Ri[0], (float) thr);
+        ArrayOps.fill(Ri, (float) thr);
 
         fcr.run(thr, 512 * 512, 2, (float) thr);
 
@@ -304,7 +295,7 @@ abstract class ASplitBregmanSolver {
         final double total = Analysis.totalsize(regionslistr);
         IJ.log(na + " Voronoi1 cells found, total area : " + Tools.round(total, 2) + " pixels.");
 
-        RSS.cluster_region(Ri[0], regionslistr);
+        RSS.cluster_region(Ri, regionslistr);
     }
 
     void regions_intensity_findthresh(double[][][] mask) {
@@ -382,16 +373,16 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        ArrayOps.fill(Ri[0], (float) thr);
+        ArrayOps.fill(Ri, (float) thr);
 
         fcr.run(thr, p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
 
         if (p.dispvoronoi) {
             if (nz == 1) {
-                md.display2regions(w3kbest[0][0], "Mask", channel);
+                md.display2regions(w3kbest[0], "Mask", channel);
             }
             else {
-                md.display2regions3D(w3kbest[0], "Mask", channel);
+                md.display2regions3D(w3kbest, "Mask", channel);
             }
 
             IJ.setThreshold(mask_im, 0, 254);
@@ -446,18 +437,18 @@ abstract class ASplitBregmanSolver {
         }
 
         // use Ri to store voronoi regions indices
-        ArrayOps.fill(Ri[0], 255);
-        RegionStatisticsSolver.cluster_region_voronoi2(Ri[0], regionslist);
+        ArrayOps.fill(Ri, 255);
+        RegionStatisticsSolver.cluster_region_voronoi2(Ri, regionslist);
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
 
         if (p.dispvoronoi) {
             if (p.nz == 1) {
-                md.display2regionsnew(Ri[0][0], "Regions thresholds", channel);
+                md.display2regionsnew(Ri[0], "Regions thresholds", channel);
             }
             else {
-                md.display2regions3Dnew(Ri[0], "Regions thresholds", channel);
+                md.display2regions3Dnew(Ri, "Regions thresholds", channel);
             }
         }
     }

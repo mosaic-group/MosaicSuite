@@ -78,7 +78,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] iPatch;
     private final double[][][] mask;// nregions nslices ni nj
     private double rescaled_min_int_all;
-    private final double[][][][] w3kpatch;
+    private final double[][][] w3kpatch;
     private double t_high;
     private ASplitBregmanSolver A_solver;
     
@@ -138,8 +138,8 @@ class AnalysePatch implements Runnable {
         fill_patch(aInputImage, iPatch, iRegionMask, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
 
         // for testing
-        w3kpatch = new double[1][iSizeOversZ][iSizeOversX][iSizeOversY];
-        fill_patch(w3kbest, w3kpatch[0], iRegionMask, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        w3kpatch = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        fill_patch(w3kbest, w3kpatch, iRegionMask, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
         
         // create object (for result)
         object = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
@@ -191,7 +191,7 @@ class AnalysePatch implements Runnable {
         
         // estimate ints
         if (iLocalParams.mode_intensity == 0) {
-            find_best_thresh_and_int(w3kpatch[0]);
+            find_best_thresh_and_int(w3kpatch);
         }
         else if (iLocalParams.mode_intensity == 1) {
             estimate_int_weighted(mask);
@@ -215,7 +215,7 @@ class AnalysePatch implements Runnable {
         }
 
         iLocalParams.max_nsb = 101;
-        iLocalParams.nlevels = 1;
+//        iLocalParams.nlevels = 1;
         iLocalParams.RSSinit = false;
         iLocalParams.findregionthresh = false;
         iLocalParams.RSSmodulo = 501;
@@ -271,7 +271,7 @@ class AnalysePatch implements Runnable {
             }
             double t = 0;
             if (iLocalParams.mode_intensity != 3) {
-                t = find_best_thresh(A_solver.w3kbest[0]);
+                t = find_best_thresh(A_solver.w3kbest);
             }
 
             if (iLocalParams.mode_intensity == 3)// mode high
@@ -289,9 +289,9 @@ class AnalysePatch implements Runnable {
             if (iLocalParams.debug) {
                 IJ.log("best thresh : " + t + "region" + iInputRegion.value);
             }
-            set_object(A_solver.w3kbest[0], t);
+            set_object(A_solver.w3kbest, t);
             if (iInterpolationXY > 1) {
-                object = createInterpolatedObject(A_solver.w3kbest[0], t);
+                object = createInterpolatedObject(A_solver.w3kbest, t);
             }
 
             // assemble result into full image
@@ -419,7 +419,7 @@ class AnalysePatch implements Runnable {
         for (int z = 0; z < iSizeOversZ; z++) {
             for (int i = 0; i < iSizeOversX; i++) {
                 for (int j = 0; j < iSizeOversY; j++) {
-                    pixel[0] = (level == 1) ? iPatch[z][i][j] : A_solver.w3kbest[0][z][i][j];
+                    pixel[0] = (level == 1) ? iPatch[z][i][j] : A_solver.w3kbest[z][i][j];
                     if (iRegionMask[z][i][j] == 1) {
                         data.add(new DenseInstance(pixel));
                         cpt_vals++;

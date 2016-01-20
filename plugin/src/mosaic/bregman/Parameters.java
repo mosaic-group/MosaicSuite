@@ -79,7 +79,7 @@ public class Parameters implements Serializable {
     // ==================================
     
     boolean firstphase = true;
-    int nlevels = 2;
+    final int nlevels = 1; // Fixed to be 1, to be removed from code
     double[] cl;
     public double zcorrec = 1;// was 2
     int RSSmodulo = 5000;
@@ -110,7 +110,7 @@ public class Parameters implements Serializable {
         }
         this.size_rollingball = p.size_rollingball;
         this.max_nsb = p.max_nsb;
-        this.nlevels = p.nlevels;
+//        this.nlevels = p.nlevels;
         this.removebackground = p.removebackground;
         this.livedisplay = p.livedisplay;
         this.minves_size = p.minves_size;

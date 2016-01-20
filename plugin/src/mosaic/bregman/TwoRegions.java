@@ -30,7 +30,7 @@ import net.imglib2.type.numeric.real.DoubleType;
  */
 class TwoRegions implements Runnable {
     private final double[][][] image;// 3D image
-    private final double[][][][] mask;// nregions nslices ni nj
+    private final double[][][] mask;// nregions nslices ni nj
 
     private final Parameters p;
 
@@ -59,7 +59,7 @@ class TwoRegions implements Runnable {
         LocalTools = new Tools(ni, nj, nz, nl);
 
         image = new double[nz][ni][nj];
-        mask = new double[nl][nz][ni][nj];
+        mask = new double[nz][ni][nj];
 
         /* Search for maximum and minimum value, normalization */
         if (Analysis.norm_max == 0) {
@@ -219,7 +219,8 @@ class TwoRegions implements Runnable {
         
         // TODO: This causes troubles when soft mask is calculated for 2 channel images. Should be investigated. Why it is 1 not 2 or just taken from img?
         //       It is temporarily changed to 2 but it is unknown if has any efect on segmentaiton output.
-        p.nlevels = 1;
+//        p.nlevels = 1;
+        
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
         if (p.nz > 1) {
@@ -264,7 +265,7 @@ class TwoRegions implements Runnable {
 
             // create a mask Image
             final double img[][][] = new double[p.nz][p.ni][p.nj];
-            drawParticles(img, A_solver.w3kbest[0], pt_f, (int) 3.0);
+            drawParticles(img, A_solver.w3kbest, pt_f, (int) 3.0);
 
             A_solver.regions_intensity_findthresh(img);
         }
@@ -272,11 +273,11 @@ class TwoRegions implements Runnable {
         mergeSoftMask(A_solver);
 
         if (channel == 0) {
-            Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
+            Analysis.setMaskaTworegions(A_solver.w3kbest);
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
-            LocalTools.copytab(RiN, A_solver.Ri[0]);
+            LocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
-            LocalTools.copytab(RoN, A_solver.Ro[0]);
+            LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_a(255 * p.thresh);
@@ -286,7 +287,7 @@ class TwoRegions implements Runnable {
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
+                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest, min, max);
                 A_solver = null;
                 ipatches.run();
                 Analysis.regionslist[0] = ipatches.getRegionsList();
@@ -361,11 +362,11 @@ class TwoRegions implements Runnable {
             }
         }
         else {
-            Analysis.setMaskbTworegions(A_solver.w3kbest[0]);
+            Analysis.setMaskbTworegions(A_solver.w3kbest);
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
-            LocalTools.copytab(RiN, A_solver.Ri[0]);
+            LocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
-            LocalTools.copytab(RoN, A_solver.Ro[0]);
+            LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_b(255 * p.thresh);
@@ -375,7 +376,7 @@ class TwoRegions implements Runnable {
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
+                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest, min, max);
                 A_solver = null;
                 ipatches.run();
                 Analysis.regionslist[1] = ipatches.getRegionsList();
@@ -390,7 +391,7 @@ class TwoRegions implements Runnable {
         }
 
         // correct the level number
-        p.nlevels = 2;
+//        p.nlevels = 2;
     }
 
     /**
@@ -402,11 +403,9 @@ class TwoRegions implements Runnable {
         System.out.println(Debug.getArrayDims(out_soft_mask));
         System.out.println(Debug.getArrayDims(A_solver.w3k));
         
-        // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
-        if (channel > 0) return;
         
         if (p.dispSoftMask) {
-                out_soft_mask[channel] = md.generateImgFromArray(A_solver.w3k[channel], "Mask" + ((channel == 0) ? "X" : "Y"));
+                out_soft_mask[channel] = md.generateImgFromArray(A_solver.w3k, "Mask" + ((channel == 0) ? "X" : "Y"));
         }
     }
 }

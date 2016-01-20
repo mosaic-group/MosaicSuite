@@ -8,25 +8,23 @@ import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
 class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
-    public final double[][][][] w2zk;
-    public final double[][][][] b2zk;
-    public final double[][][][] ukz;
+    public final double[][][] w2zk;
+    public final double[][][] b2zk;
+    public final double[][][] ukz;
     public final double[][][] eigenLaplacian3D;
 
     public final double[][][] eigenPSF;
     public final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
+    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
-        w2zk = new double[nl][nz][ni][nj];
-        ukz = new double[nl][nz][ni][nj];
-        b2zk = new double[nl][nz][ni][nj];
+        w2zk = new double[nz][ni][nj];
+        ukz = new double[nz][ni][nj];
+        b2zk = new double[nz][ni][nj];
         eigenLaplacian3D = new double[nz][ni][nj];
         dct3d = new DoubleDCT_3D(nz, ni, nj);
 
-        for (int i = 0; i < nl; i++) {
-            LocalTools.fgradz2D(w2zk[i], mask[i]);
-        }
+        LocalTools.fgradz2D(w2zk, mask);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -41,10 +39,10 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         // Reallocate temps
         // Unfortunatelly is allocated in ASplitBregmanSolver
-        temp4 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp4 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         temp3 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp2 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp1 = new double[nl][Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp2 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp1 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         compute_eigenPSF3D();
 
@@ -56,29 +54,27 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             }
         }
 
-        convolveAndScale(mask[levelOfMask]);
+        convolveAndScale(mask);
         calculateGradientsXandY(mask);
     }
     
     @Override
     protected void init() {
-        convolveAndScale(w3k[levelOfMask]);
+        convolveAndScale(w3k);
         calculateGradientsXandY(w3k);
     }
 
-    private void calculateGradientsXandY(double[][][][] aValues) {
-        for (int i = 0; i < nl; i++) {
-            LocalTools.fgradx2D(temp1[i], aValues[i]);
-            LocalTools.fgrady2D(temp2[i], aValues[i]);
-        }
+    private void calculateGradientsXandY(double[][][] aValues) {
+        LocalTools.fgradx2D(temp1, aValues);
+        LocalTools.fgrady2D(temp2, aValues);
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, p.PSF, temp4[levelOfMask]);
+        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, p.PSF, temp4);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    w1k[levelOfMask][z][i][j] = (c1 - c0) * temp3[z][i][j] + c0;
+                    w1k[z][i][j] = (c1 - c0) * temp3[z][i][j] + c0;
                 }
             }
         }
@@ -132,22 +128,22 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             
             Sync4.await();
             
-            dct3d.forward(temp1[levelOfMask], true);
+            dct3d.forward(temp1, true);
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
                         if ((1 + eigenLaplacian[i][j] + eigenPSF[0][i][j]) != 0) {
-                            temp1[levelOfMask][z][i][j] = temp1[levelOfMask][z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPSF[z][i][j]);
+                            temp1[z][i][j] = temp1[z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPSF[z][i][j]);
                         }
                     }
                 }
             }
-            dct3d.inverse(temp1[levelOfMask], true);
+            dct3d.inverse(temp1, true);
             
             Dct.countDown();
             
             // do fgradx without parallelization
-            LocalTools.fgradx2D(temp4[levelOfMask], temp1[levelOfMask]);
+            LocalTools.fgradx2D(temp4, temp1);
             SyncFgradx.countDown();
             
             ZoneDoneSignal.await();
@@ -160,7 +156,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             }
             
             if (p.livedisplay && p.firstphase) {
-                md.display2regions3D(w3k[levelOfMask], "Mask3", channel);
+                md.display2regions3D(w3k, "Mask3", channel);
             }
     }
 
@@ -170,13 +166,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         int[] sz = p.PSF.getSuggestedImageSize();
 
-        Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4[levelOfMask]);
+        Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4);
 
         sz = p.PSF.getSuggestedImageSize();
         for (int z = 0; z < sz[2]; z++) {
             for (int i = 0; i < sz[0]; i++) {
                 for (int j = 0; j < sz[1]; j++) {
-                    temp2[levelOfMask][z][i][j] = eigenPSF[z][i][j];
+                    temp2[z][i][j] = eigenPSF[z][i][j];
                 }
             }
         }
@@ -185,15 +181,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
 
-        LocalTools.dctshift3D(temp3, temp2[levelOfMask], cr, cc, cs);
+        LocalTools.dctshift3D(temp3, temp2, cr, cc, cs);
         dct3d.forward(temp3, true);
-        temp1[levelOfMask][0][0][0] = 1;
-        dct3d.forward(temp1[levelOfMask], true);
+        temp1[0][0][0] = 1;
+        dct3d.forward(temp1, true);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[z][i][j] / temp1[levelOfMask][z][i][j];
+                    eigenPSF[z][i][j] = Math.pow(c1 - c0, 2) * temp3[z][i][j] / temp1[z][i][j];
                 }
             }
         }

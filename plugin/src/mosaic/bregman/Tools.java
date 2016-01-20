@@ -547,7 +547,7 @@ public class Tools {
         return res;
     }
 
-    void createmask(double[][][][] res, double[][][] image, double[] cl) {
+    void createmask(double[][][] res, double[][][] image, double[] cl) {
         // add 0 and 1 at extremities
         final double[] cltemp = new double[nlevels + 2];
         cltemp[0] = 0;
@@ -557,26 +557,24 @@ public class Tools {
         }
         double thr;
 
-        for (int l = 0; l < nlevels; l++) {
-            if (nlevels > 2) {
-                thr = cl[l];
-            }
-            else {
-                thr = cl[1];// if only two regions only first mask is used
-            }
-            if (thr == 1) {
-                thr = 0.5;// should not have threhold to 1: creates
-            }
-            // empty mask and wrong behavior in dct3D computation
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        if (image[z][i][j] >= thr) {
-                            res[l][z][i][j] = 1;
-                        }
-                        else {
-                            res[l][z][i][j] = 0;
-                        }
+        if (nlevels > 2) {
+            thr = cl[0]; // cl[l]
+        }
+        else {
+            thr = cl[1];// if only two regions only first mask is used
+        }
+        if (thr == 1) {
+            thr = 0.5;// should not have threhold to 1: creates
+        }
+        // empty mask and wrong behavior in dct3D computation
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (image[z][i][j] >= thr) {
+                        res[z][i][j] = 1;
+                    }
+                    else {
+                        res[z][i][j] = 0;
                     }
                 }
             }
@@ -1062,24 +1060,6 @@ public class Tools {
         addtab(res, res, m1, iStart, iEnd);
         bgradzdbc2D(m1, m3, iStart, iEnd);
         addtab(res, res, m1, iStart, iEnd);
-    }
-
-    void max_mask(int[][][] res, double[][][][] mask) {
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    double max = 0;
-                    int index_max = 0;
-                    for (int l = 0; l < nlevels; l++) {
-                        if ((mask[l][z][i][j]) >= max) {
-                            max = mask[l][z][i][j];
-                            index_max = l;
-                        }
-                    }
-                    res[z][i][j] = index_max;
-                }
-            }
-        }
     }
 
     static public void synchronizedWait(final CountDownLatch aSyncLatch) throws InterruptedException {
