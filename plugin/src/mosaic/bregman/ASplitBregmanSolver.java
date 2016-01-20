@@ -372,64 +372,8 @@ abstract class ASplitBregmanSolver {
 
         fcr.run(thr, p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
 
-        if (p.dispvoronoi) {
-            if (nz == 1) {
-                md.display2regions(w3kbest[0], "Mask", channel);
-            }
-            else {
-                md.display2regions3D(w3kbest, "Mask", channel);
-            }
-
-            IJ.setThreshold(mask_im, 0, 254);
-            IJ.run(mask_im, "Convert to Mask", "stack");
-
-            if (channel == 0) {
-                IJ.selectWindow("Mask X");
-            }
-            else {
-                IJ.selectWindow("Mask Y");
-            }
-            IJ.run("8-bit", "stack");
-            final ImagePlus imp2 = IJ.getImage();
-
-            // add images
-            final ImageStack mask_ims2 = new ImageStack(p.ni, p.nj);
-            for (int z = 0; z < nz; z++) {
-                // imp1.setSlice(z+1);
-                imp2.setSlice(z + 1);
-                final byte[] mask_byte2 = new byte[p.ni * p.nj];
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        mask_byte2[j * p.ni + i] = (byte) Math.min((mask_im.getProcessor().getPixel(i, j) + imp2.getProcessor().getPixel(i, j)), 255);
-                    }
-                }
-                final ByteProcessor bp2 = new ByteProcessor(p.ni, p.nj);
-                bp2.setPixels(mask_byte2);
-                mask_ims2.addSlice("", bp2);
-            }
-            // replace imageplus with additon of both
-            if (channel == 0) {
-                mask_im.setStack("Voronoi X", mask_ims2);
-                mask_im.show("Voronoi X");
-                IJ.selectWindow("Mask X");
-            }
-
-            else {
-                mask_im.setStack("Voronoi Y", mask_ims2);
-                mask_im.show("Voronoi Y");
-                IJ.selectWindow("Mask Y");
-            }
-
-        }
-
         ArrayList<Region> regionslist = fcr.results;
         regionsvoronoi = regionslist;
-        final int na = regionslist.size();
-
-        final double total = Analysis.totalsize(regionslist);
-        if (p.dispvoronoi) {
-            IJ.log(na + " Voronoi cells found, total area : " + Tools.round(total, 2) + " pixels.");
-        }
 
         // use Ri to store voronoi regions indices
         ArrayOps.fill(Ri, 255);
@@ -437,14 +381,5 @@ abstract class ASplitBregmanSolver {
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
-
-        if (p.dispvoronoi) {
-            if (p.nz == 1) {
-                md.display2regionsnew(Ri[0], "Regions thresholds", channel);
-            }
-            else {
-                md.display2regions3Dnew(Ri, "Regions thresholds", channel);
-            }
-        }
     }
 }

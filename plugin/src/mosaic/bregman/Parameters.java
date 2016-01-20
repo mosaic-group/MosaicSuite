@@ -33,7 +33,8 @@ public class Parameters implements Serializable {
     final boolean automatic_int = false; // Already deleted in code - before removing updated config file.
     final int dispEmodulo = 10; // Already deleted in code - before removing updated config file.
     final boolean remask = false; // Already deleted in code - before removing updated config file.
-    final int nlevels = 1; // // Already deleted in code - before removing updated config file.
+    final int nlevels = 1; // Already deleted in code - before removing updated config file.
+    public final boolean dispvoronoi = false; // Already deleted in code - before removing updated config file.
     
     // ================================ parameters changed in GUI
     public String patches_from_file;
@@ -67,7 +68,6 @@ public class Parameters implements Serializable {
     public int interpolation = 2;// 4
     public int oversampling2ndstep = 2;// 2
     public int minves_size = 5;// 5// set in genericgui now (pour mode voronoi2)
-    public boolean dispvoronoi = false;
     public int regionSegmentLevel = 2;
     public int max_nsb = 201;
     public boolean refinement = false;
@@ -123,7 +123,6 @@ public class Parameters implements Serializable {
         this.findregionthresh = p.findregionthresh;
         this.regionthresh = p.regionthresh; // pour mitochondria 0.25
         this.regionthreshy = p.regionthreshy; // pour mitochondria 0.25
-        this.dispvoronoi = p.dispvoronoi;
         this.nthreads = p.nthreads;
         this.usecellmaskX = p.usecellmaskX;
         this.usecellmaskY = p.usecellmaskY;

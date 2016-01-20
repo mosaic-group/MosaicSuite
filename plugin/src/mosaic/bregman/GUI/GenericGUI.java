@@ -351,7 +351,6 @@ public class GenericGUI {
         Analysis.p.refinement = true;
         Analysis.p.max_nsb = 151;
         Analysis.p.regionSegmentLevel = 1;// not used
-        Analysis.p.dispvoronoi = Analysis.p.debug;
         Analysis.p.minves_size = 2;
 
         if (!Analysis.p.subpixel) {
