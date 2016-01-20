@@ -2,7 +2,6 @@ package mosaic.plugins;
 
 import java.io.File;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import ij.macro.Interpreter;
@@ -210,7 +209,6 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
-    @Ignore
     public void testCluster()  {
         
         // Define test data
