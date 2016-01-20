@@ -98,7 +98,7 @@ class ObjectProperties implements Runnable {
 
     private void estimate_int(double[][][] mask) {
         double[][][][] temp = new double[3][sz][sx][sy];
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], temp[2], patch, 10, p);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], temp[2], patch, null, 10, p);
         RSS.eval(mask);
         cin = RSS.betaMLEin;
     }

@@ -950,10 +950,10 @@ public class Tools {
     }
 
     static void synchronizedWait(final CountDownLatch aSyncLatch) throws InterruptedException {
-//        if (aSyncLatch != null) {
+        if (aSyncLatch != null) {
             aSyncLatch.countDown();
             aSyncLatch.await();
-//        }
+        }
     }
 
     public static MinMax<Double> findMinMax(ImagePlus img) {

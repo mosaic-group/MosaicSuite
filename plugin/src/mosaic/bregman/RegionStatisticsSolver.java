@@ -4,6 +4,8 @@ package mosaic.bregman;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
@@ -23,15 +25,16 @@ class RegionStatisticsSolver {
     private final double[][][] Z;
     private final double[][][] W;
     private final double[][][] mu;
-    private final int max_iter;
-    private final Parameters p;
+    private final int iMaxIter;
+    private final Parameters iParams;
 
-    private double[][][] weights;
-    private final double[][][] image;
+    private double[][][] iWeights;
+    private final double[][][] iImage;
     private final double[][][] KMask;
 
     public double betaMLEin, betaMLEout;
-
+    private int ni, nj, nz;
+    
     /**
      * Create a region statistic solver
      *
@@ -39,54 +42,26 @@ class RegionStatisticsSolver {
      * @param temp2 buffer of the same size of image for internal calculation
      * @param temp3 buffer of the same size of image for internal calculation
      * @param image The image pixel array
-     * @param weights
+     * @param weights - if null they will be set to 1.0
      * @param max_iter Maximum number of iteration for the Fisher scoring
      * @param p
      */
     public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] temp3, double[][][] image, double[][][] weights, int max_iter, Parameters p) {
-        this.p = p;
-        this.Z = image;
-        this.W = temp1;
-        this.mu = temp2;
-        this.KMask = temp3;
-        this.image = image;
-        this.max_iter = max_iter;
-        this.weights = weights;
-    }
-
-    /**
-     * Create a region statistic solver
-     *
-     * @param temp1 buffer of the same size of image for internal calculation
-     * @param temp2 buffer of the same size of image for internal calculation
-     * @param temp3 buffer of the same size of image for internal calculation
-     * @param image The image pixel array
-     * @param weights
-     * @param max_iter Maximum number of iteration for the Fisher scoring
-     * @param p
-     */
-    public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] temp3, double[][][] image, int max_iter, Parameters p) {
-        this.p = p;
-        this.Z = image;
-        this.W = temp1;
-        this.mu = temp2;
-        this.KMask = temp3;
-        this.image = image;
-        this.max_iter = max_iter;
-        fill_weights();
-    }
-
-    private void fill_weights() {
-        final int ni = p.ni;
-        final int nj = p.nj;
-        final int nz = p.nz;
-        this.weights = new double[nz][ni][nj];
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    weights[z][i][j] = 1;
-                }
-            }
+        iParams = p;
+        Z = image;
+        W = temp1;
+        mu = temp2;
+        KMask = temp3;
+        iImage = image;
+        iMaxIter = max_iter;
+        ni = iParams.ni;
+        nj = iParams.nj;
+        nz = iParams.nz;
+        
+        iWeights = weights;
+        if (iWeights == null) {
+            iWeights = new double[nz][ni][nj];
+            ArrayOps.fill(iWeights, 1);
         }
     }
 
@@ -95,12 +70,8 @@ class RegionStatisticsSolver {
      * @param Mask
      */
     public void eval(double[][][] Mask) {
-        final int ni = p.ni;
-        final int nj = p.nj;
-        final int nz = p.nz;
-
         // normalize Mask
-        this.scale_mask(W, Mask);
+        scale_mask(W, Mask);
 
         // Convolve the mask
         if (nz == 1) {
@@ -110,15 +81,13 @@ class RegionStatisticsSolver {
             Tools.convolve3Dseparable(KMask, W, ni, nj, nz, Analysis.p.PSF, mu);
         }
 
-        double K11 = 0, K12 = 0, K22 = 0, U1 = 0, U2 = 0;
-        double detK = 0;
         betaMLEout = 0;
         betaMLEin = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (Z[z][i][j] != 0) {
-                        W[z][i][j] = weights[z][i][j] / Z[z][i][j];
+                        W[z][i][j] = iWeights[z][i][j] / Z[z][i][j];
                     }
                     else {
                         W[z][i][j] = 4.50359962737e+15;// 1e4;
@@ -128,12 +97,12 @@ class RegionStatisticsSolver {
         }
 
         int iter = 0;
-        while (iter < max_iter) {
-            K11 = 0;
-            K12 = 0;
-            K22 = 0;
-            U1 = 0;
-            U2 = 0;
+        while (iter < iMaxIter) {
+            double K11 = 0;
+            double K12 = 0;
+            double K22 = 0;
+            double U1 = 0;
+            double U2 = 0;
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
@@ -149,14 +118,14 @@ class RegionStatisticsSolver {
             // detK = K11*K22-K12^2;
             // betaMLE_out = ( K22*U1-K12*U2)/detK;
             // betaMLE_in = (-K12*U1+K11*U2)/detK;
-            detK = K11 * K22 - Math.pow(K12, 2);
+            double detK = K11 * K22 - Math.pow(K12, 2);
             if (detK != 0) {
                 betaMLEout = (K22 * U1 - K12 * U2) / detK;
                 betaMLEin = (-K12 * U1 + K11 * U2) / detK;
             }
             else {
-                betaMLEout = p.betaMLEoutdefault;
-                betaMLEin = p.betaMLEindefault;
+                betaMLEout = iParams.betaMLEoutdefault;
+                betaMLEin = iParams.betaMLEindefault;
             }
 
             // mu update
@@ -172,7 +141,7 @@ class RegionStatisticsSolver {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
                         if (mu[z][i][j] != 0) {
-                            W[z][i][j] = weights[z][i][j] / mu[z][i][j];
+                            W[z][i][j] = iWeights[z][i][j] / mu[z][i][j];
                         }
                         else {
                             W[z][i][j] = 4.50359962737e+15;// 10000;//Double.MAX_VALUE;
@@ -186,36 +155,8 @@ class RegionStatisticsSolver {
     }
 
     private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
-        final int ni = p.ni;
-        final int nj = p.nj;
-        final int nz = p.nz;
-
-        double max = 0;
-        double min = Double.POSITIVE_INFINITY;
-
-        // get imagedata and copy to array image
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (Mask[z][i][j] > max) {
-                        max = Mask[z][i][j];
-                    }
-                    if (Mask[z][i][j] < min) {
-                        min = Mask[z][i][j];
-                    }
-                }
-            }
-        }
-
-        if ((max - min) != 0) {
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        ScaledMask[z][i][j] = (Mask[z][i][j] - min) / (max - min);
-                    }
-                }
-            }
-        }
+        MinMax<Double> minMax = ArrayOps.findMinMax(Mask);
+        ArrayOps.normalize(Mask, ScaledMask, minMax.getMin(), minMax.getMax());
     }
 
     void cluster_region(float[][][] Ri, ArrayList<Region> regionslist) {
@@ -224,17 +165,14 @@ class RegionStatisticsSolver {
         final double[] levels = new double[nk];
 
         for (final Region r : regionslist) {
-            final Dataset data = new DefaultDataset();
             if (r.points < 6) {
                 continue;
             }
+            
+            final Dataset data = new DefaultDataset();
             for (final Pix p : r.pixels) {
-                final int i = p.px;
-                final int j = p.py;
-                final int z = p.pz;
-                pixel[0] = image[z][i][j];
-                final Instance instance = new DenseInstance(pixel);
-                data.add(instance);
+                pixel[0] = iImage[p.pz][p.px][p.py];
+                data.add(new DenseInstance(pixel));
             }
 
             /* Create Weka classifier */
@@ -263,10 +201,7 @@ class RegionStatisticsSolver {
             betaMLEout = levels[nkm1];
 
             for (final Pix p : r.pixels) {
-                final int i = p.px;
-                final int j = p.py;
-                final int z = p.pz;
-                Ri[z][i][j] = regionslist.indexOf(r);
+                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
             }
         }
     }
@@ -274,10 +209,7 @@ class RegionStatisticsSolver {
     static void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
         for (final Region r : regionslist) {
             for (final Pix p : r.pixels) {
-                final int i = p.px;
-                final int j = p.py;
-                final int z = p.pz;
-                Ri[z][i][j] = regionslist.indexOf(r);
+                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
             }
         }
     }

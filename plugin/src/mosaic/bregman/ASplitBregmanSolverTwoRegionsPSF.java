@@ -2,6 +2,8 @@ package mosaic.bregman;
 
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
@@ -10,6 +12,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
     private final double[][][] eigenPSF;
     protected final DoubleDCT_2D dct2d;
+    ExecutorService executor;
     
     public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
@@ -25,6 +28,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         convolveAndScale(mask[0]);
         calculateGradientsXandY(mask);
+        System.out.println("========> CREATING POOL 2D");
+        executor = Executors.newFixedThreadPool(p.nthreads);
     }
 
     @Override
@@ -88,14 +93,15 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         p.PSF.getSeparableImageAsDoubleArray(1);
 
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
-            new Thread(new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
-                    this, LocalTools)).start();
+            final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
+                    this, LocalTools);
+            executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
-        new Thread(new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
-                p.nthreads - 1, this, LocalTools)).start();
-
+        final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
+                p.nthreads - 1, this, LocalTools);
+        executor.execute(task);
         // temp1=uk
         Sync4.await();
 

@@ -110,7 +110,7 @@ abstract class ASplitBregmanSolver {
         this.temp3 = new double[nzmin][nimin][njmin];
         this.temp4 = new double[nzmin][nimin][njmin];
         
-        this.RSS = new RegionStatisticsSolver(temp1, temp2, temp3, image, 10, p);
+        this.RSS = new RegionStatisticsSolver(temp1, temp2, temp3, image, null, 10, p);
 
         // precompute eigenlaplacian
         this.eigenLaplacian = new double[ni][nj];

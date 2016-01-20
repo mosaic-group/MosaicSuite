@@ -2,6 +2,8 @@ package mosaic.bregman;
 
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
@@ -16,6 +18,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     public final double[][][] eigenPSF;
     public final DoubleDCT_3D dct3d;
 
+    ExecutorService executor;
+    
     public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
         w2zk = new double[nz][ni][nj];
@@ -56,6 +60,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         convolveAndScale(mask);
         calculateGradientsXandY(mask);
+        System.out.println("========> CREATING POOL 3D");
+        executor = Executors.newFixedThreadPool(p.nthreads);
     }
     
     @Override
@@ -82,7 +88,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
     @Override
     protected void step() throws InterruptedException {
-            System.out.println("STEP " + p.nthreads);
             final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
             final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
             final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
@@ -116,17 +121,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             
             for (int nt = 0; nt < p.nthreads - 1; nt++) {
                 // Check if we can create threads
-                final Thread t = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
-                        jStart + jchunk, nt, this, LocalTools));
-                t.start();
-            
+                final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
+                        jStart + jchunk, nt, this, LocalTools);
+                executor.execute(task);
                 iStart += ichunk;
                 jStart += jchunk;
             }
-            final Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
-                    jStart, jStart + jlastchunk, p.nthreads - 1, this, LocalTools));
-            T_ext.start();
-            
+            final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
+                    jStart, jStart + jlastchunk, p.nthreads - 1, this, LocalTools);
+            executor.execute(task);
             Sync4.await();
             
             dct3d.forward(temp1, true);

@@ -183,20 +183,20 @@ public class ArrayOps {
         double max = minMax.getMax();
     
         // Normalize with found values
-        normalize(aArray, min, max);
+        normalize(aArray, aArray, min, max);
         
         return minMax;
     }
 
-    static public void normalize(final double[][][] aArray, double aMin, double aMax) {
-        final int arrayW = aArray[0][0].length;
-        final int arrayH = aArray[0].length;
-        final int arrayZ = aArray.length;
+    static public void normalize(final double[][][] aArraySrc, final double[][][] aArrayDst, double aMin, double aMax) {
+        final int arrayW = aArraySrc[0][0].length;
+        final int arrayH = aArraySrc[0].length;
+        final int arrayZ = aArraySrc.length;
         if (aMax != aMin) {
             for (int z = 0; z < arrayZ; ++z) {
                 for (int y = 0; y < arrayH; ++y) {
                     for (int x = 0; x < arrayW; ++x) {
-                        aArray[z][y][x] = (aArray[z][y][x] - aMin) / (aMax - aMin);
+                        aArrayDst[z][y][x] = (aArraySrc[z][y][x] - aMin) / (aMax - aMin);
                     }
                 }
             }
