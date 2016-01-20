@@ -9,6 +9,7 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.psf;
+import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -17,9 +18,9 @@ public class Tools {
     final private int ni, nj, nz;
     
     Tools(int nni, int nnj, int nnz) {
-        this.ni = nni;
-        this.nj = nnj;
-        this.nz = nnz;
+        ni = nni;
+        nj = nnj;
+        nz = nnz;
     }
 
     // convolution with symmetric boundaries extension
@@ -51,19 +52,21 @@ public class Tools {
                             sum += in[colIndex][rowIndex] * kernel[mm][nn];
                         }
                         else {
-                            if (rowIndex < 0) {
-                                rowIndex = -rowIndex - 1;
-                            }
-                            if (rowIndex > irows - 1) {
-                                rowIndex = irows - (rowIndex - irows) - 1;
-                            }
+                            do {
+                                if (rowIndex < 0) {
+                                    rowIndex = -rowIndex - 1;
+                                }
+                                if (rowIndex > irows - 1) {
+                                    rowIndex = irows - (rowIndex - irows) - 1;
+                                }
 
-                            if (colIndex < 0) {
-                                colIndex = -colIndex - 1;
-                            }
-                            if (colIndex > icols - 1) {
-                                colIndex = icols - (colIndex - icols) - 1;
-                            }
+                                if (colIndex < 0) {
+                                    colIndex = -colIndex - 1;
+                                }
+                                if (colIndex > icols - 1) {
+                                    colIndex = icols - (colIndex - icols) - 1;
+                                }
+                            } while  (!(rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols));
                             sum += in[colIndex][rowIndex] * kernel[mm][nn];
                         }
 
@@ -285,152 +288,46 @@ public class Tools {
         return;
     }
 
-    void dctshift(double[][][] result, double[][][] PSF, int cc, int cr) {
+    void dctshift(double[][] result, double[][] PSF, int cc, int cr) {
         // check if non square image
-        final int cols = PSF[0].length;
-        final int rows = PSF[0][0].length;
+        final int cols = PSF.length;
+        final int rows = PSF[0].length;
         final int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, cols - cc)));
 
-        final int frow = cr - k;
-        final int lrow = cr + k;
-        final int rowSize = lrow - frow + 1;
-
-        final int fcol = cc - k;
-        final int lcol = cc + k;
-        final int colSize = lcol - fcol + 1;
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    result[z][i][j] = 0;
+        ArrayOps.fill(result, 0);
+        for (int rowShift = 0; rowShift <= 1; rowShift++) 
+        for (int colShift = 0; colShift <= 1; colShift++)
+        {
+            for (int i = 0; i < 1 + k - colShift; i++) {
+                for (int j = 0; j < 1 + k - rowShift; j++) {
+                    result[i][j] += PSF[k + i + colShift][k + j + rowShift];
                 }
             }
         }
 
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] = PSF[z][cc - fcol + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] += PSF[z][cc - fcol + 1 + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[z][cc - fcol + i][cr - frow + 1 + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[z][cc - fcol + 1 + i][cr - frow + 1 + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 2 * k + 1; i < cols; i++) {
-                for (int j = 2 * k + 1; j < rows; j++) {
-                    result[z][i][j] = 0;
-                }
+        for (int i = 2 * k + 1; i < cols; i++) {
+            for (int j = 2 * k + 1; j < rows; j++) {
+                result[i][j] = 0;
             }
         }
     }
 
     void dctshift3D(double[][][] result, double[][][] PSF, int cr, int cc, int cs) {
-
-        // check if non square image
+        final int slices = PSF.length;
         final int cols = PSF[0].length;
         final int rows = PSF[0][0].length;
-        final int slices = PSF.length;
 
         final int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, Math.min(cols - cc, Math.min(cs - 1, slices - cs)))));
 
-        final int frow = cr - k;
-        final int lrow = cr + k;
-        final int rowSize = lrow - frow + 1;
-
-        final int fcol = cc - k;
-        final int lcol = cc + k;
-        final int colSize = lcol - fcol + 1;
-
-        final int fslice = cs - k;
-        final int lslice = cs + k;
-        final int sliceSize = lslice - fslice + 1;
-
-        // z1
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 1; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] = PSF[cs - fslice + z][cc - fcol + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 1; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] += PSF[cs - fslice + z][cc - fcol + 1 + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 1; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[cs - fslice + z][cc - fcol + i][cr - frow + 1 + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 1; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[cs - fslice + z][cc - fcol + 1 + i][cr - frow + 1 + j];
-                }
-            }
-        }
-
-        // z 2
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 2; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] += PSF[cs - fslice + 1 + z][cc - fcol + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 2; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 1; j++) {
-                    result[z][i][j] += PSF[cs - fslice + 1 + z][cc - fcol + 1 + i][cr - frow + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 2; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 1; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[cs - fslice + 1 + z][cc - fcol + i][cr - frow + 1 + j];
-                }
-            }
-        }
-
-        for (int z = 0; z < 1 + sliceSize - cs + fslice - 2; z++) {
-            for (int i = 0; i < 1 + colSize - cc + fcol - 2; i++) {
-                for (int j = 0; j < 1 + rowSize - cr + frow - 2; j++) {
-                    result[z][i][j] += PSF[cs - fslice + 1 + z][cc - fcol + 1 + i][cr - frow + 1 + j];
+        for (int sliShift = 0; sliShift <= 1; sliShift++)
+        for (int rowShift = 0; rowShift <= 1; rowShift++) 
+        for (int colShift = 0; colShift <= 1; colShift++)
+        {
+            for (int z = 0; z <  1 + k - sliShift; z++) {
+                for (int i = 0; i < 1 + k - colShift; i++) {
+                    for (int j = 0; j < 1 + k - rowShift; j++) {
+                        result[z][i][j] += PSF[k + z + sliShift][k + i + colShift][k + j + rowShift];
+                    }
                 }
             }
         }
@@ -443,7 +340,7 @@ public class Tools {
             }
         }
     }
-
+    
     void addtab(double[][][] res, double[][][] m1, double[][][] m2, int iStart, int iEnd) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -983,7 +880,6 @@ public class Tools {
 
     // Round y to z-places after comma
     static double round(double y, final int z) {
-        // Special tip to round numbers to 10^-z
         final double factor = Math.pow(10,  z);
         y *= factor;
         y = (int) y;

@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
+import mosaic.utils.ArrayOps;
 
 
 class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
@@ -143,15 +144,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         Tools.convolve2D(eigenPSF[0], p.PSF.getImage2DAsDoubleArray(), xmin, ymin, p.PSF);
 
-        // paddedPSF = padPSF(PSF2,dims);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp1[z][i][j] = 0;
-                }
-            }
-        }
-
+        ArrayOps.fill(temp1, 0);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < xmin; i++) {
                 for (int j = 0; j < ymin; j++) {
@@ -164,18 +157,12 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         final int cr = (sz[1] / 2) + 1;
 
         // temp1 = e1
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    temp2[z][i][j] = 0;
-                }
-            }
-        }
 
-        temp2[0][0][0] = 1;
-
-        LocalTools.dctshift(temp3, temp1, cc, cr);
+        LocalTools.dctshift(temp3[0], temp1[0], cc, cr);
         dct2d.forward(temp3[0], true);
+
+        ArrayOps.fill(temp2, 0);
+        temp2[0][0][0] = 1;
         dct2d.forward(temp2[0], true);
 
         for (int z = 0; z < nz; z++) {

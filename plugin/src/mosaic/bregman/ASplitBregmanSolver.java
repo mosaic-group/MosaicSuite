@@ -95,20 +95,15 @@ abstract class ASplitBregmanSolver {
         this.b3k = new double[nz][ni][nj];
 
         this.w2xk = new double[nz][ni][nj];
-        this.w2yk = new double[1][ni][nj];// save memory w2yk not used in 3d case
+        this.w2yk = new double[nz][ni][nj];
 
         this.Ri = new float[nz][ni][nj];
         this.Ro = new float[nz][ni][nj];
 
-        int nzmin = (nz > 1) ?  Math.max(7, nz) : nz;
-
-        final int nimin = Math.max(7, ni);
-        final int njmin = Math.max(7, nj);
-
-        this.temp1 = new double[nzmin][nimin][njmin];
-        this.temp2 = new double[nzmin][nimin][njmin];
-        this.temp3 = new double[nzmin][nimin][njmin];
-        this.temp4 = new double[nzmin][nimin][njmin];
+        this.temp1 = new double[nz][ni][nj];
+        this.temp2 = new double[nz][ni][nj];
+        this.temp3 = new double[nz][ni][nj];
+        this.temp4 = new double[nz][ni][nj];
         
         this.RSS = new RegionStatisticsSolver(temp1, temp2, temp3, image, null, 10, p);
 

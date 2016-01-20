@@ -169,7 +169,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         c1 = p.cl[1];
 
         int[] sz = p.PSF.getSuggestedImageSize();
-
         Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4);
 
         sz = p.PSF.getSuggestedImageSize();
@@ -187,6 +186,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         LocalTools.dctshift3D(temp3, temp2, cr, cc, cs);
         dct3d.forward(temp3, true);
+        
         temp1[0][0][0] = 1;
         dct3d.forward(temp1, true);
 
