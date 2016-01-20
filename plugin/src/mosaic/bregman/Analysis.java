@@ -387,26 +387,6 @@ public class Analysis {
         }
     }
 
-    static void setmaska(int[][][] mask) {
-        maskA = new byte[p.nz][p.ni][p.nj];
-        copyMask(maskA, mask);
-    }
-
-    static void setmaskb(int[][][] mask) {
-        maskB = new byte[p.nz][p.ni][p.nj];
-        copyMask(maskB, mask);
-    }
-
-    private static void copyMask(byte[][][] aDestination, int[][][] aSource) {
-        for (int z = 0; z < p.nz; z++) {
-            for (int i = 0; i < p.ni; i++) {
-                for (int j = 0; j < p.nj; j++) {
-                    aDestination[z][i][j] = (byte) ((aSource[z][i][j]));
-                }
-            }
-        }
-    }
-
     static double meansurface(ArrayList<Region> regionslist) {
         final int objects = regionslist.size();
         double totalsize = 0;

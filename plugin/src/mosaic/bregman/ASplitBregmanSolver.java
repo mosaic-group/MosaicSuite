@@ -17,7 +17,6 @@ abstract class ASplitBregmanSolver {
     protected final Tools LocalTools;
 
     protected ArrayList<Region> regionsvoronoi;
-    private ArrayList<Region> regionslistr;
     protected final MasksDisplay md;
     protected final double[][][] image;
 
@@ -163,6 +162,7 @@ abstract class ASplitBregmanSolver {
         boolean StopFlag = false;
         int iw3kbest = 0;
         while (stepk < p.max_nsb && !StopFlag) {
+            System.out.println("STEPK: " + stepk);
             // Bregman step
             step();
 
@@ -184,30 +184,17 @@ abstract class ASplitBregmanSolver {
             if (stepk % modulo == 0 && p.livedisplay && p.firstphase) {
                 IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));
             }
-            if ((stepk + 1) % p.RSSmodulo == 0 && stepk != 0) {
-                RSS.eval(w3k);
-                p.cl[0] = RSS.betaMLEout;
-                p.cl[1] = RSS.betaMLEin;
-                this.init();
-                IJ.log(String.format("Photometry :%n backgroung %10.8e %n foreground %10.8e", RSS.betaMLEout, RSS.betaMLEin));
-            }
 
             if (!p.firstphase && p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
                 Ap.find_best_thresh_and_int(w3k);
                 p.cl[0] = Math.max(0, Ap.cout);
                 // lower bound withg some margin
                 p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
-                this.init();
+                this.init();System.out.println("Init 201");
                 if (p.debug) {
                     IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
                     IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
                 }
-            }
-
-            if (p.RegionsIntensitymodulo == stepk && stepk != 0) {
-                IJ.log("best energy at" + iw3kbest);
-                this.regions_intensity(w3kbest);
-                this.init();
             }
 
             stepk++;
@@ -249,49 +236,6 @@ abstract class ASplitBregmanSolver {
     
     abstract protected void step() throws InterruptedException;
     abstract protected void init();
-
-    private void regions_intensity(double[][][] mask) {
-        final double thresh = 0.4;
-
-        final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
-        for (int z = 0; z < nz; z++) {
-            final byte[] mask_bytes = new byte[p.ni * p.nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (mask[z][i][j] > thresh) {
-                        mask_bytes[j * p.ni + i] = 0;
-                    }
-                    else {
-                        mask_bytes[j * p.ni + i] = (byte) 255;
-                    }
-                }
-            }
-
-            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
-            bp.setPixels(mask_bytes);
-            mask_ims.addSlice("", bp);
-        }
-        
-        final ImagePlus mask_im = new ImagePlus("Regions", mask_ims);
-        IJ.run(mask_im, "Voronoi", "");
-        IJ.run(mask_im, "Invert", "");
-        IJ.run(mask_im, "3-3-2 RGB", "");
-        mask_im.show("Voronoi");
-
-        final double thr = 254;
-        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        ArrayOps.fill(Ri, (float) thr);
-
-        fcr.run(thr, 512 * 512, 2, (float) thr);
-
-        this.regionslistr = fcr.results;
-        final int na = regionslistr.size();
-
-        final double total = Analysis.totalsize(regionslistr);
-        IJ.log(na + " Voronoi1 cells found, total area : " + Tools.round(total, 2) + " pixels.");
-
-        RSS.cluster_region(Ri, regionslistr);
-    }
 
     void regions_intensity_findthresh(double[][][] mask) {
         double thresh = (channel == 0) ? p.regionthresh : p.regionthreshy;
