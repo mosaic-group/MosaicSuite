@@ -2,18 +2,9 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
-import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.core.DenseInstance;
-import net.sf.javaml.core.Instance;
-import net.sf.javaml.tools.DatasetTools;
-import net.sf.javaml.tools.weka.WekaClusterer;
-import weka.clusterers.SimpleKMeans;
 
 
 /**
@@ -29,7 +20,6 @@ class RegionStatisticsSolver {
     private final Parameters iParams;
 
     private double[][][] iWeights;
-    private final double[][][] iImage;
     private final double[][][] KMask;
 
     public double betaMLEin, betaMLEout;
@@ -52,7 +42,6 @@ class RegionStatisticsSolver {
         W = temp1;
         mu = temp2;
         KMask = temp3;
-        iImage = image;
         iMaxIter = max_iter;
         ni = iParams.ni;
         nj = iParams.nj;
@@ -157,53 +146,6 @@ class RegionStatisticsSolver {
     private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
         MinMax<Double> minMax = ArrayOps.findMinMax(Mask);
         ArrayOps.normalize(Mask, ScaledMask, minMax.getMin(), minMax.getMax());
-    }
-
-    void cluster_region(float[][][] Ri, ArrayList<Region> regionslist) {
-        int nk = 3;
-        final double[] pixel = new double[1];
-        final double[] levels = new double[nk];
-
-        for (final Region r : regionslist) {
-            if (r.points < 6) {
-                continue;
-            }
-            
-            final Dataset data = new DefaultDataset();
-            for (final Pix p : r.pixels) {
-                pixel[0] = iImage[p.pz][p.px][p.py];
-                data.add(new DenseInstance(pixel));
-            }
-
-            /* Create Weka classifier */
-            final SimpleKMeans xm = new SimpleKMeans();
-            try {
-                xm.setNumClusters(3);// 3
-                xm.setMaxIterations(100);
-            }
-            catch (final Exception ex) {}
-
-            /* Wrap Weka clusterer in bridge */
-            final Clusterer jmlxm = new WekaClusterer(xm);
-            /* Perform clustering */
-            final Dataset[] data2 = jmlxm.cluster(data);
-            /* Output results */
-            nk = data2.length;// get number of clusters really found (usually = 3 = setNumClusters but not always)
-            for (int i = 0; i < nk; i++) {
-                final Instance inst = DatasetTools.average(data2[i]);
-                levels[i] = inst.value(0);
-            }
-
-            Arrays.sort(levels);
-            nk = Math.min(Analysis.p.regionSegmentLevel, nk - 1);
-            betaMLEin = levels[nk];// -1;
-            final int nkm1 = Math.max(nk - 1, 0);
-            betaMLEout = levels[nkm1];
-
-            for (final Pix p : r.pixels) {
-                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
-            }
-        }
     }
 
     static void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {

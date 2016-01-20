@@ -54,8 +54,6 @@ abstract class ASplitBregmanSolver {
     private final RegionStatisticsSolver RSS;
     private AnalysePatch Ap = null;
 
-    final int levelOfMask = 0; // use mask etc of level 0
-    
     double c0, c1;
     public final double energytab2[];
     

@@ -12,8 +12,6 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
-import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -54,7 +52,6 @@ public class GenericGUI {
     protected ImagePlus imgch2;
 
     protected int posx, posy;
-    private static int screensizex, screensizey;
     private BLauncher hd;
     private boolean gui_use_cluster = false;
 
@@ -70,13 +67,6 @@ public class GenericGUI {
      */
     public void setUseCluster(boolean bl) {
         gui_use_cluster = bl;
-    }
-
-    static public void setwindowlocation(int x, int y, Window w) {
-        int wx, wy;
-        wx = w.getWidth();
-        wy = w.getHeight();
-        w.setLocation(Math.min(x, screensizex - wx), Math.min(y, screensizey - wy));
     }
 
     /**
@@ -155,10 +145,6 @@ public class GenericGUI {
     private run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp) {
         // font for reference
         final Font bf = new Font(null, Font.BOLD, 12);
-
-        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        screensizex = (int) screenSize.getWidth();
-        screensizey = (int) screenSize.getHeight();
 
         gd.setInsets(-10, 0, 3);
 
