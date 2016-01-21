@@ -7,8 +7,7 @@ import mosaic.core.imageUtils.Point;
 
 
 /**
- * IndexIterator is a class to iterate on a Hypercube
- * @author Pietro Incardona
+ * IndexIterator is a class to iterate on a multidimensional hyperspace
  */
 public class SpaceIterator {
 
@@ -61,13 +60,10 @@ public class SpaceIterator {
      * @return Point - a point representation of input index
      */
     public Point indexToPoint(int aIndex) {
-        int index = aIndex;
         final int x[] = new int[iNumOfDimensions];
         for (int i = 0; i < iNumOfDimensions; ++i) {
-            final int r = index % iDimensions[i];
-            x[i] = r;
-            index -= r;
-            index = index / iDimensions[i];
+            x[i] = aIndex % iDimensions[i];
+            aIndex = aIndex / iDimensions[i];
         }
         return new Point(x);
     }
