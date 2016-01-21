@@ -216,10 +216,8 @@ class AnalysePatch implements Runnable {
         }
 
         iLocalParams.max_nsb = 101;
-//        iLocalParams.nlevels = 1;
         iLocalParams.RSSinit = false;
         iLocalParams.findregionthresh = false;
-        iLocalParams.RSSmodulo = 501;
         iLocalParams.thresh = 0.75;
         for (int i = 0; i < iLocalParams.lreg_.length; i++) {
             iLocalParams.lreg_[i] = iLocalParams.lreg_[i] * aOversampling;

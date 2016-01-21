@@ -342,7 +342,6 @@ public class Analysis {
     }
 
     static void regionCenter(Region r) {
-        int count = 0;
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
@@ -350,8 +349,8 @@ public class Analysis {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
-            count++;
         }
+        int count = r.pixels.size();
 
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);

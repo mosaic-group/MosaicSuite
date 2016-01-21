@@ -316,9 +316,17 @@ abstract class ASplitBregmanSolver {
 
         // use Ri to store voronoi regions indices
         ArrayOps.fill(Ri, 255);
-        RegionStatisticsSolver.cluster_region_voronoi2(Ri, regionslist);
+        cluster_region_voronoi2(Ri, regionslist);
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
+    }
+    
+    void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
+        for (final Region r : regionslist) {
+            for (final Pix p : r.pixels) {
+                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
+            }
+        }
     }
 }

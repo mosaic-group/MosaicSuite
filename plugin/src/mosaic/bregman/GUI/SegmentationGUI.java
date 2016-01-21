@@ -110,7 +110,6 @@ class SegmentationGUI {
         Analysis.p.regionthreshy = Analysis.p.min_intensityY;
         Analysis.p.refinement = true;
         Analysis.p.max_nsb = 151;
-        Analysis.p.regionSegmentLevel = 1;// not used
         Analysis.p.minves_size = 2;
 
         if (!Analysis.p.subpixel) {

@@ -11,21 +11,21 @@ public class GaussianPSFModel {
     private final double c1, c2;
 
     public GaussianPSFModel(double vlem, double vlex, double vna, double vr, double vn) {
-        this.NA = vna;
+        NA = vna;
 
         // kex and kem (same l for both)
         double lex = vlex / 1000;
         double airy_unit = 1.22 * lex / NA;
-        this.r = vr * airy_unit;
+        r = vr * airy_unit;
         
         double kex = 2 * Math.PI / lex;
-        this.c1 = kex * r * NA;
+        c1 = kex * r * NA;
         
         double lem = vlem / 1000;
-        this.kem = 2 * Math.PI / lem;
-        this.c2 = kem * r * NA;
+        kem = 2 * Math.PI / lem;
+        c2 = kem * r * NA;
 
-        this.n = vn;
+        n = vn;
     }
 
     public double lateral_WFFM() {

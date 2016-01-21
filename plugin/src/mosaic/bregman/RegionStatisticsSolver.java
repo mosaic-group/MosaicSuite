@@ -1,8 +1,6 @@
 package mosaic.bregman;
 
 
-import java.util.ArrayList;
-
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 
@@ -146,13 +144,5 @@ class RegionStatisticsSolver {
     private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
         MinMax<Double> minMax = ArrayOps.findMinMax(Mask);
         ArrayOps.normalize(Mask, ScaledMask, minMax.getMin(), minMax.getMax());
-    }
-
-    static void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
-        for (final Region r : regionslist) {
-            for (final Pix p : r.pixels) {
-                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
-            }
-        }
     }
 }

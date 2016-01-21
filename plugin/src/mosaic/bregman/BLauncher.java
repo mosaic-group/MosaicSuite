@@ -44,10 +44,8 @@ public class BLauncher {
     private double colocA;
     private double colocB;
 
-    private int hcount = 0;
+    private int sth_hcount = 0; // WTF this var is what for?
     private ImagePlus aImp;
-
-    private final Vector<ImagePlus> allImages = new Vector<ImagePlus>();
 
     private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private final String choice2[] = { "Poisson", "Gauss" };
@@ -82,34 +80,17 @@ public class BLauncher {
                     continue;
                 }
 
-                // If it is the Rscript continue
-                if (f.getName().equals("R_analysis.R")) {
-                    continue;
-                }
-
-                // It is an hidden file
-                if (f.getName().startsWith(".") == true) {
-                    continue;
-                }
-
-                // It is a csv file
-                if (f.getName().endsWith(".csv") == true) {
+                // If it is the Rscript/hidden/csv file then continue
+                if (f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                     continue;
                 }
 
                 // Attempt to open a file
-
-                try {
-                    aImp = MosaicUtils.openImg(f.getAbsolutePath());
-                    pf.add(MosaicUtils.removeExtension(f.getName()));
-                }
-                catch (final java.lang.UnsupportedOperationException e) {
-                    continue;
-                }
+                aImp = MosaicUtils.openImg(f.getAbsolutePath());
+                pf.add(MosaicUtils.removeExtension(f.getName()));
+                
                 Headless_file();
-
                 displayResult(true);
-
                 System.out.println("Display result (save images = " + Analysis.p.save_images + ")");
 
                 // Write a file info output
@@ -122,7 +103,7 @@ public class BLauncher {
                     }
 
                     try {
-                        out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, hcount - 1);
+                        out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, sth_hcount - 1);
                     }
                     catch (final FileNotFoundException e) {
                         e.printStackTrace();
@@ -190,23 +171,16 @@ public class BLauncher {
 
     /**
      * Display results
-     *
      * @param separate true if you do not want separate the images
      */
     private void displayResult(boolean sep) {
-        final int factor = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        int fz;
-        if (Analysis.p.nz > 1) {
-            fz = factor;
-        }
-        else {
-            fz = 1;
-        }
-
         System.out.println("Separate: " + sep);
+        
+        final int factor = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        int fz = (Analysis.p.nz > 1) ? factor : 1;
 
         if (Analysis.p.dispoutline) {
-            displayoutline(Analysis.regions[0], Analysis.imagea, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
+                displayoutline(Analysis.regions[0], Analysis.imagea, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
             if (Analysis.p.nchannels == 2) {
                 displayoutline(Analysis.regions[1], Analysis.imageb, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 2, sep);
             }
@@ -470,7 +444,6 @@ public class BLauncher {
 
             final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2);
             ImagePlus colocImg = md.generateColocImg(Analysis.regionslist[0], Analysis.regionslist[1]);
-            allImages.add(colocImg);
             if (Analysis.p.dispwindows) {
                 colocImg.show();
             }
@@ -501,7 +474,7 @@ public class BLauncher {
 
                 // Choose the Rscript coloc format
                 CSVOutput.occ = CSVOutput.oc[2];
-                Vector<? extends Outdata<Region>> obl = getObjectsList(hcount, 1);
+                Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 1);
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
                 IpCSV.clearMetaInformation();
@@ -509,13 +482,13 @@ public class BLauncher {
                 CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
 
                 // Write channel 1
-                obl = getObjectsList(hcount, 0);
+                obl = getObjectsList(sth_hcount, 0);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
             }
 
-            hcount++;
+            sth_hcount++;
         }
 
         if (Analysis.p.nchannels == 1) {
@@ -523,15 +496,15 @@ public class BLauncher {
                 String savepath = null;
                 savepath = MosaicUtils.ValidFolderFromImage(aImp);
 
-                final Vector<? extends Outdata<Region>> obl = getObjectsList(hcount, 0);
+                final Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
                 final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 
                 final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (hcount != 0));
+                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
             }
 
-            hcount++;
+            sth_hcount++;
         }
         ij.Prefs.blackBackground = tempBlackbackground;
 
@@ -616,7 +589,6 @@ public class BLauncher {
             updateImages(out_over, over, getOutlineName(channel - 1), Analysis.p.dispoutline, channel);
         }
         else {
-            allImages.add(over);
             out_over[channel - 1] = over;
             over.show();
             over.setTitle(getOutlineName(channel - 1));
@@ -667,7 +639,6 @@ public class BLauncher {
             updateImages(out_disp, intensities2, getIntensitiesName(channel - 1), Analysis.p.dispint, channel);
         }
         else {
-            allImages.add(intensities2);
             out_disp[channel - 1] = intensities2;
             intensities2.show();
             intensities2.setTitle(getIntensitiesName(channel - 1));
@@ -743,7 +714,6 @@ public class BLauncher {
         }
         else {
             out_label[channel - 1] = label;
-            allImages.add(label);
             label.show();
             label.setTitle(getSegmentationName(channel - 1));
         }
@@ -767,7 +737,6 @@ public class BLauncher {
         }
         else {
             out_label_gray[channel - 1] = label_;
-            allImages.add(label_);
             label_.show();
             label_.setTitle(getMaskName(channel - 1));
         }
@@ -787,7 +756,6 @@ public class BLauncher {
         }
         else {
             ipd[channel - 1] = ips;
-            allImages.add(ips);
             ipd[channel - 1].setTitle(title);
         }
 

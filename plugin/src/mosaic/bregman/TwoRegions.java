@@ -280,7 +280,6 @@ class TwoRegions implements Runnable {
                 IJ.showProgress(0.55);
 
                 final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest, min, max);
-                A_solver = null;
                 ipatches.run();
                 Analysis.regionslist[0] = ipatches.getRegionsList();
                 Analysis.regions[0] = ipatches.getRegions();
@@ -369,7 +368,6 @@ class TwoRegions implements Runnable {
                 IJ.showProgress(0.55);
 
                 final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest, min, max);
-                A_solver = null;
                 ipatches.run();
                 Analysis.regionslist[1] = ipatches.getRegionsList();
                 Analysis.regions[1] = ipatches.getRegions();

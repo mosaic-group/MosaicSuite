@@ -35,6 +35,8 @@ public class Parameters implements Serializable {
     final boolean remask = false; // Already deleted in code - before removing updated config file.
     final int nlevels = 1; // Already deleted in code - before removing updated config file.
     public final boolean dispvoronoi = false; // Already deleted in code - before removing updated config file.
+    final int RSSmodulo = 5000; // Already deleted in code - before removing updated config file.
+    final public int regionSegmentLevel = 2;  // Already deleted in code - before removing updated config file.
     
     // ================================ parameters changed in GUI
     public String patches_from_file;
@@ -68,7 +70,6 @@ public class Parameters implements Serializable {
     public int interpolation = 2;// 4
     public int oversampling2ndstep = 2;// 2
     public int minves_size = 5;// 5// set in genericgui now (pour mode voronoi2)
-    public int regionSegmentLevel = 2;
     public int max_nsb = 201;
     public boolean refinement = false;
     public double regionthresh = 0.19; // pour mitochondria 0.25 //0.19
@@ -82,7 +83,6 @@ public class Parameters implements Serializable {
     boolean firstphase = true;
     double[] cl;
     public double zcorrec = 1;// was 2
-    int RSSmodulo = 5000;
     boolean RSSinit = false;
     boolean findregionthresh = true;
     public int nthreads = 4;
@@ -110,7 +110,6 @@ public class Parameters implements Serializable {
         }
         this.size_rollingball = p.size_rollingball;
         this.max_nsb = p.max_nsb;
-//        this.nlevels = p.nlevels;
         this.removebackground = p.removebackground;
         this.livedisplay = p.livedisplay;
         this.minves_size = p.minves_size;
@@ -118,7 +117,6 @@ public class Parameters implements Serializable {
         this.min_intensityY = p.min_intensityY;// 0.1
         this.sigma_gaussian = p.sigma_gaussian;
         this.zcorrec = p.zcorrec;// was 2
-        this.RSSmodulo = p.RSSmodulo;
         this.RSSinit = p.RSSinit;
         this.findregionthresh = p.findregionthresh;
         this.regionthresh = p.regionthresh; // pour mitochondria 0.25
@@ -128,7 +126,6 @@ public class Parameters implements Serializable {
         this.usecellmaskY = p.usecellmaskY;
         this.thresholdcellmask = p.thresholdcellmask;
         this.thresholdcellmasky = p.thresholdcellmasky;
-        this.regionSegmentLevel = p.regionSegmentLevel;
         this.nchannels = p.nchannels;
         this.thresh = p.thresh;
         this.betaMLEoutdefault = p.betaMLEoutdefault;// 0.003 // 0.0027356;
