@@ -32,15 +32,15 @@ public class MaskOnSpaceMapper {
     boolean iIsSthToCrop = false;
     
     // Precalculated table of indices
-    private final int[] iFgIndexes;
+    private final Point[] iFgIndexes;
 
     // setup of iterator
     private Point iPointOffset;
-    private int iIndexOffset;
+    private Point iIndexOffset;
     
     // current state of iterator
     private int iFgIndex;
-    private int iNextIndex;
+    private Point iNextIndex;
     
     /**
      * @param aMask - input mask
@@ -51,15 +51,15 @@ public class MaskOnSpaceMapper {
         iMaskMidPoint = new Point(aMask.getDimensions()).div(2);
         iMaskRightDown = new Point(aMask.getDimensions()).sub(1);
 
-        iFgIndexes = new int[aMask.getNumOfFgPoints()];
+        iFgIndexes = new Point[aMask.getNumOfFgPoints()];
         SpaceIterator maskIterator = new SpaceIterator(aMask.getDimensions());
         Iterator<Integer> iter = maskIterator.getIndexIterator();
         int idxFG = 0;
         while(iter.hasNext()) {
             int idx = iter.next();
             if (aMask.isInMask(idx)) {
-                iFgIndexes[idxFG++] = iInputIterator.pointToIndex(maskIterator.indexToPoint(idx));
-            }
+                iFgIndexes[idxFG++] = maskIterator.indexToPoint(idx);
+            } 
         }
         
         // By default offset points to left upper point
@@ -90,14 +90,14 @@ public class MaskOnSpaceMapper {
      */
     public boolean hasNext() {
         while (iFgIndex < iFgIndexes.length) {
-            int currIdx = iFgIndexes[iFgIndex++];
-            iNextIndex = iIndexOffset + currIdx;
+            Point currPoint = iFgIndexes[iFgIndex++];
+            iNextIndex = currPoint.add(iIndexOffset);
 
             if (!iIsSthToCrop) { 
                 return true;
             }
             else {
-                Point imgPoint = iPointOffset.add(iInputIterator.indexToPoint(currIdx));
+                Point imgPoint = iPointOffset.add(currPoint);
                 if (iInputIterator.isInBound(imgPoint)) {
                     return true;
                 }
@@ -110,14 +110,14 @@ public class MaskOnSpaceMapper {
      * @return index of input area where mask is 'true'
      */
     public int next() {
-        return iNextIndex;
+        return iInputIterator.pointToIndex(iNextIndex);
     }
     
     /**
      * @return point of input area where mask is 'true'
      */
     public Point nextPoint() {
-        return iInputIterator.indexToPoint(iNextIndex);
+        return iNextIndex;
     }
 
     /**
@@ -125,7 +125,7 @@ public class MaskOnSpaceMapper {
      * area and do not need to be cropped)
      */
     private void initIndices() {
-        iIndexOffset = iInputIterator.pointToIndex(iPointOffset);
+        iIndexOffset = iPointOffset;
         iFgIndex = 0;
         
         if (iInputIterator.isInBound(iPointOffset) && iInputIterator.isInBound((iPointOffset.add(iMaskRightDown)))) {

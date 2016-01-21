@@ -213,10 +213,6 @@ class TwoRegions implements Runnable {
         p.cl[0] = p.betaMLEoutdefault;
         p.cl[1] = p.betaMLEindefault;
         
-        // TODO: This causes troubles when soft mask is calculated for 2 channel images. Should be investigated. Why it is 1 not 2 or just taken from img?
-        //       It is temporarily changed to 2 but it is unknown if has any efect on segmentaiton output.
-//        p.nlevels = 1;
-        
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
         if (p.nz > 1) {
@@ -385,9 +381,6 @@ class TwoRegions implements Runnable {
                 r.intensity = r.intensity * (max - min) + min;
             }
         }
-
-        // correct the level number
-//        p.nlevels = 2;
     }
 
     /**

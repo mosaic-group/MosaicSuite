@@ -571,11 +571,9 @@ public class BLauncher {
                     }
                 }
             }
-
             final ByteProcessor bp = new ByteProcessor(di, dj);
             bp.setPixels(mask_bytes);
             objS.addSlice("", bp);
-
         }
         final ImagePlus objcts = new ImagePlus("Objects", objS);
 

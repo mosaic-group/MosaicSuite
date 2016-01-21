@@ -7,11 +7,9 @@ import java.awt.Panel;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-
-import javax.swing.JFileChooser;
 
 import ij.gui.GenericDialog;
+import ij.io.OpenDialog;
 import mosaic.bregman.Analysis;
 
 
@@ -70,11 +68,10 @@ class SegmentationGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final JFileChooser fc = new JFileChooser();
-                fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                fc.showOpenDialog(null);
-                final File selFile = fc.getSelectedFile();
-                Analysis.p.patches_from_file = selFile.getAbsolutePath();
+                final OpenDialog od = new OpenDialog("(Patch file", "");
+                final String directory = od.getDirectory();
+                final String name = od.getFileName();
+                if (directory != null && name != null) Analysis.p.patches_from_file = directory + name;
             }
 
         });
