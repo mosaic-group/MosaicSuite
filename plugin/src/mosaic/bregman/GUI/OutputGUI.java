@@ -19,7 +19,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 
 
-public class OutputGUI extends JDialog {
+class OutputGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
     protected final JDialog myself;
@@ -115,7 +115,7 @@ public class OutputGUI extends JDialog {
      * @return Choose output + information on the option choose
      */
 
-    public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[], int oc_s) {
+    GUIOutputChoose visualizeOutput(GUIOutputChoose out_[], int oc_s) {
         if (out_ == null) {
             return null;
         }

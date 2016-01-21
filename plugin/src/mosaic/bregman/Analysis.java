@@ -167,19 +167,19 @@ public class Analysis {
         }
     }
 
-    static void compute_connected_regions_a(double d) {
-        final FindConnectedRegions fcr = processConnectedRegions(d, p.min_intensity, maskA);
-        regions[0] = fcr.tempres;
-        regionslist[0] = fcr.results;
+    static void compute_connected_regions_a() {
+        final FindConnectedRegions fcr = processConnectedRegions(p.min_intensity, maskA);
+        regions[0] = fcr.getLabeledRegions();
+        regionslist[0] = fcr.getFoundRegions();
     }
 
-    static void compute_connected_regions_b(double d) {
-        final FindConnectedRegions fcr = processConnectedRegions(d, p.min_intensityY, maskB);
-        regions[1] = fcr.tempres;
-        regionslist[1] = fcr.results;
+    static void compute_connected_regions_b() {
+        final FindConnectedRegions fcr = processConnectedRegions(p.min_intensityY, maskB);
+        regions[1] = fcr.getLabeledRegions();
+        regionslist[1] = fcr.getFoundRegions();
     }
     
-    private static FindConnectedRegions processConnectedRegions(double d, double intensity, byte[][][] mask) {
+    private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
         final ImagePlus mask_im = new ImagePlus();
         final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
 
@@ -197,11 +197,7 @@ public class Analysis {
 
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        
-//        float[][][] Ri = new float[p.nz][p.ni][p.nj];
-//        ArrayOps.fill(Ri, (float) intensity);
-
-        fcr.run(d, p.maxves_size, p.minves_size, (float) (255 * intensity));
+        fcr.run(p.maxves_size, p.minves_size, (float) (255 * intensity));
         
         return fcr;
     }
@@ -419,7 +415,7 @@ public class Analysis {
         return (totalsize / objects);
     }
 
-    static double totalsize(ArrayList<Region> regionslist) {
+    private static double totalsize(ArrayList<Region> regionslist) {
         double totalsize = 0;
         for (Region r : regionslist) {
             totalsize += r.points;

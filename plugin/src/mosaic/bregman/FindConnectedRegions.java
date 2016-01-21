@@ -35,43 +35,36 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
 
 
 class FindConnectedRegions {
-    private final ImagePlus imagePlus;
-    final short[][][] tempres;
-    public final ArrayList<Region> results = new ArrayList<Region>();
+    private final ImagePlus iInputImg;
+    
+    private short[][][] iLabeledRegions;
+    private final ArrayList<Region> iFoundRegions = new ArrayList<Region>();
 
     private static final byte IN_QUEUE = 1;
     private static final byte ADDED = 2;
 
-    public FindConnectedRegions(ImagePlus mask) {
-        this(mask, Analysis.p.ni, Analysis.p.nj, Analysis.p.nz);
-    }
-    
-    public FindConnectedRegions(ImagePlus mask, int nx, int ny, int nz) {
-        this.imagePlus = mask;
-        this.tempres = new short[nz][nx][ny];
+    public FindConnectedRegions(ImagePlus aInputImg) {
+        iInputImg = aInputImg;
     }
 
     @SuppressWarnings("null")
-    public void run(double aValuesOverDoubleThreshold, int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold) {
-        if (imagePlus == null) {
+    public void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold) {
+        if (iInputImg == null) {
             IJ.error("No image to operate on.");
             return;
         }
-
-        final int type = imagePlus.getType();
-        if (!(ImagePlus.GRAY8 == type || ImagePlus.COLOR_256 == type || ImagePlus.GRAY32 == type)) {
-            IJ.error("The image must be either 8 bit or 32 bit for this plugin.");
+        if (ImagePlus.GRAY8 != iInputImg.getType()) {
+            IJ.error("The image must be 8 bit");
             return;
         }
 
-        boolean byteImage = (ImagePlus.GRAY8 == type || ImagePlus.COLOR_256 == type);
-        final int width = imagePlus.getWidth();
-        final int height = imagePlus.getHeight();
-        final int depth = imagePlus.getStackSize();
+        final int width = iInputImg.getWidth();
+        final int height = iInputImg.getHeight();
+        final int depth = iInputImg.getStackSize();
+        this.iLabeledRegions = new short[depth][width][height];
 
         if (aMinimumPointsInRegion < 0) {
             aMinimumPointsInRegion = 0;
@@ -80,22 +73,11 @@ class FindConnectedRegions {
             aMaximumPointsInRegion = width * height * depth;
         }
 
-        final ImageStack stack = imagePlus.getStack();
-        byte[][] sliceDataBytes = null;
-        float[][] sliceDataFloats = null;
-        if (byteImage) {
-            sliceDataBytes = new byte[depth][];
-            for (int z = 0; z < depth; ++z) {
-                final ByteProcessor bp = (ByteProcessor) stack.getProcessor(z + 1);
-                sliceDataBytes[z] = (byte[]) bp.getPixelsCopy();
-            }
-        }
-        else {
-            sliceDataFloats = new float[depth][];
-            for (int z = 0; z < depth; ++z) {
-                final FloatProcessor bp = (FloatProcessor) stack.getProcessor(z + 1);
-                sliceDataFloats[z] = (float[]) bp.getPixelsCopy();
-            }
+        final ImageStack stack = iInputImg.getStack();
+        byte[][] sliceDataBytes = new byte[depth][];
+        for (int z = 0; z < depth; ++z) {
+            final ByteProcessor bp = (ByteProcessor) stack.getProcessor(z + 1);
+            sliceDataBytes[z] = (byte[]) bp.getPixelsCopy();
         }
 
         int tag = 0;
@@ -106,57 +88,25 @@ class FindConnectedRegions {
             int initial_y = -1;
             int initial_z = -1;
 
-            int foundValueInt = -1;
-            float foundValueFloat = Float.MIN_VALUE;
             int maxValueInt = -1;
-            float maxValueFloat = Float.MIN_VALUE;
 
-            if (byteImage) {
-                for (int z = 0; z < depth; ++z) {
-                    for (int y = 0; y < height; ++y) {
-                        for (int x = 0; x < width; ++x) {
-                            final int value = sliceDataBytes[z][y * width + x] & 0xFF;
-                            if (value > maxValueInt && value > aThreshold) {
-                                initial_x = x;
-                                initial_y = y;
-                                initial_z = z;
-                                maxValueInt = value;
-                            }
+            for (int z = 0; z < depth; ++z) {
+                for (int y = 0; y < height; ++y) {
+                    for (int x = 0; x < width; ++x) {
+                        final int value = sliceDataBytes[z][y * width + x] & 0xFF;
+                        if (value > maxValueInt && value > aThreshold) {
+                            initial_x = x;
+                            initial_y = y;
+                            initial_z = z;
+                            maxValueInt = value;
                         }
                     }
-                }
-
-                foundValueInt = maxValueInt;
-
-                // If the maximum value is below the level we care about, we're done.
-                if (foundValueInt < 0) {
-                    break;
                 }
             }
-            else {
-                for (int z = 0; z < depth; ++z) {
-                    for (int y = 0; y < height; ++y) {
-                        for (int x = 0; x < width; ++x) {
-                            final float value = sliceDataFloats[z][y * width + x];
-                            if (value > aThreshold) {
-                                initial_x = x;
-                                initial_y = y;
-                                initial_z = z;
-                                maxValueFloat = value;
-                            }
-                        }
-                    }
-                }
 
-                foundValueFloat = maxValueFloat;
-
-                if (foundValueFloat == Float.MIN_VALUE) {
-                    break;
-                }
-                // If the maximum value is below the level we care about, we're done.
-                if (foundValueFloat < aValuesOverDoubleThreshold) {
-                    break;
-                }
+            // If the maximum value is below the level we care about, we're done.
+            if (maxValueInt < 0) {
+                break;
             }
 
             int pointsInQueue = 0;
@@ -181,12 +131,7 @@ class FindConnectedRegions {
 
                 pointState[currentPointStateIndex] = ADDED;
 
-                if (byteImage) {
-                    sliceDataBytes[pz][currentSliceIndex] = 0;
-                }
-                else {
-                    sliceDataFloats[pz][currentSliceIndex] = Float.MIN_VALUE;
-                }
+                sliceDataBytes[pz][currentSliceIndex] = 0;
                 ++pointsInThisRegion;
 
                 final int x_unchecked_min = px - 1;
@@ -216,25 +161,16 @@ class FindConnectedRegions {
                             final int newSliceIndex = y * width + x;
                             final int newPointStateIndex = width * (z * height + y) + x;
 
-                            if (byteImage) {
-                                final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
+                            final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
 
-                                if (neighbourValue <= aThreshold) {
-                                    continue;
-                                }
-                            }
-                            else {
-                                final float neighbourValue = sliceDataFloats[z][newSliceIndex];
-
-                                if (neighbourValue <= aThreshold) {
-                                    continue;
-                                }
+                            if (neighbourValue <= aThreshold) {
+                                continue;
                             }
 
                             if (0 == pointState[newPointStateIndex]) {
                                 pointState[newPointStateIndex] = IN_QUEUE;
                                 if (pointsInQueue == queueArrayLength) {
-                                    final int newArrayLength = (int) (queueArrayLength * 1.2);
+                                    final int newArrayLength = queueArrayLength * 2;
                                     final int[] newArray = new int[newArrayLength];
                                     System.arraycopy(queue, 0, newArray, 0, pointsInQueue);
                                     queue = newArray;
@@ -248,8 +184,6 @@ class FindConnectedRegions {
             }
 
             // So now pointState should have no IN_QUEUE status points...
-            Region region = byteImage ? new Region(foundValueInt, pointsInThisRegion) : 
-                                        new Region(0, pointsInThisRegion);
 
             if (pointsInThisRegion < aMinimumPointsInRegion || pointsInThisRegion > aMaximumPointsInRegion) {
                 continue;
@@ -257,6 +191,7 @@ class FindConnectedRegions {
 
             // tag only if region not too small or big
             tag++;
+            Region region = new Region(maxValueInt, pointsInThisRegion);
 
             for (int z = 0; z < depth; ++z) {
                 for (int y = 0; y < height; ++y) {
@@ -269,7 +204,7 @@ class FindConnectedRegions {
 
                         if (status == ADDED) {
                             if (region.points <= aMaximumPointsInRegion) {
-                                tempres[z][x][y] = (short) tag;
+                                iLabeledRegions[z][x][y] = (short) tag;
                                 region.pixels.add(new Pix(z, x, y));
                                 region.value = tag;
                             }
@@ -285,15 +220,23 @@ class FindConnectedRegions {
                 if (Analysis.p.exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
                     Analysis.regionCenter(region);
                     if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
-                        results.add(region);
+                        iFoundRegions.add(region);
                     }
                 }
                 else {
-                    results.add(region);
+                    iFoundRegions.add(region);
                 }
             }
         }
 
-        Collections.sort(results, Collections.reverseOrder());
+        Collections.sort(iFoundRegions, Collections.reverseOrder());
+    }
+
+    short[][][] getLabeledRegions() {
+        return iLabeledRegions;
+    }
+
+    public ArrayList<Region> getFoundRegions() {
+        return iFoundRegions;
     }
 }

@@ -15,12 +15,12 @@ import ij.gui.GenericDialog;
 import mosaic.bregman.Analysis;
 
 
-public class SegmentationGUI {
-    public void run() {
+class SegmentationGUI {
+    void run() {
         getParameters();
     }
 
-    public static int getParameters() {
+    static int getParameters() {
         final Font bf = new Font(null, Font.BOLD, 12);
 
         final GenericDialog gd = new GenericDialog("Segmentation options");

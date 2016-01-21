@@ -28,7 +28,7 @@ public class Region implements Comparable<Region> {
     boolean singlec;
     double coloc_o_int;
 
-    public Pix[] getMinMaxCoordinates() {
+    Pix[] getMinMaxCoordinates() {
         int xmin = Integer.MAX_VALUE;
         int ymin = Integer.MAX_VALUE;
         int zmin = Integer.MAX_VALUE;

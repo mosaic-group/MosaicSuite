@@ -27,7 +27,7 @@ import mosaic.bregman.Tools;
 import mosaic.utils.ArrayOps.MinMax;
 
 
-public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
+class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     private ImagePlus imgch1;
     private ImagePlus imgch2;
@@ -67,7 +67,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
     private int ns1, ns2; // slices position of imgaes whenlaunched
     private final int posx, posy;
 
-    public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy) {
+    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy) {
         imgch1 = ch1;
         imgch2 = ch2;
 

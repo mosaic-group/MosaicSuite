@@ -276,7 +276,7 @@ class TwoRegions implements Runnable {
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-            Analysis.compute_connected_regions_a(255 * p.thresh);
+            Analysis.compute_connected_regions_a();
 
             if (Analysis.p.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
@@ -365,7 +365,7 @@ class TwoRegions implements Runnable {
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
-            Analysis.compute_connected_regions_b(255 * p.thresh);
+            Analysis.compute_connected_regions_b();
 
             if (Analysis.p.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);

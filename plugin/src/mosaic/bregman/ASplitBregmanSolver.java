@@ -62,7 +62,7 @@ abstract class ASplitBregmanSolver {
         this.Ap = ap;
     }
 
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel) {
+    private ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel) {
         this.LocalTools = new Tools(params.ni, params.nj, params.nz);
         this.channel = channel;
         bestNrj = Double.MAX_VALUE;
@@ -160,7 +160,6 @@ abstract class ASplitBregmanSolver {
         boolean StopFlag = false;
         int iw3kbest = 0;
         while (stepk < p.max_nsb && !StopFlag) {
-            System.out.println("STEPK: " + stepk);
             // Bregman step
             step();
 
@@ -188,7 +187,7 @@ abstract class ASplitBregmanSolver {
                 p.cl[0] = Math.max(0, Ap.cout);
                 // lower bound withg some margin
                 p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
-                this.init();System.out.println("Init 201");
+                this.init();
                 if (p.debug) {
                     IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
                     IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
@@ -310,11 +309,9 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        ArrayOps.fill(Ri, (float) thr);
+        fcr.run(p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
 
-        fcr.run(thr, p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
-
-        ArrayList<Region> regionslist = fcr.results;
+        ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;
 
         // use Ri to store voronoi regions indices

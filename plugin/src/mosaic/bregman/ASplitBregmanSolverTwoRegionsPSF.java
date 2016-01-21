@@ -12,8 +12,8 @@ import mosaic.utils.ArrayOps;
 class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
     private final double[][][] eigenPSF;
-    protected final DoubleDCT_2D dct2d;
-    ExecutorService executor;
+    private final DoubleDCT_2D dct2d;
+    private ExecutorService executor;
     
     public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, mask, md, channel, ap);
@@ -134,7 +134,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         }
     }
 
-    public void compute_eigenPSF() {
+    private void compute_eigenPSF() {
         c0 = p.cl[0];
         c1 = p.cl[1];
 

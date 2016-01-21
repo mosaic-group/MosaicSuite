@@ -410,7 +410,7 @@ public class BLauncher {
         }
     }
 
-    static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
+    private static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
         final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(Analysis.regionslist[channel]);
 
         // Set frame

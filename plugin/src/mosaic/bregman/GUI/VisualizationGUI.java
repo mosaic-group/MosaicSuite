@@ -13,7 +13,7 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.SquasshOutputChoose;
 
 
-public class VisualizationGUI {
+class VisualizationGUI {
     public VisualizationGUI() {
     }
 
@@ -21,7 +21,7 @@ public class VisualizationGUI {
         getParameters();
     }
 
-    public static int getParameters() {
+    static int getParameters() {
         final Font bf = new Font(null, Font.BOLD, 12);
 
         final GenericDialog gd = new GenericDialog("Visualization and output options");

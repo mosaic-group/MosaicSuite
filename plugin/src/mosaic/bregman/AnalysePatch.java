@@ -63,16 +63,17 @@ class AnalysePatch implements Runnable {
     
     double iIntensityMin;
     double iIntensityMax;
-    double iScaledIntensityMin;
+    private double iScaledIntensityMin;
     
     private boolean border_attained = false;
     private boolean objectFound = false;
-    double[][][] object;
+    private double[][][] object;
     
     private double[][][] iRegionMask;
     
     private double mint;// min threshold
-    double cin, cout, cout_front;// estimated intensities
+    double cin, cout; 
+    private double cout_front;// estimated intensities
     double firstminval;
     private double min_thresh;
     private final double[][][] iPatch;
@@ -605,14 +606,14 @@ class AnalysePatch implements Runnable {
         final ImagePlus maska_im = new ImagePlus("test Mask vo2", maska_ims);
 
         final double thr = 0.5;
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, iSizeOverInterX, iSizeOverInterY, iSizeOverInterZ);
-        fcr.run(thr, iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr);// min size was 5
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);
+        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr);// min size was 5
 
         // add to list with critical section
-        iImagePatches.addRegionsToList(fcr.results);
+        iImagePatches.addRegionsToList(fcr.getFoundRegions());
 
         // add to regions refined with correct indexes
-        assemble(fcr.results);
+        assemble(fcr.getFoundRegions());
     }
 
     private void assemble(ArrayList<Region> localList) {
