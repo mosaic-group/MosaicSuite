@@ -43,7 +43,7 @@ public class MaskOnSpaceMapper {
     
     // current state of iterator
     private int iFgIndex;
-    private Point iNextPoint;
+    private Point iNextPointWithNoOffset;
     private int iNextIndex;
     
     /**
@@ -98,14 +98,15 @@ public class MaskOnSpaceMapper {
         while (iFgIndex < iFgPoints.length) {
             int currIdx = iFgIndexes[iFgIndex];
             iNextIndex = iIndexOffset + currIdx;
-            Point currPoint = iFgPoints[iFgIndex++];
-            iNextPoint = currPoint.add(iPointOffset);
+            
+            // Just cache it, if next point will be needed it will be calculated on demand.
+            iNextPointWithNoOffset = iFgPoints[iFgIndex++];
             
             if (!iIsSthToCrop) { 
                 return true;
             }
             else {
-                if (iInputIterator.isInBound(iNextPoint)) {
+                if (iInputIterator.isInBound(iNextPointWithNoOffset.add(iPointOffset))) {
                     return true;
                 }
             }
@@ -124,7 +125,7 @@ public class MaskOnSpaceMapper {
      * @return point of input area where mask is 'true'
      */
     public Point nextPoint() {
-        return iNextPoint;
+        return iNextPointWithNoOffset.add(iPointOffset);
     }
 
     /**
