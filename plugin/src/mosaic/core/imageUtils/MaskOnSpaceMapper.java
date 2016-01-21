@@ -31,15 +31,20 @@ public class MaskOnSpaceMapper {
     private final Point iMaskRightDown;
     boolean iIsSthToCrop = false;
     
-    // Precalculated table of indices
-    private final Point[] iFgIndexes;
+    // Precalculated table of indices and points for fast searching 
+    // and because of performance two separate and redundant arrays are kept. 
+    // (it is possible to easily calc index from point and oposite but it takes time)
+    private final int[] iFgIndexes;
+    private final Point[] iFgPoints;
 
     // setup of iterator
     private Point iPointOffset;
+    private int iIndexOffset;
     
     // current state of iterator
     private int iFgIndex;
     private Point iNextPoint;
+    private int iNextIndex;
     
     /**
      * @param aMask - input mask
@@ -50,14 +55,16 @@ public class MaskOnSpaceMapper {
         iMaskMidPoint = new Point(aMask.getDimensions()).div(2);
         iMaskRightDown = new Point(aMask.getDimensions()).sub(1);
 
-        iFgIndexes = new Point[aMask.getNumOfFgPoints()];
+        iFgPoints = new Point[aMask.getNumOfFgPoints()];
+        iFgIndexes = new int[aMask.getNumOfFgPoints()];
         SpaceIterator maskIterator = new SpaceIterator(aMask.getDimensions());
         Iterator<Integer> iter = maskIterator.getIndexIterator();
         int idxFG = 0;
         while(iter.hasNext()) {
             int idx = iter.next();
             if (aMask.isInMask(idx)) {
-                iFgIndexes[idxFG++] = maskIterator.indexToPoint(idx);
+                iFgIndexes[idxFG] = iInputIterator.pointToIndex(maskIterator.indexToPoint(idx));
+                iFgPoints[idxFG++] = maskIterator.indexToPoint(idx);
             } 
         }
         
@@ -88,10 +95,12 @@ public class MaskOnSpaceMapper {
      * @return true if there is still something to iterate on.
      */
     public boolean hasNext() {
-        while (iFgIndex < iFgIndexes.length) {
-            Point currPoint = iFgIndexes[iFgIndex++];
+        while (iFgIndex < iFgPoints.length) {
+            int currIdx = iFgIndexes[iFgIndex];
+            iNextIndex = iIndexOffset + currIdx;
+            Point currPoint = iFgPoints[iFgIndex++];
             iNextPoint = currPoint.add(iPointOffset);
-
+            
             if (!iIsSthToCrop) { 
                 return true;
             }
@@ -108,7 +117,7 @@ public class MaskOnSpaceMapper {
      * @return index of input area where mask is 'true'
      */
     public int next() {
-        return iInputIterator.pointToIndex(iNextPoint);
+        return iNextIndex;
     }
     
     /**
@@ -124,6 +133,7 @@ public class MaskOnSpaceMapper {
      */
     private void initIndices() {
         iFgIndex = 0;
+        iIndexOffset = iInputIterator.pointToIndex(iPointOffset);
         
         if (iInputIterator.isInBound(iPointOffset) && iInputIterator.isInBound((iPointOffset.add(iMaskRightDown)))) {
             // Whole mask is in input area.
