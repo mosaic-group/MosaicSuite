@@ -36,11 +36,10 @@ public class MaskOnSpaceMapper {
 
     // setup of iterator
     private Point iPointOffset;
-    private Point iIndexOffset;
     
     // current state of iterator
     private int iFgIndex;
-    private Point iNextIndex;
+    private Point iNextPoint;
     
     /**
      * @param aMask - input mask
@@ -91,7 +90,7 @@ public class MaskOnSpaceMapper {
     public boolean hasNext() {
         while (iFgIndex < iFgIndexes.length) {
             Point currPoint = iFgIndexes[iFgIndex++];
-            iNextIndex = currPoint.add(iIndexOffset);
+            iNextPoint = currPoint.add(iPointOffset);
 
             if (!iIsSthToCrop) { 
                 return true;
@@ -110,14 +109,14 @@ public class MaskOnSpaceMapper {
      * @return index of input area where mask is 'true'
      */
     public int next() {
-        return iInputIterator.pointToIndex(iNextIndex);
+        return iInputIterator.pointToIndex(iNextPoint);
     }
     
     /**
      * @return point of input area where mask is 'true'
      */
     public Point nextPoint() {
-        return iNextIndex;
+        return iNextPoint;
     }
 
     /**
@@ -125,7 +124,6 @@ public class MaskOnSpaceMapper {
      * area and do not need to be cropped)
      */
     private void initIndices() {
-        iIndexOffset = iPointOffset;
         iFgIndex = 0;
         
         if (iInputIterator.isInBound(iPointOffset) && iInputIterator.isInBound((iPointOffset.add(iMaskRightDown)))) {
