@@ -96,8 +96,7 @@ public class MaskOnSpaceMapper {
                 return true;
             }
             else {
-                Point imgPoint = iPointOffset.add(currPoint);
-                if (iInputIterator.isInBound(imgPoint)) {
+                if (iInputIterator.isInBound(iNextPoint)) {
                     return true;
                 }
             }
