@@ -222,7 +222,7 @@ abstract class ASplitBregmanSolver {
     abstract protected void init();
 
     void regions_intensity_findthresh(double[][][] mask) {
-        double thresh = (channel == 0) ? p.regionthresh : p.regionthreshy;
+        double thresh = (channel == 0) ? p.min_intensity : p.min_intensityY;
 
         ImagePlus mask_im = new ImagePlus();
         final ImageStack mask_ims = new ImageStack(p.ni, p.nj);

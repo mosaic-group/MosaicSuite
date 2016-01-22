@@ -10,29 +10,33 @@ import net.imglib2.type.numeric.real.DoubleType;
 public class Parameters implements Serializable {
     private static final long serialVersionUID = 2894976420127964864L;
 
-    // ================================ this guys are set only in Parameters class and used as const values later on
-    final int oc_s = 1; // Already deleted in code - before removing update config file. 
-    final int maxves_size = -1; // Already deleted in code - before removing update config file.
-    final boolean mode_classic = false; // Already deleted in code - before removing update config file.
-    final public boolean mode_voronoi2 = true; // Already deleted in code - before removing update config file.
-    final int model_oversampling = 1; // Already deleted in code - before removing update config file.
-    final boolean displowlevels = true; // Already deleted in code - before removing update config file.
-    final boolean looptest = false; // Already deleted in code - before removing update config file.
-    final boolean fastsquassh = false; // Already deleted in code - before removing update config file.
-    final int overs = 2; // Already deleted in code - before removing update config file.
-    final boolean usePSF = true; // Already deleted in code - before removing update config file.
-    final boolean automatic_int = false; // Already deleted in code - before removing update config file.
-    final int dispEmodulo = 10; // Already deleted in code - before removing update config file.
-    final boolean remask = false; // Already deleted in code - before removing update config file.
-    final int nlevels = 1; // Already deleted in code - before removing update config file.
-    final public  boolean dispvoronoi = false; // Already deleted in code - before removing update config file.
-    final int RSSmodulo = 5000; // Already deleted in code - before removing update config file.
-    final public int regionSegmentLevel = 2;  // Already deleted in code - before removing update config file.
-    final boolean RSSinit = false; // Already deleted in code - before removing update config file.
-    final double thresh = 0.75; // Already deleted in code - before removing update config file.
-    final boolean findregionthresh = true; // Already deleted in code - before removing update config file.
+    // =========================== Already deleted in code - before removing update config file.
+    @SuppressWarnings("unused") final private int oc_s = 1;  
+    @SuppressWarnings("unused") final private int maxves_size = -1; 
+    @SuppressWarnings("unused") final private boolean mode_classic = false; 
+    @SuppressWarnings("unused") final private boolean mode_voronoi2 = true; 
+    @SuppressWarnings("unused") final private int model_oversampling = 1; 
+    @SuppressWarnings("unused") final private boolean displowlevels = true; 
+    @SuppressWarnings("unused") final private boolean looptest = false; 
+    @SuppressWarnings("unused") final private boolean fastsquassh = false; 
+    @SuppressWarnings("unused") final private int overs = 2; 
+    @SuppressWarnings("unused") final private boolean usePSF = true; 
+    @SuppressWarnings("unused") final private boolean automatic_int = false; 
+    @SuppressWarnings("unused") final private int dispEmodulo = 10; 
+    @SuppressWarnings("unused") final private boolean remask = false; 
+    @SuppressWarnings("unused") final private int nlevels = 1; 
+    @SuppressWarnings("unused") final private boolean dispvoronoi = false; 
+    @SuppressWarnings("unused") final private int RSSmodulo = 5000; 
+    @SuppressWarnings("unused") final private int regionSegmentLevel = 2;  
+    @SuppressWarnings("unused") final private boolean RSSinit = false; 
+    @SuppressWarnings("unused") final private double thresh = 0.75; 
+    @SuppressWarnings("unused") final private boolean findregionthresh = true; 
+    @SuppressWarnings("unused") final private double regionthresh = 0.19;
+    @SuppressWarnings("unused") final private double regionthreshy = 0.19;
     
-    // Other parameters not changeable directly by user and/or nasty globals
+    // ================================ Other parameters not changeable directly by user and/or nasty globals
+    
+    // const segmentation parameters - might be useful if beter names are given (config file for test update!).
     final double colocthreshold = 0.5;
     final int RegionsIntensitymodulo = 3000;
     final int energyEvaluationModulo = 5;
@@ -42,14 +46,13 @@ public class Parameters implements Serializable {
     final double tol = 1e-7;
     final double betaMLEindefault = 1.0;
     final double betaMLEoutdefault = 0.0003;
+    final public int minves_size = 2;
     
+    // not yet investigated
     public int interpolation = 1;// 4
     public int oversampling2ndstep = 2;// 2
-    public int minves_size = 5;// 5// set in genericgui now (pour mode voronoi2)
     public int max_nsb = 201;
     public boolean refinement = false;
-    public double regionthresh = 0.19; // pour mitochondria 0.25 //0.19
-    public double regionthreshy = 0.19; // pour mitochondria 0.25 //0.19
     public String wd = null;
     public boolean dispwindows = true;
     final double[] cl;
@@ -82,7 +85,7 @@ public class Parameters implements Serializable {
     public boolean usecellmaskX = false;
     public boolean usecellmaskY = false;
     public double thresholdcellmask = 0.0015;
-    public double thresholdcellmasky = 0.0015;// (RAB channel)
+    public double thresholdcellmasky = 0.0015;
 
     // Visualization    
     public boolean livedisplay = false;
@@ -118,13 +121,10 @@ public class Parameters implements Serializable {
         this.max_nsb = p.max_nsb;
         this.removebackground = p.removebackground;
         this.livedisplay = p.livedisplay;
-        this.minves_size = p.minves_size;
         this.min_intensity = p.min_intensity;
         this.min_intensityY = p.min_intensityY;
         this.sigma_gaussian = p.sigma_gaussian;
         this.zcorrec = p.zcorrec;
-        this.regionthresh = p.regionthresh; 
-        this.regionthreshy = p.regionthreshy;
         this.nthreads = p.nthreads;
         this.usecellmaskX = p.usecellmaskX;
         this.usecellmaskY = p.usecellmaskY;

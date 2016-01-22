@@ -210,6 +210,7 @@ class TwoRegions implements Runnable {
         md = new MasksDisplay(ni, nj, nz);
 //        p.refinement = false;
         Debug.print("BETA MLE (tworegions): ", p.betaMLEindefault, p.betaMLEoutdefault, p.refinement, p.interpolation);
+        Debug.print("minves_size", p.minves_size);
         ASplitBregmanSolver A_solver = null;
         p.cl[0] = p.betaMLEoutdefault;
         p.cl[1] = p.betaMLEindefault;

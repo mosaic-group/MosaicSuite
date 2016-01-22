@@ -105,11 +105,8 @@ class SegmentationGUI {
             Analysis.p.noise_model = gd.getNextChoiceIndex();
         }
 
-        Analysis.p.regionthresh = Analysis.p.min_intensity;
-        Analysis.p.regionthreshy = Analysis.p.min_intensityY;
         Analysis.p.refinement = true;
         Analysis.p.max_nsb = 151;
-        Analysis.p.minves_size = 2;
 
         if (!Analysis.p.subpixel) {
             Analysis.p.oversampling2ndstep = 1;
