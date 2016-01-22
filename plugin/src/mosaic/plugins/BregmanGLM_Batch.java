@@ -65,7 +65,7 @@ public class BregmanGLM_Batch implements Segmentation {
         }
 
         // Initialize CSV format
-        CSVOutput.initCSV(Analysis.p.oc_s);
+        CSVOutput.initCSV(1 /* oc_s */);
 
         // Check the argument
         final boolean batch = GraphicsEnvironment.isHeadless();

@@ -8,6 +8,7 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.Debug;
 
 
 public class Analysis {
@@ -51,16 +52,36 @@ public class Analysis {
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
 
-    static short[][][][] regions;
-    static ArrayList<Region> regionslist[];
+    private static short[][][][] regions;
+    private static ArrayList<ArrayList<Region>> regionslist;
 
     final static ImagePlus out_soft_mask[] = new ImagePlus[2];
     
     
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void init() {
         regions = new short[2][][][];
-        regionslist = new ArrayList[2];
+        
+        // Create regionslist and create empty elements - they are later access by index.
+        regionslist = new ArrayList<ArrayList<Region>>(2);
+        regionslist.add(null);
+        regionslist.add(null);
+    }
+    
+    public static ArrayList<Region> getRegionslist(int aRegionNum) {
+        return regionslist.get(aRegionNum);
+    }
+    
+    public static void setRegionslist(ArrayList<Region> regionslist, int aRegionNum) {
+        Analysis.regionslist.set(aRegionNum, regionslist);
+    }
+    
+    public static short[][][] getRegions(int aRegionNum) {
+        return regions[aRegionNum];
+    }
+    
+    public static void setRegions(short[][][] regions, int aRegionNum) {
+        Debug.print("setRegions", Debug.getStack(3, 2));
+        Analysis.regions[aRegionNum] = regions;
     }
 
     static void loadChannels(ImagePlus img2, int aNumOfChannels) {
@@ -170,13 +191,13 @@ public class Analysis {
     static void compute_connected_regions_a() {
         final FindConnectedRegions fcr = processConnectedRegions(p.min_intensity, maskA);
         regions[0] = fcr.getLabeledRegions();
-        regionslist[0] = fcr.getFoundRegions();
+        regionslist.set(0, fcr.getFoundRegions());
     }
 
     static void compute_connected_regions_b() {
         final FindConnectedRegions fcr = processConnectedRegions(p.min_intensityY, maskB);
         regions[1] = fcr.getLabeledRegions();
-        regionslist[1] = fcr.getFoundRegions();
+        regionslist.set(1, fcr.getFoundRegions());
     }
     
     private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
@@ -197,17 +218,17 @@ public class Analysis {
 
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(p.maxves_size, p.minves_size, (float) (255 * intensity));
+        fcr.run(-1 /* no maximum size */, p.minves_size, (float) (255 * intensity));
         
         return fcr;
     }
 
     static double colocsegA() {
-        return coloc(regionslist[0], imageb);
+        return coloc(regionslist.get(0), imageb);
     }
 
     static double colocsegB() {
-        return coloc(regionslist[1], imagea);
+        return coloc(regionslist.get(1), imagea);
     }
     
     private static double coloc(final ArrayList<Region> currentRegion, double[][][] image) {
@@ -220,11 +241,11 @@ public class Analysis {
     }
 
     static double colocsegABnumber() {
-        return colocNumber(regionslist[0]);
+        return colocNumber(regionslist.get(0));
     }
 
     static double colocsegBAnumber() {
-        return colocNumber(regionslist[1]);
+        return colocNumber(regionslist.get(1));
     }
 
     private static double colocNumber(final ArrayList<Region> currentRegion) {
@@ -240,11 +261,11 @@ public class Analysis {
     }
     
     static double colocsegAB() {
-        return colocRegions(regionslist[0], regionslist[1], regions[1]);
+        return colocRegions(regionslist.get(0), regionslist.get(1), regions[1]);
     }
 
     static double colocsegBA() {
-        return colocRegions(regionslist[1], regionslist[0], regions[0]);
+        return colocRegions(regionslist.get(1), regionslist.get(0), regions[0]);
     }
 
     private static double colocRegions(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {
@@ -260,11 +281,11 @@ public class Analysis {
     }
 
     static double colocsegABsize() {
-        return colocRegionsSize(regionslist[0], regionslist[1], regions[1]);
+        return colocRegionsSize(regionslist.get(0), regionslist.get(1), regions[1]);
     }
 
     static double colocsegBAsize() {
-        return colocRegionsSize(regionslist[1], regionslist[0], regions[0]);
+        return colocRegionsSize(regionslist.get(1), regionslist.get(0), regions[0]);
     }
 
     private static double colocRegionsSize(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {

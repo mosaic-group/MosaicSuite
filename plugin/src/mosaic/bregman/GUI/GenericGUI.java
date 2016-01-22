@@ -330,7 +330,6 @@ public class GenericGUI {
 
         // betamleout to be determined by clustering of whole image
 
-        Analysis.p.betaMLEindefault = 1;
         Analysis.p.regionthresh = Analysis.p.min_intensity;
         Analysis.p.regionthreshy = Analysis.p.min_intensityY;
         Analysis.p.refinement = true;

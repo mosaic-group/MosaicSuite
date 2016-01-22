@@ -105,7 +105,6 @@ class SegmentationGUI {
             Analysis.p.noise_model = gd.getNextChoiceIndex();
         }
 
-        Analysis.p.betaMLEindefault = 1;
         Analysis.p.regionthresh = Analysis.p.min_intensity;
         Analysis.p.regionthreshy = Analysis.p.min_intensityY;
         Analysis.p.refinement = true;

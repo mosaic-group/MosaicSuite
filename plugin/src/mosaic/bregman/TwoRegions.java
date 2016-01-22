@@ -208,7 +208,8 @@ class TwoRegions implements Runnable {
     public void run() {
         // This store the output mask
         md = new MasksDisplay(ni, nj, nz);
-
+//        p.refinement = false;
+        Debug.print("BETA MLE (tworegions): ", p.betaMLEindefault, p.betaMLEoutdefault, p.refinement, p.interpolation);
         ASplitBregmanSolver A_solver = null;
         p.cl[0] = p.betaMLEoutdefault;
         p.cl[1] = p.betaMLEindefault;
@@ -275,19 +276,23 @@ class TwoRegions implements Runnable {
             Analysis.compute_connected_regions_a();
 
             if (Analysis.p.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
+                Debug.print(p.interpolation);
+                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(0), regions, RiN);
+                Debug.print(p.interpolation);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(p, Analysis.getRegionslist(0), image, channel, A_solver.w3kbest, min, max);
+                Debug.print(p.interpolation);
                 ipatches.run();
-                Analysis.regionslist[0] = ipatches.getRegionsList();
-                Analysis.regions[0] = ipatches.getRegions();
+                Debug.print(p.interpolation);
+                Analysis.setRegionslist(ipatches.getRegionsList(), 0);
+                Analysis.setRegions(ipatches.getRegions(), 0);
             }
 
             // Here we solved the patches and the regions that come from the patches
             // we rescale the intensity to the original one
-            for (final Region r : Analysis.regionslist[0]) {
+            for (final Region r : Analysis.getRegionslist(0)) {
                 r.intensity = r.intensity * (max - min) + min;
             }
 
@@ -317,7 +322,7 @@ class TwoRegions implements Runnable {
             // recompute the statistics using the old intensity label image
 
             // we run find connected regions
-            final LabelImage img = new LabelImage(Analysis.regions[0]);
+            final LabelImage img = new LabelImage(Analysis.getRegions(0));
             img.connectedComponents();
 
             final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
@@ -345,10 +350,10 @@ class TwoRegions implements Runnable {
             int sz = (p.nz == 1) ? 1 : p.nz * p.oversampling2ndstep * p.interpolation;
             int osz = (p.nz == 1) ? 1 : p.oversampling2ndstep * p.interpolation;
 
-            ImagePatches.assemble(r_list.values(), Analysis.regions[0]);
+            ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
 
             for (final Region r : r_list.values()) {
-                final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, Analysis.regions[0]);
+                final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, Analysis.getRegions(0));
                 obj.run();
             }
         }
@@ -363,19 +368,19 @@ class TwoRegions implements Runnable {
             Analysis.compute_connected_regions_b();
 
             if (Analysis.p.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
+                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(1), regions, RiN);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(p, Analysis.getRegionslist(1), image, channel, A_solver.w3kbest, min, max);
                 ipatches.run();
-                Analysis.regionslist[1] = ipatches.getRegionsList();
-                Analysis.regions[1] = ipatches.getRegions();
+                Analysis.setRegionslist(ipatches.getRegionsList(), 1);
+                Analysis.setRegions(ipatches.getRegions(), 1);
             }
 
             // Here we solved the patches and the regions that come from the patches
             // we rescale the intensity to the original one
-            for (final Region r : Analysis.regionslist[1]) {
+            for (final Region r : Analysis.getRegionslist(1)) {
                 r.intensity = r.intensity * (max - min) + min;
             }
         }

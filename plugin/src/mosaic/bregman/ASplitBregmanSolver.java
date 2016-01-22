@@ -51,7 +51,6 @@ abstract class ASplitBregmanSolver {
     private double lastenergy; // TODO: It should be initialized to some value.
     private double bestNrj;
     protected final Parameters p;
-    private final RegionStatisticsSolver RSS;
     private AnalysePatch Ap = null;
 
     double c0, c1;
@@ -102,8 +101,6 @@ abstract class ASplitBregmanSolver {
         this.temp3 = new double[nz][ni][nj];
         this.temp4 = new double[nz][ni][nj];
         
-        this.RSS = new RegionStatisticsSolver(temp1, temp2, temp3, image, null, 10, p);
-
         // precompute eigenlaplacian
         this.eigenLaplacian = new double[ni][nj];
         for (int i = 0; i < ni; i++) {
@@ -117,15 +114,6 @@ abstract class ASplitBregmanSolver {
 
         LocalTools.copytab(w1k, mask);
         LocalTools.copytab(w3k, mask);
-
-        if (p.RSSinit) {
-            RSS.eval(w3k);
-
-            p.cl[0] = RSS.betaMLEout;
-            p.cl[1] = RSS.betaMLEin;
-
-            IJ.log(String.format("Photometry init:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout, RSS.betaMLEin));
-        }
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -213,8 +201,7 @@ abstract class ASplitBregmanSolver {
                 IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
             }
         }
-
-        if (p.findregionthresh) {
+        if (p.firstphase) {
             this.regions_intensity_findthresh(w3kbest);
         }
 
@@ -322,7 +309,7 @@ abstract class ASplitBregmanSolver {
         IJ.showProgress(0.54);
     }
     
-    void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
+    private void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
         for (final Region r : regionslist) {
             for (final Pix p : r.pixels) {
                 Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);

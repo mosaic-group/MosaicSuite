@@ -13,6 +13,7 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
@@ -216,9 +217,8 @@ class AnalysePatch implements Runnable {
         }
 
         iLocalParams.max_nsb = 101;
-        iLocalParams.RSSinit = false;
-        iLocalParams.findregionthresh = false;
-        iLocalParams.thresh = 0.75;
+        iLocalParams.nthreads = 1;
+        iLocalParams.firstphase = false;
         for (int i = 0; i < iLocalParams.lreg_.length; i++) {
             iLocalParams.lreg_[i] = iLocalParams.lreg_[i] * aOversampling;
         }
@@ -232,11 +232,9 @@ class AnalysePatch implements Runnable {
     public void run() {
         final MasksDisplay md = new MasksDisplay(iSizeOversX, iSizeOversY, iSizeOversZ);
 
-        iLocalParams.nthreads = 1;
-        iLocalParams.firstphase = false;
-
         // Check the delta beta, if it is bigger than two ignore it, because
         // I cannot warrant stability
+        Debug.print("BETA MLE (patch): ", iLocalParams.betaMLEindefault, iLocalParams.betaMLEoutdefault, iLocalParams.refinement);
         if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
             // reset
             iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;

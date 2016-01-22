@@ -25,6 +25,7 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -174,27 +175,27 @@ public class BLauncher {
      * @param separate true if you do not want separate the images
      */
     private void displayResult(boolean sep) {
-        System.out.println("Separate: " + sep);
         
         final int factor = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        System.out.println("Separate: " + sep + " Factor: " + factor + " " +  Analysis.p.oversampling2ndstep + " " + Analysis.p.interpolation);
         int fz = (Analysis.p.nz > 1) ? factor : 1;
 
         if (Analysis.p.dispoutline) {
-                displayoutline(Analysis.regions[0], Analysis.imagea, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
+                displayoutline(Analysis.getRegions(0), Analysis.imagea, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
             if (Analysis.p.nchannels == 2) {
-                displayoutline(Analysis.regions[1], Analysis.imageb, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 2, sep);
+                displayoutline(Analysis.getRegions(1), Analysis.imageb, Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 2, sep);
             }
         }
         if (Analysis.p.dispint) {
-            displayintensities(Analysis.regionslist[0], Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
+            displayintensities(Analysis.getRegionslist(0), Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 1, sep);
             if (Analysis.p.nchannels == 2) {
-                displayintensities(Analysis.regionslist[1], Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 2, sep);
+                displayintensities(Analysis.getRegionslist(1), Analysis.p.nz * fz, Analysis.p.ni * factor, Analysis.p.nj * factor, 2, sep);
             }
         }
         if (Analysis.p.displabels || Analysis.p.dispcolors) {
-            displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size(), sep);
+            displayRegionsCol(Analysis.getRegions(0), 1, Analysis.getRegionslist(0).size(), sep);
             if (Analysis.p.nchannels == 2) {
-                displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size(), sep);
+                displayRegionsCol(Analysis.getRegions(0), 2, Analysis.getRegionslist(0).size(), sep);
             }
         }
         if (Analysis.p.dispcolors) {
@@ -341,22 +342,22 @@ public class BLauncher {
             out.flush();
         }
 
-        final double meanSA = Analysis.meansurface(Analysis.regionslist[0]);
-        final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
+        final double meanSA = Analysis.meansurface(Analysis.getRegionslist(0));
+        final double meanLA = Analysis.meanlength(Analysis.getRegionslist(0));
         if (Analysis.p.nchannels == 2) {
             double[] temp = Analysis.pearson_corr();
             double corr = temp[0];
             double corr_mask = temp[1];
-            final double meanSB = Analysis.meansurface(Analysis.regionslist[1]);
-            final double meanLB = Analysis.meanlength(Analysis.regionslist[1]);
+            final double meanSB = Analysis.meansurface(Analysis.getRegionslist(1));
+            final double meanLB = Analysis.meanlength(Analysis.getRegionslist(1));
 
-            out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
-                    + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.regionslist[1].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[1]), 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
+                    + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.getRegionslist(1).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(1)), 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
                     + colocB + ";" + mosaic.bregman.Tools.round(corr, 4) + ";" + mosaic.bregman.Tools.round(corr_mask, 4));
         }
         else {
-            out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLA, 4));
         }
         out.println();
@@ -385,7 +386,7 @@ public class BLauncher {
     }
 
     private static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
-        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(Analysis.regionslist[channel]);
+        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(Analysis.getRegionslist(channel));
 
         // Set frame
         for (int i = 0; i < v.size(); i++) {
@@ -434,16 +435,16 @@ public class BLauncher {
 
         if (Analysis.p.nchannels == 2) {
             Analysis.computeOverallMask();
-            Analysis.regionslist[0] = Analysis.removeExternalObjects(Analysis.regionslist[0]);
-            Analysis.regionslist[1] = Analysis.removeExternalObjects(Analysis.regionslist[1]);
+            Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
+            Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(1)), 1);
 
-            Analysis.setRegionsLabels(Analysis.regionslist[0], Analysis.regions[0]);
-            Analysis.setRegionsLabels(Analysis.regionslist[1], Analysis.regions[1]);
+            Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0));
+            Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1));
             final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
             int fz2 = (Analysis.p.nz > 1) ? factor2 : 1;
 
             final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2);
-            ImagePlus colocImg = md.generateColocImg(Analysis.regionslist[0], Analysis.regionslist[1]);
+            ImagePlus colocImg = md.generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1));
             if (Analysis.p.dispwindows) {
                 colocImg.show();
             }
@@ -531,7 +532,10 @@ public class BLauncher {
 
         // build stack and imageplus for objects
         ImageStack objS = new ImageStack(di, dj);
-        System.out.println(regions.length + " " + regions[0].length + " " + regions[0][0].length);
+        Debug.print("regions", Debug.getArrayDims(regions));
+        Debug.print("image", Debug.getArrayDims(image));
+        Debug.print(dz, di, dj, channel, sep);
+        Debug.print(Debug.getStack(2));
         for (int z = 0; z < dz; z++) {
             final byte[] mask_bytes = new byte[di * dj];
             for (int i = 0; i < di; i++) {
