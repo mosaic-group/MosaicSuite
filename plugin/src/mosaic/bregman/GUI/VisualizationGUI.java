@@ -14,56 +14,37 @@ import mosaic.bregman.output.SquasshOutputChoose;
 
 
 class VisualizationGUI {
-    public VisualizationGUI() {
-    }
-
-    public void run() {
-        getParameters();
-    }
-
-    static int getParameters() {
-        final Font bf = new Font(null, Font.BOLD, 12);
-
+    
+    public static int getParameters() {
         final GenericDialog gd = new GenericDialog("Visualization and output options");
-
         gd.setInsets(-10, 0, 3);
+        
+        final Font bf = new Font(null, Font.BOLD, 12);
         gd.addMessage("Visualization and output", bf);
 
         final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
-        final boolean bgroup2[] = { false, false, false, false, false, false, false };
-
-        bgroup2[0] = Analysis.p.livedisplay;
-        bgroup2[1] = Analysis.p.dispcolors;
-        bgroup2[2] = Analysis.p.dispint;
-        bgroup2[3] = Analysis.p.displabels;
-        bgroup2[4] = Analysis.p.dispoutline;
-        bgroup2[5] = Analysis.p.dispSoftMask;
-        bgroup2[6] = Analysis.p.save_images;
-
+        final boolean bgroup2[] = { Analysis.p.livedisplay, Analysis.p.dispcolors, Analysis.p.dispint, Analysis.p.displabels, Analysis.p.dispoutline, Analysis.p.dispSoftMask, Analysis.p.save_images };
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
 
         final Button b = new Button("Output options");
         b.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 final OutputGUI og = new OutputGUI();
                 CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc, 1 /* oc_s */);
             }
-
         });
-
         gd.add(b);
+        
         gd.addMessage("    R script data analysis settings", bf);
         gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
 
-        final Button rscript = new Button("Set condition names and number of images per condition");
         final Panel p = new Panel();
+        final Button rscript = new Button("Set condition names and number of images per condition");
         p.add(rscript);
         rscript.addActionListener(new RScriptListener(gd, 0, 0));
 
         gd.addPanel(p);
-
         gd.centerDialog(false);
 
         // Visualization

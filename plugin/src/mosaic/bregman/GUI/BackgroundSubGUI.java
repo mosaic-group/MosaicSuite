@@ -13,15 +13,10 @@ import mosaic.bregman.Analysis;
 
 
 class BackgroundSubGUI {
-
-    void run() {
-        getParameters();
-    }
-
-    static int getParameters() {
+    public static int getParameters() {
         final GenericDialog gd = new GenericDialog("Background subtractor options");
-
         gd.setInsets(-10, 0, 3);
+        
         gd.addMessage("Background subtractor", new Font(null, Font.BOLD, 12));
 
         final Button help_b = new Button("help");

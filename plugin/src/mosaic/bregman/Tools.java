@@ -609,7 +609,12 @@ public class Tools {
         }
     }
 
-    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
+    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
+        return (nz == 1) ? computeEnergyPSF2D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image) :
+                           computeEnergyPSF3D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image);
+    }
+            
+    double computeEnergyPSF2D_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
             double c1, double[][][] image) {
         if (aPsf.isSeparable() == true) {
             Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], 0, ni);

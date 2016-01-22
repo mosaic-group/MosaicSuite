@@ -14,10 +14,6 @@ import mosaic.bregman.Analysis;
 
 
 class SegmentationGUI {
-    void run() {
-        getParameters();
-    }
-
     static int getParameters() {
         final Font bf = new Font(null, Font.BOLD, 12);
 

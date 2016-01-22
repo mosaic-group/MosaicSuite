@@ -103,13 +103,7 @@ public class GenericGUI {
             logger.debug("wd = [" + Analysis.p.wd + "]");
         }
 
-        if (BackgroundSubGUI.getParameters() == -1) {
-            return run_mode.STOP;
-        }
-        if (SegmentationGUI.getParameters() == -1) {
-            return run_mode.STOP;
-        }
-        if (VisualizationGUI.getParameters() == -1) {
+        if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
             return run_mode.STOP;
         }
 
@@ -163,49 +157,47 @@ public class GenericGUI {
 
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 
-        // Image chooser
         gd.addChoice("Input image", new String[] { "" }, "");
         MosaicUtils.chooseImage(gd, aImp);
 
-        // Background Options
-        final Button backOption = new Button("Options");
         Label label = new Label("Background subtraction");
         label.setFont(bf);
         p = new Panel();
         p.add(label);
+        
+        final Button backOption = new Button("Options");
         p.add(backOption);
         backOption.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final BackgroundSubGUI gds = new BackgroundSubGUI();
-                gds.run();
+                BackgroundSubGUI.getParameters();
             }
         });
         gd.addPanel(p);
 
-        // seg Option button
-        final Button segOption = new Button("Options");
         label = new Label("Segmentation parameters");
         label.setFont(bf);
         p = new Panel();
         p.add(label);
+        
+        final Button segOption = new Button("Options");
         p.add(segOption);
         segOption.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final SegmentationGUI gds = new SegmentationGUI();
-                gds.run();
+                SegmentationGUI.getParameters();
             }
         });
         gd.addPanel(p);
 
-        final Button colOption = new Button("Options");
         label = new Label("Colocalization (two channels images)");
         label.setFont(bf);
         p = new Panel();
         p.add(label);
+        
+        final Button colOption = new Button("Options");
         p.add(colOption);
         colOption.addActionListener(new ActionListener() {
 
@@ -217,18 +209,18 @@ public class GenericGUI {
         });
         gd.addPanel(p);
 
-        final Button visOption = new Button("Options");
         label = new Label("Vizualization and output");
         label.setFont(bf);
         p = new Panel();
         p.add(label);
+        
+        final Button visOption = new Button("Options");
         p.add(visOption);
         visOption.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final VisualizationGUI gds = new VisualizationGUI();
-                gds.run();
+                VisualizationGUI.getParameters();
             }
         });
         gd.addPanel(p);
@@ -258,11 +250,7 @@ public class GenericGUI {
 
         Analysis.p.wd = gd.getNextText();
 
-        final Runtime runtime = Runtime.getRuntime();
-        final int nrOfProcessors = runtime.availableProcessors();
-        // IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);
-        Analysis.p.nthreads = nrOfProcessors;
-
+        Analysis.p.nthreads = Runtime.getRuntime().availableProcessors();
         run_mode rm = run_mode.LOCAL;
         if (gd.getNextBoolean() == true) {
             rm = run_mode.USE_CLUSTER;
@@ -281,7 +269,6 @@ public class GenericGUI {
         
         if (!clustermode) {
             run_mode rm = null;
-
             // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
             // it does not work -> unit test fails. Should be investigated why...
             // It seems that we go then always in first 'if' instead of 'else' on most tests since batchMode = true is default
@@ -313,9 +300,7 @@ public class GenericGUI {
 
             gd.addStringField("config", "path", 10);
             gd.addStringField("filepath", "path", 10);
-
             gd.addNumericField("number of threads", 4, 0);
-
             gd.showDialog();
             if (gd.wasCanceled()) {
                 return;

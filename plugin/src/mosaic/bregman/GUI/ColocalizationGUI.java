@@ -73,7 +73,6 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
         posx = ParentPosx + 20;
         posy = ParentPosy + 20;
-
     }
 
     public void run() {
@@ -232,19 +231,14 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         Analysis.p.usecellmaskY = gd.getNextBoolean();
         Analysis.p.thresholdcellmask = gd.getNextNumber();
         Analysis.p.thresholdcellmasky = gd.getNextNumber();
-
     }
 
     private double expvalue(double slidervalue) {
-
         return (Math.pow(10, (slidervalue / maxslider) * logspan + logmin));
-
     }
 
     private double logvalue(double tvalue) {
-
         return (maxslider * (Math.log10(tvalue) - logmin) / logspan);
-
     }
 
     @Override
@@ -297,13 +291,10 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
                 if (maska_im2 != null) {
                     maska_im2.hide();
                 }
-                // maska_im2.close();
-                // maska_im2=null;
                 init2 = false;
             }
 
         }
-        // IJ.log("boxval to false");
         boxval = false;
     }
 
@@ -353,7 +344,6 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
                 }
             }
-
             fieldval = false;
         }
     }
@@ -418,9 +408,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             }
 
             sliderval = false;
-
         }
-
     }
 
     // find min and max values in channel 1
