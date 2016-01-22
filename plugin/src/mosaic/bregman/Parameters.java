@@ -110,58 +110,67 @@ public class Parameters implements Serializable {
 
     // copy constructor
     public Parameters(Parameters p) {
-        this.save_images = p.save_images;
-        this.wd = p.wd;
+        // Segmentation options
+        for (int i = 0; i < lreg_.length; i++) { lreg_[i] = p.lreg_[i]; }
+        min_intensity = p.min_intensity;
+        min_intensityY = p.min_intensityY;
+        // subpixel
+        // exclude_z_edges
+        mode_intensity = p.mode_intensity;
+        noise_model = p.noise_model;
+        sigma_gaussian = p.sigma_gaussian;
+        zcorrec = p.zcorrec;
+        min_region_filter_intensities = p.min_region_filter_intensities;
+        // patches_from_file
+        
+        // Background subtracter
+        removebackground = p.removebackground;
+        size_rollingball = p.size_rollingball;
 
-        this.interpolation = p.interpolation;
-        for (int i = 0; i < this.lreg_.length; i++) {
-            this.lreg_[i] = p.lreg_[i];
-        }
-        this.size_rollingball = p.size_rollingball;
-        this.max_nsb = p.max_nsb;
-        this.removebackground = p.removebackground;
-        this.livedisplay = p.livedisplay;
-        this.min_intensity = p.min_intensity;
-        this.min_intensityY = p.min_intensityY;
-        this.sigma_gaussian = p.sigma_gaussian;
-        this.zcorrec = p.zcorrec;
-        this.nthreads = p.nthreads;
-        this.usecellmaskX = p.usecellmaskX;
-        this.usecellmaskY = p.usecellmaskY;
-        this.thresholdcellmask = p.thresholdcellmask;
-        this.thresholdcellmasky = p.thresholdcellmasky;
-        this.nchannels = p.nchannels;
-        this.min_region_filter_intensities = p.min_region_filter_intensities;
-
-        this.dispSoftMask = p.dispSoftMask;
-        this.dispint = p.dispint;
-        this.displabels = p.displabels;
-        this.dispcolors = p.dispcolors;
-        this.dispoutline = p.dispoutline;
-        this.PSF = p.PSF;
-        this.mode_intensity = p.mode_intensity;
-        this.noise_model = p.noise_model;
-
-        this.ni = p.ni;
-        this.nj = p.nj;
-        this.nz = p.nz;
-
-        this.cl = new double[2];
+        // Colocalization / Cell masks
+        usecellmaskX = p.usecellmaskX;
+        usecellmaskY = p.usecellmaskY;
+        thresholdcellmask = p.thresholdcellmask;
+        thresholdcellmasky = p.thresholdcellmasky;
+        
+        // Visualization
+        livedisplay = p.livedisplay;
+        dispcolors = p.dispcolors;
+        dispint = p.dispint;
+        displabels = p.displabels;
+        dispoutline = p.dispoutline;
+        dispSoftMask = p.dispSoftMask;
+        save_images = p.save_images;
+        // nbconditions
+        
+        // not yet investigated
+        interpolation = p.interpolation;
+        // oversampling2ndstep
+        max_nsb = p.max_nsb;
+        // refinement
+        wd = p.wd;
+        // dispwindows
+        cl = new double[2];
+        nthreads = p.nthreads;
+        nchannels = p.nchannels;
+        // firstphase
+        PSF = p.PSF;
+        ni = p.ni; nj = p.nj; nz = p.nz;
     }
 
     @Override
     public String toString() {
-        String str = "save_images=" + this.save_images + "\n";
-        str += "wd=" + this.wd + "\n";
-        for (int i = 0; i < this.lreg_.length; i++) {
-            str += "lreg_[" + i + "]" + this.lreg_[i] + "\n";
+        String str = "save_images=" + save_images + "\n";
+        str += "wd=" + wd + "\n";
+        for (int i = 0; i < lreg_.length; i++) {
+            str += "lreg_[" + i + "]" + lreg_[i] + "\n";
         }
-        str += "size_rollingball=" + this.size_rollingball + "\n";
-        str += "removebackground=" + this.removebackground + "\n";
-        str += "min_intensity=" + this.min_intensity + "\n";
-        str += "min_intensityY" + this.min_intensityY + "\n";
-        str += "sigma_gaussian=" + this.sigma_gaussian + "\n";
-        str += "zcorrec=" + this.zcorrec + "\n";
+        str += "size_rollingball=" + size_rollingball + "\n";
+        str += "removebackground=" + removebackground + "\n";
+        str += "min_intensity=" + min_intensity + "\n";
+        str += "min_intensityY" + min_intensityY + "\n";
+        str += "sigma_gaussian=" + sigma_gaussian + "\n";
+        str += "zcorrec=" + zcorrec + "\n";
 
         return str;
     }
