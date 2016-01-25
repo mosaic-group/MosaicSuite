@@ -2,6 +2,7 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -52,13 +53,11 @@ public class Analysis {
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
 
+    // Create empty elements - they are later access by index - not nice but later elements are accessed by get() 
+    // and they must exist. TODO: This should be refactored.
+    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>(Arrays.asList(null, null));
     private static short[][][][] regions = new short[2][][][];
-    // Create empty elements - they are later access by index - not nice and should be refactored.
-    // introduced to remove old init() method acting as a "constructor"
-    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
-        private static final long serialVersionUID = 1L;
-        {add(null); add(null);}
-    };
+    
     final static ImagePlus out_soft_mask[] = new ImagePlus[2];
     
     public static ArrayList<Region> getRegionslist(int aRegionNum) {

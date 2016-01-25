@@ -43,7 +43,7 @@ public class Parameters implements Serializable {
     final public boolean debug = false;
     final double ldata = 1;
     final double gamma = 1;
-    final double tol = 1e-7;
+    final double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
     final double betaMLEindefault = 1.0;
     final double betaMLEoutdefault = 0.0003;
     final public int minves_size = 2;

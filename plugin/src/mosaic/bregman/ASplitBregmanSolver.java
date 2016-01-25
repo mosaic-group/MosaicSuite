@@ -48,8 +48,6 @@ abstract class ASplitBregmanSolver {
 
     protected final int ni, nj, nz;
     protected double energy; 
-    private double lastenergy; // TODO: It should be initialized to some value.
-    private double bestNrj;
     protected final Parameters p;
     private AnalysePatch Ap = null;
 
@@ -58,62 +56,61 @@ abstract class ASplitBregmanSolver {
     
     ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         this(params, image, mask, md, channel);
-        this.Ap = ap;
+        Ap = ap;
     }
 
-    private ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel) {
-        this.LocalTools = new Tools(params.ni, params.nj, params.nz);
-        this.channel = channel;
-        bestNrj = Double.MAX_VALUE;
-        this.p = params;
-        this.ni = params.ni;
-        this.nj = params.nj;
-        this.nz = params.nz;
+    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel) {
+        LocalTools = new Tools(aParams.ni, aParams.nj, aParams.nz);
+        channel = aChannel;
+        p = aParams;
+        ni = aParams.ni;
+        nj = aParams.nj;
+        nz = aParams.nz;
 
         // Beta MLE in and out
-        this.c0 = params.cl[0];
-        this.c1 = params.cl[1];
+        c0 = aParams.cl[0];
+        c1 = aParams.cl[1];
         
-        this.energytab2 = new double[p.nthreads];
+        energytab2 = new double[p.nthreads];
         
-        this.md = md;
+        md = aMaskDisplay;
 
-        this.image = image;
+        image = aImage;
 
-        this.w1k = new double[nz][ni][nj];
-        this.w3k = new double[nz][ni][nj];
-        this.w3kbest = new double[nz][ni][nj];
+        w1k = new double[nz][ni][nj];
+        w3k = new double[nz][ni][nj];
+        w3kbest = new double[nz][ni][nj];
 
-        this.b2xk = new double[nz][ni][nj];
-        this.b2yk = new double[nz][ni][nj];
+        b2xk = new double[nz][ni][nj];
+        b2yk = new double[nz][ni][nj];
 
-        this.b1k = new double[nz][ni][nj];
-        this.b3k = new double[nz][ni][nj];
+        b1k = new double[nz][ni][nj];
+        b3k = new double[nz][ni][nj];
 
-        this.w2xk = new double[nz][ni][nj];
-        this.w2yk = new double[nz][ni][nj];
+        w2xk = new double[nz][ni][nj];
+        w2yk = new double[nz][ni][nj];
 
-        this.Ri = new float[nz][ni][nj];
-        this.Ro = new float[nz][ni][nj];
+        Ri = new float[nz][ni][nj];
+        Ro = new float[nz][ni][nj];
 
-        this.temp1 = new double[nz][ni][nj];
-        this.temp2 = new double[nz][ni][nj];
-        this.temp3 = new double[nz][ni][nj];
-        this.temp4 = new double[nz][ni][nj];
+        temp1 = new double[nz][ni][nj];
+        temp2 = new double[nz][ni][nj];
+        temp3 = new double[nz][ni][nj];
+        temp4 = new double[nz][ni][nj];
         
         // precompute eigenlaplacian
-        this.eigenLaplacian = new double[ni][nj];
+        eigenLaplacian = new double[ni][nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                this.eigenLaplacian[i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))));
+                eigenLaplacian[i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))));
             }
         }
 
-        LocalTools.fgradx2D(temp1, mask);
-        LocalTools.fgrady2D(temp2, mask);
+        LocalTools.fgradx2D(temp1, aMask);
+        LocalTools.fgrady2D(temp2, aMask);
 
-        LocalTools.copytab(w1k, mask);
-        LocalTools.copytab(w3k, mask);
+        LocalTools.copytab(w1k, aMask);
+        LocalTools.copytab(w3k, aMask);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -126,90 +123,77 @@ abstract class ASplitBregmanSolver {
     }
 
     void first_run() throws InterruptedException {
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    b2xk[z][i][j] = 0;
-                    b2yk[z][i][j] = 0;
-                    b1k[z][i][j] = 0;
-                    b3k[z][i][j] = 0;
-                }
-            }
-        }
-
         if (p.firstphase) {
             IJ.showStatus("Computing segmentation");
             IJ.showProgress(0.0);
         }
 
-        final int modulo = 10;
         stepk = 0;
-        boolean StopFlag = false;
-        int iw3kbest = 0;
-        while (stepk < p.max_nsb && !StopFlag) {
+        final int modulo = 10;
+        int bestIteration = 0;
+        boolean stopFlag = false;
+        double bestEnergy = Double.MAX_VALUE;
+        double lastenergy = 0;
+        
+        while (stepk < p.max_nsb && !stopFlag) {
             step();
 
-            if (energy < bestNrj) {
+            if (energy < bestEnergy) {
                 LocalTools.copytab(w3kbest, w3k);
-                iw3kbest = stepk;
-                bestNrj = energy;
+                bestIteration = stepk;
+                bestEnergy = energy;
             }
-            if (stepk % modulo == 0 || stepk == p.max_nsb - 1) {
+            
+            final boolean moduloStep = stepk % modulo == 0 || stepk == p.max_nsb - 1;
+            
+            if (moduloStep && stepk != 0) {
                 if (Math.abs((energy - lastenergy) / lastenergy) < p.tol) {
-                    StopFlag = true;
-                    if (p.livedisplay && p.firstphase) {
-                        IJ.log("energy stop");
-                    }
+                    stopFlag = true;
                 }
             }
             lastenergy = energy;
 
-            if (stepk % modulo == 0 && p.livedisplay && p.firstphase) {
-                IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));
-            }
-
-            if (!p.firstphase && p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
-                Ap.find_best_thresh_and_int(w3k);
-                p.cl[0] = Math.max(0, Ap.cout);
-                // lower bound withg some margin
-                p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
-                this.init();
-                if (p.debug) {
-                    IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
-                    IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
-                }
-            }
-
-            stepk++;
-
             if (p.firstphase) {
-                if (stepk % modulo == 0) {
+                if (moduloStep) {
+                    if (p.livedisplay) {
+                        IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
+                        if (stopFlag) IJ.log("energy stop");
+                    }
                     IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(p.max_nsb - 1), 2) + "%");
                 }
                 IJ.showProgress(0.5 * (stepk) / (p.max_nsb - 1));
             }
+            else {
+                if (p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
+                    Ap.find_best_thresh_and_int(w3k);
+                    p.cl[0] = Math.max(0, Ap.cout);
+                    // lower bound withg some margin
+                    p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
+                    init();
+                    if (p.debug) {
+                        IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
+                        IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
+                    }
+                }
+            }
+            
+            stepk++;
         }
 
-        if (iw3kbest < 50) { // use what iteration threshold ?
-            final int iw3kbestold = iw3kbest;
+        if (bestIteration < 50) { // use what iteration threshold ?
             LocalTools.copytab(w3kbest, w3k);
-            iw3kbest = stepk - 1;
-            bestNrj = energy;
+            bestIteration = stepk - 1;
+            bestEnergy = energy;
             if (p.livedisplay && p.firstphase) {
-                IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
+                IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
             }
         }
         if (p.firstphase) {
-            this.regions_intensity_findthresh(w3kbest);
+            regions_intensity_findthresh(w3kbest);
             
             if (p.livedisplay) {
-                if (p.nz == 1) {
-                    md.display2regions(w3kbest, "Mask 2das3d", channel);
-                }
-                if (p.nz > 1) {
-                    md.display2regions(w3kbest, "Mask", channel);
-                }
-                IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
+                md.display2regions(w3kbest, "Mask", channel);
+                IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
             }
         }
     }
