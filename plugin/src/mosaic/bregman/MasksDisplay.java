@@ -54,60 +54,12 @@ class MasksDisplay {
     /**
      * Display the soft membership
      *
-     * @param array 2D array of double
-     * @param s String of the image
-     * @param channel channel
-     */
-    void display2regions(double[][] array, String s, int channel) {
-        final ImageProcessor ims = convertArrayToImageProcessor(array);
-
-        if (channel == 0) {
-            iAImg.setProcessor(s + " X", ims);
-            iAImg.show();
-            iAImg.changes = false;
-        }
-        else {
-            iBImg.setProcessor(s + " Y", ims);
-            iBImg.show();
-            iBImg.changes = false;
-        }
-    }
-
-    private ImageProcessor convertArrayToImageProcessor(double[][] array) {
-        final float[][] temp = new float[iWidth][iHeigth];
-        for (int i = 0; i < iWidth; i++) {
-            for (int j = 0; j < iHeigth; j++) {
-                temp[i][j] = (float) array[i][j];
-            }
-        }
-        final ImageProcessor imp = new FloatProcessor(temp);
-        return imp;
-    }
-
-    /**
-     * Display the soft membership
-     *
      * @param array 3D array of double
      * @param s String of the image
      * @param channel channel
      */
-    void display2regions3D(double[][][] array, String s, int channel) {
-    
-        Debug.print("display2regions3D", iWidth, iHeigth);
-        
-        int aScaleInput = 255;
-        final ImageStack ims = new ImageStack(iWidth, iHeigth);
-        for (int z = 0; z < iDepth; z++) {
-            final byte[] temp = new byte[iWidth * iHeigth];
-            for (int j = 0; j < iHeigth; j++) {
-                for (int i = 0; i < iWidth; i++) {
-                    temp[j * iWidth + i] = (byte) ((int) (aScaleInput * array[z][i][j]));
-                }
-            }
-            final ImageProcessor bp = new ByteProcessor(iWidth, iHeigth);
-            bp.setPixels(temp);
-            ims.addSlice("", bp);
-        }
+    void display2regions(double[][][] array, String s, int channel) {
+        final ImageStack ims = convertArrayToImageProcessor(array);
 
         if (channel == 0) {
             iAImg.setStack(s + " X", ims);
@@ -119,6 +71,22 @@ class MasksDisplay {
             iBImg.resetDisplayRange();
             iBImg.show();
         }
+    }
+
+    private ImageStack convertArrayToImageProcessor(double[][][] array) {
+        final ImageStack ims = new ImageStack(iWidth, iHeigth);
+        for (int z = 0; z < iDepth; z++) {
+            final byte[] temp = new byte[iWidth * iHeigth];
+            for (int j = 0; j < iHeigth; j++) {
+                for (int i = 0; i < iWidth; i++) {
+                    temp[j * iWidth + i] = (byte) ((int) (255 * array[z][i][j]));
+                }
+            }
+            final ImageProcessor bp = new ByteProcessor(iWidth, iHeigth);
+            bp.setPixels(temp);
+            ims.addSlice("", bp);
+        }
+        return ims;
     }
 
     /**

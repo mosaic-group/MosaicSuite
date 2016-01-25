@@ -130,7 +130,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         }
 
         if (p.livedisplay && p.firstphase) {
-            md.display2regions(w3k[0], "Mask", channel);
+            md.display2regions(w3k, "Mask", channel);
         }
     }
 

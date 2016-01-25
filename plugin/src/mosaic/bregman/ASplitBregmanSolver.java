@@ -137,18 +137,16 @@ abstract class ASplitBregmanSolver {
             }
         }
 
-        stepk = 0;
-        final int modulo = 10;
-
         if (p.firstphase) {
             IJ.showStatus("Computing segmentation");
             IJ.showProgress(0.0);
         }
 
+        final int modulo = 10;
+        stepk = 0;
         boolean StopFlag = false;
         int iw3kbest = 0;
         while (stepk < p.max_nsb && !StopFlag) {
-            // Bregman step
             step();
 
             if (energy < bestNrj) {
@@ -183,11 +181,11 @@ abstract class ASplitBregmanSolver {
             }
 
             stepk++;
-            if (stepk % modulo == 0 && p.firstphase) {
-                IJ.showStatus("Computing segmentation  " + Tools.round((((double) 50 * stepk) / (p.max_nsb - 1)), 2) + "%");
-            }
 
             if (p.firstphase) {
+                if (stepk % modulo == 0) {
+                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(p.max_nsb - 1), 2) + "%");
+                }
                 IJ.showProgress(0.5 * (stepk) / (p.max_nsb - 1));
             }
         }
@@ -203,15 +201,13 @@ abstract class ASplitBregmanSolver {
         }
         if (p.firstphase) {
             this.regions_intensity_findthresh(w3kbest);
-        }
-
-        if (p.livedisplay) {
-            if (p.firstphase) {
+            
+            if (p.livedisplay) {
                 if (p.nz == 1) {
-                    md.display2regions(w3kbest[0], "Mask", channel);
+                    md.display2regions(w3kbest, "Mask 2das3d", channel);
                 }
                 if (p.nz > 1) {
-                    md.display2regions3D(w3kbest, "Mask__", channel);
+                    md.display2regions(w3kbest, "Mask", channel);
                 }
                 IJ.log("Best energy : " + Tools.round(bestNrj, 3) + ", found at step " + iw3kbest);
             }
