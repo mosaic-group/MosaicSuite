@@ -428,14 +428,23 @@ public class BLauncher {
             Analysis.segmentB();
         }
 
-        // TODO : why is it needed to reassign p.ni ...??
-        if (Analysis.iParams.ni != Analysis.imgA.getWidth()) throw new RuntimeException("ni CHANGED!!!!!!!!");
-        if (Analysis.iParams.nj != Analysis.imgA.getHeight()) throw new RuntimeException("nj CHANGED!!!!!!!!");
-        if (Analysis.iParams.nz != Analysis.imgA.getNSlices()) throw new RuntimeException("nz CHANGED!!!!!!!!");
-        Analysis.iParams.ni = Analysis.imgA.getWidth();
-        Analysis.iParams.nj = Analysis.imgA.getHeight();
-        Analysis.iParams.nz = Analysis.imgA.getNSlices();
-
+        String savepath = MosaicUtils.ValidFolderFromImage(aImp);
+        final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
+        
+        // Choose the Rscript coloc format
+        if (Analysis.iParams.nchannels == 2) CSVOutput.occ = CSVOutput.oc[2];
+        
+        final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
+        
+        if (Analysis.iParams.nchannels == 1) {
+            if (Analysis.iParams.save_images) {
+                final Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
+                IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
+                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
+            }
+            
+            sth_hcount++;
+        }
         if (Analysis.iParams.nchannels == 2) {
             Analysis.computeOverallMask();
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
@@ -465,49 +474,26 @@ public class BLauncher {
                 colocA = mosaic.bregman.Tools.round(Analysis.colocsegA(), 4);
                 colocB = mosaic.bregman.Tools.round(Analysis.colocsegB(), 4);
 
-                String savepath = MosaicUtils.ValidFolderFromImage(aImp);
-                final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
-
                 boolean append = (new File(output1).exists()) ? true : false;
 
-                // Write channel 2
-
-                // Choose the Rscript coloc format
-                CSVOutput.occ = CSVOutput.oc[2];
-                Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 1);
-
-                final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
-                IpCSV.clearMetaInformation();
-                IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-                CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
-
                 // Write channel 1
-                obl = getObjectsList(sth_hcount, 0);
+                Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
-            }
-
-            sth_hcount++;
-        }
-
-        if (Analysis.iParams.nchannels == 1) {
-            if (Analysis.iParams.save_images) {
-                String savepath = null;
-                savepath = MosaicUtils.ValidFolderFromImage(aImp);
-
-                final Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
-                final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
-
-                final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
+                
+                // Write channel 2
+                obl = getObjectsList(sth_hcount, 1);
+                IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
+                CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
             }
 
             sth_hcount++;
         }
+
         ij.Prefs.blackBackground = tempBlackbackground;
 
         final long lEndTime = new Date().getTime(); // start time
