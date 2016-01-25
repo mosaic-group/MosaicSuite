@@ -44,24 +44,6 @@ class ObjectProperties implements Runnable {
         p.ni = sx;
         p.nj = sy;
         p.nz = sz;
-        // set psf
-        if (p.nz > 1) {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
-            psf.setVar(var);
-            p.PSF = psf;
-        }
-        else {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            psf.setVar(var);
-            p.PSF = psf;
-        }
     }
 
     @Override
@@ -186,8 +168,8 @@ class ObjectProperties implements Runnable {
 
         r.perimeter = pr;
 
-        if (Analysis.p.subpixel) {
-            r.perimeter = pr / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
+        if (Analysis.iParams.subpixel) {
+            r.perimeter = pr / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
         }
     }
 
@@ -229,7 +211,7 @@ class ObjectProperties implements Runnable {
         double sumy = 0;
         double sumz = 0;
         for (Pix p : r.pixels) {
-            if (!Analysis.p.refinement) {
+            if (!Analysis.iParams.refinement) {
                 sum += image[p.pz][p.px][p.py];
             }
 
@@ -240,7 +222,7 @@ class ObjectProperties implements Runnable {
         
         int count = r.pixels.size();
 
-        if (!Analysis.p.refinement) {
+        if (!Analysis.iParams.refinement) {
             r.intensity = (sum / (count));
         }// done in refinement
 
@@ -248,10 +230,10 @@ class ObjectProperties implements Runnable {
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
 
-        if (Analysis.p.subpixel) {
-            r.cx = r.cx / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
-            r.cy = r.cy / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
-            r.cz = r.cz / (Analysis.p.oversampling2ndstep * Analysis.p.interpolation);
+        if (Analysis.iParams.subpixel) {
+            r.cx = r.cx / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
+            r.cy = r.cy / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
+            r.cz = r.cz / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
         }
     }
 

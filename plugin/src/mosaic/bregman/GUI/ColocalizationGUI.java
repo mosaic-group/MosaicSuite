@@ -86,8 +86,8 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         final String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
         final boolean bgroup3[] = { false, false };
 
-        bgroup3[0] = Analysis.p.usecellmaskX;
-        bgroup3[1] = Analysis.p.usecellmaskY;
+        bgroup3[0] = Analysis.iParams.usecellmaskX;
+        bgroup3[1] = Analysis.iParams.usecellmaskY;
 
         t1 = new JSlider();
         t2 = new JSlider();
@@ -103,7 +103,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
         gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
 
-        gd.addNumericField("Threshold_channel_1 (0 to 1)", Analysis.p.thresholdcellmask, 4);
+        gd.addNumericField("Threshold_channel_1 (0 to 1)", Analysis.iParams.thresholdcellmask, 4);
         final Panel p1 = new Panel();
         p1.add(l1);
         p1.add(t1);
@@ -114,7 +114,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         pz1.add(tz1);
         gd.addPanel(pz1);
 
-        gd.addNumericField("Threshold_channel_2 (0 to 1)", Analysis.p.thresholdcellmasky, 4);
+        gd.addNumericField("Threshold_channel_2 (0 to 1)", Analysis.iParams.thresholdcellmasky, 4);
 
         final Panel p2 = new Panel();
         p2.add(l2);
@@ -147,8 +147,8 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         t2.setMinimum(0);
         t2.setMaximum(maxslider);
 
-        t1.setValue((int) logvalue(Analysis.p.thresholdcellmask));
-        t2.setValue((int) logvalue(Analysis.p.thresholdcellmasky));
+        t1.setValue((int) logvalue(Analysis.iParams.thresholdcellmask));
+        t2.setValue((int) logvalue(Analysis.iParams.thresholdcellmasky));
 
         val1 = new Double((v1.getText()));
         val2 = new Double((v2.getText()));
@@ -187,7 +187,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             tz2.setEnabled(false);
         }
 
-        if (Analysis.p.usecellmaskX && imgch1 != null) {
+        if (Analysis.iParams.usecellmaskX && imgch1 != null) {
             maska_im1 = new ImagePlus();
             initpreviewch1(imgch1);
             previewBinaryCellMask(new Double((v1.getText())), imgch1, maska_im1, 1);
@@ -195,7 +195,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
         }
 
-        if (Analysis.p.usecellmaskY && imgch2 != null) {
+        if (Analysis.iParams.usecellmaskY && imgch2 != null) {
             maska_im2 = new ImagePlus();
             initpreviewch2(imgch2);
             previewBinaryCellMask(new Double((v2.getText())), imgch2, maska_im2, 2);
@@ -227,10 +227,10 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             return;
         }
 
-        Analysis.p.usecellmaskX = gd.getNextBoolean();
-        Analysis.p.usecellmaskY = gd.getNextBoolean();
-        Analysis.p.thresholdcellmask = gd.getNextNumber();
-        Analysis.p.thresholdcellmasky = gd.getNextNumber();
+        Analysis.iParams.usecellmaskX = gd.getNextBoolean();
+        Analysis.iParams.usecellmaskY = gd.getNextBoolean();
+        Analysis.iParams.thresholdcellmask = gd.getNextNumber();
+        Analysis.iParams.thresholdcellmasky = gd.getNextNumber();
     }
 
     private double expvalue(double slidervalue) {

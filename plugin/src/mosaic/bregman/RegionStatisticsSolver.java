@@ -62,10 +62,10 @@ class RegionStatisticsSolver {
 
         // Convolve the mask
         if (nz == 1) {
-            Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
+            Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.iParams.PSF, mu[0]);
         }
         else {
-            Tools.convolve3Dseparable(KMask, W, ni, nj, nz, Analysis.p.PSF, mu);
+            Tools.convolve3Dseparable(KMask, W, ni, nj, nz, Analysis.iParams.PSF, mu);
         }
 
         betaMLEout = 0;

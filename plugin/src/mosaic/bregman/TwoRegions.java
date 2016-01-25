@@ -71,10 +71,10 @@ class TwoRegions implements Runnable {
         }
 
         if (p.usecellmaskX && channel == 0) {
-            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.p.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
+            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParams.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
         }
         if (p.usecellmaskY && channel == 1) {
-            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.p.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
+            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParams.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
         }
 
         max = 0;
@@ -239,7 +239,7 @@ class TwoRegions implements Runnable {
             A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null);
         }
 
-        if (Analysis.p.patches_from_file == null) {
+        if (Analysis.iParams.patches_from_file == null) {
             try {
                 A_solver.first_run();
             }
@@ -251,8 +251,8 @@ class TwoRegions implements Runnable {
             // Load particles
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
 
-            csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
-            Vector<Particle> pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+            csv.setCSVPreferenceFromFile(Analysis.iParams.patches_from_file);
+            Vector<Particle> pt = csv.Read(Analysis.iParams.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             // Get the particle related inly to one frames
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
@@ -267,7 +267,7 @@ class TwoRegions implements Runnable {
         mergeSoftMask(A_solver);
 
         if (channel == 0) {
-            Analysis.setMaskaTworegions(A_solver.w3kbest);
+            Analysis.setMaskA(A_solver.w3kbest);
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
@@ -276,7 +276,7 @@ class TwoRegions implements Runnable {
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_a();
 
-            if (Analysis.p.refinement) {
+            if (Analysis.iParams.refinement) {
                 Debug.print(p.interpolation);
                 Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(0), regions, RiN);
                 Debug.print(p.interpolation);
@@ -359,7 +359,7 @@ class TwoRegions implements Runnable {
             }
         }
         else {
-            Analysis.setMaskbTworegions(A_solver.w3kbest);
+            Analysis.setMaskB(A_solver.w3kbest);
             float[][][] RiN = new float[p.nz][p.ni][p.nj];
             LocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[p.nz][p.ni][p.nj];
@@ -368,7 +368,7 @@ class TwoRegions implements Runnable {
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_b();
 
-            if (Analysis.p.refinement) {
+            if (Analysis.iParams.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(1), regions, RiN);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);

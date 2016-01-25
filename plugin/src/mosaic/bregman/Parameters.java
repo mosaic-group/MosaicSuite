@@ -33,10 +33,10 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private boolean findregionthresh = true; 
     @SuppressWarnings("unused") final private double regionthresh = 0.19;
     @SuppressWarnings("unused") final private double regionthreshy = 0.19;
+    @SuppressWarnings("unused") final private boolean dispwindows = true;
     
-    // ================================ Other parameters not changeable directly by user and/or nasty globals
-    
-    // const segmentation parameters - might be useful if beter names are given (config file for test update!).
+    // ================================ const segmentation parameters 
+    // might be useful if beter names are given (config file for test update!).
     final double colocthreshold = 0.5;
     final int RegionsIntensitymodulo = 3000;
     final int energyEvaluationModulo = 5;
@@ -48,22 +48,20 @@ public class Parameters implements Serializable {
     final double betaMLEoutdefault = 0.0003;
     final public int minves_size = 2;
     
-    // not yet investigated
+    // ================================ not yet investigated
     public int interpolation = 1;// 4
     public int oversampling2ndstep = 2;// 2
-    public int max_nsb = 201;
+    boolean firstphase = true;
     public boolean refinement = false;
+    public int max_nsb = 201;
     public String wd = null;
-    public boolean dispwindows = true;
     final double[] cl;
     public int nthreads = 4;
     public int nchannels = 2;
-    boolean firstphase = true;
     public psf<DoubleType> PSF;
     int ni, nj, nz;
     
     // ================================ parameters changed in GUI
-    
     // Segmentation options
     final public double lreg_[] = { 0.05, 0.05 };
     public double min_intensity = 0.15;
@@ -110,7 +108,7 @@ public class Parameters implements Serializable {
 
     // copy constructor
     public Parameters(Parameters p) {
-        // Segmentation options
+        // =========== Segmentation options
         for (int i = 0; i < lreg_.length; i++) { lreg_[i] = p.lreg_[i]; }
         min_intensity = p.min_intensity;
         min_intensityY = p.min_intensityY;
@@ -123,17 +121,17 @@ public class Parameters implements Serializable {
         min_region_filter_intensities = p.min_region_filter_intensities;
         // patches_from_file
         
-        // Background subtracter
+        // ===========  Background subtracter
         removebackground = p.removebackground;
         size_rollingball = p.size_rollingball;
 
-        // Colocalization / Cell masks
+        // ===========  Colocalization / Cell masks
         usecellmaskX = p.usecellmaskX;
         usecellmaskY = p.usecellmaskY;
         thresholdcellmask = p.thresholdcellmask;
         thresholdcellmasky = p.thresholdcellmasky;
         
-        // Visualization
+        // ===========  Visualization
         livedisplay = p.livedisplay;
         dispcolors = p.dispcolors;
         dispint = p.dispint;
@@ -143,7 +141,7 @@ public class Parameters implements Serializable {
         save_images = p.save_images;
         // nbconditions
         
-        // not yet investigated
+        // ===========  not yet investigated
         interpolation = p.interpolation;
         // oversampling2ndstep
         max_nsb = p.max_nsb;

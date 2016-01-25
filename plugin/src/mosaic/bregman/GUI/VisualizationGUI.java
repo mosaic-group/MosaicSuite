@@ -23,7 +23,7 @@ class VisualizationGUI {
         gd.addMessage("Visualization and output", bf);
 
         final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
-        final boolean bgroup2[] = { Analysis.p.livedisplay, Analysis.p.dispcolors, Analysis.p.dispint, Analysis.p.displabels, Analysis.p.dispoutline, Analysis.p.dispSoftMask, Analysis.p.save_images };
+        final boolean bgroup2[] = { Analysis.iParams.livedisplay, Analysis.iParams.dispcolors, Analysis.iParams.dispint, Analysis.iParams.displabels, Analysis.iParams.dispoutline, Analysis.iParams.dispSoftMask, Analysis.iParams.save_images };
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
 
         final Button b = new Button("Output options");
@@ -37,7 +37,7 @@ class VisualizationGUI {
         gd.add(b);
         
         gd.addMessage("    R script data analysis settings", bf);
-        gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
+        gd.addNumericField("Number of conditions", Analysis.iParams.nbconditions, 0);
 
         final Panel p = new Panel();
         final Button rscript = new Button("Set condition names and number of images per condition");
@@ -54,16 +54,16 @@ class VisualizationGUI {
                 return -1;
             }
 
-            Analysis.p.livedisplay = gd.getNextBoolean();
-            Analysis.p.dispcolors = gd.getNextBoolean();
-            Analysis.p.dispint = gd.getNextBoolean();
-            Analysis.p.displabels = gd.getNextBoolean();
-            Analysis.p.dispoutline = gd.getNextBoolean();
-            Analysis.p.dispSoftMask = gd.getNextBoolean();
-            Analysis.p.save_images = gd.getNextBoolean();
+            Analysis.iParams.livedisplay = gd.getNextBoolean();
+            Analysis.iParams.dispcolors = gd.getNextBoolean();
+            Analysis.iParams.dispint = gd.getNextBoolean();
+            Analysis.iParams.displabels = gd.getNextBoolean();
+            Analysis.iParams.dispoutline = gd.getNextBoolean();
+            Analysis.iParams.dispSoftMask = gd.getNextBoolean();
+            Analysis.iParams.save_images = gd.getNextBoolean();
         }
 
-        Analysis.p.nbconditions = (int) gd.getNextNumber();
+        Analysis.iParams.nbconditions = (int) gd.getNextNumber();
 
         return 0;
     }

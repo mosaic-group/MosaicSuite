@@ -415,7 +415,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
      * size and intensity
      *
      * @param cal spacing
-     * @param p Particle vector
+     * @param iParams Particle vector
      */
     private void rescaleWith(Calibration cal, Vector<Particle> vp) {
         // ask for feature filtering stage

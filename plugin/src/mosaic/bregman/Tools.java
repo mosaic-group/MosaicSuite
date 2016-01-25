@@ -400,7 +400,7 @@ public class Tools {
         if (mu < 0) {
             mu = 0.0001;
         }
-        if (Analysis.p.noise_model == 0) {// poisson
+        if (Analysis.iParams.noise_model == 0) {// poisson
 
             if (im != 0) {
                 res = (im * Math.log(im / mu) + mu - im);
@@ -930,12 +930,12 @@ public class Tools {
             }
         }
         if (aShowAndSave) {
-            if (Analysis.p.dispwindows && Analysis.p.livedisplay) {
+            if (Analysis.iParams.livedisplay) {
                 maskImg.show();
             }
 
-            if (Analysis.p.save_images) {
-                String savepath = Analysis.p.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (aChannel == 0 ? 1 : 2) + ".zip";
+            if (Analysis.iParams.save_images) {
+                String savepath = Analysis.iParams.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (aChannel == 0 ? 1 : 2) + ".zip";
                 IJ.saveAs(maskImg, "ZIP", savepath);
             }
         }

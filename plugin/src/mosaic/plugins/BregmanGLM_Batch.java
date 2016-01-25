@@ -23,18 +23,12 @@ import net.imglib2.type.numeric.real.DoubleType;
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
     
-    private String savedSettings;
-    private GenericGUI window;
     private boolean gui_use_cluster = false;
-
     public static boolean test_mode = false;
     public static String test_path = null;
     
     @Override
     public int setup(String arg0, ImagePlus active_img) {
-        // init basic structure
-        Analysis.init();
-
         // if is a macro get the arguments from macro arguments
         if (IJ.isMacro()) {
             arg0 = Macro.getOptions();
@@ -44,12 +38,12 @@ public class BregmanGLM_Batch implements Segmentation {
         }
 
         final String dir = IJ.getDirectory("temp");
-        savedSettings = dir + "spb_settings.dat";
-        Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.p);
+        String savedSettings = dir + "spb_settings.dat";
+        Analysis.iParams = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.iParams);
 
         final String path = MosaicUtils.parseString("config", arg0);
         if (path != null) {
-            Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
+            Analysis.iParams = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.iParams);
         }
 
         String normmin = MosaicUtils.parseString("min", arg0);
@@ -70,9 +64,6 @@ public class BregmanGLM_Batch implements Segmentation {
         // Check the argument
         final boolean batch = GraphicsEnvironment.isHeadless();
 
-        if (batch == true) {
-            Analysis.p.dispwindows = false;
-        }
         logger.debug("isHeadless = " + batch);
         logger.debug("gui_use_cluster = " + gui_use_cluster);
         logger.debug("settings dir = [" + dir + "]");
@@ -81,11 +72,11 @@ public class BregmanGLM_Batch implements Segmentation {
         logger.debug("norm max = [" + normmax + "]");
         logger.debug("input img = [" + (active_img != null ? active_img.getTitle() : "<no img>") + "]");
         
-        window = new GenericGUI(batch, active_img);
+        GenericGUI window = new GenericGUI(batch, active_img);
         window.setUseCluster(gui_use_cluster);
         window.run(active_img);
 
-        saveConfig(savedSettings, Analysis.p);
+        saveConfig(savedSettings, Analysis.iParams);
 
         // Re-set the arguments
         Macro.setOptions(arg0);
