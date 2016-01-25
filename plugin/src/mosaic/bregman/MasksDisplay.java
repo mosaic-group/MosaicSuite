@@ -9,7 +9,6 @@ import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.utils.Debug;
 
 
 class MasksDisplay {

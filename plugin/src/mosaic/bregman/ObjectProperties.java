@@ -5,10 +5,8 @@ import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
-import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
-import net.imglib2.type.numeric.real.DoubleType;
 
 class ObjectProperties implements Runnable {
 
