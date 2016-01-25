@@ -224,6 +224,10 @@ class TwoRegions implements Runnable {
             var[1] = new DoubleType(p.sigma_gaussian);
             var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
             psf.setVar(var);
+            // Force the allocation of the buffers internally
+            // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
+            psf.getSeparableImageAsDoubleArray(0);
+            
             p.PSF = psf;
 
             A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, mask, md, channel, null);
@@ -234,6 +238,10 @@ class TwoRegions implements Runnable {
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             psf.setVar(var);
+            // Force the allocation of the buffers internally
+            // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
+            psf.getSeparableImageAsDoubleArray(0);
+            
             p.PSF = psf;
 
             A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null);

@@ -31,8 +31,6 @@ import net.imglib2.view.Views;
 class GaussPSFSettings implements Serializable {
 
     private static final long serialVersionUID = 1777976543628904166L;
-
-    //float var[] = new float[16];
 }
 
 public class GaussPSF<T extends RealType<T>> implements psf<T> {
@@ -62,7 +60,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
      * @param dim dimension
      * @param cl give the class of the parameter T
      */
-
     @SuppressWarnings("unchecked")
     public GaussPSF(int dim, Class<T> cl) {
         clCreator = cl;
@@ -89,10 +86,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
     /**
      * Set variance of the Gaussian
-     *
      * @param var_
      */
-
     public void setVar(RealType<T> var_[]) {
         var = var_;
     }
@@ -387,30 +382,29 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     }
 
     @Override
-    public double[] getSeparableImageAsDoubleArray(int dim) {
-        if (sepDimD[dim] == null) {
+    public double[] getSeparableImageAsDoubleArray(int aDim) {
+        if (sepDimD[aDim] == null) {
             final int sz[] = getSuggestedImageSize();
             final int mid[] = new int[sz.length];
-            int[] old_mid = new int[sz.length];
-
             for (int i = 0; i < sz.length; i++) {
                 mid[i] = sz[i] / 2;
             }
-            old_mid = getCenter();
+            
+            int[] old_mid = getCenter();
             setCenter(mid);
 
-            sepDimD[dim] = new double[sz[dim]];
+            for (int dim = 0; dim < sepDimD.length; dim++) {
+                sepDimD[dim] = new double[sz[dim]];
+                for (int i = 0; i < sz[dim]; i++) {
+                    final double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble()
+                            * Math.exp(-(i - offset[dim].getRealDouble()) * (i - offset[dim].getRealDouble()) / (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble()));
 
-            for (int i = 0; i < sepDimD[dim].length; i++) {
-                final double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble()
-                        * Math.exp(-(i - offset[dim].getRealDouble()) * (i - offset[dim].getRealDouble()) / (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble()));
-
-                sepDimD[dim][i] = res;
+                    sepDimD[dim][i] = res;
+                }
             }
-
             setCenter(old_mid);
         }
-        return sepDimD[dim];
+        return sepDimD[aDim];
     }
 
     @Override

@@ -112,13 +112,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             final int jchunk = p.nj / p.nthreads;
             final int jlastchunk = p.nj - jchunk * (p.nthreads - 1);
             
-            // Force the allocation of the buffers internally
-            // if you do not do you can have race conditions in the multi thread part
-            // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
-            p.PSF.getSeparableImageAsDoubleArray(0);
-            p.PSF.getSeparableImageAsDoubleArray(1);
-            p.PSF.getSeparableImageAsDoubleArray(2);
-            
             for (int nt = 0; nt < p.nthreads - 1; nt++) {
                 // Check if we can create threads
                 final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,

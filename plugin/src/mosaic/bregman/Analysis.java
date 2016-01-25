@@ -3,6 +3,7 @@ package mosaic.bregman;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -55,7 +56,10 @@ public class Analysis {
 
     // Create empty elements - they are later access by index - not nice but later elements are accessed by get() 
     // and they must exist. TODO: This should be refactored.
-    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>(Arrays.asList(null, null));
+    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
+        private static final long serialVersionUID = 1L;
+        { add(null); add(null); }
+    };
     private static short[][][][] regions = new short[2][][][];
     
     final static ImagePlus out_soft_mask[] = new ImagePlus[2];

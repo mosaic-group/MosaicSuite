@@ -209,7 +209,6 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
-    @org.junit.Ignore
     public void testCluster()  {
         
         // Define test data

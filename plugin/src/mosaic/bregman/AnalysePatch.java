@@ -153,25 +153,6 @@ class AnalysePatch implements Runnable {
         iLocalParams.nz = iSizeOversZ;
         iLocalTools = new Tools(iLocalParams.ni, iLocalParams.nj, iLocalParams.nz);
         
-        // set psf
-        if (iLocalParams.nz > 1) {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(iLocalParams.sigma_gaussian);
-            var[1] = new DoubleType(iLocalParams.sigma_gaussian);
-            var[2] = new DoubleType(iLocalParams.sigma_gaussian / iLocalParams.zcorrec);
-            psf.setVar(var);
-            iLocalParams.PSF = psf;
-        }
-        else {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(iLocalParams.sigma_gaussian);
-            var[1] = new DoubleType(iLocalParams.sigma_gaussian);
-            psf.setVar(var);
-            iLocalParams.PSF = psf;
-        }
-        
         // normalize
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();

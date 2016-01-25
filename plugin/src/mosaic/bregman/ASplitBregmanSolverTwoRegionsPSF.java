@@ -86,13 +86,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         int iStart = 0;
         int jStart = 0;
 
-        // Force the allocation of the buffers internally
-        // if you do not do you can have race conditions in the
-        // multi thread part
-        // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
-        p.PSF.getSeparableImageAsDoubleArray(0);
-        p.PSF.getSeparableImageAsDoubleArray(1);
-
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
             final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
                     this, LocalTools);
