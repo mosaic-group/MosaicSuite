@@ -102,7 +102,6 @@ class SegmentationGUI {
         }
 
         Analysis.iParams.refinement = true;
-        Analysis.iParams.max_nsb = 151;
 
         if (!Analysis.iParams.subpixel) {
             Analysis.iParams.oversampling2ndstep = 1;

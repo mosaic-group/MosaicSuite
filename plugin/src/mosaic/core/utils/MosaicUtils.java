@@ -940,11 +940,9 @@ public class MosaicUtils {
 
     /**
      * Remove the file extension
-     *
      * @param str String from where to remove the extension
      * @return the String
      */
-
     public static String removeExtension(String str) {
         final int idp = str.lastIndexOf(".");
         if (idp < 0) {
@@ -1003,77 +1001,62 @@ public class MosaicUtils {
     }
 
     /**
-     * Stitch the CSV files all together in the directory dir/dir_p[] save the
-     * result in output_file + dir_p[] "*" are substituted by "_"
-     *
-     * @param dir_p list of directories
-     * @param dir Base
-     * @param output_file stitched file
+     * Stitch the CSV files all together in the directory aBaseDir/aDirs[] save the
+     * result in aOutputCsvFile + aDirs[] "*" are substituted by "_"
+     * @param aDirs list of directories
+     * @param aBaseDir Base
+     * @param aOutputCsvFile stitched file
+     * @param aMetaInfo metainformation for csv file
      * @param Class<T> internal data for conversion
-     * @return true if success, false otherwise
      */
-    private static <T> boolean Stitch(String dir_p[], File dir, File output_file, CsvMetaInfo ext[], Class<T> cls) {
-        boolean first = true;
-        final CSV<?> csv = new CSV<T>(cls);
+    private static <T> void Stitch(String aDirs[], File aBaseDir, File aOutputCsvFile, CsvMetaInfo aMetaInfo[], Class<T> aClazz) {
+        boolean firstFile = true;
+        final CSV<T> csv = new CSV<T>(aClazz);
 
-        for (int j = 0; j < dir_p.length; j++) {
-            final File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
-            if (fl == null) {
+        for (int j = 0; j < aDirs.length; j++) {
+            final String currentDir = aDirs[j];
+            
+            // Get absolute paths to all files in currentDir
+            final File[] currentFiles = new File(aBaseDir + File.separator + currentDir.replace("*", "_")).listFiles();
+            if (currentFiles == null) {
                 continue;
             }
-            final int nf = fl.length;
-
-            final String str[] = new String[nf];
-
-            for (int i = 1; i <= nf; i++) {
-                if (fl[i - 1].getName().endsWith(".csv")) {
-                    str[i - 1] = fl[i - 1].getAbsolutePath();
+            final String currentFilesAbsPaths[] = new String[currentFiles.length];
+            for (int i = 0; i < currentFiles.length; i++) {
+                if (currentFiles[i].getName().endsWith(".csv")) {
+                    currentFilesAbsPaths[i] = currentFiles[i].getAbsolutePath();
                 }
             }
 
-            if (ext != null) {
-                for (int i = 0; i < ext.length; i++) {
-                    csv.setMetaInformation(ext[i].parameter, ext[i].value);
+            // Set metainformation for csv
+            if (aMetaInfo != null) {
+                for (CsvMetaInfo cmi : aMetaInfo) {
+                    csv.setMetaInformation(cmi);
                 }
             }
 
-            if (first == true) {
-                // if it is the first time set the file preference from the
-                // first file
-                first = false;
-
-                csv.setCSVPreferenceFromFile(str[0]);
+            // if it is the first time set the file preference from the first file
+            if (firstFile == true) {
+                firstFile = false;
+                csv.setCSVPreferenceFromFile(currentFilesAbsPaths[0]);
             }
 
-            csv.Stitch(str, output_file + dir_p[j]);
+            csv.Stitch(currentFilesAbsPaths, aOutputCsvFile + currentDir);
         }
-
-        return true;
     }
 
     /**
      * Stitch the CSV in the directory
      *
-     * @param fl directory where search for files to stitch directory to stitch
-     * @param output string array that list all the outputs produced by the
-     *            plugin
+     * @param aBaseDir directory where search for files to stitch directory to stitch
+     * @param output string array that list all the outputs produced by the plugin
      * @param background Set the background param string
      * @return true if it stitch all the file success
      */
-    static public boolean StitchCSV(String fl, String[] output, String bck) {
-        CsvMetaInfo mt[] = null;
-        if (bck != null) {
-            mt = new CsvMetaInfo[1];
-            mt[0] = new CsvMetaInfo("background", bck);
-        }
-        else {
-            mt = new CsvMetaInfo[0];
-        }
-
+    static public void StitchCSV(String aBaseDir, String[] output, String aBackgroundValue) {
+        CsvMetaInfo mt[] = (aBackgroundValue != null) ? new CsvMetaInfo[] {new CsvMetaInfo("background", aBackgroundValue)} : null;
         final String[] outcsv = MosaicUtils.getCSV(output);
-        Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
-
-        return true;
+        Stitch(outcsv, new File(aBaseDir), new File(aBaseDir + File.separator + "stitch"), mt, Region3DColocRScript.class);
     }
 
     /**

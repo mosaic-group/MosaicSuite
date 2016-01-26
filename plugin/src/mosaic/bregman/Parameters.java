@@ -49,16 +49,16 @@ public class Parameters implements Serializable {
     final public int minves_size = 2;
     
     // ================================ not yet investigated
+    public int max_nsb = 151;
     public int interpolation = 1;// 4
     public int oversampling2ndstep = 2;// 2
     boolean firstphase = true;
     public boolean refinement = false;
-    public int max_nsb = 201;
+    public psf<DoubleType> PSF;
     public String wd = null;
     final double[] cl;
     public int nthreads = 4;
     public int nchannels = 2;
-    public psf<DoubleType> PSF;
     int ni, nj, nz;
     
     // ================================ parameters changed in GUI
@@ -144,7 +144,6 @@ public class Parameters implements Serializable {
         // ===========  not yet investigated
         interpolation = p.interpolation;
         // oversampling2ndstep
-        max_nsb = p.max_nsb;
         // refinement
         wd = p.wd;
         // dispwindows

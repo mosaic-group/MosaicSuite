@@ -412,7 +412,6 @@ public class BLauncher {
 
         Analysis.loadChannels(img2, Analysis.iParams.nchannels);
 
-        Analysis.iParams.max_nsb = 151;
         Analysis.iParams.interpolation = (Analysis.iParams.nz > 1) ? 2 : 4;
 
         int nni = Analysis.imgA.getWidth();

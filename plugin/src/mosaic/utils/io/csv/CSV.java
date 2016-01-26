@@ -48,7 +48,7 @@ public class CSV<E> {
      * Set Meta information
      * @param aMetaInfo - meta information
      */
-    private void setMetaInformation(CsvMetaInfo aMetaInfo) {
+    public void setMetaInformation(CsvMetaInfo aMetaInfo) {
         final String value = getMetaInformation(aMetaInfo.parameter);
         if (value != null) {
             logger.debug("MetaInfo " + aMetaInfo + " added, but same parameter with value [" + value + "] already exists!");

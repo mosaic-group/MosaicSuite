@@ -1,5 +1,7 @@
 package mosaic.plugins;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import org.junit.Test;
@@ -268,8 +270,12 @@ public class BregmanGLM_BatchTest extends CommonBase {
         
         // compare output from plugin with reference images
         for (int i = 0; i < expectedImgFiles.length; ++i) {
-            String refFile = findJobFile(referenceImgFiles[i], dataDir).getAbsoluteFile().toString();
-            String testFile = findJobFile(expectedImgFiles[i], testDir).getAbsoluteFile().toString();
+            final File refJobFile = findJobFile(referenceImgFiles[i], dataDir);
+            assertTrue("Reference file [" + dataDir + referenceImgFiles[i] + "] not found!", refJobFile != null);
+            String refFile = refJobFile.getAbsoluteFile().toString();
+            final File testJobFile = findJobFile(expectedImgFiles[i], testDir);
+            assertTrue("Test file [" + testDir + expectedImgFiles[i] + "] not found!", testJobFile != null);
+            String testFile = testJobFile.getAbsoluteFile().toString();
             testFile = "./" + testFile.substring(tmpPath.length(), testFile.length());
             compareImageFromIJ(refFile, testFile);
         }
