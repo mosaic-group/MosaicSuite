@@ -51,15 +51,19 @@ abstract class ASplitBregmanSolver {
     protected final Parameters p;
     private AnalysePatch Ap = null;
 
-    double c0, c1;
+    // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
+    // being updated in 2D case but not in 3D.
+    double iBetaMleOut, iBetaMleIn;
+    final double[] betaMle = new double[2];
+    
     public final double energytab2[];
     
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
-        this(params, image, mask, md, channel);
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
+        this(params, image, mask, md, channel, aBetaMleOut, aBetaMleIn);
         Ap = ap;
     }
 
-    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel) {
+    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn) {
         LocalTools = new Tools(aParams.ni, aParams.nj, aParams.nz);
         channel = aChannel;
         p = aParams;
@@ -67,9 +71,12 @@ abstract class ASplitBregmanSolver {
         nj = aParams.nj;
         nz = aParams.nz;
 
+        
         // Beta MLE in and out
-        c0 = aParams.cl[0];
-        c1 = aParams.cl[1];
+        iBetaMleOut = aBetaMleOut;
+        iBetaMleIn = aBetaMleIn;
+        betaMle[0] = iBetaMleOut;
+        betaMle[1] = iBetaMleIn;
         
         energytab2 = new double[p.nthreads];
         
@@ -115,11 +122,15 @@ abstract class ASplitBregmanSolver {
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    Ro[z][i][j] = (float) (p.cl[0]);
-                    Ri[z][i][j] = (float) (p.cl[1]);
+                    Ro[z][i][j] = (float) (iBetaMleOut);
+                    Ri[z][i][j] = (float) (iBetaMleIn);
                 }
             }
         }
+    }
+
+    double[] getBetaMLE() {
+        return betaMle;
     }
 
     void first_run() throws InterruptedException {
@@ -134,7 +145,6 @@ abstract class ASplitBregmanSolver {
         boolean stopFlag = false;
         double bestEnergy = Double.MAX_VALUE;
         double lastenergy = 0;
-        
         while (stepk < p.max_nsb && !stopFlag) {
             step();
 
@@ -166,12 +176,12 @@ abstract class ASplitBregmanSolver {
             else {
                 if (p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
                     Ap.find_best_thresh_and_int(w3k);
-                    p.cl[0] = Math.max(0, Ap.cout);
+                    betaMle[0] = Math.max(0, Ap.cout);
                     // lower bound withg some margin
-                    p.cl[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
+                    betaMle[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
                     init();
                     if (p.debug) {
-                        IJ.log("region" + Ap.iInputRegion.value + " pcout" + p.cl[1]);
+                        IJ.log("region" + Ap.iInputRegion.value + " pcout" + betaMle[1]);
                         IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
                     }
                 }

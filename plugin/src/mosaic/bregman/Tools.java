@@ -319,6 +319,7 @@ public class Tools {
 
         final int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, Math.min(cols - cc, Math.min(cs - 1, slices - cs)))));
 
+        ArrayOps.fill(result, 0);
         for (int sliShift = 0; sliShift <= 1; sliShift++)
         for (int rowShift = 0; rowShift <= 1; rowShift++) 
         for (int colShift = 0; colShift <= 1; colShift++)
@@ -421,8 +422,7 @@ public class Tools {
         return res;
     }
 
-    void createmask(double[][][] res, double[][][] image, double[] cl) {
-        double thr = cl[1];// if only two regions only first mask is used
+    void createmask(double[][][] res, double[][][] image, double thr) {
         if (thr == 1) {
             // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
             thr = 0.5;

@@ -79,7 +79,7 @@ class ZoneTask3D implements Runnable {
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.temp2[z][i][j] = AS.w1k[z][i][j] - AS.b1k[z][i][j] - AS.c0;
+                    AS.temp2[z][i][j] = AS.w1k[z][i][j] - AS.b1k[z][i][j] - AS.iBetaMleOut;
                 }
             }
         }
@@ -93,7 +93,7 @@ class ZoneTask3D implements Runnable {
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.temp1[z][i][j] = -AS.temp3[z][i][j] + AS.w3k[z][i][j] - AS.b3k[z][i][j] + (AS.c1 - AS.c0) * AS.temp4[z][i][j];
+                    AS.temp1[z][i][j] = -AS.temp3[z][i][j] + AS.w3k[z][i][j] - AS.b3k[z][i][j] + (AS.iBetaMleIn - AS.iBetaMleOut) * AS.temp4[z][i][j];
                 }
             }
         }
@@ -110,7 +110,7 @@ class ZoneTask3D implements Runnable {
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.temp2[z][i][j] = (AS.c1 - AS.c0) * AS.temp2[z][i][j] + AS.c0;
+                    AS.temp2[z][i][j] = (AS.iBetaMleIn - AS.iBetaMleOut) * AS.temp2[z][i][j] + AS.iBetaMleOut;
                 }
             }
         }
@@ -191,7 +191,7 @@ class ZoneTask3D implements Runnable {
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {
-            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.c0, AS.c1, AS.image, iStart,
+            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13);
         }
     }

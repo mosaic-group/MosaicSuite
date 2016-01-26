@@ -28,7 +28,7 @@ import net.imglib2.type.numeric.real.DoubleType;
  * Class that process the first Split bregman segmentation and refine with patches
  * @author Aurelien Ritz
  */
-class TwoRegions implements Runnable {
+class TwoRegions {
     private final double[][][] image;// 3D image
     private final double[][][] mask;// nregions nslices ni nj
 
@@ -138,10 +138,7 @@ class TwoRegions implements Runnable {
             }
         }
 
-        p.cl[0] = p.betaMLEoutdefault;
-        p.cl[1] = p.betaMLEindefault;
-
-        LocalTools.createmask(mask, image, p.cl);
+        LocalTools.createmask(mask, image, p.betaMLEindefault);
     }
 
     /**
@@ -204,7 +201,6 @@ class TwoRegions implements Runnable {
     /**
      * Run the split Bregman + patch refinement
      */
-    @Override
     public void run() {
         // This store the output mask
         md = new MasksDisplay(ni, nj, nz);
@@ -212,8 +208,6 @@ class TwoRegions implements Runnable {
         Debug.print("BETA MLE (tworegions): ", p.betaMLEindefault, p.betaMLEoutdefault, p.refinement, p.interpolation);
         Debug.print("minves_size", p.minves_size);
         ASplitBregmanSolver A_solver = null;
-        p.cl[0] = p.betaMLEoutdefault;
-        p.cl[1] = p.betaMLEindefault;
         
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
@@ -230,7 +224,7 @@ class TwoRegions implements Runnable {
             
             p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, mask, md, channel, null);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, mask, md, channel, null, p.betaMLEoutdefault, p.betaMLEindefault);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
@@ -244,7 +238,7 @@ class TwoRegions implements Runnable {
             
             p.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null, p.betaMLEoutdefault, p.betaMLEindefault);
         }
 
         if (Analysis.iParams.patches_from_file == null) {

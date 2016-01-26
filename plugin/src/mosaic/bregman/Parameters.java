@@ -34,11 +34,12 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private double regionthresh = 0.19;
     @SuppressWarnings("unused") final private double regionthreshy = 0.19;
     @SuppressWarnings("unused") final private boolean dispwindows = true;
+    @SuppressWarnings("unused") final private int RegionsIntensitymodulo = 3000;
+    @SuppressWarnings("unused") final private double[] cl = new double[2];
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
     final double colocthreshold = 0.5;
-    final int RegionsIntensitymodulo = 3000;
     final int energyEvaluationModulo = 5;
     final public boolean debug = false;
     final double ldata = 1;
@@ -56,7 +57,6 @@ public class Parameters implements Serializable {
     public boolean refinement = false;
     public psf<DoubleType> PSF;
     public String wd = null;
-    final double[] cl;
     public int nthreads = 4;
     public int nchannels = 2;
     int ni, nj, nz;
@@ -102,9 +102,7 @@ public class Parameters implements Serializable {
     public String[] groupnames = { "Condition " + 1 + " name", "Condition " + 2 + " name", "Condition " + 3 + " name", "Condition " + 4 + " name", "Condition " + 5 + " name" };
     
     
-    public Parameters() {
-        cl = new double[2];
-    }
+    public Parameters() {}
 
     // copy constructor
     public Parameters(Parameters p) {
@@ -147,7 +145,6 @@ public class Parameters implements Serializable {
         // refinement
         wd = p.wd;
         // dispwindows
-        cl = new double[2];
         nthreads = p.nthreads;
         nchannels = p.nchannels;
         // firstphase

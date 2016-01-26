@@ -80,11 +80,13 @@ class AnalysePatch implements Runnable {
     private final double[][][] w3kpatch;
     private double t_high;
     private ASplitBregmanSolver A_solver;
+    private double[] clBetaMleIntensities = new double[2];
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
     private final double[][][] temp1;
     private final double[][][] temp2;
     private final double[][][] temp3;
+
 
     /**
      * Create patches
@@ -179,12 +181,12 @@ class AnalysePatch implements Runnable {
             estimate_int_clustering(1);// (-1 to correct for old numbering)
         }
         
-        iLocalParams.cl[0] = Math.max(cout, 0);
-        iLocalParams.cl[1] = Math.max(0.75 * (firstminval - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
+        clBetaMleIntensities[0] = Math.max(cout, 0);
+        clBetaMleIntensities[1] = Math.max(0.75 * (firstminval - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
 
         if (iLocalParams.mode_intensity == 3) {
-            iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
-            iLocalParams.cl[1] = 1;
+            clBetaMleIntensities[0] = iLocalParams.betaMLEoutdefault;
+            clBetaMleIntensities[1] = 1;
             t_high = cin;
         }
 
@@ -212,24 +214,24 @@ class AnalysePatch implements Runnable {
         // Check the delta beta, if it is bigger than two ignore it, because
         // I cannot warrant stability
         Debug.print("BETA MLE (patch): ", iLocalParams.betaMLEindefault, iLocalParams.betaMLEoutdefault, iLocalParams.refinement);
-        if (Math.abs(iLocalParams.cl[0] - iLocalParams.cl[1]) > 2.0) {
+        if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
             // reset
-            iLocalParams.cl[0] = iLocalParams.betaMLEoutdefault;
-            iLocalParams.cl[1] = iLocalParams.betaMLEindefault;
+            clBetaMleIntensities[0] = iLocalParams.betaMLEoutdefault;
+            clBetaMleIntensities[1] = iLocalParams.betaMLEindefault;
         }
 
         if (iLocalParams.nz > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
         }
 
         try {
             A_solver.first_run();
 
-            cout = iLocalParams.cl[0];
-            cin = iLocalParams.cl[1];
+            cout = A_solver.getBetaMLE()[0];
+            cin = A_solver.getBetaMLE()[1];
 
             final int ll = iLocalParams.mode_intensity;
             if (ll == 0 || ll == 1) {
