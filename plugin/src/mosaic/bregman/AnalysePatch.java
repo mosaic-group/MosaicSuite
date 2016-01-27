@@ -368,8 +368,9 @@ class AnalysePatch implements Runnable {
     }
 
     private void estimate_int_weighted(double[][][] mask) {
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, temp3, iPatch, iRegionMask, 10, iLocalParams);
-        RSS.eval(mask);
+        Tools.normalizeAndConvolveMask(temp3, mask, iLocalParams.PSF, temp1, temp2);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iLocalParams.betaMLEoutdefault, iLocalParams.betaMLEindefault);
+        RSS.eval(temp3 /* convolved mask */);
 
         cout = RSS.betaMLEout;
         cout_front = cout;

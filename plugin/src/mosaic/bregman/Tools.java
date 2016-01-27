@@ -942,4 +942,25 @@ public class Tools {
         
         return cellmask;
     }
+    
+    static double[][][] normalizeAndConvolveMask(double[][][] aResult, double[][][] Mask, psf<DoubleType> aPsf, double[][][] aTempBuf1, double[][][] aTempBuf2) {
+        // normalize Mask
+        scale_mask(aTempBuf1, Mask);
+
+        // Convolve the mask
+        if (Mask.length == 1) {
+            Tools.convolve2Dseparable(aResult[0], aTempBuf1[0], Mask[0].length, Mask[0][0].length, aPsf, aTempBuf2[0]);
+        }
+        else {
+            Tools.convolve3Dseparable(aResult, aTempBuf1, Mask[0].length, Mask[0][0].length, Mask.length, aPsf, aTempBuf2);
+        }
+        
+        return aResult;
+    }
+
+    
+    static private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
+        MinMax<Double> minMax = ArrayOps.findMinMax(Mask);
+        ArrayOps.normalize(Mask, ScaledMask, minMax.getMin(), minMax.getMax());
+    }
 }

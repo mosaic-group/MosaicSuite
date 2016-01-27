@@ -122,6 +122,49 @@ public class Matrix {
     }
 
     /**
+     * Creates row vector (Matrix 1xN) from given array. Most inner dimension is iterated first so
+     * in case of [z][y][x] it will iterate first x then y...
+     * @param aInput
+     */
+    public static Matrix mkRowVector(double[][][] aInputArray) {
+        int zl = aInputArray.length;
+        int yl = aInputArray[0].length;
+        int xl = aInputArray[0][0].length;
+        Matrix result = new Matrix(1, xl * yl * zl);
+        double[] array = result.getData();
+        int idx = 0;
+        for (int z = 0; z < zl; ++z) {
+            for (int y = 0; y < yl; ++y) {
+                for (int x = 0; x < xl; ++x)
+                {
+                    array[idx++] = aInputArray[z][y][x];
+                }
+            }
+        }   
+        return result;
+    }
+    
+    /**
+     * Creates row vector (Matrix 1xN) from given array. Most inner dimension is iterated first so
+     * in case of [y][x] it will iterate first x then y...
+     * @param aInput
+     */
+    public static Matrix mkRowVector(double[][] aInputArray) {
+        int yl = aInputArray.length;
+        int xl = aInputArray[0].length;
+        Matrix result = new Matrix(1, xl * yl);
+        double[] array = result.getData();
+        int idx = 0;
+        for (int y = 0; y < yl; ++y) {
+            for (int x = 0; x < xl; ++x)
+            {
+                array[idx++] = aInputArray[y][x];
+            }
+        }
+        return result;
+    }
+    
+    /**
      * Creates row vector (Matrix 1xN) from given array or list of doubles
      * number
      *

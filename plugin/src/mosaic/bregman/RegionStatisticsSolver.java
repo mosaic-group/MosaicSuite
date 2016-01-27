@@ -2,48 +2,46 @@ package mosaic.bregman;
 
 
 import mosaic.utils.ArrayOps;
-import mosaic.utils.ArrayOps.MinMax;
 
 
 /**
  * Regions statistics solver
  * @author i-bird
  */
-class RegionStatisticsSolver {
+public class RegionStatisticsSolver {
 
     private final double[][][] Z;
     private final double[][][] W;
     private final double[][][] mu;
     private final int iMaxIter;
-    private final Parameters iParams;
+    private final int ni, nj, nz;
+    private final double iDefaultBetaMleOut; 
+    private final double iDefaultBetaMleIn;
 
     private double[][][] iWeights;
-    private final double[][][] KMask;
 
     public double betaMLEin, betaMLEout;
-    private int ni, nj, nz;
     
     /**
      * Create a region statistic solver
-     *
      * @param temp1 buffer of the same size of image for internal calculation
      * @param temp2 buffer of the same size of image for internal calculation
-     * @param temp3 buffer of the same size of image for internal calculation
      * @param image The image pixel array
      * @param weights - if null they will be set to 1.0
      * @param max_iter Maximum number of iteration for the Fisher scoring
-     * @param p
+     * @param aDefaultBetaMleOut
+     * @param aDefaultBetaMleIn
      */
-    public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] temp3, double[][][] image, double[][][] weights, int max_iter, Parameters p) {
-        iParams = p;
+    public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] image, double[][][] weights, int max_iter, double aDefaultBetaMleOut, double aDefaultBetaMleIn) {
         Z = image;
         W = temp1;
         mu = temp2;
-        KMask = temp3;
         iMaxIter = max_iter;
-        ni = iParams.ni;
-        nj = iParams.nj;
-        nz = iParams.nz;
+        ni = image[0].length;
+        nj = image[0][0].length;
+        nz = image.length;
+        iDefaultBetaMleOut = aDefaultBetaMleOut;
+        iDefaultBetaMleIn = aDefaultBetaMleIn;
         
         iWeights = weights;
         if (iWeights == null) {
@@ -56,18 +54,7 @@ class RegionStatisticsSolver {
      * Evaluate the region intensity
      * @param Mask
      */
-    public void eval(double[][][] Mask) {
-        // normalize Mask
-        scale_mask(W, Mask);
-
-        // Convolve the mask
-        if (nz == 1) {
-            Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.iParams.PSF, mu[0]);
-        }
-        else {
-            Tools.convolve3Dseparable(KMask, W, ni, nj, nz, Analysis.iParams.PSF, mu);
-        }
-
+    public void eval(double[][][] KMask) {
         betaMLEout = 0;
         betaMLEin = 0;
         for (int z = 0; z < nz; z++) {
@@ -77,14 +64,14 @@ class RegionStatisticsSolver {
                         W[z][i][j] = iWeights[z][i][j] / Z[z][i][j];
                     }
                     else {
-                        W[z][i][j] = 4.50359962737e+15;// 1e4;
+                        W[z][i][j] = 4.50359962737e+15;
                     }
                 }
             }
         }
 
         int iter = 0;
-        while (iter < iMaxIter) {
+        while (iter++ < iMaxIter) {
             double K11 = 0;
             double K12 = 0;
             double K22 = 0;
@@ -101,7 +88,6 @@ class RegionStatisticsSolver {
                     }
                 }
             }
-
             // detK = K11*K22-K12^2;
             // betaMLE_out = ( K22*U1-K12*U2)/detK;
             // betaMLE_in = (-K12*U1+K11*U2)/detK;
@@ -111,11 +97,10 @@ class RegionStatisticsSolver {
                 betaMLEin = (-K12 * U1 + K11 * U2) / detK;
             }
             else {
-                betaMLEout = iParams.betaMLEoutdefault;
-                betaMLEin = iParams.betaMLEindefault;
+                betaMLEout = iDefaultBetaMleOut;
+                betaMLEin = iDefaultBetaMleIn;
             }
 
-            // mu update
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
@@ -131,18 +116,11 @@ class RegionStatisticsSolver {
                             W[z][i][j] = iWeights[z][i][j] / mu[z][i][j];
                         }
                         else {
-                            W[z][i][j] = 4.50359962737e+15;// 10000;//Double.MAX_VALUE;
+                            W[z][i][j] = 4.50359962737e+15;
                         }
                     }
                 }
             }
-
-            iter++;
         }
-    }
-
-    private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
-        MinMax<Double> minMax = ArrayOps.findMinMax(Mask);
-        ArrayOps.normalize(Mask, ScaledMask, minMax.getMin(), minMax.getMax());
     }
 }
