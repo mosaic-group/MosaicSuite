@@ -87,6 +87,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] temp2;
     private final double[][][] temp3;
 
+    private final double[] lreg_patch = new double[2];
 
     /**
      * Create patches
@@ -105,7 +106,7 @@ class AnalysePatch implements Runnable {
         iSizeOrigZ = aParameters.nz;
 
         iInputRegion = aInputRegion;
-        iLocalParameters = new Parameters(aParameters);
+        iLocalParameters = aParameters;
         iChannel = aChannel;
         iImagePatches = aImagePatches;
         
@@ -147,10 +148,6 @@ class AnalysePatch implements Runnable {
         // create mask
         mask = generateMask(aInputRegion, false);
 
-        // set size
-        iLocalParameters.ni = iSizeOversX;
-        iLocalParameters.nj = iSizeOversY;
-        iLocalParameters.nz = iSizeOversZ;
         iLocalTools = new Tools(iSizeOversX, iSizeOversY, iSizeOversZ);
         
         // normalize
@@ -169,6 +166,10 @@ class AnalysePatch implements Runnable {
         temp1 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         temp2 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         temp3 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        
+        for (int i = 0; i < iLocalParameters.lreg_.length; i++) {
+            lreg_patch[i] = iLocalParameters.lreg_[i] * aOversampling;
+        }
         
         // estimate ints
         if (iLocalParameters.mode_intensity == 0) {
@@ -195,10 +196,7 @@ class AnalysePatch implements Runnable {
             IJ.log(aInputRegion.value + "min all " + rescaled_min_int_all);
         }
 
-        Debug.print("LREG * oversampling = ",aOversampling );
-        for (int i = 0; i < iLocalParameters.lreg_.length; i++) {
-            iLocalParameters.lreg_[i] = iLocalParameters.lreg_[i] * aOversampling;
-        }
+        
     }
 
     /**
@@ -219,10 +217,10 @@ class AnalysePatch implements Runnable {
         }
 
         if (iSizeOversZ > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch);// mask instead of w3kpatch
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch);// mask instead of w3kpatch
         }
 
         try {
@@ -473,7 +471,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, currentThr);
 
             if (objectFound && !border_attained) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, iLocalParameters.lreg_[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, lreg_patch[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
                 if (tempEnergy < bestEenergy) {
                     bestEenergy = tempEnergy;
                     bestThreshold = currentThr;
@@ -494,10 +492,9 @@ class AnalysePatch implements Runnable {
         
         for (double thr = 0.95; thr > rescaled_min_int_all * 0.96; thr -= 0.02) {
             set_object(w3kbest, thr);
-
             if (objectFound && !border_attained) {
                 estimate_int_weighted(object);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, iLocalParameters.lreg_[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, lreg_patch[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
                 if (tempEnergy < energy) {
                     energy = tempEnergy;
                     threshold = thr;

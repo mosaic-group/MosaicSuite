@@ -224,7 +224,7 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
@@ -238,7 +238,7 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_);
         }
 
         if (Analysis.iParameters.patches_from_file == null) {

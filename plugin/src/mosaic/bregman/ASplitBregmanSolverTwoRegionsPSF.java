@@ -12,8 +12,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
     
-    public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
-        super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn);
+    public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+        super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn, aLreg);
         dct2d = new DoubleDCT_2D(ni, nj);
         eigenPsf2D = new double[nz][ni][nj];
         compute_eigenPSF();
@@ -72,10 +72,10 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         final CountDownLatch Sync12 = new CountDownLatch(iParameters.nthreads);
         final CountDownLatch Dct = new CountDownLatch(1);
 
-        final int ichunk = iParameters.ni / iParameters.nthreads;
-        final int ilastchunk = iParameters.ni - (iParameters.ni / (iParameters.nthreads)) * (iParameters.nthreads - 1);
-        final int jchunk = iParameters.nj / iParameters.nthreads;
-        final int jlastchunk = iParameters.nj - (iParameters.nj / (iParameters.nthreads)) * (iParameters.nthreads - 1);
+        final int ichunk = ni / iParameters.nthreads;
+        final int ilastchunk = ni - ichunk * (iParameters.nthreads - 1);
+        final int jchunk = nj / iParameters.nthreads;
+        final int jlastchunk = nj - jchunk * (iParameters.nthreads - 1);
         int iStart = 0;
         int jStart = 0;
 

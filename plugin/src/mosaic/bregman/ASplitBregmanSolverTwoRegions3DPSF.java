@@ -17,8 +17,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf3D;
     private final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
-        super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn);
+    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+        super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn, aLreg);
         w2zk = new double[nz][ni][nj];
         ukz = new double[nz][ni][nj];
         b2zk = new double[nz][ni][nj];
@@ -109,10 +109,10 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         int iStart = 0;
         int jStart = 0;
-        final int ichunk = iParameters.ni / iParameters.nthreads;
-        final int ilastchunk = iParameters.ni - ichunk * (iParameters.nthreads - 1);
-        final int jchunk = iParameters.nj / iParameters.nthreads;
-        final int jlastchunk = iParameters.nj - jchunk * (iParameters.nthreads - 1);
+        final int ichunk = ni / iParameters.nthreads;
+        final int ilastchunk = ni - ichunk * (iParameters.nthreads - 1);
+        final int jchunk = nj / iParameters.nthreads;
+        final int jlastchunk = nj - jchunk * (iParameters.nthreads - 1);
 
         for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
             // Check if we can create threads

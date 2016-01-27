@@ -62,22 +62,24 @@ abstract class ASplitBregmanSolver {
     double iBetaMleOut, iBetaMleIn;
     final double[] betaMle = new double[2];
     
+    final double[] lreg_;
+    
     public final double energytab2[];
     
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
-        this(params, image, mask, md, channel, aBetaMleOut, aBetaMleIn);
+    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+        this(params, image, mask, md, channel, aBetaMleOut, aBetaMleIn, aLreg);
         Ap = ap;
     }
 
-    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn) {
+    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
         channel = aChannel;
         iParameters = aParams;
-//        ni = aImage[0].length; 
-//        nj = aImage[0][0].length;
-//        nz = aImage.length; 
-        ni = aParams.ni;
-        nj = aParams.nj;
-        nz = aParams.nz;
+        ni = aImage[0].length; 
+        nj = aImage[0][0].length;
+        nz = aImage.length; 
+//        ni = aParams.ni;
+//        nj = aParams.nj;
+//        nz = aParams.nz;
         Debug.print("SIZES!!!!!!!!!!!!!!                  : " + Debug.getArrayDims(aImage), aParams.nz, aParams.ni, aParams,nj, "END");
         LocalTools = new Tools(ni, nj, nz);
 
@@ -137,7 +139,7 @@ abstract class ASplitBregmanSolver {
                 }
             }
         }
-        
+        lreg_ = aLreg;
         executor = Executors.newFixedThreadPool(iParameters.nthreads);
     }
 
@@ -239,17 +241,17 @@ abstract class ASplitBregmanSolver {
         double thresh = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
 
         ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(iParameters.ni, iParameters.nj);
+        final ImageStack mask_ims = new ImageStack(ni, nj);
 
         // construct mask as an imageplus
         for (int z = 0; z < nz; z++) {
-            final float[] mask_float = new float[iParameters.ni * iParameters.nj];
+            final float[] mask_float = new float[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mask_float[j * iParameters.ni + i] = (float) mask[z][i][j];
+                    mask_float[j * ni + i] = (float) mask[z][i][j];
                 }
             }
-            final FloatProcessor fp = new FloatProcessor(iParameters.ni, iParameters.nj);
+            final FloatProcessor fp = new FloatProcessor(ni, nj);
             fp.setPixels(mask_float);
             mask_ims.addSlice("", fp);
         }
@@ -267,15 +269,15 @@ abstract class ASplitBregmanSolver {
         IJ.showProgress(0.52);
 
         // threshold mask
-        final byte[] mask_bytes = new byte[iParameters.ni * iParameters.nj];
+        final byte[] mask_bytes = new byte[ni * nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
                 if (((int) (255 * mask_im.getProcessor().getPixelValue(i, j))) > 255 * thresh) {
                     // weird conversion to have same thing than in find connected regions
-                    mask_bytes[j * iParameters.ni + i] = 0;
+                    mask_bytes[j * ni + i] = 0;
                 }
                 else {
-                    mask_bytes[j * iParameters.ni + i] = (byte) 255;
+                    mask_bytes[j * ni + i] = (byte) 255;
                 }
             }
         }
@@ -293,15 +295,15 @@ abstract class ASplitBregmanSolver {
         IJ.showProgress(0.53);
 
         // expand Voronoi in 3D
-        final ImageStack mask_ims3 = new ImageStack(iParameters.ni, iParameters.nj);
+        final ImageStack mask_ims3 = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
-            final byte[] mask_bytes3 = new byte[iParameters.ni * iParameters.nj];
+            final byte[] mask_bytes3 = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mask_bytes3[j * iParameters.ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
+                    mask_bytes3[j * ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
                 }
             }
-            final ByteProcessor bp3 = new ByteProcessor(iParameters.ni, iParameters.nj);
+            final ByteProcessor bp3 = new ByteProcessor(ni, nj);
             bp3.setPixels(mask_bytes3);
             mask_ims3.addSlice("", bp3);
         }
@@ -310,7 +312,7 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(iParameters.ni * iParameters.nj * iParameters.nz, 0, (float) thr);// min size was 5
+        fcr.run(ni * nj * nz, 0, (float) thr);// min size was 5
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;
