@@ -80,9 +80,6 @@ public class Analysis {
     }
 
     static void loadChannels(ImagePlus img2, int aNumOfChannels) {
-        iParameters.ni = img2.getWidth();
-        iParameters.nj = img2.getHeight();
-        iParameters.nz = img2.getNSlices();
         final int currentFrame = img2.getFrame();
         final int bits = img2.getBitDepth();
 
@@ -105,16 +102,19 @@ public class Analysis {
     }
 
     private static double[][][] setImage(ImagePlus aImage) {
-        double[][][] image = new double[iParameters.nz][iParameters.ni][iParameters.nj];
+        int ni = aImage.getWidth();
+        int nj = aImage.getHeight();
+        int nz = aImage.getNSlices();
+        double[][][] image = new double[nz][ni][nj];
 
         double max = 0;
         double min = Double.POSITIVE_INFINITY;
 
-        for (int z = 0; z < iParameters.nz; z++) {
+        for (int z = 0; z < nz; z++) {
             aImage.setSlice(z + 1);
             ImageProcessor imp = aImage.getProcessor();
-            for (int i = 0; i < iParameters.ni; i++) {
-                for (int j = 0; j < iParameters.nj; j++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     image[z][i][j] = imp.getPixel(i, j);
                     if (image[z][i][j] > max) {
                         max = image[z][i][j];
@@ -126,9 +126,9 @@ public class Analysis {
             }
         }
 
-        for (int z = 0; z < iParameters.nz; z++) {
-            for (int i = 0; i < iParameters.ni; i++) {
-                for (int j = 0; j < iParameters.nj; j++) {
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     image[z][i][j] = (image[z][i][j] - min) / (max - min);
                 }
             }
@@ -138,9 +138,12 @@ public class Analysis {
     }
     
     private static ImageStack generateImgStack(ImagePlus img2, final int currentFrame, final int bits, int channel) {
-        final ImageStack img_s = new ImageStack(iParameters.ni, iParameters.nj);
+        int ni = img2.getWidth();
+        int nj = img2.getHeight();
+        int nz = img2.getNSlices();
+        final ImageStack img_s = new ImageStack(ni, nj);
 
-        for (int z = 0; z < iParameters.nz; z++) {
+        for (int z = 0; z < nz; z++) {
             img2.setPosition(channel, z + 1, currentFrame);
             ImageProcessor impt = (bits == 32) ? img2.getProcessor().convertToShort(false) : img2.getProcessor();
             img_s.addSlice("", impt);
@@ -196,17 +199,20 @@ public class Analysis {
     }
     
     private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
         final ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(iParameters.ni, iParameters.nj);
+        final ImageStack mask_ims = new ImageStack(ni, nj);
 
-        for (int z = 0; z < iParameters.nz; z++) {
-            final byte[] mask_bytes = new byte[iParameters.ni * iParameters.nj];
-            for (int i = 0; i < iParameters.ni; i++) {
-                for (int j = 0; j < iParameters.nj; j++) {
-                    mask_bytes[j * iParameters.ni + i] = mask[z][i][j];
+        for (int z = 0; z < nz; z++) {
+            final byte[] mask_bytes = new byte[ni * nj];
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    mask_bytes[j * ni + i] = mask[z][i][j];
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(iParameters.ni, iParameters.nj);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(mask_bytes);
             mask_ims.addSlice("", bp);
         }
@@ -302,6 +308,7 @@ public class Analysis {
         boolean oneColoc = true;
         double intColoc = 0;
         double sizeColoc = 0;
+        int nz = regions.length;
         final int osxy = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
         for (Pix p : r.pixels) {
             int valcoloc = regions[p.pz][p.px][p.py];
@@ -320,7 +327,7 @@ public class Analysis {
         r.colocpositive = ((double) countcoloc) / count > iParameters.colocthreshold;
         r.overlap = (float) Tools.round(((double) countcoloc) / count, 3);
         r.over_size = (float) Tools.round((sizeColoc) / countcoloc, 3);
-        if (iParameters.nz == 1) {
+        if (nz == 1) {
             r.over_size = (float) Tools.round(r.over_size / (osxy * osxy), 3);
         }
         else {
@@ -344,7 +351,7 @@ public class Analysis {
     
     private static double regionsum(Region r, double[][][] image) {
         final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
-        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
+        int fz2 = (image.length > 1) ? factor2 : 1;
 
         int count = 0;
         double sum = 0;
@@ -379,19 +386,28 @@ public class Analysis {
     }
 
     static void setMaskA(double[][][] mask) {
-        maskA = new byte[iParameters.nz][iParameters.ni][iParameters.nj];
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
+        maskA = new byte[nz][ni][nj];
         copyScaledMask(maskA, mask);
     }
 
     static void setMaskB(double[][][] mask) {
-        maskB = new byte[iParameters.nz][iParameters.ni][iParameters.nj];
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
+        maskB = new byte[nz][ni][nj];
         copyScaledMask(maskB, mask);
     }
     
     private static void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
-        for (int z = 0; z < iParameters.nz; z++) {
-            for (int i = 0; i < iParameters.ni; i++) {
-                for (int j = 0; j < iParameters.nj; j++) {
+        int ni = aSource[0].length;
+        int nj = aSource[0][0].length;
+        int nz = aSource.length;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
                 }
             }
@@ -452,7 +468,7 @@ public class Analysis {
 
     private static boolean isInside(Region r) {
         final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
-        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
+        int fz2 = (overallCellMaskBinary.length > 1) ? factor2 : 1;
 
         double size = 0;
         int inside = 0;
@@ -465,12 +481,12 @@ public class Analysis {
         return ((inside / size) > 0.1);
     }
 
-    static void computeOverallMask() {
-        final boolean mask[][][] = new boolean[iParameters.nz][iParameters.ni][iParameters.nj];
+    static void computeOverallMask(int nz, int ni, int nj) {
+        final boolean mask[][][] = new boolean[nz][ni][nj];
 
-        for (int z = 0; z < iParameters.nz; z++) {
-            for (int i = 0; i < iParameters.ni; i++) {
-                for (int j = 0; j < iParameters.nj; j++) {
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
                         mask[z][i][j] = cellMaskABinary[z][i][j] && cellMaskBBinary[z][i][j];
                     }
@@ -490,12 +506,12 @@ public class Analysis {
         overallCellMaskBinary = mask;
     }
 
-    static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
+    static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions, int nz, int ni, int nj) {
         final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
-        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
-        for (int z = 0; z < iParameters.nz * fz2; z++) {
-            for (int i = 0; i < iParameters.ni * factor2; i++) {
-                for (int j = 0; j < iParameters.nj * factor2; j++) {
+        int fz2 = (nz > 1) ? factor2 : 1;
+        for (int z = 0; z < nz * fz2; z++) {
+            for (int i = 0; i < ni * factor2; i++) {
+                for (int j = 0; j < nj * factor2; j++) {
                     regions[z][i][j] = 0;
                 }
             }

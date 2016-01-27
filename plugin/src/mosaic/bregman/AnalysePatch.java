@@ -101,9 +101,9 @@ class AnalysePatch implements Runnable {
      * @param aImagePatches ?
      */
     public AnalysePatch(double[][][] aInputImage, Region aInputRegion, Parameters aParameters, int aOversampling, int aChannel, ImagePatches aImagePatches, double[][][] w3kbest) {
-        iSizeOrigX = aParameters.ni;
-        iSizeOrigY = aParameters.nj;
-        iSizeOrigZ = aParameters.nz;
+        iSizeOrigX = aInputImage[0].length;
+        iSizeOrigY = aInputImage[0][0].length;
+        iSizeOrigZ = aInputImage.length;
 
         iInputRegion = aInputRegion;
         iLocalParameters = aParameters;
@@ -317,7 +317,7 @@ class AnalysePatch implements Runnable {
         xmax = Math.min(iSizeOrigX, xmax + aMarginXY + 1);
         ymin = Math.max(0, ymin - aMarginXY);
         ymax = Math.min(iSizeOrigY, ymax + aMarginXY + 1);
-        if (iLocalParameters.nz > 1) {
+        if (iSizeOrigZ > 1) {
             zmin = Math.max(0, zmin - aMarginZ);
             zmax = Math.min(iSizeOrigZ, zmax + aMarginZ + 1);
         }
@@ -336,7 +336,7 @@ class AnalysePatch implements Runnable {
 
         iOverInterInXY = iOversamplingInXY * iInterpolationXY;
         
-        if (iLocalParameters.nz == 1) {
+        if (iSizeOrigZ == 1) {
             iOversamplingInZ = 1;
             iSizeOversZ = 1;
             iInterpolationZ = 1;

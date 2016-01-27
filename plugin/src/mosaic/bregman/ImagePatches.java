@@ -55,13 +55,16 @@ class ImagePatches {
         else {
             iParameters.oversampling2ndstep = 2;
         }
-
+        
+        int ni = aImage[0].length;
+        int nj = aImage[0][0].length;
+        int nz = aImage.length;
         iOverSamplingInXY = iParameters.oversampling2ndstep * iParameters.interpolation;
-        iSizeX = iParameters.ni * iOverSamplingInXY;
-        iSizeY = iParameters.nj * iOverSamplingInXY;
+        iSizeX = ni * iOverSamplingInXY;
+        iSizeY = nj * iOverSamplingInXY;
 
-        iOverSamplingInZ = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation; 
-        iSizeZ = iParameters.nz * iOverSamplingInZ;
+        iOverSamplingInZ = (nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation; 
+        iSizeZ = nz * iOverSamplingInZ;
         
         iGlobalRegionsList = new ArrayList<Region>();
         iRegions = new short[iSizeZ][iSizeX][iSizeY];

@@ -14,7 +14,6 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.Debug;
 
 
 abstract class ASplitBregmanSolver {
@@ -77,12 +76,7 @@ abstract class ASplitBregmanSolver {
         ni = aImage[0].length; 
         nj = aImage[0][0].length;
         nz = aImage.length; 
-//        ni = aParams.ni;
-//        nj = aParams.nj;
-//        nz = aParams.nz;
-        Debug.print("SIZES!!!!!!!!!!!!!!                  : " + Debug.getArrayDims(aImage), aParams.nz, aParams.ni, aParams,nj, "END");
         LocalTools = new Tools(ni, nj, nz);
-
         
         // Beta MLE in and out
         iBetaMleOut = aBetaMleOut;
@@ -281,7 +275,7 @@ abstract class ASplitBregmanSolver {
                 }
             }
         }
-        final ByteProcessor bp = new ByteProcessor(iParameters.ni, iParameters.nj);
+        final ByteProcessor bp = new ByteProcessor(ni, nj);
         bp.setPixels(mask_bytes);
         mask_im.setProcessor("Voronoi", bp);
 

@@ -49,11 +49,10 @@ class TwoRegions {
 
         this.iParameters = params;
         this.channel = channel;
+        ni = img.getWidth();
+        nj = img.getHeight();
+        nz = img.getNSlices();
         
-        this.ni = iParameters.ni;
-        this.nj = iParameters.nj;
-        this.nz = iParameters.nz;
-
         LocalTools = new Tools(ni, nj, nz);
 
         image = new double[nz][ni][nj];
@@ -211,7 +210,7 @@ class TwoRegions {
         
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
-        if (iParameters.nz > 1) {
+        if (nz > 1) {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
             final DoubleType[] var = new DoubleType[3];
             var[0] = new DoubleType(iParameters.sigma_gaussian);
@@ -260,7 +259,7 @@ class TwoRegions {
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
 
             // create a mask Image
-            final double img[][][] = new double[iParameters.nz][iParameters.ni][iParameters.nj];
+            final double img[][][] = new double[nz][ni][nj];
             drawParticles(img, A_solver.w3kbest, pt_f, (int) 3.0);
 
             A_solver.regions_intensity_findthresh(img);
@@ -270,9 +269,9 @@ class TwoRegions {
 
         if (channel == 0) {
             Analysis.setMaskA(A_solver.w3kbest);
-            float[][][] RiN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
+            float[][][] RiN = new float[nz][ni][nj];
             LocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
+            float[][][] RoN = new float[nz][ni][nj];
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
@@ -348,10 +347,10 @@ class TwoRegions {
 
             // Now we run Object properties on this regions list
             final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
-            final int sx = iParameters.ni * iParameters.oversampling2ndstep * iParameters.interpolation;
-            final int sy = iParameters.nj * iParameters.oversampling2ndstep * iParameters.interpolation;
-            int sz = (iParameters.nz == 1) ? 1 : iParameters.nz * iParameters.oversampling2ndstep * iParameters.interpolation;
-            int osz = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation;
+            final int sx = ni * iParameters.oversampling2ndstep * iParameters.interpolation;
+            final int sy = nj * iParameters.oversampling2ndstep * iParameters.interpolation;
+            int sz = (nz == 1) ? 1 : nz * iParameters.oversampling2ndstep * iParameters.interpolation;
+            int osz = (nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation;
 
             ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
 
@@ -362,9 +361,9 @@ class TwoRegions {
         }
         else {
             Analysis.setMaskB(A_solver.w3kbest);
-            float[][][] RiN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
+            float[][][] RiN = new float[nz][ni][nj];
             LocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
+            float[][][] RoN = new float[nz][ni][nj];
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;

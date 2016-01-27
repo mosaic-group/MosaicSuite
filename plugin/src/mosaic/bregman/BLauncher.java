@@ -53,6 +53,8 @@ public class BLauncher {
 
     private final Vector<String> pf = new Vector<String>();
 
+    int ni, nj, nz;
+    
     public Vector<String> getProcessedFiles() {
         return pf;
     }
@@ -178,18 +180,18 @@ public class BLauncher {
         
         final int factor = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
         System.out.println("Separate: " + sep + " Factor: " + factor + " " +  Analysis.iParameters.oversampling2ndstep + " " + Analysis.iParameters.interpolation);
-        int fz = (Analysis.iParameters.nz > 1) ? factor : 1;
+        int fz = (nz > 1) ? factor : 1;
 
         if (Analysis.iParameters.dispoutline) {
-                displayoutline(Analysis.getRegions(0), Analysis.imagea, Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 1, sep);
+                displayoutline(Analysis.getRegions(0), Analysis.imagea, nz * fz, ni * factor, nj * factor, 1, sep);
             if (Analysis.iParameters.nchannels == 2) {
-                displayoutline(Analysis.getRegions(1), Analysis.imageb, Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 2, sep);
+                displayoutline(Analysis.getRegions(1), Analysis.imageb, nz * fz, ni * factor, nj * factor, 2, sep);
             }
         }
         if (Analysis.iParameters.dispint) {
-            displayintensities(Analysis.getRegionslist(0), Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 1, sep);
+            displayintensities(Analysis.getRegionslist(0), nz * fz, ni * factor, nj * factor, 1, sep);
             if (Analysis.iParameters.nchannels == 2) {
-                displayintensities(Analysis.getRegionslist(1), Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 2, sep);
+                displayintensities(Analysis.getRegionslist(1), nz * fz, ni * factor, nj * factor, 2, sep);
             }
         }
         if (Analysis.iParameters.displabels || Analysis.iParameters.dispcolors) {
@@ -412,15 +414,11 @@ public class BLauncher {
 
         Analysis.loadChannels(img2, Analysis.iParameters.nchannels);
 
-        Analysis.iParameters.interpolation = (Analysis.iParameters.nz > 1) ? 2 : 4;
+        Analysis.iParameters.interpolation = (nz > 1) ? 2 : 4;
 
-        int nni = Analysis.imgA.getWidth();
-        int nnj = Analysis.imgA.getHeight();
-        int nnz = Analysis.imgA.getNSlices();
-
-        Analysis.iParameters.ni = nni;
-        Analysis.iParameters.nj = nnj;
-        Analysis.iParameters.nz = nnz;
+        ni = Analysis.imgA.getWidth();
+        nj = Analysis.imgA.getHeight();
+        nz = Analysis.imgA.getNSlices();
 
         Analysis.segmentA();
         if (Analysis.iParameters.nchannels == 2) {
@@ -445,16 +443,16 @@ public class BLauncher {
             sth_hcount++;
         }
         if (Analysis.iParameters.nchannels == 2) {
-            Analysis.computeOverallMask();
+            Analysis.computeOverallMask(nz, ni, nj);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(1)), 1);
 
-            Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0));
-            Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1));
+            Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0), nz, ni, nj);
+            Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1), nz, ni, nj);
             final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
-            int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
+            int fz2 = (nz > 1) ? factor2 : 1;
 
-            final MasksDisplay md = new MasksDisplay(Analysis.iParameters.ni * factor2, Analysis.iParameters.nj * factor2, Analysis.iParameters.nz * fz2);
+            final MasksDisplay md = new MasksDisplay(ni * factor2, nj * factor2, nz * fz2);
             ImagePlus colocImg = md.generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1));
             colocImg.show();
             
@@ -540,16 +538,16 @@ public class BLauncher {
         }
         final ImagePlus objcts = new ImagePlus("Objects", objS);
 
-        ImageStack imgS = new ImageStack(Analysis.iParameters.ni, Analysis.iParameters.nj);
-        for (int z = 0; z < Analysis.iParameters.nz; z++) {
-            final byte[] mask_bytes = new byte[Analysis.iParameters.ni * Analysis.iParameters.nj];
-            for (int i = 0; i < Analysis.iParameters.ni; i++) {
-                for (int j = 0; j < Analysis.iParameters.nj; j++) {
-                    mask_bytes[j * Analysis.iParameters.ni + i] = (byte) (255 * image[z][i][j]);
+        ImageStack imgS = new ImageStack(ni, nj);
+        for (int z = 0; z < nz; z++) {
+            final byte[] mask_bytes = new byte[ni * nj];
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    mask_bytes[j * ni + i] = (byte) (255 * image[z][i][j]);
                 }
             }
 
-            final ByteProcessor bp = new ByteProcessor(Analysis.iParameters.ni, Analysis.iParameters.nj);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(mask_bytes);
             imgS.addSlice("", bp);
         }

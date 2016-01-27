@@ -37,6 +37,7 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private int RegionsIntensitymodulo = 3000;
     @SuppressWarnings("unused") final private double[] cl = new double[2];
     @SuppressWarnings("unused") final private boolean firstphase = true;
+    @SuppressWarnings("unused") final private int ni = -1, nj = -1, nz = -1;
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
@@ -59,7 +60,6 @@ public class Parameters implements Serializable {
     public String wd = null;
     public int nthreads = 4;
     public int nchannels = 2;
-    int ni, nj, nz;
     
     // ================================ parameters changed in GUI
     // Segmentation options
@@ -149,7 +149,7 @@ public class Parameters implements Serializable {
         nchannels = p.nchannels;
         // firstphase
         PSF = p.PSF;
-        ni = p.ni; nj = p.nj; nz = p.nz;
+        // ni = p.ni; nj = p.nj; nz = p.nz;
     }
 
     @Override
