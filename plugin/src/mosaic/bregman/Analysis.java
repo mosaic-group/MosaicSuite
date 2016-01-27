@@ -44,7 +44,7 @@ public class Analysis {
     static boolean[][][] cellMaskBBinary;
     private static boolean[][][] overallCellMaskBinary;
 
-    public static Parameters iParams = new Parameters();
+    public static Parameters iParameters = new Parameters();
     static int frame;
 
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
@@ -80,9 +80,9 @@ public class Analysis {
     }
 
     static void loadChannels(ImagePlus img2, int aNumOfChannels) {
-        iParams.ni = img2.getWidth();
-        iParams.nj = img2.getHeight();
-        iParams.nz = img2.getNSlices();
+        iParameters.ni = img2.getWidth();
+        iParameters.nj = img2.getHeight();
+        iParameters.nz = img2.getNSlices();
         final int currentFrame = img2.getFrame();
         final int bits = img2.getBitDepth();
 
@@ -105,16 +105,16 @@ public class Analysis {
     }
 
     private static double[][][] setImage(ImagePlus aImage) {
-        double[][][] image = new double[iParams.nz][iParams.ni][iParams.nj];
+        double[][][] image = new double[iParameters.nz][iParameters.ni][iParameters.nj];
 
         double max = 0;
         double min = Double.POSITIVE_INFINITY;
 
-        for (int z = 0; z < iParams.nz; z++) {
+        for (int z = 0; z < iParameters.nz; z++) {
             aImage.setSlice(z + 1);
             ImageProcessor imp = aImage.getProcessor();
-            for (int i = 0; i < iParams.ni; i++) {
-                for (int j = 0; j < iParams.nj; j++) {
+            for (int i = 0; i < iParameters.ni; i++) {
+                for (int j = 0; j < iParameters.nj; j++) {
                     image[z][i][j] = imp.getPixel(i, j);
                     if (image[z][i][j] > max) {
                         max = image[z][i][j];
@@ -126,9 +126,9 @@ public class Analysis {
             }
         }
 
-        for (int z = 0; z < iParams.nz; z++) {
-            for (int i = 0; i < iParams.ni; i++) {
-                for (int j = 0; j < iParams.nj; j++) {
+        for (int z = 0; z < iParameters.nz; z++) {
+            for (int i = 0; i < iParameters.ni; i++) {
+                for (int j = 0; j < iParameters.nj; j++) {
                     image[z][i][j] = (image[z][i][j] - min) / (max - min);
                 }
             }
@@ -138,9 +138,9 @@ public class Analysis {
     }
     
     private static ImageStack generateImgStack(ImagePlus img2, final int currentFrame, final int bits, int channel) {
-        final ImageStack img_s = new ImageStack(iParams.ni, iParams.nj);
+        final ImageStack img_s = new ImageStack(iParameters.ni, iParameters.nj);
 
-        for (int z = 0; z < iParams.nz; z++) {
+        for (int z = 0; z < iParameters.nz; z++) {
             img2.setPosition(channel, z + 1, currentFrame);
             ImageProcessor impt = (bits == 32) ? img2.getProcessor().convertToShort(false) : img2.getProcessor();
             img_s.addSlice("", impt);
@@ -150,7 +150,7 @@ public class Analysis {
     }
 
     static double[] pearson_corr() {
-        return new SamplePearsonCorrelationCoefficient(imgA, imgB, iParams.usecellmaskX, iParams.thresholdcellmask, iParams.usecellmaskY, iParams.thresholdcellmasky).run();
+        return new SamplePearsonCorrelationCoefficient(imgA, imgB, iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
     }
 
     static void segmentA() {
@@ -167,10 +167,10 @@ public class Analysis {
         
         currentImage = img.getTitle();
 
-        TwoRegions rg = new TwoRegions(img, iParams, channel);
+        TwoRegions rg = new TwoRegions(img, iParameters, channel);
         rg.run();
 
-        if (iParams.dispSoftMask) {
+        if (iParameters.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
             if (channel > 1) return;
             
@@ -184,36 +184,36 @@ public class Analysis {
     }
 
     static void compute_connected_regions_a() {
-        final FindConnectedRegions fcr = processConnectedRegions(iParams.min_intensity, maskA);
+        final FindConnectedRegions fcr = processConnectedRegions(iParameters.min_intensity, maskA);
         regions[0] = fcr.getLabeledRegions();
         regionslist.set(0, fcr.getFoundRegions());
     }
 
     static void compute_connected_regions_b() {
-        final FindConnectedRegions fcr = processConnectedRegions(iParams.min_intensityY, maskB);
+        final FindConnectedRegions fcr = processConnectedRegions(iParameters.min_intensityY, maskB);
         regions[1] = fcr.getLabeledRegions();
         regionslist.set(1, fcr.getFoundRegions());
     }
     
     private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
         final ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(iParams.ni, iParams.nj);
+        final ImageStack mask_ims = new ImageStack(iParameters.ni, iParameters.nj);
 
-        for (int z = 0; z < iParams.nz; z++) {
-            final byte[] mask_bytes = new byte[iParams.ni * iParams.nj];
-            for (int i = 0; i < iParams.ni; i++) {
-                for (int j = 0; j < iParams.nj; j++) {
-                    mask_bytes[j * iParams.ni + i] = mask[z][i][j];
+        for (int z = 0; z < iParameters.nz; z++) {
+            final byte[] mask_bytes = new byte[iParameters.ni * iParameters.nj];
+            for (int i = 0; i < iParameters.ni; i++) {
+                for (int j = 0; j < iParameters.nj; j++) {
+                    mask_bytes[j * iParameters.ni + i] = mask[z][i][j];
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(iParams.ni, iParams.nj);
+            final ByteProcessor bp = new ByteProcessor(iParameters.ni, iParameters.nj);
             bp.setPixels(mask_bytes);
             mask_ims.addSlice("", bp);
         }
 
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParams.minves_size, (float) (255 * intensity));
+        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity));
         
         return fcr;
     }
@@ -302,7 +302,7 @@ public class Analysis {
         boolean oneColoc = true;
         double intColoc = 0;
         double sizeColoc = 0;
-        final int osxy = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
+        final int osxy = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
         for (Pix p : r.pixels) {
             int valcoloc = regions[p.pz][p.px][p.py];
             if (valcoloc > 0) {
@@ -317,10 +317,10 @@ public class Analysis {
             count++;
         }
 
-        r.colocpositive = ((double) countcoloc) / count > iParams.colocthreshold;
+        r.colocpositive = ((double) countcoloc) / count > iParameters.colocthreshold;
         r.overlap = (float) Tools.round(((double) countcoloc) / count, 3);
         r.over_size = (float) Tools.round((sizeColoc) / countcoloc, 3);
-        if (iParams.nz == 1) {
+        if (iParameters.nz == 1) {
             r.over_size = (float) Tools.round(r.over_size / (osxy * osxy), 3);
         }
         else {
@@ -343,8 +343,8 @@ public class Analysis {
     }
     
     private static double regionsum(Region r, double[][][] image) {
-        final int factor2 = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
-        int fz2 = (Analysis.iParams.nz > 1) ? factor2 : 1;
+        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
 
         int count = 0;
         double sum = 0;
@@ -371,27 +371,27 @@ public class Analysis {
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
-        if (Analysis.iParams.subpixel) {
-            r.cx = r.cx / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
-            r.cy = r.cy / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
-            r.cz = r.cz / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
+        if (Analysis.iParameters.subpixel) {
+            r.cx = r.cx / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+            r.cy = r.cy / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+            r.cz = r.cz / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
         }
     }
 
     static void setMaskA(double[][][] mask) {
-        maskA = new byte[iParams.nz][iParams.ni][iParams.nj];
+        maskA = new byte[iParameters.nz][iParameters.ni][iParameters.nj];
         copyScaledMask(maskA, mask);
     }
 
     static void setMaskB(double[][][] mask) {
-        maskB = new byte[iParams.nz][iParams.ni][iParams.nj];
+        maskB = new byte[iParameters.nz][iParameters.ni][iParameters.nj];
         copyScaledMask(maskB, mask);
     }
     
     private static void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
-        for (int z = 0; z < iParams.nz; z++) {
-            for (int i = 0; i < iParams.ni; i++) {
-                for (int j = 0; j < iParams.nj; j++) {
+        for (int z = 0; z < iParameters.nz; z++) {
+            for (int i = 0; i < iParameters.ni; i++) {
+                for (int j = 0; j < iParameters.nj; j++) {
                     aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
                 }
             }
@@ -412,8 +412,8 @@ public class Analysis {
         final int objects = aRegionsList.size();
         double totalsize = totalsize(aRegionsList);
 
-        if (Analysis.iParams.subpixel) {
-            return (totalsize / objects) / (Math.pow(Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation, 2));
+        if (Analysis.iParameters.subpixel) {
+            return (totalsize / objects) / (Math.pow(Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation, 2));
         }
         else {
             return (totalsize / objects);
@@ -451,8 +451,8 @@ public class Analysis {
     }
 
     private static boolean isInside(Region r) {
-        final int factor2 = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
-        int fz2 = (Analysis.iParams.nz > 1) ? factor2 : 1;
+        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
 
         double size = 0;
         int inside = 0;
@@ -466,18 +466,18 @@ public class Analysis {
     }
 
     static void computeOverallMask() {
-        final boolean mask[][][] = new boolean[iParams.nz][iParams.ni][iParams.nj];
+        final boolean mask[][][] = new boolean[iParameters.nz][iParameters.ni][iParameters.nj];
 
-        for (int z = 0; z < iParams.nz; z++) {
-            for (int i = 0; i < iParams.ni; i++) {
-                for (int j = 0; j < iParams.nj; j++) {
-                    if (iParams.usecellmaskX && iParams.usecellmaskY) {
+        for (int z = 0; z < iParameters.nz; z++) {
+            for (int i = 0; i < iParameters.ni; i++) {
+                for (int j = 0; j < iParameters.nj; j++) {
+                    if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
                         mask[z][i][j] = cellMaskABinary[z][i][j] && cellMaskBBinary[z][i][j];
                     }
-                    else if (iParams.usecellmaskX) {
+                    else if (iParameters.usecellmaskX) {
                         mask[z][i][j] = cellMaskABinary[z][i][j];
                     }
-                    else if (iParams.usecellmaskY) {
+                    else if (iParameters.usecellmaskY) {
                         mask[z][i][j] = cellMaskBBinary[z][i][j];
                     }
                     else {
@@ -491,11 +491,11 @@ public class Analysis {
     }
 
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
-        final int factor2 = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
-        int fz2 = (Analysis.iParams.nz > 1) ? factor2 : 1;
-        for (int z = 0; z < iParams.nz * fz2; z++) {
-            for (int i = 0; i < iParams.ni * factor2; i++) {
-                for (int j = 0; j < iParams.nj * factor2; j++) {
+        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
+        for (int z = 0; z < iParameters.nz * fz2; z++) {
+            for (int i = 0; i < iParameters.ni * factor2; i++) {
+                for (int j = 0; j < iParameters.nj * factor2; j++) {
                     regions[z][i][j] = 0;
                 }
             }

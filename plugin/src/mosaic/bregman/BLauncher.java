@@ -92,10 +92,10 @@ public class BLauncher {
                 
                 Headless_file();
                 displayResult(true);
-                System.out.println("Display result (save images = " + Analysis.iParams.save_images + ")");
+                System.out.println("Display result (save images = " + Analysis.iParameters.save_images + ")");
 
                 // Write a file info output
-                if (Analysis.iParams.save_images) {
+                if (Analysis.iParameters.save_images) {
                     saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 
                     String outFilename= "stitch";
@@ -161,7 +161,7 @@ public class BLauncher {
         }
 
         // Write a file info output
-        if (Analysis.iParams.save_images) {
+        if (Analysis.iParameters.save_images) {
             saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
         }
 
@@ -176,38 +176,38 @@ public class BLauncher {
      */
     private void displayResult(boolean sep) {
         
-        final int factor = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
-        System.out.println("Separate: " + sep + " Factor: " + factor + " " +  Analysis.iParams.oversampling2ndstep + " " + Analysis.iParams.interpolation);
-        int fz = (Analysis.iParams.nz > 1) ? factor : 1;
+        final int factor = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        System.out.println("Separate: " + sep + " Factor: " + factor + " " +  Analysis.iParameters.oversampling2ndstep + " " + Analysis.iParameters.interpolation);
+        int fz = (Analysis.iParameters.nz > 1) ? factor : 1;
 
-        if (Analysis.iParams.dispoutline) {
-                displayoutline(Analysis.getRegions(0), Analysis.imagea, Analysis.iParams.nz * fz, Analysis.iParams.ni * factor, Analysis.iParams.nj * factor, 1, sep);
-            if (Analysis.iParams.nchannels == 2) {
-                displayoutline(Analysis.getRegions(1), Analysis.imageb, Analysis.iParams.nz * fz, Analysis.iParams.ni * factor, Analysis.iParams.nj * factor, 2, sep);
+        if (Analysis.iParameters.dispoutline) {
+                displayoutline(Analysis.getRegions(0), Analysis.imagea, Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 1, sep);
+            if (Analysis.iParameters.nchannels == 2) {
+                displayoutline(Analysis.getRegions(1), Analysis.imageb, Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 2, sep);
             }
         }
-        if (Analysis.iParams.dispint) {
-            displayintensities(Analysis.getRegionslist(0), Analysis.iParams.nz * fz, Analysis.iParams.ni * factor, Analysis.iParams.nj * factor, 1, sep);
-            if (Analysis.iParams.nchannels == 2) {
-                displayintensities(Analysis.getRegionslist(1), Analysis.iParams.nz * fz, Analysis.iParams.ni * factor, Analysis.iParams.nj * factor, 2, sep);
+        if (Analysis.iParameters.dispint) {
+            displayintensities(Analysis.getRegionslist(0), Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 1, sep);
+            if (Analysis.iParameters.nchannels == 2) {
+                displayintensities(Analysis.getRegionslist(1), Analysis.iParameters.nz * fz, Analysis.iParameters.ni * factor, Analysis.iParameters.nj * factor, 2, sep);
             }
         }
-        if (Analysis.iParams.displabels || Analysis.iParams.dispcolors) {
+        if (Analysis.iParameters.displabels || Analysis.iParameters.dispcolors) {
             displayRegionsCol(Analysis.getRegions(0), 1, Analysis.getRegionslist(0).size(), sep);
-            if (Analysis.iParams.nchannels == 2) {
+            if (Analysis.iParameters.nchannels == 2) {
                 displayRegionsCol(Analysis.getRegions(0), 2, Analysis.getRegionslist(0).size(), sep);
             }
         }
-        if (Analysis.iParams.dispcolors) {
+        if (Analysis.iParameters.dispcolors) {
             displayRegionsLab(1, sep);
-            if (Analysis.iParams.nchannels == 2) {
+            if (Analysis.iParameters.nchannels == 2) {
                 displayRegionsLab(2, sep);
             }
         }
-        if (Analysis.iParams.dispSoftMask) {
+        if (Analysis.iParameters.dispSoftMask) {
             Analysis.out_soft_mask[0].setTitle(getSoftMask(0));
             Analysis.out_soft_mask[0].show();
-            if (Analysis.iParams.nchannels == 2) {
+            if (Analysis.iParameters.nchannels == 2) {
                 Analysis.out_soft_mask[1].setTitle(getSoftMask(1));
                 Analysis.out_soft_mask[1].show();
             }
@@ -319,7 +319,7 @@ public class BLauncher {
             out = new PrintWriter(path + File.separator + ffo + "_ImagesData" + ".csv");
 
             // write the header
-            if (Analysis.iParams.nchannels == 2) {
+            if (Analysis.iParameters.nchannels == 2) {
                 out.print("File" + ";" + "Image ID" + ";" + "Objects ch1" + ";" + "Mean size in ch1" + ";" + "Mean surface in ch1" + ";" + "Mean length in ch1" + ";" + "Objects ch2" + ";"
                         + "Mean size in ch2" + ";" + "Mean surface in ch2" + ";" + "Mean length in ch2" + ";" + "Colocalization ch1 in ch2 (signal based)" + ";"
                         + "Colocalization ch2 in ch1 (signal based)" + ";" + "Colocalization ch1 in ch2 (size based)" + ";" + "Colocalization ch2 in ch1 (size based)" + ";"
@@ -332,19 +332,19 @@ public class BLauncher {
             out.println();
             out.flush();
             
-            out.print("%Parameters:" + " " + "background removal " + " " + Analysis.iParams.removebackground + " " + "window size " + Analysis.iParams.size_rollingball + " " + "stddev PSF xy " + " "
-                    + mosaic.bregman.Tools.round(Analysis.iParams.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + mosaic.bregman.Tools.round(Analysis.iParams.sigma_gaussian / Analysis.iParams.zcorrec, 5) + " "
-                    + "Regularization " + Analysis.iParams.lreg_[0] + " " + Analysis.iParams.lreg_[1] + " " + "Min intensity ch1 " + Analysis.iParams.min_intensity + " " + "Min intensity ch2 "
-                    + Analysis.iParams.min_intensityY + " " + "subpixel " + Analysis.iParams.subpixel + " " + "Cell mask ch1 " + Analysis.iParams.usecellmaskX + " " + "mask threshold ch1 "
-                    + Analysis.iParams.thresholdcellmask + " " + "Cell mask ch2 " + Analysis.iParams.usecellmaskY + " " + "mask threshold ch2 " + Analysis.iParams.thresholdcellmasky + " " + "Intensity estimation "
-                    + choice1[Analysis.iParams.mode_intensity] + " " + "Noise model " + choice2[Analysis.iParams.noise_model] + ";");
+            out.print("%Parameters:" + " " + "background removal " + " " + Analysis.iParameters.removebackground + " " + "window size " + Analysis.iParameters.size_rollingball + " " + "stddev PSF xy " + " "
+                    + mosaic.bregman.Tools.round(Analysis.iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + mosaic.bregman.Tools.round(Analysis.iParameters.sigma_gaussian / Analysis.iParameters.zcorrec, 5) + " "
+                    + "Regularization " + Analysis.iParameters.lreg_[0] + " " + Analysis.iParameters.lreg_[1] + " " + "Min intensity ch1 " + Analysis.iParameters.min_intensity + " " + "Min intensity ch2 "
+                    + Analysis.iParameters.min_intensityY + " " + "subpixel " + Analysis.iParameters.subpixel + " " + "Cell mask ch1 " + Analysis.iParameters.usecellmaskX + " " + "mask threshold ch1 "
+                    + Analysis.iParameters.thresholdcellmask + " " + "Cell mask ch2 " + Analysis.iParameters.usecellmaskY + " " + "mask threshold ch2 " + Analysis.iParameters.thresholdcellmasky + " " + "Intensity estimation "
+                    + choice1[Analysis.iParameters.mode_intensity] + " " + "Noise model " + choice2[Analysis.iParameters.noise_model] + ";");
             out.println();
             out.flush();
         }
 
         final double meanSA = Analysis.meansurface(Analysis.getRegionslist(0));
         final double meanLA = Analysis.meanlength(Analysis.getRegionslist(0));
-        if (Analysis.iParams.nchannels == 2) {
+        if (Analysis.iParameters.nchannels == 2) {
             double[] temp = Analysis.pearson_corr();
             double corr = temp[0];
             double corr_mask = temp[1];
@@ -377,7 +377,7 @@ public class BLauncher {
                 return;
             }
 
-            Analysis.iParams.nchannels = aImp.getNChannels();
+            Analysis.iParameters.nchannels = aImp.getNChannels();
             bcolocheadless(aImp);
         }
         catch (final Exception e) {
@@ -408,22 +408,22 @@ public class BLauncher {
 
         boolean tempBlackbackground = ij.Prefs.blackBackground;
         ij.Prefs.blackBackground = false;
-        Analysis.iParams.nchannels = img2.getNChannels();
+        Analysis.iParameters.nchannels = img2.getNChannels();
 
-        Analysis.loadChannels(img2, Analysis.iParams.nchannels);
+        Analysis.loadChannels(img2, Analysis.iParameters.nchannels);
 
-        Analysis.iParams.interpolation = (Analysis.iParams.nz > 1) ? 2 : 4;
+        Analysis.iParameters.interpolation = (Analysis.iParameters.nz > 1) ? 2 : 4;
 
         int nni = Analysis.imgA.getWidth();
         int nnj = Analysis.imgA.getHeight();
         int nnz = Analysis.imgA.getNSlices();
 
-        Analysis.iParams.ni = nni;
-        Analysis.iParams.nj = nnj;
-        Analysis.iParams.nz = nnz;
+        Analysis.iParameters.ni = nni;
+        Analysis.iParameters.nj = nnj;
+        Analysis.iParameters.nz = nnz;
 
         Analysis.segmentA();
-        if (Analysis.iParams.nchannels == 2) {
+        if (Analysis.iParameters.nchannels == 2) {
             Analysis.segmentB();
         }
 
@@ -431,12 +431,12 @@ public class BLauncher {
         final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
         
         // Choose the Rscript coloc format
-        if (Analysis.iParams.nchannels == 2) CSVOutput.occ = CSVOutput.oc[2];
+        if (Analysis.iParameters.nchannels == 2) CSVOutput.occ = CSVOutput.oc[2];
         
         final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
         
-        if (Analysis.iParams.nchannels == 1) {
-            if (Analysis.iParams.save_images) {
+        if (Analysis.iParameters.nchannels == 1) {
+            if (Analysis.iParameters.save_images) {
                 final Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
                 IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
                 CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
@@ -444,21 +444,21 @@ public class BLauncher {
             
             sth_hcount++;
         }
-        if (Analysis.iParams.nchannels == 2) {
+        if (Analysis.iParameters.nchannels == 2) {
             Analysis.computeOverallMask();
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(1)), 1);
 
             Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0));
             Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1));
-            final int factor2 = Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation;
-            int fz2 = (Analysis.iParams.nz > 1) ? factor2 : 1;
+            final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+            int fz2 = (Analysis.iParameters.nz > 1) ? factor2 : 1;
 
-            final MasksDisplay md = new MasksDisplay(Analysis.iParams.ni * factor2, Analysis.iParams.nj * factor2, Analysis.iParams.nz * fz2);
+            final MasksDisplay md = new MasksDisplay(Analysis.iParameters.ni * factor2, Analysis.iParameters.nj * factor2, Analysis.iParameters.nz * fz2);
             ImagePlus colocImg = md.generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1));
             colocImg.show();
             
-            if (Analysis.iParams.save_images) {
+            if (Analysis.iParameters.save_images) {
                 // Handle colocation image
                 IJ.run(colocImg, "RGB Color", "");
                 IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle()) + "_coloc.zip");
@@ -540,16 +540,16 @@ public class BLauncher {
         }
         final ImagePlus objcts = new ImagePlus("Objects", objS);
 
-        ImageStack imgS = new ImageStack(Analysis.iParams.ni, Analysis.iParams.nj);
-        for (int z = 0; z < Analysis.iParams.nz; z++) {
-            final byte[] mask_bytes = new byte[Analysis.iParams.ni * Analysis.iParams.nj];
-            for (int i = 0; i < Analysis.iParams.ni; i++) {
-                for (int j = 0; j < Analysis.iParams.nj; j++) {
-                    mask_bytes[j * Analysis.iParams.ni + i] = (byte) (255 * image[z][i][j]);
+        ImageStack imgS = new ImageStack(Analysis.iParameters.ni, Analysis.iParameters.nj);
+        for (int z = 0; z < Analysis.iParameters.nz; z++) {
+            final byte[] mask_bytes = new byte[Analysis.iParameters.ni * Analysis.iParameters.nj];
+            for (int i = 0; i < Analysis.iParameters.ni; i++) {
+                for (int j = 0; j < Analysis.iParameters.nj; j++) {
+                    mask_bytes[j * Analysis.iParameters.ni + i] = (byte) (255 * image[z][i][j]);
                 }
             }
 
-            final ByteProcessor bp = new ByteProcessor(Analysis.iParams.ni, Analysis.iParams.nj);
+            final ByteProcessor bp = new ByteProcessor(Analysis.iParameters.ni, Analysis.iParameters.nj);
             bp.setPixels(mask_bytes);
             imgS.addSlice("", bp);
         }
@@ -576,7 +576,7 @@ public class BLauncher {
 
         // if we have already an outline overlay image merge the frame
         if (sep == false) {
-            updateImages(out_over, over, getOutlineName(channel - 1), Analysis.iParams.dispoutline, channel);
+            updateImages(out_over, over, getOutlineName(channel - 1), Analysis.iParameters.dispoutline, channel);
         }
         else {
             out_over[channel - 1] = over;
@@ -626,7 +626,7 @@ public class BLauncher {
         final ImagePlus intensities2 = intensities.duplicate();
 
         if (sep == false) {
-            updateImages(out_disp, intensities2, getIntensitiesName(channel - 1), Analysis.iParams.dispint, channel);
+            updateImages(out_disp, intensities2, getIntensitiesName(channel - 1), Analysis.iParameters.dispint, channel);
         }
         else {
             out_disp[channel - 1] = intensities2;
@@ -700,7 +700,7 @@ public class BLauncher {
         label = new ImagePlus("Regions " + chan_s[channel - 1], labS);
 
         if (sep == false) {
-            updateImages(out_label, label, getSegmentationName(channel - 1), Analysis.iParams.dispcolors, channel);
+            updateImages(out_label, label, getSegmentationName(channel - 1), Analysis.iParameters.dispcolors, channel);
         }
         else {
             out_label[channel - 1] = label;
@@ -723,7 +723,7 @@ public class BLauncher {
         IJ.run(label_, "Grays", "");
 
         if (sep == false) {
-            updateImages(out_label_gray, label_, getMaskName(channel - 1), Analysis.iParams.displabels, channel);
+            updateImages(out_label_gray, label_, getMaskName(channel - 1), Analysis.iParameters.displabels, channel);
         }
         else {
             out_label_gray[channel - 1] = label_;

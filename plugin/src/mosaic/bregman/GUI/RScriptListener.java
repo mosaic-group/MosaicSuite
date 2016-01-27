@@ -26,17 +26,17 @@ class RScriptListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         int nbgroups = new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
         if (nbgroups > 5) {
-            Analysis.iParams.nbimages = new int[nbgroups];
+            Analysis.iParameters.nbimages = new int[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
-                Analysis.iParams.nbimages[i] = 1;
+                Analysis.iParameters.nbimages[i] = 1;
             }
             
-            Analysis.iParams.groupnames = new String[nbgroups];
+            Analysis.iParameters.groupnames = new String[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
-                Analysis.iParams.groupnames[i] = "Condition " + (i + 1) + " name";
+                Analysis.iParameters.groupnames[i] = "Condition " + (i + 1) + " name";
             }
             
-            Analysis.iParams.nbconditions = nbgroups;
+            Analysis.iParameters.nbconditions = nbgroups;
         }
 
         new RScriptWindow(nbgroups, posx, posy).run();

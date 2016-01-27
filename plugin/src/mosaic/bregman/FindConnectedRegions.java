@@ -217,7 +217,7 @@ class FindConnectedRegions {
             if (region.points <= aMaximumPointsInRegion) {
                 // check for z processing
 
-                if (Analysis.iParams.exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
+                if (Analysis.iParameters.exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
                     Analysis.regionCenter(region);
                     if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
                         iFoundRegions.add(region);

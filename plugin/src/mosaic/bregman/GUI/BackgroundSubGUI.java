@@ -32,8 +32,8 @@ class BackgroundSubGUI {
         p.add(help_b);
         gd.addPanel(p);
 
-        gd.addCheckbox("Remove_background", Analysis.iParams.removebackground);
-        gd.addNumericField("rolling_ball_window_size_(in_pixels)", Analysis.iParams.size_rollingball, 0);
+        gd.addCheckbox("Remove_background", Analysis.iParameters.removebackground);
+        gd.addNumericField("rolling_ball_window_size_(in_pixels)", Analysis.iParameters.size_rollingball, 0);
 
         if (GenericGUI.bypass_GUI == false) {
             gd.showDialog();
@@ -41,8 +41,8 @@ class BackgroundSubGUI {
                 return -1;
             }
 
-            Analysis.iParams.removebackground = gd.getNextBoolean();
-            Analysis.iParams.size_rollingball = (int) gd.getNextNumber();
+            Analysis.iParameters.removebackground = gd.getNextBoolean();
+            Analysis.iParameters.size_rollingball = (int) gd.getNextNumber();
         }
         
         return 0;

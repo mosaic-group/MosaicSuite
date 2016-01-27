@@ -2,8 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 import mosaic.utils.ArrayOps;
@@ -19,8 +17,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf3D;
     private final DoubleDCT_3D dct3d;
 
-    private ExecutorService executor;
-    
     public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
         super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn);
         w2zk = new double[nz][ni][nj];
@@ -39,7 +35,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             }
         }
 
-        final int[] sz = p.PSF.getSuggestedImageSize();
+        final int[] sz = iParameters.PSF.getSuggestedImageSize();
         eigenPsf3D = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         // Reallocate temps
@@ -61,8 +57,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
         convolveAndScale(mask);
         calculateGradientsXandY(mask);
-        System.out.println("========> CREATING POOL 3D");
-        executor = Executors.newFixedThreadPool(p.nthreads);
     }
     
     @Override
@@ -83,7 +77,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, p.PSF, temp4);
+        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, iParameters.PSF, temp4);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -96,81 +90,77 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     @Override
     protected void step() throws InterruptedException {
 
-            final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
-            final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Sync13 = new CountDownLatch(p.nthreads);
-            final CountDownLatch Dct = new CountDownLatch(1);
-            final CountDownLatch SyncFgradx = new CountDownLatch(1);
-            
-            int iStart = 0;
-            int jStart = 0;
-            final int ichunk = p.ni / p.nthreads;
-            final int ilastchunk = p.ni - ichunk * (p.nthreads - 1);
-            final int jchunk = p.nj / p.nthreads;
-            final int jlastchunk = p.nj - jchunk * (p.nthreads - 1);
-            
-            for (int nt = 0; nt < p.nthreads - 1; nt++) {
-                // Check if we can create threads
-                final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
-                        jStart + jchunk, nt, this, LocalTools);
-                executor.execute(task);
-                iStart += ichunk;
-                jStart += jchunk;
-            }
-            final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
-                    jStart, jStart + jlastchunk, p.nthreads - 1, this, LocalTools);
+        final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.nthreads);// subprob 1 and 3
+        final CountDownLatch Sync1 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync2 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync3 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync4 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync5 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync6 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync7 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync8 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync9 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync10 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync11 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync12 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync13 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Dct = new CountDownLatch(1);
+        final CountDownLatch SyncFgradx = new CountDownLatch(1);
+
+        int iStart = 0;
+        int jStart = 0;
+        final int ichunk = iParameters.ni / iParameters.nthreads;
+        final int ilastchunk = iParameters.ni - ichunk * (iParameters.nthreads - 1);
+        final int jchunk = iParameters.nj / iParameters.nthreads;
+        final int jlastchunk = iParameters.nj - jchunk * (iParameters.nthreads - 1);
+
+        for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
+            // Check if we can create threads
+            final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
+                    jStart + jchunk, nt, this, LocalTools);
             executor.execute(task);
-            Sync4.await();
-            
-            dct3d.forward(temp1, true);
-            for (int z = 0; z < nz; z++) {
-                for (int i = 0; i < ni; i++) {
-                    for (int j = 0; j < nj; j++) {
-                        if ((1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[0][i][j]) != 0) {
-                            temp1[z][i][j] = temp1[z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[z][i][j]);
-                        }
+            iStart += ichunk;
+            jStart += jchunk;
+        }
+        final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
+                jStart, jStart + jlastchunk, iParameters.nthreads - 1, this, LocalTools);
+        executor.execute(task);
+        Sync4.await();
+
+        dct3d.forward(temp1, true);
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if ((1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[0][i][j]) != 0) {
+                        temp1[z][i][j] = temp1[z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[z][i][j]);
                     }
                 }
             }
-            dct3d.inverse(temp1, true);
-            
-            Dct.countDown();
-            
-            // do fgradx without parallelization
-            LocalTools.fgradx2D(temp4, temp1);
-            SyncFgradx.countDown();
-            
-            ZoneDoneSignal.await();
-            
-            if (stepk % p.energyEvaluationModulo == 0) {
-                energy = 0;
-                for (int nt = 0; nt < p.nthreads; nt++) {
-                    energy += energytab2[nt];
-                }
+        }
+        dct3d.inverse(temp1, true);
+
+        Dct.countDown();
+
+        // do fgradx without parallelization
+        LocalTools.fgradx2D(temp4, temp1);
+        SyncFgradx.countDown();
+
+        ZoneDoneSignal.await();
+
+        if (stepk % iParameters.energyEvaluationModulo == 0) {
+            energy = 0;
+            for (int nt = 0; nt < iParameters.nthreads; nt++) {
+                energy += energytab2[nt];
             }
-            
-            if (p.livedisplay && p.firstphase) {
-                md.display2regions(w3k, "Mask3d", channel);
-            }
+        }
     }
 
     private void compute_eigenPSF3D() {
-        int[] sz = p.PSF.getSuggestedImageSize();
+        int[] sz = iParameters.PSF.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPsf3D[0].length);
         final int ymin = Math.min(sz[1], eigenPsf3D[0][0].length);
         final int zmin = Math.min(sz[2], eigenPsf3D.length);
-        Tools.convolve3Dseparable(eigenPsf3D, p.PSF.getImage3DAsDoubleArray(), xmin, ymin, zmin, p.PSF, temp4);
+        Tools.convolve3Dseparable(eigenPsf3D, iParameters.PSF.getImage3DAsDoubleArray(), xmin, ymin, zmin, iParameters.PSF, temp4);
 
         ArrayOps.fill(temp2, 0);
         for (int z = 0; z < zmin; z++) {

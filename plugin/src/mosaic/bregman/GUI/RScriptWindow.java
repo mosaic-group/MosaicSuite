@@ -27,17 +27,17 @@ class RScriptWindow {
         gd.setInsets(-10, 0, 3);
         gd.addMessage("Channel names", bf);
 
-        gd.addStringField("Channel_1", Analysis.iParams.ch1, 20);
-        gd.addStringField("Channel_2", Analysis.iParams.ch2, 20);
+        gd.addStringField("Channel_1", Analysis.iParameters.ch1, 20);
+        gd.addStringField("Channel_2", Analysis.iParameters.ch2, 20);
 
         gd.addMessage("Number of images per condition", bf);
         for (int i = 0; i < nbgroups; i++) {
-            gd.addNumericField("Conditon_" + (i + 1), Analysis.iParams.nbimages[i], 0);
+            gd.addNumericField("Conditon_" + (i + 1), Analysis.iParameters.nbimages[i], 0);
         }
 
         gd.addMessage("Condition names", bf);
         for (int i = 0; i < nbgroups; i++) {
-            gd.addStringField("Conditon_" + (i + 1), Analysis.iParams.groupnames[i], 20);
+            gd.addStringField("Conditon_" + (i + 1), Analysis.iParameters.groupnames[i], 20);
         }
 
         gd.centerDialog(false);
@@ -47,13 +47,13 @@ class RScriptWindow {
             return;
         }
 
-        Analysis.iParams.ch1 = gd.getNextString();
-        Analysis.iParams.ch2 = gd.getNextString();
+        Analysis.iParameters.ch1 = gd.getNextString();
+        Analysis.iParameters.ch2 = gd.getNextString();
         for (int i = 0; i < nbgroups; i++) {
-            Analysis.iParams.groupnames[i] = gd.getNextString();
+            Analysis.iParameters.groupnames[i] = gd.getNextString();
         }
         for (int i = 0; i < nbgroups; i++) {
-            Analysis.iParams.nbimages[i] = (int) gd.getNextNumber();
+            Analysis.iParameters.nbimages[i] = (int) gd.getNextNumber();
         }
     }
 }

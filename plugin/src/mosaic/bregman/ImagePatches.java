@@ -3,8 +3,8 @@ package mosaic.bregman;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -85,9 +85,8 @@ class ImagePatches {
     private void distributeRegions() {
         // assuming rvoronoi and regionslists (objects) in same order (and same length)
 
-        final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
-
+        // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
+        ExecutorService threadPool = Executors.newFixedThreadPool(1);
         iNumberOfJobs = iRegionsList.size();
         for (final Region r : iRegionsList) {
             if (iParameters.interpolation > 1) {
@@ -115,7 +114,7 @@ class ImagePatches {
         assemble(iRegionsList, iRegions);
         
         // calculate regions intensities
-        final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 4, 1, TimeUnit.DAYS, queue);
+        ExecutorService threadPool2 = Executors.newFixedThreadPool(1);
         for (final Region r : iRegionsList) {
             ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverSamplingInXY, iOverSamplingInZ, iRegions);
             threadPool2.execute(op);

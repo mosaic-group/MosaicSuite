@@ -36,6 +36,7 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private boolean dispwindows = true;
     @SuppressWarnings("unused") final private int RegionsIntensitymodulo = 3000;
     @SuppressWarnings("unused") final private double[] cl = new double[2];
+    @SuppressWarnings("unused") final private boolean firstphase = true;
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
@@ -48,12 +49,11 @@ public class Parameters implements Serializable {
     final double betaMLEindefault = 1.0;
     final double betaMLEoutdefault = 0.0003;
     final public int minves_size = 2;
+    final public int max_nsb = 151;
     
     // ================================ not yet investigated
-    public int max_nsb = 151;
     public int interpolation = 1;// 4
     public int oversampling2ndstep = 2;// 2
-    boolean firstphase = true;
     public boolean refinement = false;
     public psf<DoubleType> PSF;
     public String wd = null;

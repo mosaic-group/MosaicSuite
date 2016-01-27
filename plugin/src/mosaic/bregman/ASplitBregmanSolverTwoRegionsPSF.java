@@ -2,8 +2,6 @@ package mosaic.bregman;
 
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 import mosaic.utils.ArrayOps;
@@ -13,7 +11,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
     private final double[][][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
-    private ExecutorService executor;
     
     public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn) {
         super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn);
@@ -29,8 +26,6 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         convolveAndScale(mask[0]);
         calculateGradientsXandY(mask);
-        System.out.println("========> CREATING POOL 2D");
-        executor = Executors.newFixedThreadPool(p.nthreads);
     }
 
     @Override
@@ -44,7 +39,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][] aValues) {
-        Tools.convolve2D(temp3[0], aValues, ni, nj, p.PSF);
+        Tools.convolve2D(temp3[0], aValues, ni, nj, iParameters.PSF);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -62,29 +57,29 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     @Override
     protected void step() throws InterruptedException {
         // WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed from iteration to next iteration : do not change .
-        final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
-        final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
-        final CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
+        final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.nthreads);// subprob 1 and 3
+        final CountDownLatch Sync1 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync2 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync3 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync4 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync5 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync6 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync7 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync8 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync9 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync10 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync11 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch Sync12 = new CountDownLatch(iParameters.nthreads);
         final CountDownLatch Dct = new CountDownLatch(1);
 
-        final int ichunk = p.ni / p.nthreads;
-        final int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
-        final int jchunk = p.nj / p.nthreads;
-        final int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
+        final int ichunk = iParameters.ni / iParameters.nthreads;
+        final int ilastchunk = iParameters.ni - (iParameters.ni / (iParameters.nthreads)) * (iParameters.nthreads - 1);
+        final int jchunk = iParameters.nj / iParameters.nthreads;
+        final int jlastchunk = iParameters.nj - (iParameters.nj / (iParameters.nthreads)) * (iParameters.nthreads - 1);
         int iStart = 0;
         int jStart = 0;
 
-        for (int nt = 0; nt < p.nthreads - 1; nt++) {
+        for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
             final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
                     this, LocalTools);
             executor.execute(task);
@@ -92,7 +87,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
             jStart += jchunk;
         }
         final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
-                p.nthreads - 1, this, LocalTools);
+                iParameters.nthreads - 1, this, LocalTools);
         executor.execute(task);
         // temp1=uk
         Sync4.await();
@@ -113,23 +108,19 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         Dct.countDown();
         ZoneDoneSignal.await();
 
-        if (stepk % p.energyEvaluationModulo == 0) {
+        if (stepk % iParameters.energyEvaluationModulo == 0) {
             energy = 0;
-            for (int nt = 0; nt < p.nthreads; nt++) {
+            for (int nt = 0; nt < iParameters.nthreads; nt++) {
                 energy += energytab2[nt];
             }
-        }
-
-        if (p.livedisplay && p.firstphase) {
-            md.display2regions(w3k, "Mask", channel);
         }
     }
 
     private void compute_eigenPSF() {
-        final int[] sz = p.PSF.getSuggestedImageSize();
+        final int[] sz = iParameters.PSF.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPsf2D[0].length);
         final int ymin = Math.min(sz[1], eigenPsf2D[0][0].length);
-        Tools.convolve2D(eigenPsf2D[0], p.PSF.getImage2DAsDoubleArray(), xmin, ymin, p.PSF);
+        Tools.convolve2D(eigenPsf2D[0], iParameters.PSF.getImage2DAsDoubleArray(), xmin, ymin, iParameters.PSF);
 
         ArrayOps.fill(temp1, 0);
         for (int z = 0; z < nz; z++) {

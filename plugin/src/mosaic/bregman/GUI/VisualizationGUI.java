@@ -23,7 +23,7 @@ class VisualizationGUI {
         gd.addMessage("Visualization and output", bf);
 
         final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
-        final boolean bgroup2[] = { Analysis.iParams.livedisplay, Analysis.iParams.dispcolors, Analysis.iParams.dispint, Analysis.iParams.displabels, Analysis.iParams.dispoutline, Analysis.iParams.dispSoftMask, Analysis.iParams.save_images };
+        final boolean bgroup2[] = { Analysis.iParameters.livedisplay, Analysis.iParameters.dispcolors, Analysis.iParameters.dispint, Analysis.iParameters.displabels, Analysis.iParameters.dispoutline, Analysis.iParameters.dispSoftMask, Analysis.iParameters.save_images };
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
 
         final Button b = new Button("Output options");
@@ -37,7 +37,7 @@ class VisualizationGUI {
         gd.add(b);
         
         gd.addMessage("    R script data analysis settings", bf);
-        gd.addNumericField("Number of conditions", Analysis.iParams.nbconditions, 0);
+        gd.addNumericField("Number of conditions", Analysis.iParameters.nbconditions, 0);
 
         final Panel p = new Panel();
         final Button rscript = new Button("Set condition names and number of images per condition");
@@ -54,16 +54,16 @@ class VisualizationGUI {
                 return -1;
             }
 
-            Analysis.iParams.livedisplay = gd.getNextBoolean();
-            Analysis.iParams.dispcolors = gd.getNextBoolean();
-            Analysis.iParams.dispint = gd.getNextBoolean();
-            Analysis.iParams.displabels = gd.getNextBoolean();
-            Analysis.iParams.dispoutline = gd.getNextBoolean();
-            Analysis.iParams.dispSoftMask = gd.getNextBoolean();
-            Analysis.iParams.save_images = gd.getNextBoolean();
+            Analysis.iParameters.livedisplay = gd.getNextBoolean();
+            Analysis.iParameters.dispcolors = gd.getNextBoolean();
+            Analysis.iParameters.dispint = gd.getNextBoolean();
+            Analysis.iParameters.displabels = gd.getNextBoolean();
+            Analysis.iParameters.dispoutline = gd.getNextBoolean();
+            Analysis.iParameters.dispSoftMask = gd.getNextBoolean();
+            Analysis.iParameters.save_images = gd.getNextBoolean();
         }
 
-        Analysis.iParams.nbconditions = (int) gd.getNextNumber();
+        Analysis.iParameters.nbconditions = (int) gd.getNextNumber();
 
         return 0;
     }

@@ -58,7 +58,7 @@ class AnalysePatch implements Runnable {
     private final ImagePatches iImagePatches;
 
     private final Tools iLocalTools;
-    private final Parameters iLocalParams;
+    private final Parameters iLocalParameters;
     
     double iIntensityMin;
     double iIntensityMax;
@@ -105,7 +105,7 @@ class AnalysePatch implements Runnable {
         iSizeOrigZ = aParameters.nz;
 
         iInputRegion = aInputRegion;
-        iLocalParams = new Parameters(aParameters);
+        iLocalParameters = new Parameters(aParameters);
         iChannel = aChannel;
         iImagePatches = aImagePatches;
         
@@ -116,7 +116,7 @@ class AnalysePatch implements Runnable {
         // old comment: check that the margin is at least 8 time bigger than the PSF
         int margin = 6;
         int zmargin = 1;// was 2
-        final int[] sz_psf = iLocalParams.PSF.getSuggestedImageSize();
+        final int[] sz_psf = iLocalParameters.PSF.getSuggestedImageSize();
         if (sz_psf[0] > margin) {
             margin = sz_psf[0];
         }
@@ -148,21 +148,21 @@ class AnalysePatch implements Runnable {
         mask = generateMask(aInputRegion, false);
 
         // set size
-        iLocalParams.ni = iSizeOversX;
-        iLocalParams.nj = iSizeOversY;
-        iLocalParams.nz = iSizeOversZ;
-        iLocalTools = new Tools(iLocalParams.ni, iLocalParams.nj, iLocalParams.nz);
+        iLocalParameters.ni = iSizeOversX;
+        iLocalParameters.nj = iSizeOversY;
+        iLocalParameters.nz = iSizeOversZ;
+        iLocalTools = new Tools(iSizeOversX, iSizeOversY, iSizeOversZ);
         
         // normalize
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
-        iScaledIntensityMin = ( ((iChannel == 0) ? iLocalParams.min_intensity : iLocalParams.min_intensityY) - iIntensityMin) / (iIntensityMax - iIntensityMin);
-        if (iLocalParams.mode_intensity == 3) {
+        iScaledIntensityMin = ( ((iChannel == 0) ? iLocalParameters.min_intensity : iLocalParameters.min_intensityY) - iIntensityMin) / (iIntensityMax - iIntensityMin);
+        if (iLocalParameters.mode_intensity == 3) {
             ArrayOps.normalize(w3kpatch[0]);
         }
 
-        firstminval = (aChannel == 0) ? iLocalParams.min_intensity : iLocalParams.min_intensityY;
+        firstminval = (aChannel == 0) ? iLocalParameters.min_intensity : iLocalParameters.min_intensityY;
         rescaled_min_int_all = firstminval / 0.99; // first val with ~3% margin
         // (15 % compensated in find_best_t_and_int...)
 
@@ -171,35 +171,33 @@ class AnalysePatch implements Runnable {
         temp3 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         
         // estimate ints
-        if (iLocalParams.mode_intensity == 0) {
+        if (iLocalParameters.mode_intensity == 0) {
             find_best_thresh_and_int(w3kpatch);
         }
-        else if (iLocalParams.mode_intensity == 1) {
+        else if (iLocalParameters.mode_intensity == 1) {
             estimate_int_weighted(mask);
         }
-        else if (iLocalParams.mode_intensity == 2) {
+        else if (iLocalParameters.mode_intensity == 2) {
             estimate_int_clustering(1);// (-1 to correct for old numbering)
         }
         
         clBetaMleIntensities[0] = Math.max(cout, 0);
         clBetaMleIntensities[1] = Math.max(0.75 * (firstminval - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
 
-        if (iLocalParams.mode_intensity == 3) {
-            clBetaMleIntensities[0] = iLocalParams.betaMLEoutdefault;
+        if (iLocalParameters.mode_intensity == 3) {
+            clBetaMleIntensities[0] = iLocalParameters.betaMLEoutdefault;
             clBetaMleIntensities[1] = 1;
             t_high = cin;
         }
 
         rescaled_min_int_all = Math.max(0, (iScaledIntensityMin - cout) / (cin - cout)); //cin
-        if (iLocalParams.debug) {
+        if (iLocalParameters.debug) {
             IJ.log(aInputRegion.value + "min all " + rescaled_min_int_all);
         }
 
-        iLocalParams.max_nsb = 101;
-        iLocalParams.nthreads = 1;
-        iLocalParams.firstphase = false;
-        for (int i = 0; i < iLocalParams.lreg_.length; i++) {
-            iLocalParams.lreg_[i] = iLocalParams.lreg_[i] * aOversampling;
+        Debug.print("LREG * oversampling = ",aOversampling );
+        for (int i = 0; i < iLocalParameters.lreg_.length; i++) {
+            iLocalParameters.lreg_[i] = iLocalParameters.lreg_[i] * aOversampling;
         }
     }
 
@@ -213,27 +211,27 @@ class AnalysePatch implements Runnable {
 
         // Check the delta beta, if it is bigger than two ignore it, because
         // I cannot warrant stability
-        Debug.print("BETA MLE (patch): ", iLocalParams.betaMLEindefault, iLocalParams.betaMLEoutdefault, iLocalParams.refinement);
+        Debug.print("BETA MLE (patch): ", iLocalParameters.betaMLEindefault, iLocalParameters.betaMLEoutdefault, iLocalParameters.refinement);
         if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
             // reset
-            clBetaMleIntensities[0] = iLocalParams.betaMLEoutdefault;
-            clBetaMleIntensities[1] = iLocalParams.betaMLEindefault;
+            clBetaMleIntensities[0] = iLocalParameters.betaMLEoutdefault;
+            clBetaMleIntensities[1] = iLocalParameters.betaMLEindefault;
         }
 
-        if (iLocalParams.nz > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
+        if (iSizeOversZ > 1) {
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParams, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iLocalParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1]);// mask instead of w3kpatch
         }
 
         try {
-            A_solver.first_run();
+            A_solver.second_run();
 
             cout = A_solver.getBetaMLE()[0];
             cin = A_solver.getBetaMLE()[1];
 
-            final int ll = iLocalParams.mode_intensity;
+            final int ll = iLocalParameters.mode_intensity;
             if (ll == 0 || ll == 1) {
                 min_thresh = rescaled_min_int_all * 0.96;
             }
@@ -241,28 +239,28 @@ class AnalysePatch implements Runnable {
                 min_thresh = 0.25;
             }
 
-            if (iLocalParams.debug) {
+            if (iLocalParameters.debug) {
                 IJ.log("region" + iInputRegion.value + "minth " + min_thresh);
 
             }
             double t = 0;
-            if (iLocalParams.mode_intensity != 3) {
+            if (iLocalParameters.mode_intensity != 3) {
                 t = find_best_thresh(A_solver.w3kbest);
             }
 
-            if (iLocalParams.mode_intensity == 3)// mode high
+            if (iLocalParameters.mode_intensity == 3)// mode high
             {
 
                 estimate_int_clustering(2);// (-1
 
                 t_high = cin;
-                if (iLocalParams.debug) {
+                if (iLocalParameters.debug) {
                     IJ.log("obj" + iInputRegion.value + " effective t:" + t_high);
                 }
                 t = t_high - 0.04;
             }
 
-            if (iLocalParams.debug) {
+            if (iLocalParameters.debug) {
                 IJ.log("best thresh : " + t + "region" + iInputRegion.value);
             }
             set_object(A_solver.w3kbest, t);
@@ -321,7 +319,7 @@ class AnalysePatch implements Runnable {
         xmax = Math.min(iSizeOrigX, xmax + aMarginXY + 1);
         ymin = Math.max(0, ymin - aMarginXY);
         ymax = Math.min(iSizeOrigY, ymax + aMarginXY + 1);
-        if (iLocalParams.nz > 1) {
+        if (iLocalParameters.nz > 1) {
             zmin = Math.max(0, zmin - aMarginZ);
             zmax = Math.min(iSizeOrigZ, zmax + aMarginZ + 1);
         }
@@ -340,7 +338,7 @@ class AnalysePatch implements Runnable {
 
         iOverInterInXY = iOversamplingInXY * iInterpolationXY;
         
-        if (iLocalParams.nz == 1) {
+        if (iLocalParameters.nz == 1) {
             iOversamplingInZ = 1;
             iSizeOversZ = 1;
             iInterpolationZ = 1;
@@ -368,15 +366,15 @@ class AnalysePatch implements Runnable {
     }
 
     private void estimate_int_weighted(double[][][] mask) {
-        Tools.normalizeAndConvolveMask(temp3, mask, iLocalParams.PSF, temp1, temp2);
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iLocalParams.betaMLEoutdefault, iLocalParams.betaMLEindefault);
+        Tools.normalizeAndConvolveMask(temp3, mask, iLocalParameters.PSF, temp1, temp2);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iLocalParameters.betaMLEoutdefault, iLocalParameters.betaMLEindefault);
         RSS.eval(temp3 /* convolved mask */);
 
         cout = RSS.betaMLEout;
         cout_front = cout;
         cin = RSS.betaMLEin;
 
-        if (iLocalParams.debug) {
+        if (iLocalParameters.debug) {
             IJ.log("reg" + iInputRegion.value + "rescaled min int" + iScaledIntensityMin);
             IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
         }
@@ -423,7 +421,7 @@ class AnalysePatch implements Runnable {
                 cout = cout_front;
             }
 
-            if (iLocalParams.debug) {
+            if (iLocalParameters.debug) {
                 IJ.log("rescaled min int" + iScaledIntensityMin);
                 IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
                 IJ.log("levels :");
@@ -434,8 +432,8 @@ class AnalysePatch implements Runnable {
         }
         else {
             cin = 1;
-            cout_front = iLocalParams.betaMLEoutdefault;
-            cout = iLocalParams.betaMLEoutdefault;
+            cout_front = iLocalParameters.betaMLEoutdefault;
+            cout = iLocalParameters.betaMLEoutdefault;
         }
     }
 
@@ -475,7 +473,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, currentThr);
 
             if (objectFound && !border_attained) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, iLocalParameters.lreg_[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
                 if (tempEnergy < bestEenergy) {
                     bestEenergy = tempEnergy;
                     bestThreshold = currentThr;
@@ -499,7 +497,7 @@ class AnalysePatch implements Runnable {
 
             if (objectFound && !border_attained) {
                 estimate_int_weighted(object);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParams.ldata, iLocalParams.lreg_[iChannel], iLocalParams.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iLocalParameters.ldata, iLocalParameters.lreg_[iChannel], iLocalParameters.PSF, cout_front, cin, iPatch);
                 if (tempEnergy < energy) {
                     energy = tempEnergy;
                     threshold = thr;
@@ -523,11 +521,11 @@ class AnalysePatch implements Runnable {
         }
 
         rescaled_min_int_all = Math.max((iScaledIntensityMin - cout) / (cin - cout), 0);
-        if (iLocalParams.debug) {
+        if (iLocalParameters.debug) {
             IJ.log("fbest" + iInputRegion.value + "min all " + rescaled_min_int_all);
         }
 
-        if (iLocalParams.debug) {
+        if (iLocalParameters.debug) {
             IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.value + " cin " + cin + " cout " + cout);
         }
 

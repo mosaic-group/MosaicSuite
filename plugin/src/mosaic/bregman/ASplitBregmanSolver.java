@@ -2,6 +2,9 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -11,6 +14,7 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 
 
 abstract class ASplitBregmanSolver {
@@ -48,9 +52,11 @@ abstract class ASplitBregmanSolver {
 
     protected final int ni, nj, nz;
     protected double energy; 
-    protected final Parameters p;
+    protected final Parameters iParameters;
     private AnalysePatch Ap = null;
 
+    protected ExecutorService executor;
+    
     // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
     // being updated in 2D case but not in 3D.
     double iBetaMleOut, iBetaMleIn;
@@ -64,12 +70,16 @@ abstract class ASplitBregmanSolver {
     }
 
     private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn) {
-        LocalTools = new Tools(aParams.ni, aParams.nj, aParams.nz);
         channel = aChannel;
-        p = aParams;
+        iParameters = aParams;
+//        ni = aImage[0].length; 
+//        nj = aImage[0][0].length;
+//        nz = aImage.length; 
         ni = aParams.ni;
         nj = aParams.nj;
         nz = aParams.nz;
+        Debug.print("SIZES!!!!!!!!!!!!!!                  : " + Debug.getArrayDims(aImage), aParams.nz, aParams.ni, aParams,nj, "END");
+        LocalTools = new Tools(ni, nj, nz);
 
         
         // Beta MLE in and out
@@ -78,7 +88,7 @@ abstract class ASplitBregmanSolver {
         betaMle[0] = iBetaMleOut;
         betaMle[1] = iBetaMleIn;
         
-        energytab2 = new double[p.nthreads];
+        energytab2 = new double[iParameters.nthreads];
         
         md = aMaskDisplay;
 
@@ -127,6 +137,8 @@ abstract class ASplitBregmanSolver {
                 }
             }
         }
+        
+        executor = Executors.newFixedThreadPool(iParameters.nthreads);
     }
 
     double[] getBetaMLE() {
@@ -134,7 +146,15 @@ abstract class ASplitBregmanSolver {
     }
 
     void first_run() throws InterruptedException {
-        if (p.firstphase) {
+        run(true);
+    }
+    
+    void second_run() throws InterruptedException {
+        run(false);
+    }
+    
+    void run(boolean aFirstPhase) throws InterruptedException {
+        if (aFirstPhase) {
             IJ.showStatus("Computing segmentation");
             IJ.showProgress(0.0);
         }
@@ -145,7 +165,7 @@ abstract class ASplitBregmanSolver {
         boolean stopFlag = false;
         double bestEnergy = Double.MAX_VALUE;
         double lastenergy = 0;
-        while (stepk < p.max_nsb && !stopFlag) {
+        while (stepk < iParameters.max_nsb && !stopFlag) {
             step();
 
             if (energy < bestEnergy) {
@@ -154,39 +174,40 @@ abstract class ASplitBregmanSolver {
                 bestEnergy = energy;
             }
             
-            final boolean moduloStep = stepk % modulo == 0 || stepk == p.max_nsb - 1;
+            final boolean moduloStep = stepk % modulo == 0 || stepk == iParameters.max_nsb - 1;
             
             if (moduloStep && stepk != 0) {
-                if (Math.abs((energy - lastenergy) / lastenergy) < p.tol) {
+                if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.tol) {
                     stopFlag = true;
                 }
             }
             lastenergy = energy;
 
-            if (p.firstphase) {
+            if (aFirstPhase) {
                 if (moduloStep) {
-                    if (p.livedisplay) {
+                    if (iParameters.livedisplay) {
                         IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
                         if (stopFlag) IJ.log("energy stop");
+                        md.display2regions(w3k, "Mask", channel);
                     }
-                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(p.max_nsb - 1), 2) + "%");
+                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(iParameters.max_nsb - 1), 2) + "%");
                 }
-                IJ.showProgress(0.5 * (stepk) / (p.max_nsb - 1));
+                IJ.showProgress(0.5 * (stepk) / (iParameters.max_nsb - 1));
             }
             else {
-                if (p.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
+                if (iParameters.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
                     Ap.find_best_thresh_and_int(w3k);
                     betaMle[0] = Math.max(0, Ap.cout);
                     // lower bound withg some margin
                     betaMle[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
                     init();
-                    if (p.debug) {
+                    if (iParameters.debug) {
                         IJ.log("region" + Ap.iInputRegion.value + " pcout" + betaMle[1]);
                         IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
                     }
                 }
             }
-            
+
             stepk++;
         }
 
@@ -194,38 +215,41 @@ abstract class ASplitBregmanSolver {
             LocalTools.copytab(w3kbest, w3k);
             bestIteration = stepk - 1;
             bestEnergy = energy;
-            if (p.livedisplay && p.firstphase) {
+            if (iParameters.livedisplay && aFirstPhase) {
                 IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
             }
         }
-        if (p.firstphase) {
+        if (aFirstPhase) {
             regions_intensity_findthresh(w3kbest);
             
-            if (p.livedisplay) {
+            if (iParameters.livedisplay) {
                 md.display2regions(w3kbest, "Mask", channel);
                 IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
             }
         }
+        
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.DAYS);
     }
-    
+
     abstract protected void step() throws InterruptedException;
     abstract protected void init();
 
     void regions_intensity_findthresh(double[][][] mask) {
-        double thresh = (channel == 0) ? p.min_intensity : p.min_intensityY;
+        double thresh = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
 
         ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
+        final ImageStack mask_ims = new ImageStack(iParameters.ni, iParameters.nj);
 
         // construct mask as an imageplus
         for (int z = 0; z < nz; z++) {
-            final float[] mask_float = new float[p.ni * p.nj];
+            final float[] mask_float = new float[iParameters.ni * iParameters.nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mask_float[j * p.ni + i] = (float) mask[z][i][j];
+                    mask_float[j * iParameters.ni + i] = (float) mask[z][i][j];
                 }
             }
-            final FloatProcessor fp = new FloatProcessor(p.ni, p.nj);
+            final FloatProcessor fp = new FloatProcessor(iParameters.ni, iParameters.nj);
             fp.setPixels(mask_float);
             mask_ims.addSlice("", fp);
         }
@@ -243,19 +267,19 @@ abstract class ASplitBregmanSolver {
         IJ.showProgress(0.52);
 
         // threshold mask
-        final byte[] mask_bytes = new byte[p.ni * p.nj];
+        final byte[] mask_bytes = new byte[iParameters.ni * iParameters.nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
                 if (((int) (255 * mask_im.getProcessor().getPixelValue(i, j))) > 255 * thresh) {
                     // weird conversion to have same thing than in find connected regions
-                    mask_bytes[j * p.ni + i] = 0;
+                    mask_bytes[j * iParameters.ni + i] = 0;
                 }
                 else {
-                    mask_bytes[j * p.ni + i] = (byte) 255;
+                    mask_bytes[j * iParameters.ni + i] = (byte) 255;
                 }
             }
         }
-        final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+        final ByteProcessor bp = new ByteProcessor(iParameters.ni, iParameters.nj);
         bp.setPixels(mask_bytes);
         mask_im.setProcessor("Voronoi", bp);
 
@@ -269,15 +293,15 @@ abstract class ASplitBregmanSolver {
         IJ.showProgress(0.53);
 
         // expand Voronoi in 3D
-        final ImageStack mask_ims3 = new ImageStack(p.ni, p.nj);
+        final ImageStack mask_ims3 = new ImageStack(iParameters.ni, iParameters.nj);
         for (int z = 0; z < nz; z++) {
-            final byte[] mask_bytes3 = new byte[p.ni * p.nj];
+            final byte[] mask_bytes3 = new byte[iParameters.ni * iParameters.nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mask_bytes3[j * p.ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
+                    mask_bytes3[j * iParameters.ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
                 }
             }
-            final ByteProcessor bp3 = new ByteProcessor(p.ni, p.nj);
+            final ByteProcessor bp3 = new ByteProcessor(iParameters.ni, iParameters.nj);
             bp3.setPixels(mask_bytes3);
             mask_ims3.addSlice("", bp3);
         }
@@ -286,7 +310,7 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(p.ni * p.nj * p.nz, 0, (float) thr);// min size was 5
+        fcr.run(iParameters.ni * iParameters.nj * iParameters.nz, 0, (float) thr);// min size was 5
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;

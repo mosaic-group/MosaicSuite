@@ -36,11 +36,11 @@ public class BregmanGLM_Batch implements Segmentation {
 
         final String dir = IJ.getDirectory("temp");
         String savedSettings = dir + "spb_settings.dat";
-        Analysis.iParams = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.iParams);
+        Analysis.iParameters = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.iParameters);
 
         final String path = MosaicUtils.parseString("config", arg0);
         if (path != null) {
-            Analysis.iParams = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.iParams);
+            Analysis.iParameters = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.iParameters);
         }
 
         String normmin = MosaicUtils.parseString("min", arg0);
@@ -73,7 +73,7 @@ public class BregmanGLM_Batch implements Segmentation {
         window.setUseCluster(gui_use_cluster);
         window.run(active_img);
 
-        saveConfig(savedSettings, Analysis.iParams);
+        saveConfig(savedSettings, Analysis.iParameters);
 
         // Re-set the arguments
         Macro.setOptions(arg0);

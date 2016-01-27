@@ -32,7 +32,7 @@ class TwoRegions {
     private final double[][][] image;// 3D image
     private final double[][][] mask;// nregions nslices ni nj
 
-    private final Parameters p;
+    private final Parameters iParameters;
 
     private final int ni, nj, nz;// 3 dimensions
     private final int channel;
@@ -47,12 +47,12 @@ class TwoRegions {
             IJ.log("Error converting float image to short");
         }
 
-        this.p = params;
+        this.iParameters = params;
         this.channel = channel;
         
-        this.ni = p.ni;
-        this.nj = p.nj;
-        this.nz = p.nz;
+        this.ni = iParameters.ni;
+        this.nj = iParameters.nj;
+        this.nz = iParameters.nz;
 
         LocalTools = new Tools(ni, nj, nz);
 
@@ -70,11 +70,11 @@ class TwoRegions {
             max = Analysis.norm_max;
         }
 
-        if (p.usecellmaskX && channel == 0) {
-            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParams.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
+        if (iParameters.usecellmaskX && channel == 0) {
+            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
         }
-        if (p.usecellmaskY && channel == 1) {
-            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParams.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
+        if (iParameters.usecellmaskY && channel == 1) {
+            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
         }
 
         max = 0;
@@ -84,9 +84,9 @@ class TwoRegions {
             img.setSlice(z + 1);
             ImageProcessor imp = img.getProcessor();
             
-            if (p.removebackground) {
+            if (iParameters.removebackground) {
                 final BackgroundSubtracter bs = new BackgroundSubtracter();
-                bs.rollingBallBackground(imp, p.size_rollingball, false, false, false, true, true);
+                bs.rollingBallBackground(imp, iParameters.size_rollingball, false, false, false, true, true);
             }
 
             for (int i = 0; i < ni; i++) {
@@ -105,7 +105,7 @@ class TwoRegions {
         /* Again overload the parameter after background subtraction */
         if (Analysis.norm_max != 0) {
             max = Analysis.norm_max;
-            if (p.removebackground) {
+            if (iParameters.removebackground) {
                 // if we are removing the background we have no idea which is the minumum across 
                 // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
                 min = 0.0;
@@ -115,7 +115,7 @@ class TwoRegions {
             }
         }
 
-        if (p.livedisplay && p.removebackground) {
+        if (iParameters.livedisplay && iParameters.removebackground) {
             final ImagePlus back = img.duplicate();
             back.setTitle("Background reduction channel " + (channel + 1));
             back.changes = false;
@@ -138,7 +138,7 @@ class TwoRegions {
             }
         }
 
-        LocalTools.createmask(mask, image, p.betaMLEindefault);
+        LocalTools.createmask(mask, image, iParameters.betaMLEindefault);
     }
 
     /**
@@ -205,43 +205,43 @@ class TwoRegions {
         // This store the output mask
         md = new MasksDisplay(ni, nj, nz);
 //        p.refinement = false;
-        Debug.print("BETA MLE (tworegions): ", p.betaMLEindefault, p.betaMLEoutdefault, p.refinement, p.interpolation);
-        Debug.print("minves_size", p.minves_size);
+        Debug.print("BETA MLE (tworegions): ", iParameters.betaMLEindefault, iParameters.betaMLEoutdefault, iParameters.refinement, iParameters.interpolation);
+        Debug.print("minves_size", iParameters.minves_size);
         ASplitBregmanSolver A_solver = null;
         
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
     
-        if (p.nz > 1) {
+        if (iParameters.nz > 1) {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
             final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
-            var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
+            var[0] = new DoubleType(iParameters.sigma_gaussian);
+            var[1] = new DoubleType(iParameters.sigma_gaussian);
+            var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
             psf.setVar(var);
             // Force the allocation of the buffers internally
             // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
             psf.getSeparableImageAsDoubleArray(0);
             
-            p.PSF = psf;
+            iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, image, mask, md, channel, null, p.betaMLEoutdefault, p.betaMLEindefault);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
             final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(p.sigma_gaussian);
-            var[1] = new DoubleType(p.sigma_gaussian);
+            var[0] = new DoubleType(iParameters.sigma_gaussian);
+            var[1] = new DoubleType(iParameters.sigma_gaussian);
             psf.setVar(var);
             // Force the allocation of the buffers internally
             // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
             psf.getSeparableImageAsDoubleArray(0);
             
-            p.PSF = psf;
+            iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, image, mask, md, channel, null, p.betaMLEoutdefault, p.betaMLEindefault);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
         }
 
-        if (Analysis.iParams.patches_from_file == null) {
+        if (Analysis.iParameters.patches_from_file == null) {
             try {
                 A_solver.first_run();
             }
@@ -253,42 +253,42 @@ class TwoRegions {
             // Load particles
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
 
-            csv.setCSVPreferenceFromFile(Analysis.iParams.patches_from_file);
-            Vector<Particle> pt = csv.Read(Analysis.iParams.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+            csv.setCSVPreferenceFromFile(Analysis.iParameters.patches_from_file);
+            Vector<Particle> pt = csv.Read(Analysis.iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             // Get the particle related inly to one frames
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
 
             // create a mask Image
-            final double img[][][] = new double[p.nz][p.ni][p.nj];
+            final double img[][][] = new double[iParameters.nz][iParameters.ni][iParameters.nj];
             drawParticles(img, A_solver.w3kbest, pt_f, (int) 3.0);
 
             A_solver.regions_intensity_findthresh(img);
         }
 
-        mergeSoftMask(A_solver);
+        mergeSoftMask(A_solver.w3k);
 
         if (channel == 0) {
             Analysis.setMaskA(A_solver.w3kbest);
-            float[][][] RiN = new float[p.nz][p.ni][p.nj];
+            float[][][] RiN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
             LocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[p.nz][p.ni][p.nj];
+            float[][][] RoN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_a();
 
-            if (Analysis.iParams.refinement) {
-                Debug.print(p.interpolation);
+            if (Analysis.iParameters.refinement) {
+                Debug.print(iParameters.interpolation);
                 Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(0), regions, RiN);
-                Debug.print(p.interpolation);
+                Debug.print(iParameters.interpolation);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.getRegionslist(0), image, channel, A_solver.w3kbest, min, max);
-                Debug.print(p.interpolation);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(0), image, channel, A_solver.w3kbest, min, max);
+                Debug.print(iParameters.interpolation);
                 ipatches.run();
-                Debug.print(p.interpolation);
+                Debug.print(iParameters.interpolation);
                 Analysis.setRegionslist(ipatches.getRegionsList(), 0);
                 Analysis.setRegions(ipatches.getRegions(), 0);
             }
@@ -347,35 +347,35 @@ class TwoRegions {
             }
 
             // Now we run Object properties on this regions list
-            final int osxy = p.oversampling2ndstep * p.interpolation;
-            final int sx = p.ni * p.oversampling2ndstep * p.interpolation;
-            final int sy = p.nj * p.oversampling2ndstep * p.interpolation;
-            int sz = (p.nz == 1) ? 1 : p.nz * p.oversampling2ndstep * p.interpolation;
-            int osz = (p.nz == 1) ? 1 : p.oversampling2ndstep * p.interpolation;
+            final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
+            final int sx = iParameters.ni * iParameters.oversampling2ndstep * iParameters.interpolation;
+            final int sy = iParameters.nj * iParameters.oversampling2ndstep * iParameters.interpolation;
+            int sz = (iParameters.nz == 1) ? 1 : iParameters.nz * iParameters.oversampling2ndstep * iParameters.interpolation;
+            int osz = (iParameters.nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation;
 
             ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
 
             for (final Region r : r_list.values()) {
-                final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, Analysis.getRegions(0));
+                final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
                 obj.run();
             }
         }
         else {
             Analysis.setMaskB(A_solver.w3kbest);
-            float[][][] RiN = new float[p.nz][p.ni][p.nj];
+            float[][][] RiN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
             LocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[p.nz][p.ni][p.nj];
+            float[][][] RoN = new float[iParameters.nz][iParameters.ni][iParameters.nj];
             LocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_b();
 
-            if (Analysis.iParams.refinement) {
+            if (Analysis.iParameters.refinement) {
                 Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(1), regions, RiN);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(p, Analysis.getRegionslist(1), image, channel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(1), image, channel, A_solver.w3kbest, min, max);
                 ipatches.run();
                 Analysis.setRegionslist(ipatches.getRegionsList(), 1);
                 Analysis.setRegions(ipatches.getRegions(), 1);
@@ -393,14 +393,14 @@ class TwoRegions {
      * Merge the soft mask
      * @param A_solver the solver used to produce the soft mask
      */
-    private void mergeSoftMask(ASplitBregmanSolver A_solver) {
+    private void mergeSoftMask(double[][][] aMask) {
         System.out.println("============ mergeSoftMask" + channel );
         System.out.println(Debug.getArrayDims(out_soft_mask));
-        System.out.println(Debug.getArrayDims(A_solver.w3k));
+        System.out.println(Debug.getArrayDims(aMask));
         
         
-        if (p.dispSoftMask) {
-                out_soft_mask[channel] = md.generateImgFromArray(A_solver.w3k, "Mask" + ((channel == 0) ? "X" : "Y"));
+        if (iParameters.dispSoftMask) {
+                out_soft_mask[channel] = md.generateImgFromArray(aMask, "Mask" + ((channel == 0) ? "X" : "Y"));
         }
     }
 }

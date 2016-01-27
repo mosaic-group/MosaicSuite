@@ -86,7 +86,7 @@ class ZoneTask3D implements Runnable {
 
         Tools.synchronizedWait(Sync3);
 
-        Tools.convolve3Dseparable(AS.temp4, AS.temp2, AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp1, iStart, iEnd);
+        Tools.convolve3Dseparable(AS.temp4, AS.temp2, AS.ni, AS.nj, AS.nz, AS.iParameters.PSF, AS.temp1, iStart, iEnd);
 
         Tools.synchronizedWait(Sync11);
 
@@ -103,7 +103,7 @@ class ZoneTask3D implements Runnable {
         Dct.await();
  
 
-        Tools.convolve3Dseparable(AS.temp2, AS.temp1, AS.ni, AS.nj, AS.nz, AS.p.PSF, AS.temp3, iStart, iEnd);
+        Tools.convolve3Dseparable(AS.temp2, AS.temp1, AS.ni, AS.nj, AS.nz, AS.iParameters.PSF, AS.temp3, iStart, iEnd);
 
         Tools.synchronizedWait(Sync10);
 
@@ -116,20 +116,20 @@ class ZoneTask3D implements Runnable {
         }
 
         // %-- w1k subproblem
-        if (AS.p.noise_model == 0) {
+        if (AS.iParameters.noise_model == 0) {
             // poisson
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.temp3[z][i][j] = Math.pow(((AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma - AS.b1k[z][i][j] - AS.temp2[z][i][j]), 2) + 4
-                                * (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma * AS.image[z][i][j];
+                        AS.temp3[z][i][j] = Math.pow(((AS.iParameters.ldata / AS.iParameters.lreg_[AS.channel]) * AS.iParameters.gamma - AS.b1k[z][i][j] - AS.temp2[z][i][j]), 2) + 4
+                                * (AS.iParameters.ldata / AS.iParameters.lreg_[AS.channel]) * AS.iParameters.gamma * AS.image[z][i][j];
                     }
                 }
             }
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[z][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma + Math.sqrt(AS.temp3[z][i][j]));
+                        AS.w1k[z][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.iParameters.ldata / AS.iParameters.lreg_[AS.channel]) * AS.iParameters.gamma + Math.sqrt(AS.temp3[z][i][j]));
                     }
                 }
             }
@@ -139,8 +139,8 @@ class ZoneTask3D implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma * AS.image[0][i][j])
-                                / (1 + 2 * (AS.p.ldata / AS.p.lreg_[AS.channel]) * AS.p.gamma);
+                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.iParameters.ldata / AS.iParameters.lreg_[AS.channel]) * AS.iParameters.gamma * AS.image[0][i][j])
+                                / (1 + 2 * (AS.iParameters.ldata / AS.iParameters.lreg_[AS.channel]) * AS.iParameters.gamma);
                     }
                 }
             }
@@ -175,7 +175,7 @@ class ZoneTask3D implements Runnable {
         LocalTools.addtab(AS.temp2, AS.temp4, AS.b2yk, iStart, iEnd);
         LocalTools.addtab(AS.w2zk, AS.ukz, AS.b2zk, iStart, iEnd);
 
-        LocalTools.shrink3D(AS.temp1, AS.temp2, AS.w2zk, AS.temp1, AS.temp2, AS.w2zk, AS.p.gamma, iStart, iEnd);
+        LocalTools.shrink3D(AS.temp1, AS.temp2, AS.w2zk, AS.temp1, AS.temp2, AS.w2zk, AS.iParameters.gamma, iStart, iEnd);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -190,8 +190,8 @@ class ZoneTask3D implements Runnable {
         Tools.synchronizedWait(Sync7);
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
-        if (AS.stepk % AS.p.energyEvaluationModulo == 0 || AS.stepk == AS.p.max_nsb - 1) {
-            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.p.ldata, AS.p.lreg_[AS.channel], AS.p.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
+        if (AS.stepk % AS.iParameters.energyEvaluationModulo == 0 || AS.stepk == AS.iParameters.max_nsb - 1) {
+            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iParameters.lreg_[AS.channel], AS.iParameters.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13);
         }
     }

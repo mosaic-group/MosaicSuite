@@ -19,14 +19,14 @@ class ObjectProperties implements Runnable {
 
     private int sx, sy, sz;// size for object
     private final int nx, ny, nz;// size of full oversampled work zone
-    private final Parameters p;
+    private final Parameters iParameters;
     private int cx, cy, cz;// coord of patch in full work zone (offset)
     private final int osxy, osz;
-    private double[][][] mask;// nregions nslices ni nj
+    private double[][][] mask;// nslices ni nj
 
     public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, short[][][] regs) {
         this.regions = regs;
-        this.p = new Parameters(p1);
+        this.iParameters = p1;
         this.image = im;
         this.region = reg;
         this.nx = nx;
@@ -37,11 +37,6 @@ class ObjectProperties implements Runnable {
         this.osz = osz;
 
         set_patch_geom(region);
-
-        // set size
-        p.ni = sx;
-        p.nj = sy;
-        p.nz = sz;
     }
 
     @Override
@@ -51,14 +46,14 @@ class ObjectProperties implements Runnable {
         fill_mask(region);
         estimate_int(mask);
         region.intensity = cin * (intmax - intmin) + intmin;
-        if (p.nz == 1) {
+        if (sz == 1) {
             region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy), 3);
         }
         else {
             region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
         }
 
-        if (p.save_images) {
+        if (iParameters.save_images) {
             regionIntensityAndCenter(region, image);
             setPerimeter(region, regions);
             setlength(region, regions);
@@ -78,8 +73,8 @@ class ObjectProperties implements Runnable {
 
     private void estimate_int(double[][][] mask) {
         double[][][][] temp = new double[3][sz][sx][sy];
-        Tools.normalizeAndConvolveMask(temp[2], mask, p.PSF, temp[0], temp[1]);
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], patch, null, 10, p.betaMLEoutdefault, p.betaMLEindefault);
+        Tools.normalizeAndConvolveMask(temp[2], mask, iParameters.PSF, temp[0], temp[1]);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], patch, null, 10, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
         RSS.eval(temp[2] /* convolved mask */);
         cin = RSS.betaMLEin;
     }
@@ -139,7 +134,7 @@ class ObjectProperties implements Runnable {
     }
 
     private void setPerimeter(Region r, short[][][] regionsA) {
-        if (p.nz == 1) {
+        if (sz == 1) {
             regionPerimeter2D(r, regionsA);
         }
         else {
@@ -167,8 +162,8 @@ class ObjectProperties implements Runnable {
 
         r.perimeter = pr;
 
-        if (Analysis.iParams.subpixel) {
-            r.perimeter = pr / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
+        if (Analysis.iParameters.subpixel) {
+            r.perimeter = pr / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
         }
     }
 
@@ -195,7 +190,7 @@ class ObjectProperties implements Runnable {
 
         r.perimeter = pr;
         if (osxy > 1) {
-            if (p.nz == 1) {
+            if (sz == 1) {
                 r.perimeter = pr / (osxy);
             }
             else {
@@ -210,7 +205,7 @@ class ObjectProperties implements Runnable {
         double sumy = 0;
         double sumz = 0;
         for (Pix p : r.pixels) {
-            if (!Analysis.iParams.refinement) {
+            if (!Analysis.iParameters.refinement) {
                 sum += image[p.pz][p.px][p.py];
             }
 
@@ -221,7 +216,7 @@ class ObjectProperties implements Runnable {
         
         int count = r.pixels.size();
 
-        if (!Analysis.iParams.refinement) {
+        if (!Analysis.iParameters.refinement) {
             r.intensity = (sum / (count));
         }// done in refinement
 
@@ -229,10 +224,10 @@ class ObjectProperties implements Runnable {
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
 
-        if (Analysis.iParams.subpixel) {
-            r.cx = r.cx / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
-            r.cy = r.cy / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
-            r.cz = r.cz / (Analysis.iParams.oversampling2ndstep * Analysis.iParams.interpolation);
+        if (Analysis.iParameters.subpixel) {
+            r.cx = r.cx / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+            r.cy = r.cy / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+            r.cz = r.cz / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
         }
     }
 
