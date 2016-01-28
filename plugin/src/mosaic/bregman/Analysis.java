@@ -184,18 +184,13 @@ public class Analysis {
         }
     }
 
-    static void compute_connected_regions_a() {
-        final FindConnectedRegions fcr = processConnectedRegions(iParameters.min_intensity, maskA);
-        regions[0] = fcr.getLabeledRegions();
-        regionslist.set(0, fcr.getFoundRegions());
+    static void compute_connected_regions(int aChannel) {
+        final FindConnectedRegions fcr = (aChannel == 0) ? processConnectedRegions(iParameters.min_intensity, maskA) :
+                                                           processConnectedRegions(iParameters.min_intensityY, maskB);
+        regions[aChannel] = fcr.getLabeledRegions();
+        regionslist.set(aChannel, fcr.getFoundRegions());
     }
 
-    static void compute_connected_regions_b() {
-        final FindConnectedRegions fcr = processConnectedRegions(iParameters.min_intensityY, maskB);
-        regions[1] = fcr.getLabeledRegions();
-        regionslist.set(1, fcr.getFoundRegions());
-    }
-    
     private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
         int ni = mask[0].length;
         int nj = mask[0][0].length;
@@ -383,20 +378,18 @@ public class Analysis {
         }
     }
 
-    static void setMaskA(double[][][] mask) {
+    static void setMask(double[][][] mask, int aChannel) {
         int ni = mask[0].length;
         int nj = mask[0][0].length;
         int nz = mask.length;
-        maskA = new byte[nz][ni][nj];
-        copyScaledMask(maskA, mask);
-    }
-
-    static void setMaskB(double[][][] mask) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        maskB = new byte[nz][ni][nj];
-        copyScaledMask(maskB, mask);
+        if (aChannel == 0) {
+            maskA = new byte[nz][ni][nj];
+            copyScaledMask(maskA, mask);
+        } 
+        else {
+            maskB = new byte[nz][ni][nj];
+            copyScaledMask(maskB, mask);
+        }
     }
     
     private static void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {

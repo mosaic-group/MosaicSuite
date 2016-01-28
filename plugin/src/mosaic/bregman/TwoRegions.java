@@ -288,32 +288,8 @@ class TwoRegions {
                 out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }
 
+        computeSegmentation(A_solver, minIntensity);
         if (iChannel == 0) {
-            Analysis.setMaskA(A_solver.w3kbest);
-            float[][][] RiN = new float[nz][ni][nj];
-            iLocalTools.copytab(RiN, A_solver.Ri);
-
-            final ArrayList<Region> regions = A_solver.regionsvoronoi;
-            Analysis.compute_connected_regions_a();
-
-            if (Analysis.iParameters.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
-                IJ.showStatus("Computing segmentation  " + 55 + "%");
-                IJ.showProgress(0.55);
-
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
-                ipatches.run();
-                IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
-                Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
-                Analysis.setRegions(ipatches.getRegions(), iChannel);
-            }
-
-            // Here we solved the patches and the regions that come from the patches
-            // we rescale the intensity to the original one
-            for (final Region r : Analysis.getRegionslist(iChannel)) {
-                r.intensity = r.intensity * (max - min) + min;
-            }
-
             // Well we did not finished yet at this stage you can have several artifact produced by the patches
             // for example one region can be segmented partially by two patches, this mean that at least in theory
             // you should repatch (this produce a finer decomposition) again and rerun the second stage until each
@@ -375,31 +351,32 @@ class TwoRegions {
                 obj.run();
             }
         }
-        else {
-            Analysis.setMaskB(A_solver.w3kbest);
-            float[][][] RiN = new float[nz][ni][nj];
-            iLocalTools.copytab(RiN, A_solver.Ri);
+    }
 
-            final ArrayList<Region> regions = A_solver.regionsvoronoi;
-            Analysis.compute_connected_regions_b();
+    private void computeSegmentation(ASplitBregmanSolver A_solver, double minIntensity) {
+        Analysis.setMask(A_solver.w3kbest, iChannel);
+        float[][][] RiN = new float[nz][ni][nj];
+        iLocalTools.copytab(RiN, A_solver.Ri);
 
-            if (Analysis.iParameters.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
-                IJ.showStatus("Computing segmentation  " + 55 + "%");
-                IJ.showProgress(0.55);
+        final ArrayList<Region> regions = A_solver.regionsvoronoi;
+        Analysis.compute_connected_regions(iChannel);
 
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
-                ipatches.run();
-                IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
-                Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
-                Analysis.setRegions(ipatches.getRegions(), iChannel);
-            }
+        if (Analysis.iParameters.refinement) {
+            Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
+            IJ.showStatus("Computing segmentation  " + 55 + "%");
+            IJ.showProgress(0.55);
 
-            // Here we solved the patches and the regions that come from the patches
-            // we rescale the intensity to the original one
-            for (final Region r : Analysis.getRegionslist(iChannel)) {
-                r.intensity = r.intensity * (max - min) + min;
-            }
+            final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
+            ipatches.run();
+            IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
+            Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
+            Analysis.setRegions(ipatches.getRegions(), iChannel);
+        }
+        
+        // Here we solved the patches and the regions that come from the patches
+        // we rescale the intensity to the original one
+        for (final Region r : Analysis.getRegionslist(iChannel)) {
+            r.intensity = r.intensity * (max - min) + min;
         }
     }
 
@@ -470,6 +447,3 @@ class TwoRegions {
         return img;
     }
 }
-
-
-
