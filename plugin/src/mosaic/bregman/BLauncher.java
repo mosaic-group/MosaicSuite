@@ -19,6 +19,7 @@ import ij.plugin.RGBStackMerge;
 import ij.plugin.Resizer;
 import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.bregman.output.CSVOutput;
@@ -452,8 +453,7 @@ public class BLauncher {
             final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
             int fz2 = (nz > 1) ? factor2 : 1;
 
-            final MasksDisplay md = new MasksDisplay(ni * factor2, nj * factor2, nz * fz2);
-            ImagePlus colocImg = md.generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1));
+            ImagePlus colocImg = generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1), ni * factor2, nj * factor2, nz * fz2);
             colocImg.show();
             
             if (Analysis.iParameters.save_images) {
@@ -499,6 +499,46 @@ public class BLauncher {
         IJ.log("Done. Total Time: " + Ttime / 1000 + "s");
     }
 
+    private ImagePlus generateColocImg(ArrayList<Region> aRegionsListA, ArrayList<Region> aRegionsListB, int iWidth, int iHeigth, int iDepth) {
+        final byte[] imagecolor = new byte[iDepth * iWidth * iHeigth * 3];
+
+        // set green pixels
+        for (final Region r : aRegionsListA) {
+            for (final Pix p : r.pixels) {
+                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
+                imagecolor[t + p.py * 3 + 1] = (byte) 255;
+            }
+        }
+
+        // set red pixels
+        for (final Region r : aRegionsListB) {
+            for (final Pix p : r.pixels) {
+                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
+                imagecolor[t + p.py * 3 + 0] = (byte) 255;
+            }
+        }
+
+        // Merge them into one Color image
+        final int[] tabt = new int[3];
+        ImageStack imgcolocastack = new ImageStack(iWidth, iHeigth);
+        for (int z = 0; z < iDepth; z++) {
+            final ColorProcessor colorProc = new ColorProcessor(iWidth, iHeigth);
+            for (int i = 0; i < iWidth; i++) {
+                final int t = z * iWidth * iHeigth * 3 + i * iHeigth * 3;
+                for (int j = 0; j < iHeigth; j++) {
+                    tabt[0] = imagecolor[t + j * 3 + 0] & 0xFF;
+                    tabt[1] = imagecolor[t + j * 3 + 1] & 0xFF;
+                    tabt[2] = imagecolor[t + j * 3 + 2] & 0xFF;
+                    colorProc.putPixel(i, j, tabt);
+                }
+            }
+            imgcolocastack.addSlice("Colocalization", colorProc);
+        }
+        ImagePlus iColocImg = new ImagePlus("Colocalization", imgcolocastack);
+        
+        return iColocImg;
+    }
+    
     private final ImagePlus out_over[] = new ImagePlus[2];
 
     /**

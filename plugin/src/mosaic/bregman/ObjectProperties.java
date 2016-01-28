@@ -24,9 +24,9 @@ class ObjectProperties implements Runnable {
     private final int osxy, osz;
     private double[][][] mask;// nslices ni nj
 
-    public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, short[][][] regs) {
+    public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters aParameters, int osxy, int osz, short[][][] regs) {
         this.regions = regs;
-        this.iParameters = p1;
+        this.iParameters = aParameters;
         this.image = im;
         this.region = reg;
         this.nx = nx;

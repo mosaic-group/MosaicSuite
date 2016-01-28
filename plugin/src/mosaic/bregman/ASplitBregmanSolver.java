@@ -64,14 +64,14 @@ abstract class ASplitBregmanSolver {
     
     public final double energytab2[];
     
-    ASplitBregmanSolver(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
-        this(params, image, mask, md, channel, aBetaMleOut, aBetaMleIn, aLreg);
+    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+        this(aParameters, image, mask, md, channel, aBetaMleOut, aBetaMleIn, aLreg);
         Ap = ap;
     }
 
-    private ASplitBregmanSolver(Parameters aParams, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+    private ASplitBregmanSolver(Parameters aParameters, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
         channel = aChannel;
-        iParameters = aParams;
+        iParameters = aParameters;
         ni = aImage[0].length; 
         nj = aImage[0][0].length;
         nz = aImage.length; 
@@ -144,7 +144,8 @@ abstract class ASplitBregmanSolver {
         IJ.showStatus("Computing segmentation");
         IJ.showProgress(0.0);
         
-        run(true, iParameters.max_nsb);
+        final int firstStepNumOfIterations = 151;
+        run(true, firstStepNumOfIterations);
         
         regions_intensity_findthresh(w3kbest);
         
@@ -155,6 +156,7 @@ abstract class ASplitBregmanSolver {
     
     void second_run() throws InterruptedException {
         final int secondStepNumOfIterations = 101;
+        
         run(false, secondStepNumOfIterations);
     }
     

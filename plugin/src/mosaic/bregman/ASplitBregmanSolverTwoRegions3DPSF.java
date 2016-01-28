@@ -17,8 +17,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf3D;
     private final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolverTwoRegions3DPSF(Parameters params, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
-        super(params, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn, aLreg);
+    public ASplitBregmanSolverTwoRegions3DPSF(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
+        super(aParameters, image, mask, md, channel, ap, aBetaMleOut, aBetaMleIn, aLreg);
         w2zk = new double[nz][ni][nj];
         ukz = new double[nz][ni][nj];
         b2zk = new double[nz][ni][nj];

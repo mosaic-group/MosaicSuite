@@ -8,7 +8,9 @@ import java.util.Vector;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
@@ -29,31 +31,27 @@ import net.imglib2.type.numeric.real.DoubleType;
  * @author Aurelien Ritz
  */
 class TwoRegions {
-    private final double[][][] image;// 3D image
-    private final double[][][] mask;// nregions nslices ni nj
-
+    private final double[][][] image;
+    private final double[][][] mask;
     private final Parameters iParameters;
-
-    private final int ni, nj, nz;// 3 dimensions
+    private final int ni, nj, nz;
     private final int channel;
-
-    private final Tools LocalTools;
+    private final Tools iLocalTools;
     private double min, max;
-    
     private MasksDisplay md;
     
-    public TwoRegions(ImagePlus img, Parameters params, int channel) {
+    public TwoRegions(ImagePlus img, Parameters aParameters, int channel) {
         if (img.getBitDepth() == 32) {
             IJ.log("Error converting float image to short");
         }
 
-        this.iParameters = params;
+        this.iParameters = aParameters;
         this.channel = channel;
         ni = img.getWidth();
         nj = img.getHeight();
         nz = img.getNSlices();
         
-        LocalTools = new Tools(ni, nj, nz);
+        iLocalTools = new Tools(ni, nj, nz);
 
         image = new double[nz][ni][nj];
         mask = new double[nz][ni][nj];
@@ -70,10 +68,26 @@ class TwoRegions {
         }
 
         if (iParameters.usecellmaskX && channel == 0) {
-            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, true);
+            ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
+            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            if (Analysis.iParameters.livedisplay) {
+                maskImg.show();
+            }
+            if (Analysis.iParameters.save_images) {
+                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (channel == 0 ? 1 : 2) + ".zip";
+                IJ.saveAs(maskImg, "ZIP", savepath);
+            }
         }
         if (iParameters.usecellmaskY && channel == 1) {
-            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, true);
+            ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
+            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            if (Analysis.iParameters.livedisplay) {
+                maskImg.show();
+            }
+            if (Analysis.iParameters.save_images) {
+                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (channel == 0 ? 1 : 2) + ".zip";
+                IJ.saveAs(maskImg, "ZIP", savepath);
+            }
         }
 
         max = 0;
@@ -137,7 +151,7 @@ class TwoRegions {
             }
         }
 
-        LocalTools.createmask(mask, image, iParameters.betaMLEindefault);
+        iLocalTools.createmask(mask, image, iParameters.betaMLEindefault);
     }
 
     /**
@@ -270,9 +284,9 @@ class TwoRegions {
         if (channel == 0) {
             Analysis.setMaskA(A_solver.w3kbest);
             float[][][] RiN = new float[nz][ni][nj];
-            LocalTools.copytab(RiN, A_solver.Ri);
+            iLocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[nz][ni][nj];
-            LocalTools.copytab(RoN, A_solver.Ro);
+            iLocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_a();
@@ -362,9 +376,9 @@ class TwoRegions {
         else {
             Analysis.setMaskB(A_solver.w3kbest);
             float[][][] RiN = new float[nz][ni][nj];
-            LocalTools.copytab(RiN, A_solver.Ri);
+            iLocalTools.copytab(RiN, A_solver.Ri);
             float[][][] RoN = new float[nz][ni][nj];
-            LocalTools.copytab(RoN, A_solver.Ro);
+            iLocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_b();
@@ -399,7 +413,36 @@ class TwoRegions {
         
         
         if (iParameters.dispSoftMask) {
-                out_soft_mask[channel] = md.generateImgFromArray(aMask, "Mask" + ((channel == 0) ? "X" : "Y"));
+                out_soft_mask[channel] = generateImgFromArray(aMask, "Mask" + ((channel == 0) ? "X" : "Y"));
         }
+    }
+    
+    /**
+     * Display the soft membership
+     *
+     * @param aImgArray 3D array with image data [z][x][y]
+     * @param aTitle Title of the image.
+     * @return the generated ImagePlus
+     */
+    private ImagePlus generateImgFromArray(double[][][] aImgArray, String aTitle) {
+        int iWidth = aImgArray[0].length;
+        int iHeigth = aImgArray[0][0].length;
+        int iDepth = aImgArray.length;
+        final ImageStack stack = new ImageStack(iWidth, iHeigth);
+    
+        for (int z = 0; z < iDepth; z++) {
+            final float[][] pixels = new float[iWidth][iHeigth];
+            for (int i = 0; i < iWidth; i++) {
+                for (int j = 0; j < iHeigth; j++) {
+                    pixels[i][j] = (float) aImgArray[z][i][j];
+                }
+            }
+            stack.addSlice("", new FloatProcessor(pixels));
+        }
+    
+        final ImagePlus img = new ImagePlus(aTitle, stack);
+        img.changes = false;
+        
+        return img;
     }
 }

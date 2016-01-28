@@ -892,7 +892,7 @@ public class Tools {
         return y;
     }
     
-    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, boolean aShowAndSave) {
+    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, ImagePlus aOutputImage) {
         final ImageStack maskStack = new ImageStack(aWidth, aHeight);
         for (int z = 0; z < aDepth; z++) {
             img.setSlice(z + 1);
@@ -913,7 +913,8 @@ public class Tools {
             maskStack.addSlice("", bp);
         }
 
-        final ImagePlus maskImg = new ImagePlus("Cell mask channel " + (aChannel + 1), maskStack);
+        final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
+        maskImg.setStack(maskStack);
         IJ.run(maskImg, "Invert", "stack");
         IJ.run(maskImg, "Fill Holes", "stack");
         IJ.run(maskImg, "Open", "stack");
@@ -927,16 +928,6 @@ public class Tools {
                 for (int j = 0; j < aHeight; j++) {
                     cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
                 }
-            }
-        }
-        if (aShowAndSave) {
-            if (Analysis.iParameters.livedisplay) {
-                maskImg.show();
-            }
-
-            if (Analysis.iParameters.save_images) {
-                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (aChannel == 0 ? 1 : 2) + ".zip";
-                IJ.saveAs(maskImg, "ZIP", savepath);
             }
         }
         

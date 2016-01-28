@@ -80,11 +80,12 @@ public class RegionStatisticsSolver {
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
-                        K11 += W[z][i][j] * Math.pow(1 - KMask[z][i][j], 2);
-                        K12 += W[z][i][j] * (1 - KMask[z][i][j]) * KMask[z][i][j];
-                        K22 += W[z][i][j] * (KMask[z][i][j]) * KMask[z][i][j];
-                        U1 += W[z][i][j] * (1 - KMask[z][i][j]) * Z[z][i][j];
-                        U2 += W[z][i][j] * (KMask[z][i][j]) * Z[z][i][j];
+                        final double maskVal = KMask[z][i][j];
+                        K11 += W[z][i][j] * Math.pow(1 - maskVal, 2);
+                        K12 += W[z][i][j] * (1 - maskVal) * maskVal;
+                        K22 += W[z][i][j] * maskVal * maskVal;
+                        U1 += W[z][i][j] * (1 - maskVal) * Z[z][i][j];
+                        U2 += W[z][i][j] * maskVal * Z[z][i][j];
                     }
                 }
             }
