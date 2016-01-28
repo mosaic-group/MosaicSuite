@@ -20,7 +20,6 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps.MinMax;
-import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -218,8 +217,6 @@ class TwoRegions {
         // This store the output mask
         md = new MasksDisplay(ni, nj, nz);
 //        p.refinement = false;
-        Debug.print("BETA MLE (tworegions): ", iParameters.betaMLEindefault, iParameters.betaMLEoutdefault, iParameters.refinement, iParameters.interpolation);
-        Debug.print("minves_size", iParameters.minves_size);
         ASplitBregmanSolver A_solver = null;
         
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
@@ -299,16 +296,12 @@ class TwoRegions {
             Analysis.compute_connected_regions_a();
 
             if (Analysis.iParameters.refinement) {
-                Debug.print(iParameters.interpolation);
                 Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(0), regions, RiN);
-                Debug.print(iParameters.interpolation);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
                 final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(0), image, iChannel, A_solver.w3kbest, min, max);
-                Debug.print(iParameters.interpolation);
                 ipatches.run();
-                Debug.print(iParameters.interpolation);
                 Analysis.setRegionslist(ipatches.getRegionsList(), 0);
                 Analysis.setRegions(ipatches.getRegions(), 0);
             }
@@ -414,11 +407,6 @@ class TwoRegions {
      * @param A_solver the solver used to produce the soft mask
      */
     private void mergeSoftMask(double[][][] aMask) {
-        System.out.println("============ mergeSoftMask" + iChannel );
-        System.out.println(Debug.getArrayDims(out_soft_mask));
-        System.out.println(Debug.getArrayDims(aMask));
-        
-        
         if (iParameters.dispSoftMask) {
                 out_soft_mask[iChannel] = generateImgFromArray(aMask, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }

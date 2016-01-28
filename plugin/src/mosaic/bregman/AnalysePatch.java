@@ -13,7 +13,6 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
-import mosaic.utils.Debug;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -207,7 +206,6 @@ class AnalysePatch implements Runnable {
 
         // Check the delta beta, if it is bigger than two ignore it, because
         // I cannot warrant stability
-        Debug.print("BETA MLE (patch): ", iParameters.betaMLEindefault, iParameters.betaMLEoutdefault, iParameters.refinement);
         if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
             // reset
             clBetaMleIntensities[0] = iParameters.betaMLEoutdefault;

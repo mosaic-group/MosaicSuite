@@ -3,9 +3,6 @@ package mosaic.bregman;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -88,8 +85,6 @@ class ImagePatches {
     private void distributeRegions() {
         // assuming rvoronoi and regionslists (objects) in same order (and same length)
 
-        // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
-        ExecutorService threadPool = Executors.newFixedThreadPool(1);
         iNumberOfJobs = iRegionsList.size();
         for (final Region r : iRegionsList) {
             if (iParameters.interpolation > 1) {
@@ -102,33 +97,17 @@ class ImagePatches {
                 iParameters.oversampling2ndstep = 1;
             }
             AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, iParameters.oversampling2ndstep, iChannel, this, w3kbest);
-            threadPool.execute(ap);
-        }
-
-        try {
-            threadPool.shutdown();
-            threadPool.awaitTermination(1, TimeUnit.DAYS);
-        }
-        catch (final InterruptedException e) {
-            e.printStackTrace();
+            // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
+            ap.run();
         }
 
         iRegionsList = iGlobalRegionsList;
         assemble(iRegionsList, iRegions);
         
         // calculate regions intensities
-        ExecutorService threadPool2 = Executors.newFixedThreadPool(1);
         for (final Region r : iRegionsList) {
             ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverSamplingInXY, iOverSamplingInZ, iRegions);
-            threadPool2.execute(op);
-        }
-
-        try {
-            threadPool2.shutdown();
-            threadPool2.awaitTermination(1, TimeUnit.DAYS);
-        }
-        catch (final InterruptedException e) {
-            e.printStackTrace();
+            op.run();
         }
 
         // here we analyse the patch

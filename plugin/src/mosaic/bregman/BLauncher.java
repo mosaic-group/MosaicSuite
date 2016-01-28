@@ -26,7 +26,6 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -95,7 +94,6 @@ public class BLauncher {
                 
                 Headless_file();
                 displayResult(true);
-                System.out.println("Display result (save images = " + Analysis.iParameters.save_images + ")");
 
                 // Write a file info output
                 if (Analysis.iParameters.save_images) {
@@ -180,7 +178,6 @@ public class BLauncher {
     private void displayResult(boolean sep) {
         
         final int factor = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
-        System.out.println("Separate: " + sep + " Factor: " + factor + " " +  Analysis.iParameters.oversampling2ndstep + " " + Analysis.iParameters.interpolation);
         int fz = (nz > 1) ? factor : 1;
 
         if (Analysis.iParameters.dispoutline) {
@@ -556,10 +553,6 @@ public class BLauncher {
 
         // build stack and imageplus for objects
         ImageStack objS = new ImageStack(di, dj);
-        Debug.print("regions", Debug.getArrayDims(regions));
-        Debug.print("image", Debug.getArrayDims(image));
-        Debug.print(dz, di, dj, channel, sep);
-        Debug.print(Debug.getStack(2));
         for (int z = 0; z < dz; z++) {
             final byte[] mask_bytes = new byte[di * dj];
             for (int i = 0; i < di; i++) {

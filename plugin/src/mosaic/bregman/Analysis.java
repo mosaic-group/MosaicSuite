@@ -8,7 +8,6 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.utils.Debug;
 
 
 public class Analysis {
@@ -75,7 +74,6 @@ public class Analysis {
     }
     
     public static void setRegions(short[][][] regions, int aRegionNum) {
-        Debug.print("setRegions", Debug.getStack(3, 2));
         Analysis.regions[aRegionNum] = regions;
     }
 

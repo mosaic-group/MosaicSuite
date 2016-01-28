@@ -25,7 +25,6 @@ abstract class ASplitBregmanSolver {
 
     protected final double[][] eigenLaplacian;
 
-//    protected final int channel;
     protected final double[][][] w1k;
     protected final double[][][] w3k;
 
