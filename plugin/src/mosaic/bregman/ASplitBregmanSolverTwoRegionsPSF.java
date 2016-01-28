@@ -55,7 +55,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     }
 
     @Override
-    protected void step() throws InterruptedException {
+    protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException {
         // WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed from iteration to next iteration : do not change .
         final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.nthreads);// subprob 1 and 3
         final CountDownLatch Sync1 = new CountDownLatch(iParameters.nthreads);
@@ -81,13 +81,13 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
 
         for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
             final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
-                    this, LocalTools);
+                    this, LocalTools, aEvaluateEnergy, aLastIteration);
             executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
         final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
-                iParameters.nthreads - 1, this, LocalTools);
+                iParameters.nthreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
         executor.execute(task);
         // temp1=uk
         Sync4.await();
@@ -108,7 +108,7 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
         Dct.countDown();
         ZoneDoneSignal.await();
 
-        if (stepk % iParameters.energyEvaluationModulo == 0) {
+        if (aEvaluateEnergy) {
             energy = 0;
             for (int nt = 0; nt < iParameters.nthreads; nt++) {
                 energy += energytab2[nt];

@@ -23,12 +23,13 @@ class ZoneTask3D implements Runnable {
     private final CountDownLatch Dct;
     private final int iStart, iEnd, jStart, jEnd, nt;
     private final Tools LocalTools;
-
     private final ASplitBregmanSolverTwoRegions3DPSF AS;
-
+    private final boolean iEvaluateEnergy;
+    private final boolean iLastIteration;
+    
     ZoneTask3D(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Sync5, CountDownLatch Sync6, CountDownLatch Sync7,
             CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, CountDownLatch Sync13, CountDownLatch Dct, int iStart, int iEnd,
-            int jStart, int jEnd, int nt, ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
+            int jStart, int jEnd, int nt, ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools, boolean aEvaluateEnergy, boolean aLastIteration) {
         this.LocalTools = tTools;
         this.ZoneDoneSignal = ZoneDoneSignal;
         this.Sync1 = Sync1;
@@ -51,6 +52,8 @@ class ZoneTask3D implements Runnable {
         this.jStart = jStart;
         this.iEnd = iEnd;
         this.jEnd = jEnd;
+        iEvaluateEnergy = aEvaluateEnergy;
+        iLastIteration = aLastIteration;
     }
 
     @Override
@@ -190,7 +193,8 @@ class ZoneTask3D implements Runnable {
         Tools.synchronizedWait(Sync7);
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
-        if (AS.stepk % AS.iParameters.energyEvaluationModulo == 0 || AS.stepk == AS.iParameters.max_nsb - 1) {
+        // Google translation: do the household in here w2xk tables used as Temp
+        if (iEvaluateEnergy || iLastIteration) {
             AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_[AS.channel], AS.iParameters.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13);
         }

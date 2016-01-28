@@ -24,10 +24,12 @@ class ZoneTask implements Runnable {
     private final int iStart, iEnd, jStart, jEnd;
     private final int num;
     private final Tools LocalTools;
-
+    private final boolean iEvaluateEnergy;
+    private final boolean iLastIteration;
+    
     ZoneTask(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Dct, CountDownLatch Sync5, CountDownLatch Sync6,
             CountDownLatch Sync7, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, int iStart, int iEnd, int jStart, int jEnd, int num,
-            ASplitBregmanSolverTwoRegionsPSF AS, Tools tTools) {
+            ASplitBregmanSolverTwoRegionsPSF AS, Tools tTools, boolean aEvaluateEnergy, boolean aLastIteration) {
         this.LocalTools = tTools;
         this.ZoneDoneSignal = ZoneDoneSignal;
         this.Sync1 = Sync1;
@@ -49,6 +51,8 @@ class ZoneTask implements Runnable {
         this.jStart = jStart;
         this.iEnd = iEnd;
         this.jEnd = jEnd;
+        iEvaluateEnergy = aEvaluateEnergy;
+        iLastIteration = aLastIteration;
     }
 
     @Override
@@ -183,7 +187,7 @@ class ZoneTask implements Runnable {
 
         Tools.synchronizedWait(Sync7);
 
-        if (AS.stepk % AS.iParameters.energyEvaluationModulo == 0 || AS.stepk == AS.iParameters.max_nsb - 1) {
+        if (iEvaluateEnergy || iLastIteration) {
             AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_[AS.channel], AS.iParameters.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9);
         }

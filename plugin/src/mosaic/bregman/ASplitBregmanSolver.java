@@ -25,7 +25,6 @@ abstract class ASplitBregmanSolver {
 
     protected final double[][] eigenLaplacian;
 
-    protected int stepk;
     protected final int channel;
     protected final double[][][] w1k;
     protected final double[][][] w3k;
@@ -142,27 +141,37 @@ abstract class ASplitBregmanSolver {
     }
 
     void first_run() throws InterruptedException {
-        run(true);
+        IJ.showStatus("Computing segmentation");
+        IJ.showProgress(0.0);
+        
+        run(true, iParameters.max_nsb);
+        
+        regions_intensity_findthresh(w3kbest);
+        
+        if (iParameters.livedisplay) {
+            md.display2regions(w3kbest, "Mask", channel);
+        }
     }
     
     void second_run() throws InterruptedException {
-        run(false);
+        final int secondStepNumOfIterations = 101;
+        run(false, secondStepNumOfIterations);
     }
     
-    void run(boolean aFirstPhase) throws InterruptedException {
-        if (aFirstPhase) {
-            IJ.showStatus("Computing segmentation");
-            IJ.showProgress(0.0);
-        }
-
-        stepk = 0;
+    void run(boolean aFirstPhase, int aNumOfIterations) throws InterruptedException {
+        int stepk = 0;
         final int modulo = 10;
         int bestIteration = 0;
         boolean stopFlag = false;
         double bestEnergy = Double.MAX_VALUE;
         double lastenergy = 0;
-        while (stepk < iParameters.max_nsb && !stopFlag) {
-            step();
+        
+        while (stepk < aNumOfIterations && !stopFlag) {
+            final boolean lastIteration = (stepk == aNumOfIterations - 1);
+            final boolean energyEvaluation = (stepk % iParameters.energyEvaluationModulo == 0);
+            final boolean moduloStep = (stepk % modulo == 0 || lastIteration);
+
+            step(energyEvaluation, lastIteration);
 
             if (energy < bestEnergy) {
                 LocalTools.copytab(w3kbest, w3k);
@@ -170,7 +179,6 @@ abstract class ASplitBregmanSolver {
                 bestEnergy = energy;
             }
             
-            final boolean moduloStep = stepk % modulo == 0 || stepk == iParameters.max_nsb - 1;
             
             if (moduloStep && stepk != 0) {
                 if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.tol) {
@@ -186,9 +194,9 @@ abstract class ASplitBregmanSolver {
                         if (stopFlag) IJ.log("energy stop");
                         md.display2regions(w3k, "Mask", channel);
                     }
-                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(iParameters.max_nsb - 1), 2) + "%");
+                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(aNumOfIterations - 1), 2) + "%");
                 }
-                IJ.showProgress(0.5 * (stepk) / (iParameters.max_nsb - 1));
+                IJ.showProgress(0.5 * (stepk) / (aNumOfIterations - 1));
             }
             else {
                 if (iParameters.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
@@ -215,20 +223,15 @@ abstract class ASplitBregmanSolver {
                 IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
             }
         }
-        if (aFirstPhase) {
-            regions_intensity_findthresh(w3kbest);
-            
-            if (iParameters.livedisplay) {
-                md.display2regions(w3kbest, "Mask", channel);
-                IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
-            }
+        if (aFirstPhase && iParameters.livedisplay) {
+            IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
         }
         
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.DAYS);
     }
 
-    abstract protected void step() throws InterruptedException;
+    abstract protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException;
     abstract protected void init();
 
     void regions_intensity_findthresh(double[][][] mask) {
