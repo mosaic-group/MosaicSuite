@@ -250,8 +250,8 @@ public class GenericGUI {
 
         Analysis.iParameters.wd = gd.getNextText();
 
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        Analysis.iParameters.nthreads = (availableProcessors > 1) ? availableProcessors / 2 : 1;
+        final int availableProcessors = Runtime.getRuntime().availableProcessors();
+        Analysis.iParameters.nthreads = availableProcessors;
         run_mode rm = run_mode.LOCAL;
         if (gd.getNextBoolean() == true) {
             rm = run_mode.USE_CLUSTER;
