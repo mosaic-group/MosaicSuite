@@ -16,7 +16,6 @@ class ImagePatches {
     private final Parameters iParameters;
     private ArrayList<Region> iRegionsList;
     private final double[][][] iImage;
-    private final int iChannel;
     private final double[][][] w3kbest;
     private final double iMax;
     private final double iMin;
@@ -34,13 +33,14 @@ class ImagePatches {
     private int iNumberOfJobs = 0;
     private int iNumOfDoneJobs = 0;
 
+    private final double iLreg;
+    private double iMinIntensity;
 
-    public ImagePatches(Parameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, int aChannel, double[][][] w3k, double aMin, double aMax) {
+    public ImagePatches(Parameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aLreg, double aMinIntensity) {
         logger.debug("ImagePatches ----------------------------");
         iParameters = aParameters;
         iRegionsList = aRegionsList;
         iImage = aImage;
-        iChannel = aChannel;
         w3kbest = w3k;
         iMin = aMin;
         iMax = aMax;
@@ -65,6 +65,9 @@ class ImagePatches {
         
         iGlobalRegionsList = new ArrayList<Region>();
         iRegions = new short[iSizeZ][iSizeX][iSizeY];
+        
+        iLreg = aLreg;
+        iMinIntensity = aMinIntensity;
     }
 
     public ArrayList<Region> getRegionsList() {
@@ -96,7 +99,7 @@ class ImagePatches {
             else {
                 iParameters.oversampling2ndstep = 1;
             }
-            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, iParameters.oversampling2ndstep, iChannel, this, w3kbest);
+            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, iParameters.oversampling2ndstep, this, w3kbest, iLreg, iMinIntensity);
             // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
             ap.run();
         }
@@ -129,8 +132,6 @@ class ImagePatches {
             ArrayOps.fill(iRegions, (short) 0);
             assemble(iRegionsList, iRegions);
         }
-
-        IJ.log(iRegionsList.size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
     }
 
     /**

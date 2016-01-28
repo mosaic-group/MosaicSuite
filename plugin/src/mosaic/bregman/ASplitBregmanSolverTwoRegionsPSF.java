@@ -12,8 +12,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
     
-    public ASplitBregmanSolverTwoRegionsPSF(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
-        super(aParameters, image, mask, md, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
+    public ASplitBregmanSolverTwoRegionsPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
+        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
         dct2d = new DoubleDCT_2D(ni, nj);
         eigenPsf2D = new double[nz][ni][nj];
         compute_eigenPSF();

@@ -10,6 +10,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter;
+import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.detection.Particle;
@@ -37,7 +38,8 @@ class TwoRegions {
     private final int iChannel;
     private final Tools iLocalTools;
     private double min, max;
-    private MasksDisplay md;
+    private final ImagePlus iAImg = new ImagePlus(); 
+    private final ImagePlus iBImg = new ImagePlus();
     
     public TwoRegions(ImagePlus img, Parameters aParameters, int aChannel) {
         if (img.getBitDepth() == 32) {
@@ -215,7 +217,6 @@ class TwoRegions {
      */
     public void run() {
         // This store the output mask
-        md = new MasksDisplay(ni, nj, nz);
 //        p.refinement = false;
         ASplitBregmanSolver A_solver = null;
         
@@ -234,7 +235,7 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
@@ -248,7 +249,7 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
         }
 
         if (Analysis.iParameters.patches_from_file == null) {
@@ -259,7 +260,7 @@ class TwoRegions {
                 
                 
                 if (iParameters.livedisplay) {
-                    md.display2regions(A_solver.w3kbest, "Mask", iChannel);
+                    display2regions(A_solver.w3kbest, "Mask", iChannel);
                 }
             }
             catch (final InterruptedException ex) {
@@ -283,32 +284,33 @@ class TwoRegions {
             A_solver.regions_intensity_findthresh(img);
         }
 
-        mergeSoftMask(A_solver.w3k);
+        if (iParameters.dispSoftMask) {
+                out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
+        }
 
         if (iChannel == 0) {
             Analysis.setMaskA(A_solver.w3kbest);
             float[][][] RiN = new float[nz][ni][nj];
             iLocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[nz][ni][nj];
-            iLocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_a();
 
             if (Analysis.iParameters.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(0), regions, RiN);
+                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(0), image, iChannel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
                 ipatches.run();
-                Analysis.setRegionslist(ipatches.getRegionsList(), 0);
-                Analysis.setRegions(ipatches.getRegions(), 0);
+                IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
+                Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
+                Analysis.setRegions(ipatches.getRegions(), iChannel);
             }
 
             // Here we solved the patches and the regions that come from the patches
             // we rescale the intensity to the original one
-            for (final Region r : Analysis.getRegionslist(0)) {
+            for (final Region r : Analysis.getRegionslist(iChannel)) {
                 r.intensity = r.intensity * (max - min) + min;
             }
 
@@ -361,10 +363,10 @@ class TwoRegions {
 
             // Now we run Object properties on this regions list
             final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
-            final int sx = ni * iParameters.oversampling2ndstep * iParameters.interpolation;
-            final int sy = nj * iParameters.oversampling2ndstep * iParameters.interpolation;
-            int sz = (nz == 1) ? 1 : nz * iParameters.oversampling2ndstep * iParameters.interpolation;
-            int osz = (nz == 1) ? 1 : iParameters.oversampling2ndstep * iParameters.interpolation;
+            final int sx = ni * osxy;
+            final int sy = nj * osxy;
+            int sz = (nz == 1) ? 1 : nz * osxy;
+            int osz = (nz == 1) ? 1 : osxy;
 
             ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
 
@@ -377,39 +379,66 @@ class TwoRegions {
             Analysis.setMaskB(A_solver.w3kbest);
             float[][][] RiN = new float[nz][ni][nj];
             iLocalTools.copytab(RiN, A_solver.Ri);
-            float[][][] RoN = new float[nz][ni][nj];
-            iLocalTools.copytab(RoN, A_solver.Ro);
 
             final ArrayList<Region> regions = A_solver.regionsvoronoi;
             Analysis.compute_connected_regions_b();
 
             if (Analysis.iParameters.refinement) {
-                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(1), regions, RiN);
+                Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(1), image, iChannel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
                 ipatches.run();
-                Analysis.setRegionslist(ipatches.getRegionsList(), 1);
-                Analysis.setRegions(ipatches.getRegions(), 1);
+                IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
+                Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
+                Analysis.setRegions(ipatches.getRegions(), iChannel);
             }
 
             // Here we solved the patches and the regions that come from the patches
             // we rescale the intensity to the original one
-            for (final Region r : Analysis.getRegionslist(1)) {
+            for (final Region r : Analysis.getRegionslist(iChannel)) {
                 r.intensity = r.intensity * (max - min) + min;
             }
         }
     }
 
     /**
-     * Merge the soft mask
-     * @param A_solver the solver used to produce the soft mask
+     * Display the soft membership
+     *
+     * @param array 3D array of double
+     * @param s String of the image
+     * @param channel channel
      */
-    private void mergeSoftMask(double[][][] aMask) {
-        if (iParameters.dispSoftMask) {
-                out_soft_mask[iChannel] = generateImgFromArray(aMask, "Mask" + ((iChannel == 0) ? "X" : "Y"));
+    void display2regions(double[][][] array, String s, int channel) {
+        final ImageStack ims = convertArrayToImageProcessor(array);
+
+        if (channel == 0) {
+            iAImg.setStack(s + " X", ims);
+            iAImg.resetDisplayRange();
+            iAImg.show();
         }
+        else {
+            iBImg.setStack(s + " Y", ims);
+            iBImg.resetDisplayRange();
+            iBImg.show();
+        }
+    }
+
+    private ImageStack convertArrayToImageProcessor(double[][][] array) {
+        final ImageStack ims = new ImageStack(ni, nj);
+        for (int z = 0; z < nz; z++) {
+            final byte[] temp = new byte[ni * nj];
+            for (int j = 0; j < nj; j++) {
+                for (int i = 0; i < ni; i++) {
+                    temp[j * ni + i] = (byte) ((int) (255 * array[z][i][j]));
+                }
+            }
+            final ImageProcessor bp = new ByteProcessor(ni, nj);
+            bp.setPixels(temp);
+            ims.addSlice("", bp);
+        }
+        return ims;
     }
     
     /**
@@ -441,3 +470,6 @@ class TwoRegions {
         return img;
     }
 }
+
+
+

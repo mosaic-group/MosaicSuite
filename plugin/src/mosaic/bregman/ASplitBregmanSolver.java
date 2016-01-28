@@ -20,7 +20,6 @@ abstract class ASplitBregmanSolver {
     protected final Tools LocalTools;
 
     protected ArrayList<Region> regionsvoronoi;
-    protected final MasksDisplay md;
     protected final double[][][] image;
 
     protected final double[][] eigenLaplacian;
@@ -63,7 +62,7 @@ abstract class ASplitBregmanSolver {
     public final double energytab2[];
     private double iMinIntensity;
     
-    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
+    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         iParameters = aParameters;
         ni = image[0].length; 
         nj = image[0][0].length;
@@ -78,7 +77,6 @@ abstract class ASplitBregmanSolver {
         
         energytab2 = new double[iParameters.nthreads];
         
-        this.md = md;
         this.image = image;
         
         w1k = new double[nz][ni][nj];
@@ -193,7 +191,7 @@ abstract class ASplitBregmanSolver {
                     Ap.find_best_thresh_and_int(w3k);
                     betaMle[0] = Math.max(0, Ap.cout);
                     // lower bound withg some margin
-                    betaMle[1] = Math.max(0.75 * (Ap.firstminval - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
+                    betaMle[1] = Math.max(0.75 * (iMinIntensity - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
                     init();
                     if (iParameters.debug) {
                         IJ.log("region" + Ap.iInputRegion.value + " pcout" + betaMle[1]);
