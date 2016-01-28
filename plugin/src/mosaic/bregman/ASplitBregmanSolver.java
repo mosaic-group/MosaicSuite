@@ -25,7 +25,7 @@ abstract class ASplitBregmanSolver {
 
     protected final double[][] eigenLaplacian;
 
-    protected final int channel;
+//    protected final int channel;
     protected final double[][][] w1k;
     protected final double[][][] w3k;
 
@@ -38,7 +38,6 @@ abstract class ASplitBregmanSolver {
 
     protected final double[][][] b1k;
     protected final double[][][] b3k;
-
 
     protected double[][][] temp1;
     protected double[][][] temp2;
@@ -60,21 +59,16 @@ abstract class ASplitBregmanSolver {
     double iBetaMleOut, iBetaMleIn;
     final double[] betaMle = new double[2];
     
-    final double[] lreg_;
+    final double lreg_;
     
     public final double energytab2[];
+    private double iMinIntensity;
     
-    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, int channel, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
-        this(aParameters, image, mask, md, channel, aBetaMleOut, aBetaMleIn, aLreg);
-        Ap = ap;
-    }
-
-    private ASplitBregmanSolver(Parameters aParameters, double[][][] aImage, double[][][] aMask, MasksDisplay aMaskDisplay, int aChannel, double aBetaMleOut, double aBetaMleIn, double[] aLreg) {
-        channel = aChannel;
+    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, MasksDisplay md, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         iParameters = aParameters;
-        ni = aImage[0].length; 
-        nj = aImage[0][0].length;
-        nz = aImage.length; 
+        ni = image[0].length; 
+        nj = image[0][0].length;
+        nz = image.length; 
         LocalTools = new Tools(ni, nj, nz);
         
         // Beta MLE in and out
@@ -85,26 +79,25 @@ abstract class ASplitBregmanSolver {
         
         energytab2 = new double[iParameters.nthreads];
         
-        md = aMaskDisplay;
-
-        image = aImage;
-
+        this.md = md;
+        this.image = image;
+        
         w1k = new double[nz][ni][nj];
         w3k = new double[nz][ni][nj];
         w3kbest = new double[nz][ni][nj];
-
+        
         b2xk = new double[nz][ni][nj];
         b2yk = new double[nz][ni][nj];
-
+        
         b1k = new double[nz][ni][nj];
         b3k = new double[nz][ni][nj];
-
+        
         w2xk = new double[nz][ni][nj];
         w2yk = new double[nz][ni][nj];
-
+        
         Ri = new float[nz][ni][nj];
         Ro = new float[nz][ni][nj];
-
+        
         temp1 = new double[nz][ni][nj];
         temp2 = new double[nz][ni][nj];
         temp3 = new double[nz][ni][nj];
@@ -117,13 +110,13 @@ abstract class ASplitBregmanSolver {
                 eigenLaplacian[i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))));
             }
         }
-
-        LocalTools.fgradx2D(temp1, aMask);
-        LocalTools.fgrady2D(temp2, aMask);
-
-        LocalTools.copytab(w1k, aMask);
-        LocalTools.copytab(w3k, aMask);
-
+        
+        LocalTools.fgradx2D(temp1, mask);
+        LocalTools.fgrady2D(temp2, mask);
+        
+        LocalTools.copytab(w1k, mask);
+        LocalTools.copytab(w3k, mask);
+        
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -134,6 +127,9 @@ abstract class ASplitBregmanSolver {
         }
         lreg_ = aLreg;
         executor = Executors.newFixedThreadPool(iParameters.nthreads);
+        Ap = ap;
+        
+        iMinIntensity = aMinIntensity;
     }
 
     double[] getBetaMLE() {
@@ -141,17 +137,10 @@ abstract class ASplitBregmanSolver {
     }
 
     void first_run() throws InterruptedException {
-        IJ.showStatus("Computing segmentation");
-        IJ.showProgress(0.0);
-        
         final int firstStepNumOfIterations = 151;
         run(true, firstStepNumOfIterations);
         
         regions_intensity_findthresh(w3kbest);
-        
-        if (iParameters.livedisplay) {
-            md.display2regions(w3kbest, "Mask", channel);
-        }
     }
     
     void second_run() throws InterruptedException {
@@ -194,7 +183,7 @@ abstract class ASplitBregmanSolver {
                     if (iParameters.livedisplay) {
                         IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
                         if (stopFlag) IJ.log("energy stop");
-                        md.display2regions(w3k, "Mask", channel);
+// TODO: This should be moved level up when iterations done properly: md.display2regions(w3k, "Mask", channel);
                     }
                     IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(aNumOfIterations - 1), 2) + "%");
                 }
@@ -237,7 +226,7 @@ abstract class ASplitBregmanSolver {
     abstract protected void init();
 
     void regions_intensity_findthresh(double[][][] mask) {
-        double thresh = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+        double thresh = iMinIntensity;
 
         ImagePlus mask_im = new ImagePlus();
         final ImageStack mask_ims = new ImageStack(ni, nj);

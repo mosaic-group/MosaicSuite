@@ -35,18 +35,18 @@ class TwoRegions {
     private final double[][][] mask;
     private final Parameters iParameters;
     private final int ni, nj, nz;
-    private final int channel;
+    private final int iChannel;
     private final Tools iLocalTools;
     private double min, max;
     private MasksDisplay md;
     
-    public TwoRegions(ImagePlus img, Parameters aParameters, int channel) {
+    public TwoRegions(ImagePlus img, Parameters aParameters, int aChannel) {
         if (img.getBitDepth() == 32) {
             IJ.log("Error converting float image to short");
         }
 
-        this.iParameters = aParameters;
-        this.channel = channel;
+        iParameters = aParameters;
+        iChannel = aChannel;
         ni = img.getWidth();
         nj = img.getHeight();
         nz = img.getNSlices();
@@ -67,25 +67,25 @@ class TwoRegions {
             max = Analysis.norm_max;
         }
 
-        if (iParameters.usecellmaskX && channel == 0) {
+        if (iParameters.usecellmaskX && iChannel == 0) {
             ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
-            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
             if (Analysis.iParameters.livedisplay) {
                 maskImg.show();
             }
             if (Analysis.iParameters.save_images) {
-                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (channel == 0 ? 1 : 2) + ".zip";
+                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (iChannel == 0 ? 1 : 2) + ".zip";
                 IJ.saveAs(maskImg, "ZIP", savepath);
             }
         }
-        if (iParameters.usecellmaskY && channel == 1) {
+        if (iParameters.usecellmaskY && iChannel == 1) {
             ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
-            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
             if (Analysis.iParameters.livedisplay) {
                 maskImg.show();
             }
             if (Analysis.iParameters.save_images) {
-                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (channel == 0 ? 1 : 2) + ".zip";
+                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (iChannel == 0 ? 1 : 2) + ".zip";
                 IJ.saveAs(maskImg, "ZIP", savepath);
             }
         }
@@ -130,7 +130,7 @@ class TwoRegions {
 
         if (iParameters.livedisplay && iParameters.removebackground) {
             final ImagePlus back = img.duplicate();
-            back.setTitle("Background reduction channel " + (channel + 1));
+            back.setTitle("Background reduction channel " + (iChannel + 1));
             back.changes = false;
             back.setDisplayRange(min, max);
             back.show();
@@ -223,7 +223,7 @@ class TwoRegions {
         ASplitBregmanSolver A_solver = null;
         
         // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
-    
+        double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
         if (nz > 1) {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
             final DoubleType[] var = new DoubleType[3];
@@ -237,7 +237,7 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, md, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
         }
         else {
             final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
@@ -251,12 +251,19 @@ class TwoRegions {
             
             iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, channel, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_);
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, md, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
         }
 
         if (Analysis.iParameters.patches_from_file == null) {
             try {
+                IJ.showStatus("Computing segmentation");
+                IJ.showProgress(0.0);
                 A_solver.first_run();
+                
+                
+                if (iParameters.livedisplay) {
+                    md.display2regions(A_solver.w3kbest, "Mask", iChannel);
+                }
             }
             catch (final InterruptedException ex) {
             }
@@ -281,7 +288,7 @@ class TwoRegions {
 
         mergeSoftMask(A_solver.w3k);
 
-        if (channel == 0) {
+        if (iChannel == 0) {
             Analysis.setMaskA(A_solver.w3kbest);
             float[][][] RiN = new float[nz][ni][nj];
             iLocalTools.copytab(RiN, A_solver.Ri);
@@ -298,7 +305,7 @@ class TwoRegions {
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(0), image, channel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(0), image, iChannel, A_solver.w3kbest, min, max);
                 Debug.print(iParameters.interpolation);
                 ipatches.run();
                 Debug.print(iParameters.interpolation);
@@ -388,7 +395,7 @@ class TwoRegions {
                 IJ.showStatus("Computing segmentation  " + 55 + "%");
                 IJ.showProgress(0.55);
 
-                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(1), image, channel, A_solver.w3kbest, min, max);
+                final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(1), image, iChannel, A_solver.w3kbest, min, max);
                 ipatches.run();
                 Analysis.setRegionslist(ipatches.getRegionsList(), 1);
                 Analysis.setRegions(ipatches.getRegions(), 1);
@@ -407,13 +414,13 @@ class TwoRegions {
      * @param A_solver the solver used to produce the soft mask
      */
     private void mergeSoftMask(double[][][] aMask) {
-        System.out.println("============ mergeSoftMask" + channel );
+        System.out.println("============ mergeSoftMask" + iChannel );
         System.out.println(Debug.getArrayDims(out_soft_mask));
         System.out.println(Debug.getArrayDims(aMask));
         
         
         if (iParameters.dispSoftMask) {
-                out_soft_mask[channel] = generateImgFromArray(aMask, "Mask" + ((channel == 0) ? "X" : "Y"));
+                out_soft_mask[iChannel] = generateImgFromArray(aMask, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }
     }
     

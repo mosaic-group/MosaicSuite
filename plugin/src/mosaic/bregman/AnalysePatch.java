@@ -213,12 +213,14 @@ class AnalysePatch implements Runnable {
             clBetaMleIntensities[0] = iParameters.betaMLEoutdefault;
             clBetaMleIntensities[1] = iParameters.betaMLEindefault;
         }
-
+        
+        double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+        
         if (iSizeOversZ > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, md, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch[iChannel], minIntensity);
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, iPatch, w3kpatch, md, iChannel, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch);// mask instead of w3kpatch
+            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, iPatch, w3kpatch, md, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch[iChannel], minIntensity);
         }
 
         try {
