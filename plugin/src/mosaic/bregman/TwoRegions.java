@@ -20,6 +20,7 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
+import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
@@ -31,74 +32,33 @@ import net.imglib2.type.numeric.real.DoubleType;
  * @author Aurelien Ritz
  */
 class TwoRegions {
-    private final double[][][] image;
-    private final double[][][] mask;
     private final Parameters iParameters;
-    private final int ni, nj, nz;
     private final int iChannel;
+    private final int ni, nj, nz;
     private final Tools iLocalTools;
+    private final double[][][] iImage;
+    private final double[][][] iMask;
     private double min, max;
+    
     private final ImagePlus iAImg = new ImagePlus(); 
     private final ImagePlus iBImg = new ImagePlus();
     
-    public TwoRegions(ImagePlus img, Parameters aParameters, int aChannel) {
-        if (img.getBitDepth() == 32) {
-            IJ.log("Error converting float image to short");
-        }
-
+    
+    public TwoRegions(ImagePlus aInputImg, Parameters aParameters, int aChannel) {
         iParameters = aParameters;
         iChannel = aChannel;
-        ni = img.getWidth();
-        nj = img.getHeight();
-        nz = img.getNSlices();
         
+        ni = aInputImg.getWidth();
+        nj = aInputImg.getHeight();
+        nz = aInputImg.getNSlices();
         iLocalTools = new Tools(ni, nj, nz);
+        iImage = new double[nz][ni][nj];
+        iMask = new double[nz][ni][nj];
 
-        image = new double[nz][ni][nj];
-        mask = new double[nz][ni][nj];
-
-        /* Search for maximum and minimum value, normalization */
-        if (Analysis.norm_max == 0) {
-            MinMax<Double> mm = Tools.findMinMax(img);
-            min = mm.getMin();
-            max = mm.getMax();
-        }
-        else {
-            min = Analysis.norm_min;
-            max = Analysis.norm_max;
-        }
-
-        if (iParameters.usecellmaskX && iChannel == 0) {
-            System.out.println("\n\n\n            MASK USED                  \n\n");
-            ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
-            Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
-            if (Analysis.iParameters.livedisplay) {
-                maskImg.show();
-            }
-            if (Analysis.iParameters.save_images) {
-                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (iChannel == 0 ? 1 : 2) + ".zip";
-                IJ.saveAs(maskImg, "ZIP", savepath);
-            }
-        }
-        if (iParameters.usecellmaskY && iChannel == 1) {
-            System.out.println("\n\n\n            MASK USED2                  \n\n");
-            ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
-            Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
-            if (Analysis.iParameters.livedisplay) {
-                maskImg.show();
-            }
-            if (Analysis.iParameters.save_images) {
-                String savepath = Analysis.iParameters.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c" + (iChannel == 0 ? 1 : 2) + ".zip";
-                IJ.saveAs(maskImg, "ZIP", savepath);
-            }
-        }
-
-        max = 0;
-        min = Double.POSITIVE_INFINITY;
-
+        
         for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor imp = img.getProcessor();
+            aInputImg.setSlice(z + 1);
+            ImageProcessor imp = aInputImg.getProcessor();
             
             if (iParameters.removebackground) {
                 final BackgroundSubtracter bs = new BackgroundSubtracter();
@@ -107,54 +67,32 @@ class TwoRegions {
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    image[z][i][j] = imp.getPixel(i, j);
-                    if (image[z][i][j] > max) {
-                        max = image[z][i][j];
-                    }
-                    if (image[z][i][j] < min) {
-                        min = image[z][i][j];
-                    }
+                    iImage[z][i][j] = imp.getPixel(i, j);
                 }
             }
         }
+        MinMax<Double> mm = ArrayOps.findMinMax(iImage);
+        max = mm.getMax();
+        min = mm.getMin();
+        
+        if (iParameters.livedisplay && iParameters.removebackground) {
+            final ImagePlus noBackgroundImg = aInputImg.duplicate();
+            noBackgroundImg.setTitle("Background reduction channel " + (iChannel + 1));
+            noBackgroundImg.changes = false;
+            noBackgroundImg.setDisplayRange(min, max);
+            noBackgroundImg.show();
+        }
 
-        /* Again overload the parameter after background subtraction */
+        /* Overload min/max after background subtraction */
         if (Analysis.norm_max != 0) {
             max = Analysis.norm_max;
-            if (iParameters.removebackground) {
-                // if we are removing the background we have no idea which is the minumum across 
-                // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
-                min = 0.0;
-            }
-            else {
-                min = Analysis.norm_min;
-            }
+            // if we are removing the background we have no idea which is the minumum across 
+            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
+            min = (iParameters.removebackground) ? 0.0 : Analysis.norm_min;
         }
+        ArrayOps.normalize(iImage, iImage, min, max);
 
-        if (iParameters.livedisplay && iParameters.removebackground) {
-            final ImagePlus back = img.duplicate();
-            back.setTitle("Background reduction channel " + (iChannel + 1));
-            back.changes = false;
-            back.setDisplayRange(min, max);
-            back.show();
-        }
-
-        // normalize the image
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    image[z][i][j] = (image[z][i][j] - min) / (max - min);
-                    if (image[z][i][j] < 0.0) {
-                        image[z][i][j] = 0.0;
-                    }
-                    else if (image[z][i][j] > 1.0) {
-                        image[z][i][j] = 1.0;
-                    }
-                }
-            }
-        }
-
-        iLocalTools.createmask(mask, image, iParameters.betaMLEindefault);
+        iLocalTools.createmask(iMask, iImage, iParameters.betaMLEindefault);
     }
 
     /**
@@ -218,48 +156,31 @@ class TwoRegions {
      * Run the split Bregman + patch refinement
      */
     public void run() {
-        // This store the output mask
-//        p.refinement = false;
-        ASplitBregmanSolver A_solver = null;
-        
-        // IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
         double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-        if (nz > 1) {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            final DoubleType[] var = new DoubleType[3];
-            var[0] = new DoubleType(iParameters.sigma_gaussian);
-            var[1] = new DoubleType(iParameters.sigma_gaussian);
-            var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
-            psf.setVar(var);
-            // Force the allocation of the buffers internally
-            // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
-            psf.getSeparableImageAsDoubleArray(0);
-            
-            iParameters.PSF = psf;
 
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, image, mask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
-        }
-        else {
-            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            final DoubleType[] var = new DoubleType[2];
-            var[0] = new DoubleType(iParameters.sigma_gaussian);
-            var[1] = new DoubleType(iParameters.sigma_gaussian);
-            psf.setVar(var);
-            // Force the allocation of the buffers internally
-            // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
-            psf.getSeparableImageAsDoubleArray(0);
-            
-            iParameters.PSF = psf;
-
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, image, mask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
-        }
-
+        // ========================      Prepare PSF
+        int psfDims = (nz > 1) ? 3 : 2;
+        final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(psfDims, DoubleType.class);
+        final DoubleType[] var = new DoubleType[psfDims];
+        var[0] = new DoubleType(iParameters.sigma_gaussian);
+        var[1] = new DoubleType(iParameters.sigma_gaussian);
+        if (psfDims == 3) var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
+        psf.setVar(var);
+        // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
+        psf.getSeparableImageAsDoubleArray(0);
+        iParameters.PSF = psf;
+        
+        // ========================      Solver
+        ASplitBregmanSolver A_solver = (nz > 1) 
+            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity)
+            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
+        
+        // ========================     First phase      
         if (Analysis.iParameters.patches_from_file == null) {
             try {
                 IJ.showStatus("Computing segmentation");
                 IJ.showProgress(0.0);
                 A_solver.first_run();
-                
                 
                 if (iParameters.livedisplay) {
                     display2regions(A_solver.w3kbest, "Mask", iChannel);
@@ -269,10 +190,7 @@ class TwoRegions {
             }
         }
         else {
-            // Here we have patches
-            // Load particles
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
-
             csv.setCSVPreferenceFromFile(Analysis.iParameters.patches_from_file);
             Vector<Particle> pt = csv.Read(Analysis.iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
@@ -287,7 +205,7 @@ class TwoRegions {
         }
 
         if (iParameters.dispSoftMask) {
-                out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
+            out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }
 
         // ========================      Compute segmentation
@@ -303,7 +221,7 @@ class TwoRegions {
             IJ.showStatus("Computing segmentation  " + 55 + "%");
             IJ.showProgress(0.55);
         
-            final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
+            final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), iImage, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
             ipatches.run();
             IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
             Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
@@ -320,17 +238,14 @@ class TwoRegions {
         // Well we did not finished yet at this stage you can have several artifact produced by the patches
         // for example one region can be segmented partially by two patches, this mean that at least in theory
         // you should repatch (this produce a finer decomposition) again and rerun the second stage until each
-        // patches has one and only one region.
-        // The method eventually converge because it always produce finer decomposition, in the opposite case you stop
-        // The actual patching algorithm use
-        // A first phase Split-Bregman segmentation + Threasholding + Voronoi (unfortunately only 2D, for 3D a 2D
-        // Maximum projection is computed)
-        // The 2D Maximal projection unfortunately complicate
-        // even more the things, and produce even more artefatcs in particular for big PSF with big margins
-        // patch.
+        // patches has one and only one region. The method eventually converge because it always produce finer 
+        // decomposition, in the opposite case you stop.
+        // The actual patching algorithm use a first phase Split-Bregman segmentation + Threasholding + Voronoi 
+        // (unfortunately only 2D, for 3D a 2D Maximum projection is computed)
+        // The 2D Maximal projection unfortunately complicate even more the things, and produce even more artifacts,
+        // in particular for big PSF with big margins patch.
         //
         // IMPROVEMENT:
-        //
         // 1) 3D Voronoi (ImageLib2 Voronoi like segmentation)
         // 2) Good result has been achieved using Particle tracker for Patch positioning.
         // 3) Smart patches given the first phase we cut the soft membership each cut produce a segmentation
@@ -338,9 +253,8 @@ class TwoRegions {
         // on the leaf ( other algorithms can be implemented to analyze this graph ... )
         //
         // (Temporarily we fix in this way)
-        // Save the old intensity label image as an hashmap (to save memory)
-        // run find connected region to recompute the regions again
-        // recompute the statistics using the old intensity label image
+        // Save the old intensity label image as an hashmap (to save memory) run find connected region to recompute 
+        // the regions again. Recompute the statistics using the old intensity label image.
 
         // we run find connected regions
         final LabelImage img = new LabelImage(Analysis.getRegions(0));
@@ -374,7 +288,7 @@ class TwoRegions {
         ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
 
         for (final Region r : r_list.values()) {
-            final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
+            final ObjectProperties obj = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
             obj.run();
         }
     }

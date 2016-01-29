@@ -8,6 +8,7 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.ArrayOps.MinMax;
 
 
 public class Analysis {
@@ -168,6 +169,35 @@ public class Analysis {
         
         currentImage = img.getTitle();
 
+        /* Search for maximum and minimum value, normalization */
+        double min, max;
+        int ni = img.getWidth();
+        int nj = img.getHeight();
+        int nz = img.getNSlices();
+        if (Analysis.norm_max == 0) {
+            MinMax<Double> mm = Tools.findMinMax(img);
+            min = mm.getMin();
+            max = mm.getMax();
+        }
+        else {
+            min = Analysis.norm_min;
+            max = Analysis.norm_max;
+        }
+        if (iParameters.usecellmaskX && channel == 0) {
+            ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
+            cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            if (iParameters.livedisplay) {
+                maskImg.show();
+            }
+        }
+        if (iParameters.usecellmaskY && channel == 1) {
+            ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
+            cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            if (iParameters.livedisplay) {
+                maskImg.show();
+            }
+        }
+        
         TwoRegions rg = new TwoRegions(img, iParameters, channel);
         rg.run();
 

@@ -210,7 +210,7 @@ class AnalysePatch implements Runnable {
             A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity);
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegionsPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity);
+            A_solver = new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity);
         }
 
         try {
@@ -388,10 +388,8 @@ class AnalysePatch implements Runnable {
         }
 
         if (cpt_vals > 3) {
-            System.out.println("CLUSTER DATA: " + data.size() + " " + nk);
             final Clusterer km = new KMeans(nk, 100);
             final Dataset[] data2 = km.cluster(data);
-            System.out.println("===== " + data2.length);
             nk = data2.length;// get number of clusters really found
             
             final double[] levels = new double[nk];

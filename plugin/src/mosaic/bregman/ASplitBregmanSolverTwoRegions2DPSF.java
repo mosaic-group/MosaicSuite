@@ -7,12 +7,12 @@ import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 import mosaic.utils.ArrayOps;
 
 
-class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolver {
+class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
     private final double[][][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
     
-    public ASplitBregmanSolverTwoRegionsPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
+    public ASplitBregmanSolverTwoRegions2DPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
         dct2d = new DoubleDCT_2D(ni, nj);
         eigenPsf2D = new double[nz][ni][nj];
