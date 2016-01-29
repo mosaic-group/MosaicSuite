@@ -9,21 +9,23 @@ import mosaic.utils.ArrayOps;
 
 class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
-    private final double[][][] eigenPsf2D;
+    private final double[][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
+    private final double[][] eigenLaplacian;
     
     public ASplitBregmanSolverTwoRegions2DPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
         dct2d = new DoubleDCT_2D(ni, nj);
-        eigenPsf2D = new double[nz][ni][nj];
+        eigenPsf2D = new double[ni][nj];
         compute_eigenPSF();
-        
+
+        eigenLaplacian = new double[ni][nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                eigenLaplacian[i][j] = eigenLaplacian[i][j] - 2;
+                eigenLaplacian[i][j] = (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))));
             }
         }
-
+        
         convolveAndScale(mask[0]);
         calculateGradientsXandY(mask);
     }
@@ -98,8 +100,8 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         // inversion int DCT space
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                if ((1 + eigenLaplacian[i][j] + eigenPsf2D[0][i][j]) != 0) {
-                    temp1[0][i][j] = temp1[0][i][j] / (1 + eigenLaplacian[i][j] + eigenPsf2D[0][i][j]);
+                if ((1 + eigenLaplacian[i][j] + eigenPsf2D[i][j]) != 0) {
+                    temp1[0][i][j] = temp1[0][i][j] / (1 + eigenLaplacian[i][j] + eigenPsf2D[i][j]);
                 }
             }
         }
@@ -118,16 +120,14 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
     private void compute_eigenPSF() {
         final int[] sz = iParameters.PSF.getSuggestedImageSize();
-        final int xmin = Math.min(sz[0], eigenPsf2D[0].length);
-        final int ymin = Math.min(sz[1], eigenPsf2D[0][0].length);
-        Tools.convolve2D(eigenPsf2D[0], iParameters.PSF.getImage2DAsDoubleArray(), xmin, ymin, iParameters.PSF);
+        final int xmin = Math.min(sz[0], eigenPsf2D.length);
+        final int ymin = Math.min(sz[1], eigenPsf2D[0].length);
+        Tools.convolve2D(eigenPsf2D, iParameters.PSF.getImage2DAsDoubleArray(), xmin, ymin, iParameters.PSF);
 
         ArrayOps.fill(temp1, 0);
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < xmin; i++) {
-                for (int j = 0; j < ymin; j++) {
-                    temp1[z][i][j] = eigenPsf2D[z][i][j];
-                }
+        for (int i = 0; i < xmin; i++) {
+            for (int j = 0; j < ymin; j++) {
+                temp1[0][i][j] = eigenPsf2D[i][j];
             }
         }
 
@@ -141,12 +141,10 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         temp2[0][0][0] = 1;
         dct2d.forward(temp2[0], true);
 
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    eigenPsf2D[z][i][j] = Math.pow(iBetaMleIn - iBetaMleOut, 2) * temp3[z][i][j] / temp2[z][i][j];
-                } 
-            }
+        for (int i = 0; i < ni; i++) {
+            for (int j = 0; j < nj; j++) {
+                eigenPsf2D[i][j] = Math.pow(iBetaMleIn - iBetaMleOut, 2) * temp3[0][i][j] / temp2[0][i][j];
+            } 
         }
     }
 }

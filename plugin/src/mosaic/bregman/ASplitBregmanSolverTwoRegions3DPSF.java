@@ -19,18 +19,18 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
     public ASplitBregmanSolverTwoRegions3DPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
-        w2zk = new double[nz][ni][nj];
         ukz = new double[nz][ni][nj];
         b2zk = new double[nz][ni][nj];
-        eigenLaplacian3D = new double[nz][ni][nj];
         dct3d = new DoubleDCT_3D(nz, ni, nj);
 
+        w2zk = new double[nz][ni][nj];
         LocalTools.fgradz2D(w2zk, mask);
 
+        eigenLaplacian3D = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenLaplacian3D[z][i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))) + (2 - 2 * Math.cos((z) * Math.PI / (nz))));
+                    eigenLaplacian3D[z][i][j] = (2 - 2 * Math.cos((j) * Math.PI / (nj))) + (2 - 2 * Math.cos((i) * Math.PI / (ni))) + (2 - 2 * Math.cos((z) * Math.PI / (nz)));
                 }
             }
         }
@@ -46,14 +46,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         temp1 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         compute_eigenPSF3D();
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    eigenLaplacian3D[z][i][j] = eigenLaplacian3D[z][i][j] - 2;
-                }
-            }
-        }
 
         convolveAndScale(mask);
         calculateGradientsXandY(mask);

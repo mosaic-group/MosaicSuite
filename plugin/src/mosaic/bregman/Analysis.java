@@ -168,7 +168,6 @@ public class Analysis {
         // 3D only working for two problem
         
         currentImage = img.getTitle();
-
         /* Search for maximum and minimum value, normalization */
         double min, max;
         int ni = img.getWidth();
@@ -184,19 +183,22 @@ public class Analysis {
             max = Analysis.norm_max;
         }
         if (iParameters.usecellmaskX && channel == 0) {
-            ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
+            ImagePlus maskImg = new ImagePlus();
+            maskImg.setTitle("Cell mask channel 1");
             cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
         }
         if (iParameters.usecellmaskY && channel == 1) {
-            ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
+            ImagePlus maskImg = new ImagePlus();
+            maskImg.setTitle("Cell mask channel 2");
             cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
         }
+
         double[][][] iImage = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             img.setSlice(z + 1);
@@ -242,7 +244,7 @@ public class Analysis {
         
         regionslist.set(channel, rg.regionsList);
         regions[channel] = rg.regions;
-        IJ.log(rg.regionsList + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
+        IJ.log(rg.regionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
             if (channel > 1) return;
@@ -254,6 +256,7 @@ public class Analysis {
             MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
+        System.out.println("END ==============");
     }
 
     static double colocsegA() {

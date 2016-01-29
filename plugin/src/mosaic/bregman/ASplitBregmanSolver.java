@@ -14,6 +14,7 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 
 
 abstract class ASplitBregmanSolver {
@@ -21,8 +22,6 @@ abstract class ASplitBregmanSolver {
 
     protected ArrayList<Region> regionsvoronoi;
     protected final double[][][] image;
-
-    protected final double[][] eigenLaplacian;
 
     protected final double[][][] w1k;
     protected final double[][][] w3k;
@@ -100,14 +99,6 @@ abstract class ASplitBregmanSolver {
         temp3 = new double[nz][ni][nj];
         temp4 = new double[nz][ni][nj];
         
-        // precompute eigenlaplacian
-        eigenLaplacian = new double[ni][nj];
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                eigenLaplacian[i][j] = 2 + (2 - 2 * Math.cos((j) * Math.PI / (nj)) + (2 - 2 * Math.cos((i) * Math.PI / (ni))));
-            }
-        }
-        
         LocalTools.fgradx2D(temp1, mask);
         LocalTools.fgrady2D(temp2, mask);
         
@@ -136,8 +127,6 @@ abstract class ASplitBregmanSolver {
     void first_run() throws InterruptedException {
         final int firstStepNumOfIterations = 151;
         run(true, firstStepNumOfIterations);
-        
-        regions_intensity_findthresh(w3kbest);
     }
     
     void second_run() throws InterruptedException {
@@ -180,7 +169,6 @@ abstract class ASplitBregmanSolver {
                     if (iParameters.livedisplay) {
                         IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
                         if (stopFlag) IJ.log("energy stop");
-// TODO: This should be moved level up when iterations done properly: md.display2regions(w3k, "Mask", channel);
                     }
                     IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(aNumOfIterations - 1), 2) + "%");
                 }
@@ -223,6 +211,8 @@ abstract class ASplitBregmanSolver {
     abstract protected void init();
 
     void regions_intensity_findthresh(double[][][] mask) {
+        MinMax<Double> mm = ArrayOps.findMinMax(mask);
+        mosaic.utils.Debug.print("MIN MAX in regions_intensity: ", mm.getMin(), mm.getMax());
         double thresh = iMinIntensity;
 
         ImagePlus mask_im = new ImagePlus();

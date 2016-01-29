@@ -52,7 +52,7 @@ class TwoRegions {
         ni = aInputImg[0].length;
         nj = aInputImg[0][0].length;
         nz = aInputImg.length;
-        
+
         iImage = new double[nz][ni][nj];
         ArrayOps.normalize(aInputImg, iImage, min, max);
 
@@ -63,10 +63,10 @@ class TwoRegions {
     /**
      * Run the split Bregman + patch refinement
      */
-    public void run() {
+    public void run() {        
         // ========================      Prepare PSF
         iParameters.PSF = generatePsf();
-        
+
         // ========================      Prepare Solver
         ASplitBregmanSolver A_solver = (nz > 1) 
             ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iLreg, iMinIntensity)
@@ -91,11 +91,10 @@ class TwoRegions {
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
     
             // create a mask Image
-            final double img[][][] = new double[nz][ni][nj];
-            drawParticles(img, A_solver.w3kbest, pt_f, (int) 3.0);
-    
-            A_solver.regions_intensity_findthresh(img);
+            drawParticles(A_solver.w3kbest, pt_f, (int) 3.0);
         }
+        
+        A_solver.regions_intensity_findthresh(A_solver.w3kbest);
     
         if (iParameters.dispSoftMask) {
             out_soft_mask = generateImgFromArray(A_solver.w3k);
@@ -142,7 +141,7 @@ class TwoRegions {
         // (Temporarily we fix in this way)
         // Save the old intensity label image as an hashmap (to save memory) run find connected region to recompute 
         // the regions again. Recompute the statistics using the old intensity label image.
-    
+
         // we run find connected regions
         final LabelImage img = new LabelImage(regions);
         img.connectedComponents();
@@ -281,8 +280,8 @@ class TwoRegions {
      * @param aParticles vector of particles
      * @param aRadius of the sphere
      */
-    private void drawParticles(double[][][] aOutputImage, double[][][] aOutputMask, Vector<Particle> aParticles, int aRadius) {
-        final int xyzDims[] = new int[] {aOutputImage[0].length, aOutputImage[0][0].length, aOutputImage.length};
+    private void drawParticles(double[][][] aOutputMask, Vector<Particle> aParticles, int aRadius) {
+        final int xyzDims[] = new int[] {aOutputMask[0].length, aOutputMask[0][0].length, aOutputMask.length};
 
         // Create a circle Mask and an iterator
         final BallMask cm = new BallMask(aRadius, /* num od dims */ 3);
@@ -296,12 +295,10 @@ class TwoRegions {
                 final int x = p.iCoords[0];
                 final int y = p.iCoords[1];
                 final int z = p.iCoords[2];
-                aOutputImage[z][x][y] = 255.0f;
                 aOutputMask[z][x][y] = 1.0f;
             }
         }
     }
-
 
     /**
      * Get the particles related to one frame

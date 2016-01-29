@@ -893,7 +893,6 @@ public class Tools {
             bp.setPixels(mask);
             maskStack.addSlice("", bp);
         }
-
         final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
         maskImg.setStack(maskStack);
         IJ.run(maskImg, "Invert", "stack");
