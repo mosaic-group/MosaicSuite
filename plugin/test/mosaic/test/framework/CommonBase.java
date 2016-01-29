@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -155,7 +156,13 @@ public class CommonBase extends Info {
             for (int i = 0; i < aExpectedFiles.length; ++i) {
                 String refFile = tcPath + aReferenceFiles[i];
                 String testFile = tmpPath + aExpectedFiles[i];
-                compareTextFiles(refFile, testFile);
+                String extension = FilenameUtils.getExtension(refFile);
+                if (extension.equals("csv")) { 
+                    compareCsvFiles(refFile, testFile);
+                }
+                else {
+                    compareTextFiles(refFile, testFile);
+                }
             }
         }
     }

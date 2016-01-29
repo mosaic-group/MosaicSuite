@@ -388,8 +388,10 @@ class AnalysePatch implements Runnable {
         }
 
         if (cpt_vals > 3) {
+            System.out.println("CLUSTER DATA: " + data.size() + " " + nk);
             final Clusterer km = new KMeans(nk, 100);
             final Dataset[] data2 = km.cluster(data);
+            System.out.println("===== " + data2.length);
             nk = data2.length;// get number of clusters really found
             
             final double[] levels = new double[nk];

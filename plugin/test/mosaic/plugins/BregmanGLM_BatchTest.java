@@ -64,6 +64,39 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
+    public void testTest2ChannelsWithMaskFull()  {
+        
+        // Define test data
+        final String tcDirName           = "Squassh/2channelsWithMasks/";
+        final String setupString         = "run";
+        final String macroOptions        = "";
+        final String inputFile           = "moImg.tif";
+        final String[] expectedImgFiles  = {"__coloc.zip/moImg_coloc.zip", 
+                                            "__intensities_c1.zip/moImg_intensities_c1.zip", "__intensities_c2.zip/moImg_intensities_c2.zip", 
+                                            "__mask_c1.zip/moImg_mask_c1.zip", "__mask_c2.zip/moImg_mask_c2.zip", 
+                                            "__outline_overlay_c1.zip/moImg_outline_overlay_c1.zip", "__outline_overlay_c2.zip/moImg_outline_overlay_c2.zip",
+                                            "__seg_c1.zip/moImg_seg_c1.zip", "__seg_c2.zip/moImg_seg_c2.zip"};
+        final String[] referenceImgFiles = {"__coloc.zip/moImg_coloc.zip", 
+                                            "__intensities_c1.zip/moImg_intensities_c1.zip", "__intensities_c2.zip/moImg_intensities_c2.zip", 
+                                            "__mask_c1.zip/moImg_mask_c1.zip", "__mask_c2.zip/moImg_mask_c2.zip", 
+                                            "__outline_overlay_c1.zip/moImg_outline_overlay_c1.zip", "__outline_overlay_c2.zip/moImg_outline_overlay_c2.zip",
+                                            "__seg_c1.zip/moImg_seg_c1.zip", "__seg_c2.zip/moImg_seg_c2.zip"};
+        final String[] expectedFiles     = {"__ImagesData.csv/moImg_ImagesData.csv", "__ObjectsData_c1.csv/moImg_ObjectsData_c1.csv", "__ObjectsData_c2.csv/moImg_ObjectsData_c2.csv"};
+        final String[] referenceFiles    = {"__ImagesData.csv/moImg_ImagesData.csv", "__ObjectsData_c1.csv/moImg_ObjectsData_c1.csv", "__ObjectsData_c2.csv/moImg_ObjectsData_c2.csv"};
+
+        // Create tested plugIn
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
     public void testSphereSmall3D()  {
         
         // Define test data

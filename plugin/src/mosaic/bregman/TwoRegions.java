@@ -69,6 +69,7 @@ class TwoRegions {
         }
 
         if (iParameters.usecellmaskX && iChannel == 0) {
+            System.out.println("\n\n\n            MASK USED                  \n\n");
             ImagePlus maskImg = new ImagePlus("Cell mask channel 1");
             Analysis.cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
             if (Analysis.iParameters.livedisplay) {
@@ -80,6 +81,7 @@ class TwoRegions {
             }
         }
         if (iParameters.usecellmaskY && iChannel == 1) {
+            System.out.println("\n\n\n            MASK USED2                  \n\n");
             ImagePlus maskImg = new ImagePlus("Cell mask channel 2");
             Analysis.cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, iChannel, nz, ni, nj, maskImg);
             if (Analysis.iParameters.livedisplay) {
