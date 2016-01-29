@@ -288,84 +288,19 @@ class TwoRegions {
                 out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }
 
-        computeSegmentation(A_solver, minIntensity);
-        if (iChannel == 0) {
-            // Well we did not finished yet at this stage you can have several artifact produced by the patches
-            // for example one region can be segmented partially by two patches, this mean that at least in theory
-            // you should repatch (this produce a finer decomposition) again and rerun the second stage until each
-            // patches has one and only one region.
-            // The method eventually converge because it always produce finer decomposition, in the opposite case you stop
-            // The actual patching algorithm use
-            // A first phase Split-Bregman segmentation + Threasholding + Voronoi (unfortunately only 2D, for 3D a 2D
-            // Maximum projection is computed)
-            // The 2D Maximal projection unfortunately complicate
-            // even more the things, and produce even more artefatcs in particular for big PSF with big margins
-            // patch.
-            //
-            // IMPROVEMENT:
-            //
-            // 1) 3D Voronoi (ImageLib2 Voronoi like segmentation)
-            // 2) Good result has been achieved using Particle tracker for Patch positioning.
-            // 3) Smart patches given the first phase we cut the soft membership each cut produce a segmentation
-            // that include the previous one, going to zero this produce a tree graph. the patches are positioned
-            // on the leaf ( other algorithms can be implemented to analyze this graph ... )
-            //
-            // (Temporarily we fix in this way)
-            // Save the old intensity label image as an hashmap (to save memory)
-            // run find connected region to recompute the regions again
-            // recompute the statistics using the old intensity label image
-
-            // we run find connected regions
-            final LabelImage img = new LabelImage(Analysis.getRegions(0));
-            img.connectedComponents();
-
-            final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
-
-            // Run on all pixels of the label to add pixels to the regions
-            final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
-            while (rit.hasNext()) {
-                final Point p = rit.next();
-                final int lbl = img.getLabel(p);
-                if (lbl != 0) {
-                    // foreground
-                    Region r = r_list.get(lbl);
-                    if (r == null) {
-                        r = new Region(lbl, 0);
-                        r_list.put(lbl, r);
-                    }
-                    r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
-                }
-            }
-
-            // Now we run Object properties on this regions list
-            final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
-            final int sx = ni * osxy;
-            final int sy = nj * osxy;
-            int sz = (nz == 1) ? 1 : nz * osxy;
-            int osz = (nz == 1) ? 1 : osxy;
-
-            ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
-
-            for (final Region r : r_list.values()) {
-                final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
-                obj.run();
-            }
-        }
-    }
-
-    private void computeSegmentation(ASplitBregmanSolver A_solver, double minIntensity) {
+        // ========================      Compute segmentation
         Analysis.setMask(A_solver.w3kbest, iChannel);
         float[][][] RiN = new float[nz][ni][nj];
         iLocalTools.copytab(RiN, A_solver.Ri);
-
+        
         final ArrayList<Region> regions = A_solver.regionsvoronoi;
         Analysis.compute_connected_regions(iChannel);
-
+        
         if (Analysis.iParameters.refinement) {
             Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
             IJ.showStatus("Computing segmentation  " + 55 + "%");
             IJ.showProgress(0.55);
-
+        
             final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), image, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
             ipatches.run();
             IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
@@ -375,8 +310,70 @@ class TwoRegions {
         
         // Here we solved the patches and the regions that come from the patches
         // we rescale the intensity to the original one
-        for (final Region r : Analysis.getRegionslist(iChannel)) {
-            r.intensity = r.intensity * (max - min) + min;
+        for (final Region r1 : Analysis.getRegionslist(iChannel)) {
+            r1.intensity = r1.intensity * (max - min) + min;
+        }
+        
+        //  ========================      Postprocessing phase
+        // Well we did not finished yet at this stage you can have several artifact produced by the patches
+        // for example one region can be segmented partially by two patches, this mean that at least in theory
+        // you should repatch (this produce a finer decomposition) again and rerun the second stage until each
+        // patches has one and only one region.
+        // The method eventually converge because it always produce finer decomposition, in the opposite case you stop
+        // The actual patching algorithm use
+        // A first phase Split-Bregman segmentation + Threasholding + Voronoi (unfortunately only 2D, for 3D a 2D
+        // Maximum projection is computed)
+        // The 2D Maximal projection unfortunately complicate
+        // even more the things, and produce even more artefatcs in particular for big PSF with big margins
+        // patch.
+        //
+        // IMPROVEMENT:
+        //
+        // 1) 3D Voronoi (ImageLib2 Voronoi like segmentation)
+        // 2) Good result has been achieved using Particle tracker for Patch positioning.
+        // 3) Smart patches given the first phase we cut the soft membership each cut produce a segmentation
+        // that include the previous one, going to zero this produce a tree graph. the patches are positioned
+        // on the leaf ( other algorithms can be implemented to analyze this graph ... )
+        //
+        // (Temporarily we fix in this way)
+        // Save the old intensity label image as an hashmap (to save memory)
+        // run find connected region to recompute the regions again
+        // recompute the statistics using the old intensity label image
+
+        // we run find connected regions
+        final LabelImage img = new LabelImage(Analysis.getRegions(0));
+        img.connectedComponents();
+
+        final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
+
+        // Run on all pixels of the label to add pixels to the regions
+        final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
+        while (rit.hasNext()) {
+            final Point p = rit.next();
+            final int lbl = img.getLabel(p);
+            if (lbl != 0) {
+                // foreground
+                Region r = r_list.get(lbl);
+                if (r == null) {
+                    r = new Region(lbl, 0);
+                    r_list.put(lbl, r);
+                }
+                r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
+            }
+        }
+
+        // Now we run Object properties on this regions list
+        final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
+        final int sx = ni * osxy;
+        final int sy = nj * osxy;
+        int sz = (nz == 1) ? 1 : nz * osxy;
+        int osz = (nz == 1) ? 1 : osxy;
+
+        ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
+
+        for (final Region r : r_list.values()) {
+            final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
+            obj.run();
         }
     }
 
