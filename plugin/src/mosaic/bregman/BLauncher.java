@@ -550,7 +550,7 @@ public class BLauncher {
      * @param sep true = doea not fuse with the separate outline
      */
     private void displayoutline(short[][][] regions, double[][][] image, int dz, int di, int dj, int channel, boolean sep) {
-
+        mosaic.utils.Debug.print("displayoutline", channel, dz, di, dj);
         // build stack and imageplus for objects
         ImageStack objS = new ImageStack(di, dj);
         for (int z = 0; z < dz; z++) {

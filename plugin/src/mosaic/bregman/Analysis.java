@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps.MinMax;
@@ -36,8 +35,6 @@ public class Analysis {
     static String currentImage = "currentImage";
     static ImagePlus imgA;
     private static ImagePlus imgB;
-    private static byte[][][] maskA;
-    private static byte[][][] maskB;
     static double[][][] imagea;
     static double[][][] imageb;
     static boolean[][][] cellMaskABinary;
@@ -200,7 +197,9 @@ public class Analysis {
         
         TwoRegions rg = new TwoRegions(img, iParameters, channel);
         rg.run();
-
+        regionslist.set(channel, rg.regionsList);
+        regions[channel] = rg.regions;
+        
         if (iParameters.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
             if (channel > 1) return;
@@ -212,39 +211,6 @@ public class Analysis {
             MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask[channel]);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
-    }
-
-    static void compute_connected_regions(int aChannel) {
-        final FindConnectedRegions fcr = (aChannel == 0) ? processConnectedRegions(iParameters.min_intensity, maskA) :
-                                                           processConnectedRegions(iParameters.min_intensityY, maskB);
-        regions[aChannel] = fcr.getLabeledRegions();
-        regionslist.set(aChannel, fcr.getFoundRegions());
-    }
-
-    private static FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        final ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(ni, nj);
-
-        for (int z = 0; z < nz; z++) {
-            final byte[] mask_bytes = new byte[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    mask_bytes[j * ni + i] = mask[z][i][j];
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(mask_bytes);
-            mask_ims.addSlice("", bp);
-        }
-
-        mask_im.setStack("", mask_ims);
-        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity));
-        
-        return fcr;
     }
 
     static double colocsegA() {
@@ -405,33 +371,6 @@ public class Analysis {
             r.cx = r.cx / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
             r.cy = r.cy / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
             r.cz = r.cz / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-        }
-    }
-
-    static void setMask(double[][][] mask, int aChannel) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        if (aChannel == 0) {
-            maskA = new byte[nz][ni][nj];
-            copyScaledMask(maskA, mask);
-        } 
-        else {
-            maskB = new byte[nz][ni][nj];
-            copyScaledMask(maskB, mask);
-        }
-    }
-    
-    private static void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
-        int ni = aSource[0].length;
-        int nj = aSource[0][0].length;
-        int nz = aSource.length;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
-                }
-            }
         }
     }
 

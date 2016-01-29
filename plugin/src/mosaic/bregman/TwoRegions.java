@@ -40,8 +40,13 @@ class TwoRegions {
     private final double[][][] iMask;
     private double min, max;
     
+    private byte[][][] maskA;
+    public short[][][] regions;
+    public ArrayList<Region> regionsList;
+    
     private final ImagePlus iAImg = new ImagePlus(); 
     private final ImagePlus iBImg = new ImagePlus();
+    public final ImagePlus out_soft_mask[] = new ImagePlus[2];
     
     
     public TwoRegions(ImagePlus aInputImg, Parameters aParameters, int aChannel) {
@@ -96,68 +101,11 @@ class TwoRegions {
     }
 
     /**
-     * Create a sphere of radius r, used to force patches around the spheres that you draw
-     *
-     * @param out image
-     * @param pt vector of particles
-     * @param radius of the sphere
-     */
-    private void drawParticles(double[][][] out, double[][][] mask, Vector<Particle> pt, int radius) {
-        // Iterate on all particles
-
-        final int sz[] = new int[3];
-        sz[1] = out[0][0].length;
-        sz[0] = out[0].length;
-        sz[2] = out.length;
-
-        // Create a circle Mask and an iterator
-        float[] spac = new float[] {1.0f, 1.0f, 1.0f};
-        final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
-        final MaskOnSpaceMapper rg_m = new MaskOnSpaceMapper(cm, sz);
-
-        for (Particle ptt : pt) {
-            // Draw the sphere
-            rg_m.setMiddlePoint(new Point((int) (ptt.iX), (int) (ptt.iY), (int) (ptt.iZ)));
-
-            while (rg_m.hasNext()) {
-                final Point p = rg_m.nextPoint();
-
-                if (p.iCoords[0] < sz[0] && p.iCoords[0] >= 0 && p.iCoords[1] < sz[1] && p.iCoords[1] >= 0 && p.iCoords[2] < sz[2] && p.iCoords[2] >= 0) {
-                    out[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 255.0f;
-                    mask[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 1.0f;
-                }
-            }
-        }
-    }
-
-    public final ImagePlus out_soft_mask[] = new ImagePlus[2];
-
-    /**
-     * Get the particles related to one frame
-     *
-     * @param part particle vector
-     * @param frame frame number
-     * @return a vector with particles related to one frame
-     */
-    private Vector<Particle> getPart(Vector<Particle> part, int frame) {
-        final Vector<Particle> pp = new Vector<Particle>();
-
-        // get the particle related to one frame
-        for (Particle p : part) {
-            if (p.getFrame() == frame) {
-                pp.add(p);
-            }
-        }
-
-        return pp;
-    }
-
-    /**
      * Run the split Bregman + patch refinement
      */
     public void run() {
         double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-
+    
         // ========================      Prepare PSF
         int psfDims = (nz > 1) ? 3 : 2;
         final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(psfDims, DoubleType.class);
@@ -176,7 +124,7 @@ class TwoRegions {
             : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
         
         // ========================     First phase      
-        if (Analysis.iParameters.patches_from_file == null) {
+        if (iParameters.patches_from_file == null) {
             try {
                 IJ.showStatus("Computing segmentation");
                 IJ.showProgress(0.0);
@@ -191,46 +139,42 @@ class TwoRegions {
         }
         else {
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
-            csv.setCSVPreferenceFromFile(Analysis.iParameters.patches_from_file);
-            Vector<Particle> pt = csv.Read(Analysis.iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
-
+            csv.setCSVPreferenceFromFile(iParameters.patches_from_file);
+            Vector<Particle> pt = csv.Read(iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+    
             // Get the particle related inly to one frames
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
-
+    
             // create a mask Image
             final double img[][][] = new double[nz][ni][nj];
             drawParticles(img, A_solver.w3kbest, pt_f, (int) 3.0);
-
+    
             A_solver.regions_intensity_findthresh(img);
         }
-
+    
         if (iParameters.dispSoftMask) {
             out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
         }
-
+    
         // ========================      Compute segmentation
-        Analysis.setMask(A_solver.w3kbest, iChannel);
-        float[][][] RiN = new float[nz][ni][nj];
-        iLocalTools.copytab(RiN, A_solver.Ri);
+        setMask(A_solver.w3kbest);
+        compute_connected_regions();
         
-        final ArrayList<Region> regions = A_solver.regionsvoronoi;
-        Analysis.compute_connected_regions(iChannel);
-        
-        if (Analysis.iParameters.refinement) {
-            Analysis.SetRegionsObjsVoronoi(Analysis.getRegionslist(iChannel), regions, RiN);
+        if (iParameters.refinement) {
+            SetRegionsObjsVoronoi(regionsList, A_solver.regionsvoronoi, A_solver.Ri);
             IJ.showStatus("Computing segmentation  " + 55 + "%");
             IJ.showProgress(0.55);
         
-            final ImagePatches ipatches = new ImagePatches(iParameters, Analysis.getRegionslist(iChannel), iImage, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
+            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
             ipatches.run();
             IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
-            Analysis.setRegionslist(ipatches.getRegionsList(), iChannel);
-            Analysis.setRegions(ipatches.getRegions(), iChannel);
+            regionsList = ipatches.getRegionsList();
+            regions = ipatches.getRegions();
         }
         
         // Here we solved the patches and the regions that come from the patches
         // we rescale the intensity to the original one
-        for (final Region r1 : Analysis.getRegionslist(iChannel)) {
+        for (final Region r1 : regionsList) {
             r1.intensity = r1.intensity * (max - min) + min;
         }
         
@@ -255,13 +199,13 @@ class TwoRegions {
         // (Temporarily we fix in this way)
         // Save the old intensity label image as an hashmap (to save memory) run find connected region to recompute 
         // the regions again. Recompute the statistics using the old intensity label image.
-
+    
         // we run find connected regions
-        final LabelImage img = new LabelImage(Analysis.getRegions(0));
+        final LabelImage img = new LabelImage(regions);
         img.connectedComponents();
-
+    
         final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
-
+    
         // Run on all pixels of the label to add pixels to the regions
         final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
         while (rit.hasNext()) {
@@ -277,22 +221,85 @@ class TwoRegions {
                 r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
             }
         }
-
+    
         // Now we run Object properties on this regions list
         final int osxy = iParameters.oversampling2ndstep * iParameters.interpolation;
         final int sx = ni * osxy;
         final int sy = nj * osxy;
         int sz = (nz == 1) ? 1 : nz * osxy;
         int osz = (nz == 1) ? 1 : osxy;
-
-        ImagePatches.assemble(r_list.values(), Analysis.getRegions(0));
-
+    
+        ImagePatches.assemble(r_list.values(), regions);
+    
         for (final Region r : r_list.values()) {
-            final ObjectProperties obj = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, Analysis.getRegions(0));
+            final ObjectProperties obj = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, regions);
             obj.run();
         }
     }
 
+    private void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
+        for (Region r : regionlist) {
+            int x = r.pixels.get(0).px;
+            int y = r.pixels.get(0).py;
+            int z = r.pixels.get(0).pz;
+            r.rvoronoi = regionsvoronoi.get((int) ri[z][x][y]);
+        }
+    }
+    
+    private void compute_connected_regions() {
+        double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+        final FindConnectedRegions fcr = processConnectedRegions(minIntensity, maskA);
+        regions = fcr.getLabeledRegions();
+        regionsList = fcr.getFoundRegions();
+    }
+
+    private FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
+        final ImagePlus mask_im = new ImagePlus();
+        final ImageStack mask_ims = new ImageStack(ni, nj);
+
+        for (int z = 0; z < nz; z++) {
+            final byte[] mask_bytes = new byte[ni * nj];
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    mask_bytes[j * ni + i] = mask[z][i][j];
+                }
+            }
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
+            bp.setPixels(mask_bytes);
+            mask_ims.addSlice("", bp);
+        }
+
+        mask_im.setStack("", mask_ims);
+        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
+        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity));
+        
+        return fcr;
+    }
+    
+    private void setMask(double[][][] mask) {
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
+        maskA = new byte[nz][ni][nj];
+        copyScaledMask(maskA, mask);
+    }
+    
+    private void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
+        int ni = aSource[0].length;
+        int nj = aSource[0][0].length;
+        int nz = aSource.length;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
+                }
+            }
+        }
+    }
+    
     /**
      * Display the soft membership
      *
@@ -300,9 +307,9 @@ class TwoRegions {
      * @param s String of the image
      * @param channel channel
      */
-    void display2regions(double[][][] array, String s, int channel) {
+    private void display2regions(double[][][] array, String s, int channel) {
         final ImageStack ims = convertArrayToImageProcessor(array);
-
+    
         if (channel == 0) {
             iAImg.setStack(s + " X", ims);
             iAImg.resetDisplayRange();
@@ -330,7 +337,57 @@ class TwoRegions {
         }
         return ims;
     }
-    
+
+    /**
+     * Create a sphere of radius r, used to force patches around the spheres that you draw
+     *
+     * @param aOutputImage image
+     * @param aOutputMask mask
+     * @param aParticles vector of particles
+     * @param aRadius of the sphere
+     */
+    private void drawParticles(double[][][] aOutputImage, double[][][] aOutputMask, Vector<Particle> aParticles, int aRadius) {
+        final int xyzDims[] = new int[] {aOutputImage[0].length, aOutputImage[0][0].length, aOutputImage.length};
+
+        // Create a circle Mask and an iterator
+        final BallMask cm = new BallMask(aRadius, /* num od dims */ 3);
+        final MaskOnSpaceMapper ballIter = new MaskOnSpaceMapper(cm, xyzDims);
+
+        for (Particle particle : aParticles) {
+            // Draw the sphere
+            ballIter.setMiddlePoint(new Point((int) (particle.iX), (int) (particle.iY), (int) (particle.iZ)));
+            while (ballIter.hasNext()) {
+                final Point p = ballIter.nextPoint();
+                final int x = p.iCoords[0];
+                final int y = p.iCoords[1];
+                final int z = p.iCoords[2];
+                aOutputImage[z][x][y] = 255.0f;
+                aOutputMask[z][x][y] = 1.0f;
+            }
+        }
+    }
+
+
+    /**
+     * Get the particles related to one frame
+     *
+     * @param part particle vector
+     * @param frame frame number
+     * @return a vector with particles related to one frame
+     */
+    private Vector<Particle> getPart(Vector<Particle> part, int frame) {
+        final Vector<Particle> pp = new Vector<Particle>();
+
+        // get the particle related to one frame
+        for (Particle p : part) {
+            if (p.getFrame() == frame) {
+                pp.add(p);
+            }
+        }
+
+        return pp;
+    }
+
     /**
      * Display the soft membership
      *
