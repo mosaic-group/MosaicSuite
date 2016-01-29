@@ -3,10 +3,13 @@ package mosaic.bregman;
 
 import java.util.ArrayList;
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.plugin.filter.BackgroundSubtracter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 
 
@@ -194,12 +197,52 @@ public class Analysis {
                 maskImg.show();
             }
         }
+        double[][][] iImage = new double[nz][ni][nj];
+        for (int z = 0; z < nz; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            
+            if (iParameters.removebackground) {
+                final BackgroundSubtracter bs = new BackgroundSubtracter();
+                bs.rollingBallBackground(imp, iParameters.size_rollingball, false, false, false, true, true);
+            }
+
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    iImage[z][i][j] = imp.getPixel(i, j);
+                }
+            }
+        }
+        MinMax<Double> mm = ArrayOps.findMinMax(iImage);
+        max = mm.getMax();
+        min = mm.getMin();
         
-        TwoRegions rg = new TwoRegions(img, iParameters, channel);
+        if (iParameters.livedisplay && iParameters.removebackground) {
+            final ImagePlus noBackgroundImg = img.duplicate();
+            noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
+            noBackgroundImg.changes = false;
+            noBackgroundImg.setDisplayRange(min, max);
+            noBackgroundImg.show();
+        }
+
+        /* Overload min/max after background subtraction */
+        if (Analysis.norm_max != 0) {
+            max = Analysis.norm_max;
+            // if we are removing the background we have no idea which is the minumum across 
+            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
+            min = (iParameters.removebackground) ? 0.0 : Analysis.norm_min;
+        }
+        double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+        
+        
+        //  ============== SEGMENTATION
+        TwoRegions rg = new TwoRegions(iImage, iParameters, min, max, iParameters.lreg_[channel], minIntensity);
         rg.run();
+        // =============================
+        
         regionslist.set(channel, rg.regionsList);
         regions[channel] = rg.regions;
-        
+        IJ.log(rg.regionsList + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
             if (channel > 1) return;
@@ -207,8 +250,8 @@ public class Analysis {
             if (out_soft_mask[channel] == null) {
                 out_soft_mask[channel] = new ImagePlus();
             }
-
-            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask[channel]);
+            rg.out_soft_mask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
+            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
     }
@@ -329,15 +372,6 @@ public class Analysis {
         return r.colocpositive;
     }
 
-    static void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
-        for (Region r : regionlist) {
-            int x = r.pixels.get(0).px;
-            int y = r.pixels.get(0).py;
-            int z = r.pixels.get(0).pz;
-            r.rvoronoi = regionsvoronoi.get((int) ri[z][x][y]);
-        }
-    }
-    
     private static double regionsum(Region r, double[][][] image) {
         final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
         int fz2 = (image.length > 1) ? factor2 : 1;

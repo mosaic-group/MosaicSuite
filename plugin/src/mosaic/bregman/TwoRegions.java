@@ -9,10 +9,8 @@ import java.util.Vector;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.filter.BackgroundSubtracter;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -21,7 +19,6 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -33,95 +30,47 @@ import net.imglib2.type.numeric.real.DoubleType;
  */
 class TwoRegions {
     private final Parameters iParameters;
-    private final int iChannel;
     private final int ni, nj, nz;
-    private final Tools iLocalTools;
     private final double[][][] iImage;
     private final double[][][] iMask;
     private double min, max;
+    private double iLreg; 
+    private double iMinIntensity;
     
-    private byte[][][] maskA;
     public short[][][] regions;
     public ArrayList<Region> regionsList;
-    
-    private final ImagePlus iAImg = new ImagePlus(); 
-    private final ImagePlus iBImg = new ImagePlus();
-    public final ImagePlus out_soft_mask[] = new ImagePlus[2];
+    public ImagePlus out_soft_mask;
     
     
-    public TwoRegions(ImagePlus aInputImg, Parameters aParameters, int aChannel) {
+    public TwoRegions(double[][][] aInputImg, Parameters aParameters, double aMin, double aMax, double aLreg, double aMinIntensity) {
         iParameters = aParameters;
-        iChannel = aChannel;
+        min = aMin;
+        max = aMax;
+        iLreg = aLreg;
+        iMinIntensity = aMinIntensity;
         
-        ni = aInputImg.getWidth();
-        nj = aInputImg.getHeight();
-        nz = aInputImg.getNSlices();
-        iLocalTools = new Tools(ni, nj, nz);
+        ni = aInputImg[0].length;
+        nj = aInputImg[0][0].length;
+        nz = aInputImg.length;
+        
         iImage = new double[nz][ni][nj];
+        ArrayOps.normalize(aInputImg, iImage, min, max);
+
         iMask = new double[nz][ni][nj];
-
-        
-        for (int z = 0; z < nz; z++) {
-            aInputImg.setSlice(z + 1);
-            ImageProcessor imp = aInputImg.getProcessor();
-            
-            if (iParameters.removebackground) {
-                final BackgroundSubtracter bs = new BackgroundSubtracter();
-                bs.rollingBallBackground(imp, iParameters.size_rollingball, false, false, false, true, true);
-            }
-
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    iImage[z][i][j] = imp.getPixel(i, j);
-                }
-            }
-        }
-        MinMax<Double> mm = ArrayOps.findMinMax(iImage);
-        max = mm.getMax();
-        min = mm.getMin();
-        
-        if (iParameters.livedisplay && iParameters.removebackground) {
-            final ImagePlus noBackgroundImg = aInputImg.duplicate();
-            noBackgroundImg.setTitle("Background reduction channel " + (iChannel + 1));
-            noBackgroundImg.changes = false;
-            noBackgroundImg.setDisplayRange(min, max);
-            noBackgroundImg.show();
-        }
-
-        /* Overload min/max after background subtraction */
-        if (Analysis.norm_max != 0) {
-            max = Analysis.norm_max;
-            // if we are removing the background we have no idea which is the minumum across 
-            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
-            min = (iParameters.removebackground) ? 0.0 : Analysis.norm_min;
-        }
-        ArrayOps.normalize(iImage, iImage, min, max);
-
-        iLocalTools.createmask(iMask, iImage, iParameters.betaMLEindefault);
+        createmask(iMask, iImage, iParameters.betaMLEindefault);
     }
 
     /**
      * Run the split Bregman + patch refinement
      */
     public void run() {
-        double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-    
         // ========================      Prepare PSF
-        int psfDims = (nz > 1) ? 3 : 2;
-        final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(psfDims, DoubleType.class);
-        final DoubleType[] var = new DoubleType[psfDims];
-        var[0] = new DoubleType(iParameters.sigma_gaussian);
-        var[1] = new DoubleType(iParameters.sigma_gaussian);
-        if (psfDims == 3) var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
-        psf.setVar(var);
-        // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
-        psf.getSeparableImageAsDoubleArray(0);
-        iParameters.PSF = psf;
+        iParameters.PSF = generatePsf();
         
-        // ========================      Solver
+        // ========================      Prepare Solver
         ASplitBregmanSolver A_solver = (nz > 1) 
-            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity)
-            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.lreg_[iChannel], minIntensity);
+            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iLreg, iMinIntensity)
+            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iLreg, iMinIntensity);
         
         // ========================     First phase      
         if (iParameters.patches_from_file == null) {
@@ -129,10 +78,6 @@ class TwoRegions {
                 IJ.showStatus("Computing segmentation");
                 IJ.showProgress(0.0);
                 A_solver.first_run();
-                
-                if (iParameters.livedisplay) {
-                    display2regions(A_solver.w3kbest, "Mask", iChannel);
-                }
             }
             catch (final InterruptedException ex) {
             }
@@ -153,21 +98,19 @@ class TwoRegions {
         }
     
         if (iParameters.dispSoftMask) {
-            out_soft_mask[iChannel] = generateImgFromArray(A_solver.w3k, "Mask" + ((iChannel == 0) ? "X" : "Y"));
+            out_soft_mask = generateImgFromArray(A_solver.w3k);
         }
     
         // ========================      Compute segmentation
-        setMask(A_solver.w3kbest);
-        compute_connected_regions();
+        compute_connected_regions(A_solver.w3kbest);
         
         if (iParameters.refinement) {
             SetRegionsObjsVoronoi(regionsList, A_solver.regionsvoronoi, A_solver.Ri);
             IJ.showStatus("Computing segmentation  " + 55 + "%");
             IJ.showProgress(0.55);
         
-            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, min, max, iParameters.lreg_[iChannel], minIntensity);
+            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, min, max, iLreg, iMinIntensity);
             ipatches.run();
-            IJ.log(ipatches.getRegionsList().size() + " objects found in " + ((iChannel == 0) ? "X" : "Y") + ".");
             regionsList = ipatches.getRegionsList();
             regions = ipatches.getRegions();
         }
@@ -237,6 +180,38 @@ class TwoRegions {
         }
     }
 
+    private GaussPSF<DoubleType> generatePsf() {
+        int psfDims = (nz > 1) ? 3 : 2;
+        final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(psfDims, DoubleType.class);
+        final DoubleType[] var = new DoubleType[psfDims];
+        var[0] = new DoubleType(iParameters.sigma_gaussian);
+        var[1] = new DoubleType(iParameters.sigma_gaussian);
+        if (psfDims == 3) var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
+        psf.setVar(var);
+        // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
+        psf.getSeparableImageAsDoubleArray(0);
+        return psf;
+    }
+    
+    void createmask(double[][][] res, double[][][] image, double thr) {
+        if (thr == 1) {
+            // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
+            thr = 0.5;
+        }
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (image[z][i][j] >= thr) {
+                        res[z][i][j] = 1;
+                    }
+                    else {
+                        res[z][i][j] = 0;
+                    }
+                }
+            }
+        }
+    }
+
     private void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
         for (Region r : regionlist) {
             int x = r.pixels.get(0).px;
@@ -246,9 +221,14 @@ class TwoRegions {
         }
     }
     
-    private void compute_connected_regions() {
-        double minIntensity = (iChannel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-        final FindConnectedRegions fcr = processConnectedRegions(minIntensity, maskA);
+    private void compute_connected_regions(double[][][] mask) {
+        int ni = mask[0].length;
+        int nj = mask[0][0].length;
+        int nz = mask.length;
+        byte[][][] maskA = new byte[nz][ni][nj];
+        copyScaledMask(maskA, mask);
+
+        final FindConnectedRegions fcr = processConnectedRegions(iMinIntensity, maskA);
         regions = fcr.getLabeledRegions();
         regionsList = fcr.getFoundRegions();
     }
@@ -279,13 +259,6 @@ class TwoRegions {
         return fcr;
     }
     
-    private void setMask(double[][][] mask) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        maskA = new byte[nz][ni][nj];
-        copyScaledMask(maskA, mask);
-    }
     
     private void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
         int ni = aSource[0].length;
@@ -300,44 +273,6 @@ class TwoRegions {
         }
     }
     
-    /**
-     * Display the soft membership
-     *
-     * @param array 3D array of double
-     * @param s String of the image
-     * @param channel channel
-     */
-    private void display2regions(double[][][] array, String s, int channel) {
-        final ImageStack ims = convertArrayToImageProcessor(array);
-    
-        if (channel == 0) {
-            iAImg.setStack(s + " X", ims);
-            iAImg.resetDisplayRange();
-            iAImg.show();
-        }
-        else {
-            iBImg.setStack(s + " Y", ims);
-            iBImg.resetDisplayRange();
-            iBImg.show();
-        }
-    }
-
-    private ImageStack convertArrayToImageProcessor(double[][][] array) {
-        final ImageStack ims = new ImageStack(ni, nj);
-        for (int z = 0; z < nz; z++) {
-            final byte[] temp = new byte[ni * nj];
-            for (int j = 0; j < nj; j++) {
-                for (int i = 0; i < ni; i++) {
-                    temp[j * ni + i] = (byte) ((int) (255 * array[z][i][j]));
-                }
-            }
-            final ImageProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(temp);
-            ims.addSlice("", bp);
-        }
-        return ims;
-    }
-
     /**
      * Create a sphere of radius r, used to force patches around the spheres that you draw
      *
@@ -395,7 +330,7 @@ class TwoRegions {
      * @param aTitle Title of the image.
      * @return the generated ImagePlus
      */
-    private ImagePlus generateImgFromArray(double[][][] aImgArray, String aTitle) {
+    private ImagePlus generateImgFromArray(double[][][] aImgArray) {
         int iWidth = aImgArray[0].length;
         int iHeigth = aImgArray[0][0].length;
         int iDepth = aImgArray.length;
@@ -411,7 +346,8 @@ class TwoRegions {
             stack.addSlice("", new FloatProcessor(pixels));
         }
     
-        final ImagePlus img = new ImagePlus(aTitle, stack);
+        final ImagePlus img = new ImagePlus();
+        img.setStack(stack);
         img.changes = false;
         
         return img;

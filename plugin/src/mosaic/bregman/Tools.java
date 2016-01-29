@@ -422,25 +422,6 @@ public class Tools {
         return res;
     }
 
-    void createmask(double[][][] res, double[][][] image, double thr) {
-        if (thr == 1) {
-            // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
-            thr = 0.5;
-        }
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (image[z][i][j] >= thr) {
-                        res[z][i][j] = 1;
-                    }
-                    else {
-                        res[z][i][j] = 0;
-                    }
-                }
-            }
-        }
-    }
-
     void fgradz2D(double[][][] res, double[][][] im) {
         fgradz2D(res, im, 0, ni);
     }
