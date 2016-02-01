@@ -390,16 +390,7 @@ public class GenericGUI {
         }
         else {
             // We run on cluster
-            final Parameters tempParams = new Parameters(Analysis.iParameters);
-
-            // save for the cluster
-            // For the cluster we have to nullify the directory option
-            tempParams.wd = null;
-
-            // TODO: Why settings are saved twice to two different files? To be investigated.
-            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", tempParams);
-            // save locally
-            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", tempParams);
+            saveParamitersForCluster(Analysis.iParameters);
 
             ClusterSession.setPreferredSlotPerProcess(4);
             String Background = null;
@@ -448,6 +439,21 @@ public class GenericGUI {
                 MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Analysis.out, null);
             }
         }
+    }
+
+    private void saveParamitersForCluster(final Parameters aParameters) {
+        // save for the cluster
+        // For the cluster we have to nullify the directory option
+        String oldWorkDir = aParameters.wd;
+        aParameters.wd = null;
+
+        // TODO: Why settings are saved twice to two different files? To be investigated.
+        BregmanGLM_Batch.saveConfig("/tmp/settings.dat", aParameters);
+        // save locally
+        BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", aParameters);
+        
+        // revert wd
+        aParameters.wd = oldWorkDir;
     }
 
     private class FileOpenerActionListener implements ActionListener {

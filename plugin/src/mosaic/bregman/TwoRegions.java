@@ -33,28 +33,29 @@ class TwoRegions {
     private final int ni, nj, nz;
     private final double[][][] iImage;
     private final double[][][] iMask;
-    private double min, max;
-    private double iLreg; 
-    private double iMinIntensity;
+    private double iGlobalMin;
+    private double iGlobalMax;
+    private double iRegularization; 
+    private double iMinObjectIntensity;
     
     public short[][][] regions;
     public ArrayList<Region> regionsList;
     public ImagePlus out_soft_mask;
     
     
-    public TwoRegions(double[][][] aInputImg, Parameters aParameters, double aMin, double aMax, double aLreg, double aMinIntensity) {
+    public TwoRegions(double[][][] aInputImg, Parameters aParameters, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity) {
         iParameters = aParameters;
-        min = aMin;
-        max = aMax;
-        iLreg = aLreg;
-        iMinIntensity = aMinIntensity;
+        iGlobalMin = aGlobalMin;
+        iGlobalMax = aGlobalMax;
+        iRegularization = aRegularization;
+        iMinObjectIntensity = aMinObjectIntensity;
         
         ni = aInputImg[0].length;
         nj = aInputImg[0][0].length;
         nz = aInputImg.length;
 
         iImage = new double[nz][ni][nj];
-        ArrayOps.normalize(aInputImg, iImage, min, max);
+        ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
 
         iMask = new double[nz][ni][nj];
         createmask(iMask, iImage, iParameters.betaMLEindefault);
@@ -69,8 +70,8 @@ class TwoRegions {
 
         // ========================      Prepare Solver
         ASplitBregmanSolver A_solver = (nz > 1) 
-            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iLreg, iMinIntensity)
-            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iLreg, iMinIntensity);
+            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iRegularization, iMinObjectIntensity)
+            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iRegularization, iMinObjectIntensity);
         
         // ========================     First phase      
         if (iParameters.patches_from_file == null) {
@@ -108,7 +109,7 @@ class TwoRegions {
             IJ.showStatus("Computing segmentation  " + 55 + "%");
             IJ.showProgress(0.55);
         
-            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, min, max, iLreg, iMinIntensity);
+            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, iGlobalMin, iGlobalMax, iRegularization, iMinObjectIntensity);
             ipatches.run();
             regionsList = ipatches.getRegionsList();
             regions = ipatches.getRegions();
@@ -117,7 +118,7 @@ class TwoRegions {
         // Here we solved the patches and the regions that come from the patches
         // we rescale the intensity to the original one
         for (final Region r1 : regionsList) {
-            r1.intensity = r1.intensity * (max - min) + min;
+            r1.intensity = r1.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
         }
         
         //  ========================      Postprocessing phase
@@ -227,7 +228,7 @@ class TwoRegions {
         byte[][][] maskA = new byte[nz][ni][nj];
         copyScaledMask(maskA, mask);
 
-        final FindConnectedRegions fcr = processConnectedRegions(iMinIntensity, maskA);
+        final FindConnectedRegions fcr = processConnectedRegions(iMinObjectIntensity, maskA);
         regions = fcr.getLabeledRegions();
         regionsList = fcr.getFoundRegions();
     }

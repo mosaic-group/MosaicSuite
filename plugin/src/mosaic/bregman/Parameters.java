@@ -102,56 +102,6 @@ public class Parameters implements Serializable {
     public String[] groupnames = { "Condition " + 1 + " name", "Condition " + 2 + " name", "Condition " + 3 + " name", "Condition " + 4 + " name", "Condition " + 5 + " name" };
     
     
-    public Parameters() {}
-
-    // copy constructor
-    public Parameters(Parameters p) {
-        // =========== Segmentation options
-        for (int i = 0; i < lreg_.length; i++) { lreg_[i] = p.lreg_[i]; }
-        min_intensity = p.min_intensity;
-        min_intensityY = p.min_intensityY;
-        // subpixel
-        // exclude_z_edges
-        mode_intensity = p.mode_intensity;
-        noise_model = p.noise_model;
-        sigma_gaussian = p.sigma_gaussian;
-        zcorrec = p.zcorrec;
-        min_region_filter_intensities = p.min_region_filter_intensities;
-        // patches_from_file
-        
-        // ===========  Background subtracter
-        removebackground = p.removebackground;
-        size_rollingball = p.size_rollingball;
-
-        // ===========  Colocalization / Cell masks
-        usecellmaskX = p.usecellmaskX;
-        usecellmaskY = p.usecellmaskY;
-        thresholdcellmask = p.thresholdcellmask;
-        thresholdcellmasky = p.thresholdcellmasky;
-        
-        // ===========  Visualization
-        livedisplay = p.livedisplay;
-        dispcolors = p.dispcolors;
-        dispint = p.dispint;
-        displabels = p.displabels;
-        dispoutline = p.dispoutline;
-        dispSoftMask = p.dispSoftMask;
-        save_images = p.save_images;
-        // nbconditions
-        
-        // ===========  not yet investigated
-        interpolation = p.interpolation;
-        // oversampling2ndstep
-        // refinement
-        wd = p.wd;
-        // dispwindows
-        nthreads = p.nthreads;
-        nchannels = p.nchannels;
-        // firstphase
-        PSF = p.PSF;
-        // ni = p.ni; nj = p.nj; nz = p.nz;
-    }
-
     @Override
     public String toString() {
         String str = "save_images=" + save_images + "\n";
