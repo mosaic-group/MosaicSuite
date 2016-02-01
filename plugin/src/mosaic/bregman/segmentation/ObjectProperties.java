@@ -56,7 +56,7 @@ class ObjectProperties implements Runnable {
         }
 
         // Probably some stuff for saving images - recalculations etc.
-        regionIntensityAndCenter(region, image);
+        regionIntensityAndCenter(region);
         setPerimeter(region, regions);
         setlength(region, regions);
     }
@@ -200,8 +200,7 @@ class ObjectProperties implements Runnable {
         }
     }
 
-    private void regionIntensityAndCenter(Region r, double[][][] image) {
-        double sum = 0;
+    private void regionIntensityAndCenter(Region r) {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
@@ -212,8 +211,6 @@ class ObjectProperties implements Runnable {
         }
         
         int count = r.pixels.size();
-
-        r.intensity = (sum / (count));
 
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);
