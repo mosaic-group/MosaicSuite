@@ -1,7 +1,7 @@
 package mosaic.bregman.output;
 
 
-import mosaic.bregman.Region;
+import mosaic.bregman.segmentation.Region;
 
 
 public class Region3DColocRScript implements Outdata<Region> {

@@ -1,10 +1,11 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 
@@ -24,7 +25,7 @@ class ObjectProperties implements Runnable {
     private final int osxy, osz;
     private double[][][] mask;// nslices ni nj
 
-    public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters aParameters, int osxy, int osz, short[][][] regs) {
+    ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters aParameters, int osxy, int osz, short[][][] regs) {
         this.regions = regs;
         this.iParameters = aParameters;
         this.image = im;
@@ -53,11 +54,10 @@ class ObjectProperties implements Runnable {
             region.rsize = (float) Tools.round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
         }
 
-        if (iParameters.save_images) {
-            regionIntensityAndCenter(region, image);
-            setPerimeter(region, regions);
-            setlength(region, regions);
-        }
+        // Probably some stuff for saving images - recalculations etc.
+        regionIntensityAndCenter(region, image);
+        setPerimeter(region, regions);
+        setlength(region, regions);
     }
 
     private void fill_patch(double[][][] image) {
@@ -162,8 +162,8 @@ class ObjectProperties implements Runnable {
 
         r.perimeter = pr;
 
-        if (Analysis.iParameters.subpixel) {
-            r.perimeter = pr / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+        if (iParameters.subpixel) {
+            r.perimeter = pr / (iParameters.oversampling2ndstep * iParameters.interpolation);
         }
     }
 
@@ -205,7 +205,7 @@ class ObjectProperties implements Runnable {
         double sumy = 0;
         double sumz = 0;
         for (Pix p : r.pixels) {
-            if (!Analysis.iParameters.refinement) {
+            if (!iParameters.refinement) {
                 sum += image[p.pz][p.px][p.py];
             }
 
@@ -216,7 +216,7 @@ class ObjectProperties implements Runnable {
         
         int count = r.pixels.size();
 
-        if (!Analysis.iParameters.refinement) {
+        if (!iParameters.refinement) {
             r.intensity = (sum / (count));
         }// done in refinement
 
@@ -224,10 +224,10 @@ class ObjectProperties implements Runnable {
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
 
-        if (Analysis.iParameters.subpixel) {
-            r.cx = r.cx / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-            r.cy = r.cy / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-            r.cz = r.cz / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
+        if (iParameters.subpixel) {
+            r.cx = r.cx / (iParameters.oversampling2ndstep * iParameters.interpolation);
+            r.cy = r.cy / (iParameters.oversampling2ndstep * iParameters.interpolation);
+            r.cz = r.cz / (iParameters.oversampling2ndstep * iParameters.interpolation);
         }
     }
 

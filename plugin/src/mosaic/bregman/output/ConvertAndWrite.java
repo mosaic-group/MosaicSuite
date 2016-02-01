@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Vector;
 
-import mosaic.bregman.Region;
+import mosaic.bregman.segmentation.Region;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 

@@ -25,7 +25,7 @@
  * printed out.)
  */
 
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -46,12 +46,12 @@ class FindConnectedRegions {
     private static final byte IN_QUEUE = 1;
     private static final byte ADDED = 2;
 
-    public FindConnectedRegions(ImagePlus aInputImg) {
+    FindConnectedRegions(ImagePlus aInputImg) {
         iInputImg = aInputImg;
     }
 
     @SuppressWarnings("null")
-    public void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold) {
+    void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold, boolean exclude_z_edges, boolean subpixel, int oversampling2ndstep, int interpolation) {
         if (iInputImg == null) {
             IJ.error("No image to operate on.");
             return;
@@ -217,8 +217,8 @@ class FindConnectedRegions {
             if (region.points <= aMaximumPointsInRegion) {
                 // check for z processing
 
-                if (Analysis.iParameters.exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
-                    Analysis.regionCenter(region);
+                if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
+                    regionCenter(region, subpixel, oversampling2ndstep, interpolation);
                     if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
                         iFoundRegions.add(region);
                     }
@@ -232,11 +232,32 @@ class FindConnectedRegions {
         Collections.sort(iFoundRegions, Collections.reverseOrder());
     }
 
+    private static void regionCenter(Region r, boolean subpixel, int oversampling2ndstep, int interpolation) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumz = 0;
+        for (Pix p : r.pixels) {
+            sumx += p.px;
+            sumy += p.py;
+            sumz += p.pz;
+        }
+        int count = r.pixels.size();
+
+        r.cx = (float) (sumx / count);
+        r.cy = (float) (sumy / count);
+        r.cz = (float) (sumz / count);
+        if (subpixel) {
+            r.cx = r.cx / (oversampling2ndstep * interpolation);
+            r.cy = r.cy / (oversampling2ndstep * interpolation);
+            r.cz = r.cz / (oversampling2ndstep * interpolation);
+        }
+    }
+    
     short[][][] getLabeledRegions() {
         return iLabeledRegions;
     }
 
-    public ArrayList<Region> getFoundRegions() {
+    ArrayList<Region> getFoundRegions() {
         return iFoundRegions;
     }
 }

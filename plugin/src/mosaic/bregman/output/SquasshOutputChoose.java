@@ -1,8 +1,8 @@
 package mosaic.bregman.output;
 
 
-import mosaic.bregman.Region;
 import mosaic.bregman.GUI.GUIOutputChoose;
+import mosaic.bregman.segmentation.Region;
 import mosaic.utils.io.csv.CSV;
 
 

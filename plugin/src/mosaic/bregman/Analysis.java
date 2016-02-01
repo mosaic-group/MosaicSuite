@@ -7,7 +7,11 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter;
+import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
+import mosaic.bregman.segmentation.Pix;
+import mosaic.bregman.segmentation.Region;
+import mosaic.bregman.segmentation.Segmentation;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
@@ -45,7 +49,7 @@ public class Analysis {
     private static boolean[][][] overallCellMaskBinary;
 
     public static Parameters iParameters = new Parameters();
-    static int frame;
+    static public int frame;
 
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
     // filled when the plugins is called with the options min=... max=...
@@ -174,7 +178,7 @@ public class Analysis {
         int nj = img.getHeight();
         int nz = img.getNSlices();
         if (Analysis.norm_max == 0) {
-            MinMax<Double> mm = Tools.findMinMax(img);
+            MinMax<Double> mm = findMinMax(img);
             min = mm.getMin();
             max = mm.getMax();
         }
@@ -185,7 +189,7 @@ public class Analysis {
         if (iParameters.usecellmaskX && channel == 0) {
             ImagePlus maskImg = new ImagePlus();
             maskImg.setTitle("Cell mask channel 1");
-            cellMaskABinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
@@ -193,7 +197,7 @@ public class Analysis {
         if (iParameters.usecellmaskY && channel == 1) {
             ImagePlus maskImg = new ImagePlus();
             maskImg.setTitle("Cell mask channel 2");
-            cellMaskBBinary = Tools.createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
@@ -238,7 +242,7 @@ public class Analysis {
         
         
         //  ============== SEGMENTATION
-        TwoRegions rg = new TwoRegions(iImage, iParameters, min, max, iParameters.lreg_[channel], minIntensity);
+        Segmentation rg = new Segmentation(iImage, iParameters, min, max, iParameters.lreg_[channel], minIntensity, Analysis.frame);
         rg.run();
         // =============================
         
@@ -360,16 +364,16 @@ public class Analysis {
         }
 
         r.colocpositive = ((double) countcoloc) / count > iParameters.colocthreshold;
-        r.overlap = (float) Tools.round(((double) countcoloc) / count, 3);
-        r.over_size = (float) Tools.round((sizeColoc) / countcoloc, 3);
+        r.overlap = (float) Analysis.round(((double) countcoloc) / count, 3);
+        r.over_size = (float) Analysis.round((sizeColoc) / countcoloc, 3);
         if (nz == 1) {
-            r.over_size = (float) Tools.round(r.over_size / (osxy * osxy), 3);
+            r.over_size = (float) Analysis.round(r.over_size / (osxy * osxy), 3);
         }
         else {
-            r.over_size = (float) Tools.round(r.over_size / (osxy * osxy * osxy), 3);
+            r.over_size = (float) Analysis.round(r.over_size / (osxy * osxy * osxy), 3);
         }
 
-        r.over_int = (float) Tools.round((intColoc) / countcoloc, 3);
+        r.over_int = (float) Analysis.round((intColoc) / countcoloc, 3);
         r.singlec = oneColoc;
 
         return r.colocpositive;
@@ -388,27 +392,6 @@ public class Analysis {
 
         r.coloc_o_int = (sum / count);
         return (sum / count);
-    }
-
-    static void regionCenter(Region r) {
-        double sumx = 0;
-        double sumy = 0;
-        double sumz = 0;
-        for (Pix p : r.pixels) {
-            sumx += p.px;
-            sumy += p.py;
-            sumz += p.pz;
-        }
-        int count = r.pixels.size();
-
-        r.cx = (float) (sumx / count);
-        r.cy = (float) (sumy / count);
-        r.cz = (float) (sumz / count);
-        if (Analysis.iParameters.subpixel) {
-            r.cx = r.cx / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-            r.cy = r.cy / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-            r.cz = r.cz / (Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation);
-        }
     }
 
     static double meansurface(ArrayList<Region> aRegionsList) {
@@ -524,5 +507,80 @@ public class Analysis {
         for (Pix px : r.pixels) {
             regions[px.pz][px.px][px.py] = label;
         }
+    }
+    
+    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, ImagePlus aOutputImage) {
+        final ImageStack maskStack = new ImageStack(aWidth, aHeight);
+        for (int z = 0; z < aDepth; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor ip = img.getProcessor();
+            final byte[] mask = new byte[aWidth * aHeight];
+            for (int i = 0; i < aWidth; i++) {
+                for (int j = 0; j < aHeight; j++) {
+                    if (ip.getPixelValue(i, j) > aThreshold) {
+                        mask[j * aWidth + i] = (byte) 255;
+                    }
+                    else {
+                        mask[j * aWidth + i] = 0;
+                    }
+                }
+            }
+            final ByteProcessor bp = new ByteProcessor(aWidth, aHeight);
+            bp.setPixels(mask);
+            maskStack.addSlice("", bp);
+        }
+        final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
+        maskImg.setStack(maskStack);
+        IJ.run(maskImg, "Invert", "stack");
+        IJ.run(maskImg, "Fill Holes", "stack");
+        IJ.run(maskImg, "Open", "stack");
+        IJ.run(maskImg, "Invert", "stack");
+
+        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
+        for (int z = 0; z < aDepth; z++) {
+            maskImg.setSlice(z + 1);
+            ImageProcessor ip = maskImg.getProcessor();
+            for (int i = 0; i < aWidth; i++) {
+                for (int j = 0; j < aHeight; j++) {
+                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
+                }
+            }
+        }
+        
+        return cellmask;
+    }
+    
+    // Round y to z-places after comma
+    static double round(double y, final int z) {
+        final double factor = Math.pow(10,  z);
+        y *= factor;
+        y = (int) y;
+        y /= factor;
+        return y;
+    }
+    
+    public static MinMax<Double> findMinMax(ImagePlus img) {
+        int ni = img.getWidth();
+        int nj = img.getHeight();
+        int nz = img.getNSlices();
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+        
+        for (int z = 0; z < nz; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (imp.getPixel(i, j) > max) {
+                        max = imp.getPixel(i, j);
+                    }
+                    if (imp.getPixel(i, j) < min) {
+                        min = imp.getPixel(i, j);
+                    }
+                }
+            }
+        }
+        
+        return new MinMax<Double>(min, max);
     }
 }

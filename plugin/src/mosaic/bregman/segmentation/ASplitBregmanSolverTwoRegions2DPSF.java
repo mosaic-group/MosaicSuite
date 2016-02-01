@@ -1,9 +1,10 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.concurrent.CountDownLatch;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 
 
@@ -82,13 +83,13 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         int jStart = 0;
 
         for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
-            final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
+            final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
                     this, LocalTools, aEvaluateEnergy, aLastIteration);
             executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
-        final ZoneTask task = new ZoneTask(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
+        final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
                 iParameters.nthreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
         executor.execute(task);
         // temp1=uk

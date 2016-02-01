@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import mosaic.utils.ArrayOps;
@@ -8,7 +8,7 @@ import mosaic.utils.ArrayOps;
  * Regions statistics solver
  * @author i-bird
  */
-public class RegionStatisticsSolver {
+class RegionStatisticsSolver {
 
     private final double[][][] Z;
     private final double[][][] W;
@@ -18,9 +18,9 @@ public class RegionStatisticsSolver {
     private final double iDefaultBetaMleOut; 
     private final double iDefaultBetaMleIn;
 
-    private double[][][] iWeights;
+    private final double[][][] iWeights;
 
-    public double betaMLEin, betaMLEout;
+    double betaMLEin, betaMLEout;
     
     /**
      * Create a region statistic solver
@@ -32,7 +32,7 @@ public class RegionStatisticsSolver {
      * @param aDefaultBetaMleOut
      * @param aDefaultBetaMleIn
      */
-    public RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] image, double[][][] weights, int max_iter, double aDefaultBetaMleOut, double aDefaultBetaMleIn) {
+    RegionStatisticsSolver(double[][][] temp1, double[][][] temp2, double[][][] image, double[][][] weights, int max_iter, double aDefaultBetaMleOut, double aDefaultBetaMleIn) {
         Z = image;
         W = temp1;
         mu = temp2;
@@ -43,10 +43,12 @@ public class RegionStatisticsSolver {
         iDefaultBetaMleOut = aDefaultBetaMleOut;
         iDefaultBetaMleIn = aDefaultBetaMleIn;
         
-        iWeights = weights;
-        if (iWeights == null) {
+        if (weights == null) {
             iWeights = new double[nz][ni][nj];
             ArrayOps.fill(iWeights, 1);
+        }
+        else {
+            iWeights = weights;
         }
     }
 
@@ -54,7 +56,7 @@ public class RegionStatisticsSolver {
      * Evaluate the region intensity
      * @param Mask
      */
-    public void eval(double[][][] KMask) {
+    void eval(double[][][] KMask) {
         betaMLEout = 0;
         betaMLEin = 0;
         for (int z = 0; z < nz; z++) {

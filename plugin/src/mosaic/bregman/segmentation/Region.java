@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -6,28 +6,31 @@ import java.util.ArrayList;
 
 public class Region implements Comparable<Region> {
 
-    boolean colocpositive = false;
-
     Region(int value, int points) {
         this.value = value;
         this.points = points;
     }
 
-    ArrayList<Pix> pixels = new ArrayList<Pix>();
-    final int points;
-    float rsize;
-    int value;
-    double perimeter;
-    double length;
-    Region rvoronoi;
-    double intensity;
+    public ArrayList<Pix> pixels = new ArrayList<Pix>();
+    public double intensity;
+    public double length;
+    public float over_int;
+    public float over_size;
+    public float overlap;
+    public final int points;
+    public float rsize;
+    public double coloc_o_int;
+    public boolean colocpositive = false;
+    public double perimeter;
+    public boolean singlec;
+    
     float cx, cy, cz;
-    float overlap;
-    float over_int;
-    float over_size;
-    boolean singlec;
-    double coloc_o_int;
+    int value;
+    Region rvoronoi;
 
+    /**
+     * @return 2-element array of type Pix with {minPixCoord, maxPixCoord}
+     */
     Pix[] getMinMaxCoordinates() {
         int xmin = Integer.MAX_VALUE;
         int ymin = Integer.MAX_VALUE;

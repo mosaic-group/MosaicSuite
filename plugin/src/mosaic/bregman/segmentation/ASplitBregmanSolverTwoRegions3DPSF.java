@@ -1,17 +1,18 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.concurrent.CountDownLatch;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 
 
 class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
 
-    public final double[][][] w2zk;
-    public final double[][][] b2zk;
-    public final double[][][] ukz;
+    final double[][][] w2zk;
+    final double[][][] b2zk;
+    final double[][][] ukz;
     private final double[][][] eigenLaplacian3D;
 
     private final double[][][] eigenPsf3D;

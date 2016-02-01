@@ -1,20 +1,15 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.concurrent.CountDownLatch;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-public class Tools {
+class Tools {
     final private int ni, nj, nz;
     
     Tools(int nni, int nnj, int nnz) {
@@ -78,7 +73,7 @@ public class Tools {
         return;
     }
 
-    static void convolve2Dseparable(double[][] out, double[][] in, int icols, int irows, psf<DoubleType> psf, double temp[][]) {
+    private static void convolve2Dseparable(double[][] out, double[][] in, int icols, int irows, psf<DoubleType> psf, double temp[][]) {
         convolve2Dseparable(out, in, icols, irows, psf, temp, 0, icols);
     }
 
@@ -208,7 +203,6 @@ public class Tools {
                         }
 
                     }
-                    // IJ.log(" " +k +" " +i+" "+j);
                     out[k][i][j] = sum;
                 }
             }
@@ -372,36 +366,26 @@ public class Tools {
         }
     }
 
-    void copytab(float[][][] res, float[][][] m1) {
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    res[z][i][j] = m1[z][i][j];
-                }
-            }
-        }
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int aNoiseModel) {
+        nllMean(res, image, mu, 0, ni, aNoiseModel);
     }
 
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu) {
-        nllMean(res, image, mu, 0, ni);
-    }
-
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int iStart, int iEnd) {
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int iStart, int iEnd, int aNoiseModel) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
-                    res[z][i][j] = noise(image[z][i][j], mu[z][i][j]);
+                    res[z][i][j] = noise(image[z][i][j], mu[z][i][j], aNoiseModel);
                 }
             }
         }
     }
 
-    private double noise(double im, double mu) {
+    private double noise(double im, double mu, int aNoiseModel) {
         double res;
         if (mu < 0) {
             mu = 0.0001;
         }
-        if (Analysis.iParameters.noise_model == 0) {// poisson
+        if (aNoiseModel == 0) {// poisson
 
             if (im != 0) {
                 res = (im * Math.log(im / mu) + mu - im);
@@ -590,19 +574,18 @@ public class Tools {
         }
     }
 
-    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
-        return (nz == 1) ? computeEnergyPSF2D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image) :
-                           computeEnergyPSF3D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image);
+    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, int aNoiseModel) {
+        return (nz == 1) ? computeEnergyPSF2D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image, aNoiseModel) :
+                           computeEnergyPSF3D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image, aNoiseModel);
     }
             
-    double computeEnergyPSF2D_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
-            double c1, double[][][] image) {
+    private double computeEnergyPSF2D_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
+            double c1, double[][][] image, int aNoiseModel) {
         if (aPsf.isSeparable() == true) {
             Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], 0, ni);
         }
         else {
-            IJ.error("Error: non-separable PSF calculation are not implemented");
-            return 0.0;
+            throw new RuntimeException("Error: non-separable PSF calculation are not implemented");
         }
 
         for (int i = 0; i < ni; i++) {
@@ -610,7 +593,7 @@ public class Tools {
                 speedData[0][i][j] = (c1 - c0) * speedData[0][i][j] + c0;
             }
         }
-        nllMean(speedData, image, speedData, 0, ni);
+        nllMean(speedData, image, speedData, 0, ni, aNoiseModel);
 
         double energyData = 0;
         for (int i = 0; i < ni; i++) {
@@ -638,7 +621,7 @@ public class Tools {
         return energy;
     }
 
-    double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image) {
+    private double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, int aNoiseModel) {
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp);
     
         for (int z = 0; z < nz; z++) {
@@ -649,7 +632,7 @@ public class Tools {
             }
         }
     
-        nllMean(speedData, image, speedData);
+        nllMean(speedData, image, speedData, aNoiseModel);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -704,7 +687,7 @@ public class Tools {
     }
 
     double computeEnergyPSF(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
-            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9) throws InterruptedException {
+            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, int aNoiseModel) throws InterruptedException {
         Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], iStart, iEnd);
 
         for (int i = iStart; i < iEnd; i++) {
@@ -713,7 +696,7 @@ public class Tools {
             }
         }
 
-        nllMean(speedData, image, speedData, iStart, iEnd);
+        nllMean(speedData, image, speedData, iStart, iEnd, aNoiseModel);
         double energyData = 0;
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < nj; j++) {
@@ -745,7 +728,7 @@ public class Tools {
     }
 
     double computeEnergyPSF3D(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
-            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10) throws InterruptedException {
+            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, int aNoiseModel) throws InterruptedException {
 
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp, iStart, iEnd);
 
@@ -757,7 +740,7 @@ public class Tools {
             }
         }
 
-        nllMean(speedData, image, speedData, iStart, iEnd);
+        nllMean(speedData, image, speedData, iStart, iEnd, aNoiseModel);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -839,31 +822,6 @@ public class Tools {
         }
     }
 
-    public static MinMax<Double> findMinMax(ImagePlus img) {
-        int ni = img.getWidth();
-        int nj = img.getHeight();
-        int nz = img.getNSlices();
-        double min = Double.MAX_VALUE;
-        double max = -Double.MAX_VALUE;
-        
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max) {
-                        max = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min) {
-                        min = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
-        
-        return new MinMax<Double>(min, max);
-    }
-
     // Round y to z-places after comma
     static double round(double y, final int z) {
         final double factor = Math.pow(10,  z);
@@ -871,47 +829,6 @@ public class Tools {
         y = (int) y;
         y /= factor;
         return y;
-    }
-    
-    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, ImagePlus aOutputImage) {
-        final ImageStack maskStack = new ImageStack(aWidth, aHeight);
-        for (int z = 0; z < aDepth; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor ip = img.getProcessor();
-            final byte[] mask = new byte[aWidth * aHeight];
-            for (int i = 0; i < aWidth; i++) {
-                for (int j = 0; j < aHeight; j++) {
-                    if (ip.getPixelValue(i, j) > aThreshold) {
-                        mask[j * aWidth + i] = (byte) 255;
-                    }
-                    else {
-                        mask[j * aWidth + i] = 0;
-                    }
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(aWidth, aHeight);
-            bp.setPixels(mask);
-            maskStack.addSlice("", bp);
-        }
-        final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
-        maskImg.setStack(maskStack);
-        IJ.run(maskImg, "Invert", "stack");
-        IJ.run(maskImg, "Fill Holes", "stack");
-        IJ.run(maskImg, "Open", "stack");
-        IJ.run(maskImg, "Invert", "stack");
-
-        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
-        for (int z = 0; z < aDepth; z++) {
-            maskImg.setSlice(z + 1);
-            ImageProcessor ip = maskImg.getProcessor();
-            for (int i = 0; i < aWidth; i++) {
-                for (int j = 0; j < aHeight; j++) {
-                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
-                }
-            }
-        }
-        
-        return cellmask;
     }
     
     static double[][][] normalizeAndConvolveMask(double[][][] aResult, double[][][] Mask, psf<DoubleType> aPsf, double[][][] aTempBuf1, double[][][] aTempBuf2) {

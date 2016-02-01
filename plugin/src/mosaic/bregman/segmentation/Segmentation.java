@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
+import mosaic.bregman.Parameters;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -28,27 +29,34 @@ import net.imglib2.type.numeric.real.DoubleType;
  * Class that process the first Split bregman segmentation and refine with patches
  * @author Aurelien Ritz
  */
-class TwoRegions {
+public class Segmentation {
+    // Input parameters
     private final Parameters iParameters;
+    private final double iGlobalMin;
+    private final double iGlobalMax;
+    private final double iRegularization; 
+    private final double iMinObjectIntensity;
+    private final int iFrameNumber; // TODO: frame number should be removed and correct data provided to Segmentation
+    
+    // Internal data
     private final int ni, nj, nz;
     private final double[][][] iImage;
     private final double[][][] iMask;
-    private double iGlobalMin;
-    private double iGlobalMax;
-    private double iRegularization; 
-    private double iMinObjectIntensity;
     
+    // Output of segmentation
+    // TODO: Make it accessible via getters
     public short[][][] regions;
     public ArrayList<Region> regionsList;
     public ImagePlus out_soft_mask;
     
     
-    public TwoRegions(double[][][] aInputImg, Parameters aParameters, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity) {
+    public Segmentation(double[][][] aInputImg, Parameters aParameters, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity, int aFrameNumber) {
         iParameters = aParameters;
         iGlobalMin = aGlobalMin;
         iGlobalMax = aGlobalMax;
         iRegularization = aRegularization;
         iMinObjectIntensity = aMinObjectIntensity;
+        iFrameNumber = aFrameNumber;
         
         ni = aInputImg[0].length;
         nj = aInputImg[0][0].length;
@@ -89,7 +97,7 @@ class TwoRegions {
             Vector<Particle> pt = csv.Read(iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
     
             // Get the particle related inly to one frames
-            final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
+            final Vector<Particle> pt_f = getPart(pt, iFrameNumber - 1);
     
             // create a mask Image
             drawParticles(A_solver.w3kbest, pt_f, (int) 3.0);
@@ -193,7 +201,7 @@ class TwoRegions {
         return psf;
     }
     
-    void createmask(double[][][] res, double[][][] image, double thr) {
+    private void createmask(double[][][] res, double[][][] image, double thr) {
         if (thr == 1) {
             // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
             thr = 0.5;
@@ -254,7 +262,7 @@ class TwoRegions {
 
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity));
+        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity), iParameters.exclude_z_edges, iParameters.subpixel, iParameters.oversampling2ndstep, iParameters.interpolation);
         
         return fcr;
     }

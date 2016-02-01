@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 
@@ -42,14 +43,14 @@ abstract class ASplitBregmanSolver {
     protected double[][][] temp4;
 
     protected final float[][][] Ri;
-    protected final float[][][] Ro;
+    private final float[][][] Ro;
 
     protected final int ni, nj, nz;
     protected double energy; 
     protected final Parameters iParameters;
-    private AnalysePatch Ap = null;
+    private final AnalysePatch Ap;
 
-    protected ExecutorService executor;
+    protected final ExecutorService executor;
     
     // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
     // being updated in 2D case but not in 3D.
@@ -58,8 +59,9 @@ abstract class ASplitBregmanSolver {
     
     final double lreg_;
     
-    public final double energytab2[];
-    private double iMinIntensity;
+    int iNoiseModel;
+    protected final double energytab2[];
+    private final double iMinIntensity;
     
     ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
         iParameters = aParameters;
@@ -118,24 +120,25 @@ abstract class ASplitBregmanSolver {
         Ap = ap;
         
         iMinIntensity = aMinIntensity;
+        iNoiseModel = iParameters.noise_model;
     }
 
-    double[] getBetaMLE() {
+    final double[] getBetaMLE() {
         return betaMle;
     }
 
-    void first_run() throws InterruptedException {
+    final void first_run() throws InterruptedException {
         final int firstStepNumOfIterations = 151;
         run(true, firstStepNumOfIterations);
     }
     
-    void second_run() throws InterruptedException {
+    final void second_run() throws InterruptedException {
         final int secondStepNumOfIterations = 101;
         
         run(false, secondStepNumOfIterations);
     }
     
-    void run(boolean aFirstPhase, int aNumOfIterations) throws InterruptedException {
+    private final void run(boolean aFirstPhase, int aNumOfIterations) throws InterruptedException {
         int stepk = 0;
         final int modulo = 10;
         int bestIteration = 0;
@@ -210,7 +213,7 @@ abstract class ASplitBregmanSolver {
     abstract protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException;
     abstract protected void init();
 
-    void regions_intensity_findthresh(double[][][] mask) {
+    final void regions_intensity_findthresh(double[][][] mask) {
         MinMax<Double> mm = ArrayOps.findMinMax(mask);
         mosaic.utils.Debug.print("MIN MAX in regions_intensity: ", mm.getMin(), mm.getMax());
         double thresh = iMinIntensity;
@@ -287,7 +290,7 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(ni * nj * nz, 0, (float) thr);// min size was 5
+        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.exclude_z_edges, iParameters.subpixel, iParameters.oversampling2ndstep, iParameters.interpolation);// min size was 5
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;

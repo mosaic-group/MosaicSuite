@@ -24,6 +24,8 @@ import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
+import mosaic.bregman.segmentation.Pix;
+import mosaic.bregman.segmentation.Region;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.utils.io.csv.CSV;
@@ -333,7 +335,7 @@ public class BLauncher {
             out.flush();
             
             out.print("%Parameters:" + " " + "background removal " + " " + Analysis.iParameters.removebackground + " " + "window size " + Analysis.iParameters.size_rollingball + " " + "stddev PSF xy " + " "
-                    + mosaic.bregman.Tools.round(Analysis.iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + mosaic.bregman.Tools.round(Analysis.iParameters.sigma_gaussian / Analysis.iParameters.zcorrec, 5) + " "
+                    + Analysis.round(Analysis.iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + Analysis.round(Analysis.iParameters.sigma_gaussian / Analysis.iParameters.zcorrec, 5) + " "
                     + "Regularization " + Analysis.iParameters.lreg_[0] + " " + Analysis.iParameters.lreg_[1] + " " + "Min intensity ch1 " + Analysis.iParameters.min_intensity + " " + "Min intensity ch2 "
                     + Analysis.iParameters.min_intensityY + " " + "subpixel " + Analysis.iParameters.subpixel + " " + "Cell mask ch1 " + Analysis.iParameters.usecellmaskX + " " + "mask threshold ch1 "
                     + Analysis.iParameters.thresholdcellmask + " " + "Cell mask ch2 " + Analysis.iParameters.usecellmaskY + " " + "mask threshold ch2 " + Analysis.iParameters.thresholdcellmasky + " " + "Intensity estimation "
@@ -351,14 +353,14 @@ public class BLauncher {
             final double meanSB = Analysis.meansurface(Analysis.getRegionslist(1));
             final double meanLB = Analysis.meanlength(Analysis.getRegionslist(1));
 
-            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
-                    + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.getRegionslist(1).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(1)), 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
-                    + mosaic.bregman.Tools.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
-                    + colocB + ";" + mosaic.bregman.Tools.round(corr, 4) + ";" + mosaic.bregman.Tools.round(corr_mask, 4));
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + Analysis.round(meanSA, 4) + ";"
+                    + Analysis.round(meanLA, 4) + ";" + +Analysis.getRegionslist(1).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(1)), 4) + ";" + Analysis.round(meanSB, 4) + ";"
+                    + Analysis.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
+                    + colocB + ";" + Analysis.round(corr, 4) + ";" + Analysis.round(corr_mask, 4));
         }
         else {
-            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
-                    + mosaic.bregman.Tools.round(meanLA, 4));
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + Analysis.round(meanSA, 4) + ";"
+                    + Analysis.round(meanLA, 4));
         }
         out.println();
         out.flush();
@@ -459,14 +461,14 @@ public class BLauncher {
                 IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle()) + "_coloc.zip");
                 
                 // Calculate colocalization quantities
-                colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(), 4);
-                colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(), 4);
-                colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(), 4);
-                colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(), 4);
-                colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(), 4);
-                colocBAsize = mosaic.bregman.Tools.round(Analysis.colocsegBAsize(), 4);
-                colocA = mosaic.bregman.Tools.round(Analysis.colocsegA(), 4);
-                colocB = mosaic.bregman.Tools.round(Analysis.colocsegB(), 4);
+                colocAB = Analysis.round(Analysis.colocsegAB(), 4);
+                colocBA = Analysis.round(Analysis.colocsegBA(), 4);
+                colocABnumber = Analysis.round(Analysis.colocsegABnumber(), 4);
+                colocABsize = Analysis.round(Analysis.colocsegABsize(), 4);
+                colocBAnumber = Analysis.round(Analysis.colocsegBAnumber(), 4);
+                colocBAsize = Analysis.round(Analysis.colocsegBAsize(), 4);
+                colocA = Analysis.round(Analysis.colocsegA(), 4);
+                colocB = Analysis.round(Analysis.colocsegB(), 4);
 
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");

@@ -42,15 +42,15 @@ public class Parameters implements Serializable {
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
-    final double colocthreshold = 0.5;
-    final int energyEvaluationModulo = 5;
-    final public boolean debug = false;
-    final double ldata = 1;
-    final double gamma = 1;
-    final double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
-    final double betaMLEindefault = 1.0;
-    final double betaMLEoutdefault = 0.0003;
-    final public int minves_size = 2;
+    public final double colocthreshold = 0.5;
+    public final int energyEvaluationModulo = 5;
+    public final boolean debug = false;
+    public final double ldata = 1;
+    public final double gamma = 1;
+    public final double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
+    public final double betaMLEindefault = 1.0;
+    public final double betaMLEoutdefault = 0.0003;
+    public final int minves_size = 2;
     
     // ================================ not yet investigated
     public int interpolation = 1;// 4

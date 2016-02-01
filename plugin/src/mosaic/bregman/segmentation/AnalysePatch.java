@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import ij.plugin.Resizer;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import net.sf.javaml.clustering.Clusterer;
@@ -58,15 +59,15 @@ class AnalysePatch implements Runnable {
     private final Tools iLocalTools;
     private final Parameters iParameters;
     
-    double iIntensityMin;
-    double iIntensityMax;
-    private double iScaledIntensityMin;
+    final double iIntensityMin;
+    final double iIntensityMax;
+    private final double iScaledIntensityMin;
     
     private boolean border_attained = false;
     private boolean objectFound = false;
     private double[][][] object;
     
-    private double[][][] iRegionMask;
+    private final double[][][] iRegionMask;
     
     double cin, cout; 
     private double cout_front;// estimated intensities
@@ -77,7 +78,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] w3kpatch;
     private double t_high;
     private ASplitBregmanSolver A_solver;
-    private double[] clBetaMleIntensities = new double[2];
+    private final double[] clBetaMleIntensities = new double[2];
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
     private final double[][][] temp1;
@@ -85,7 +86,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] temp3;
 
     private final double lreg_patch;
-    private double iMinIntensity;
+    private final double iMinIntensity;
     
     /**
      * Create patches
@@ -98,7 +99,7 @@ class AnalysePatch implements Runnable {
      * @param regionsf ?
      * @param aImagePatches ?
      */
-    public AnalysePatch(double[][][] aInputImage, Region aInputRegion, Parameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aLreg, double aMinIntensity) {
+    AnalysePatch(double[][][] aInputImage, Region aInputRegion, Parameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aLreg, double aMinIntensity) {
         iSizeOrigX = aInputImage[0].length;
         iSizeOrigY = aInputImage[0][0].length;
         iSizeOrigZ = aInputImage.length;
@@ -460,7 +461,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, currentThr);
 
             if (objectFound && !border_attained) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch, iParameters.noise_model);
                 if (tempEnergy < bestEenergy) {
                     bestEenergy = tempEnergy;
                     bestThreshold = currentThr;
@@ -483,7 +484,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, thr);
             if (objectFound && !border_attained) {
                 estimate_int_weighted(object);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch, iParameters.noise_model);
                 if (tempEnergy < energy) {
                     energy = tempEnergy;
                     threshold = thr;
@@ -535,7 +536,7 @@ class AnalysePatch implements Runnable {
 
         final double thr = 0.5;
         final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);
-        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr);// min size was 5
+        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr, iParameters.exclude_z_edges, iParameters.subpixel, iParameters.oversampling2ndstep, iParameters.interpolation);// min size was 5
 
         // add to list with critical section
         iImagePatches.addRegionsToList(fcr.getFoundRegions());

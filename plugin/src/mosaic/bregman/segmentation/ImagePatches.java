@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import java.util.Collection;
 import org.apache.log4j.Logger;
 
 import ij.IJ;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps;
 
 
@@ -34,9 +35,9 @@ class ImagePatches {
     private int iNumOfDoneJobs = 0;
 
     private final double iLreg;
-    private double iMinIntensity;
+    private final double iMinIntensity;
 
-    public ImagePatches(Parameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aLreg, double aMinIntensity) {
+    ImagePatches(Parameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aLreg, double aMinIntensity) {
         logger.debug("ImagePatches ----------------------------");
         iParameters = aParameters;
         iRegionsList = aRegionsList;
@@ -70,15 +71,15 @@ class ImagePatches {
         iMinIntensity = aMinIntensity;
     }
 
-    public ArrayList<Region> getRegionsList() {
+    ArrayList<Region> getRegionsList() {
         return iRegionsList;
     }
     
-    public short[][][] getRegions() {
+    short[][][] getRegions() {
         return iRegions;
     }
     
-    public void run() {
+    void run() {
         distributeRegions();
     }
 
@@ -139,7 +140,7 @@ class ImagePatches {
      * @param aRegionsListRefined List of regions to assemble
      * @param aRegionsRefined regions refined
      */
-    static public void assemble(Collection<Region> aRegionsListRefined, short[][][] aRegionsRefined) {
+    static void assemble(Collection<Region> aRegionsListRefined, short[][][] aRegionsRefined) {
         for (final Region r : aRegionsListRefined) {
             for (final Pix p : r.pixels) {
                 aRegionsRefined[p.pz][p.px][p.py] = (short) r.value;
@@ -147,7 +148,7 @@ class ImagePatches {
         }
     }
 
-    public synchronized void addRegionsToList(ArrayList<Region> localList) {
+    synchronized void addRegionsToList(ArrayList<Region> localList) {
         for (final Region r : localList) {
             int index = iGlobalRegionsList.size() + 1;
             r.value = index;
