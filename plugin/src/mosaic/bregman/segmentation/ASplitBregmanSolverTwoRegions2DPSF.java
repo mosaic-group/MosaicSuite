@@ -4,8 +4,9 @@ package mosaic.bregman.segmentation;
 import java.util.concurrent.CountDownLatch;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
-import mosaic.bregman.Parameters;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
@@ -14,8 +15,8 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     private final DoubleDCT_2D dct2d;
     private final double[][] eigenLaplacian;
     
-    public ASplitBregmanSolverTwoRegions2DPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
-        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
+    public ASplitBregmanSolverTwoRegions2DPSF(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
+        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity, aPsf);
         dct2d = new DoubleDCT_2D(ni, nj);
         eigenPsf2D = new double[ni][nj];
         compute_eigenPSF();
@@ -42,7 +43,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][] aValues) {
-        Tools.convolve2D(temp3[0], aValues, ni, nj, iParameters.PSF);
+        Tools.convolve2D(temp3[0], aValues, ni, nj, iPsf);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -120,10 +121,10 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     }
 
     private void compute_eigenPSF() {
-        final int[] sz = iParameters.PSF.getSuggestedImageSize();
+        final int[] sz = iPsf.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPsf2D.length);
         final int ymin = Math.min(sz[1], eigenPsf2D[0].length);
-        Tools.convolve2D(eigenPsf2D, iParameters.PSF.getImage2DAsDoubleArray(), xmin, ymin, iParameters.PSF);
+        Tools.convolve2D(eigenPsf2D, iPsf.getImage2DAsDoubleArray(), xmin, ymin, iPsf);
 
         ArrayOps.fill(temp1, 0);
         for (int i = 0; i < xmin; i++) {

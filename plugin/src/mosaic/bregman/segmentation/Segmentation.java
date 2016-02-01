@@ -11,7 +11,6 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
-import mosaic.bregman.Parameters;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -19,6 +18,7 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
@@ -31,11 +31,9 @@ import net.imglib2.type.numeric.real.DoubleType;
  */
 public class Segmentation {
     // Input parameters
-    private final Parameters iParameters;
+    private final SegmentationParameters iParameters;
     private final double iGlobalMin;
     private final double iGlobalMax;
-    private final double iRegularization; 
-    private final double iMinObjectIntensity;
     private final int iFrameNumber; // TODO: frame number should be removed and correct data provided to Segmentation
     
     // Internal data
@@ -50,12 +48,10 @@ public class Segmentation {
     public ImagePlus out_soft_mask;
     
     
-    public Segmentation(double[][][] aInputImg, Parameters aParameters, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity, int aFrameNumber) {
+    public Segmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax, int aFrameNumber) {
         iParameters = aParameters;
         iGlobalMin = aGlobalMin;
         iGlobalMax = aGlobalMax;
-        iRegularization = aRegularization;
-        iMinObjectIntensity = aMinObjectIntensity;
         iFrameNumber = aFrameNumber;
         
         ni = aInputImg[0].length;
@@ -74,12 +70,12 @@ public class Segmentation {
      */
     public void run() {        
         // ========================      Prepare PSF
-        iParameters.PSF = generatePsf();
+        psf<DoubleType> psf = generatePsf();
 
         // ========================      Prepare Solver
         ASplitBregmanSolver A_solver = (nz > 1) 
-            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iRegularization, iMinObjectIntensity)
-            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iRegularization, iMinObjectIntensity);
+            ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.regularization, iParameters.minObjectIntensity, psf)
+            : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.regularization, iParameters.minObjectIntensity, psf);
         
         // ========================     First phase      
         if (iParameters.patches_from_file == null) {
@@ -105,23 +101,20 @@ public class Segmentation {
         
         A_solver.regions_intensity_findthresh(A_solver.w3kbest);
     
-        if (iParameters.dispSoftMask) {
-            out_soft_mask = generateImgFromArray(A_solver.w3k);
-        }
+        out_soft_mask = generateImgFromArray(A_solver.w3k);
     
         // ========================      Compute segmentation
         compute_connected_regions(A_solver.w3kbest);
-        
-        if (iParameters.refinement) {
-            SetRegionsObjsVoronoi(regionsList, A_solver.regionsvoronoi, A_solver.Ri);
-            IJ.showStatus("Computing segmentation  " + 55 + "%");
-            IJ.showProgress(0.55);
-        
-            final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, iGlobalMin, iGlobalMax, iRegularization, iMinObjectIntensity);
-            ipatches.run();
-            regionsList = ipatches.getRegionsList();
-            regions = ipatches.getRegions();
-        }
+
+        // refinement
+        SetRegionsObjsVoronoi(regionsList, A_solver.regionsvoronoi, A_solver.Ri);
+        IJ.showStatus("Computing segmentation  " + 55 + "%");
+        IJ.showProgress(0.55);
+
+        final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, A_solver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, psf);
+        ipatches.run();
+        regionsList = ipatches.getRegionsList();
+        regions = ipatches.getRegions();
         
         // Here we solved the patches and the regions that come from the patches
         // we rescale the intensity to the original one
@@ -183,7 +176,7 @@ public class Segmentation {
         ImagePatches.assemble(r_list.values(), regions);
     
         for (final Region r : r_list.values()) {
-            final ObjectProperties obj = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, regions);
+            final ObjectProperties obj = new ObjectProperties(iImage, r, sx, sy, sz, iParameters, osxy, osz, regions, psf);
             obj.run();
         }
     }
@@ -236,7 +229,7 @@ public class Segmentation {
         byte[][][] maskA = new byte[nz][ni][nj];
         copyScaledMask(maskA, mask);
 
-        final FindConnectedRegions fcr = processConnectedRegions(iMinObjectIntensity, maskA);
+        final FindConnectedRegions fcr = processConnectedRegions(iParameters.minObjectIntensity, maskA);
         regions = fcr.getLabeledRegions();
         regionsList = fcr.getFoundRegions();
     }

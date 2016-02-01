@@ -314,8 +314,6 @@ public class GenericGUI {
 
         System.out.println("Parameters: " + Analysis.iParameters);
 
-        Analysis.iParameters.refinement = true;
-
         if (!Analysis.iParameters.subpixel) {
             Analysis.iParameters.oversampling2ndstep = 1;
             Analysis.iParameters.interpolation = 1;

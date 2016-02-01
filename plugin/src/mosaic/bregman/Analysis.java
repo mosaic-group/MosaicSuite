@@ -12,6 +12,7 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.bregman.segmentation.Segmentation;
+import mosaic.bregman.segmentation.SegmentationParameters;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
@@ -240,10 +241,30 @@ public class Analysis {
         }
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
         
+        // TODO: Temporary copying for further cleaning up of parameters. When it is done
+        //       some constructor would be nice.
+        SegmentationParameters sp = new SegmentationParameters();
+        sp.interpolation = iParameters.interpolation;
+        sp.oversampling2ndstep = iParameters.oversampling2ndstep;
+        sp.nthreads = iParameters.nthreads;
+        sp.regularization = iParameters.lreg_[channel];
+        sp.minObjectIntensity = minIntensity;
+        sp.subpixel = iParameters.subpixel;
+        sp.exclude_z_edges = iParameters.exclude_z_edges;
+        sp.mode_intensity = iParameters.mode_intensity;
+        sp.noise_model = iParameters.noise_model;
+        sp.sigma_gaussian = iParameters.sigma_gaussian;
+        sp.zcorrec = iParameters.zcorrec;
+        sp.min_region_filter_intensities = iParameters.min_region_filter_intensities;
+        sp.patches_from_file = iParameters.patches_from_file;
         
         //  ============== SEGMENTATION
-        Segmentation rg = new Segmentation(iImage, iParameters, min, max, iParameters.lreg_[channel], minIntensity, Analysis.frame);
+        Segmentation rg = new Segmentation(iImage, sp, min, max, Analysis.frame);
         rg.run();
+        
+        // TODO: These guys need to be cleanedup since they are set in segmentaiton
+        iParameters.interpolation = sp.interpolation;
+        iParameters.oversampling2ndstep = sp.oversampling2ndstep;
         // =============================
         
         regionslist.set(channel, rg.regionsList);

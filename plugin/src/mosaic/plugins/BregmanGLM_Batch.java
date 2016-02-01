@@ -13,12 +13,10 @@ import mosaic.bregman.Analysis;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.SerializedDataFile;
-import net.imglib2.type.numeric.real.DoubleType;
 
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
@@ -99,13 +97,7 @@ public class BregmanGLM_Batch implements Segmentation {
      * @param aParams - object to be serialized
      */
     public static void saveConfig(String aFullFileName, Parameters aParams) {
-        // Nullify PSF since it is not Serializable
-        final psf<DoubleType> tempPsf = aParams.PSF;
-        aParams.PSF = null;
-
         getConfigHandler().SaveToFile(aFullFileName, aParams);
-
-        aParams.PSF = tempPsf;
     }
 
     // =================== Stuff below is used only by tests

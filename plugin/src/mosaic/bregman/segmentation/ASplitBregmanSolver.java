@@ -13,9 +13,10 @@ import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
-import mosaic.bregman.Parameters;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 abstract class ASplitBregmanSolver {
@@ -47,7 +48,7 @@ abstract class ASplitBregmanSolver {
 
     protected final int ni, nj, nz;
     protected double energy; 
-    protected final Parameters iParameters;
+    protected final SegmentationParameters iParameters;
     private final AnalysePatch Ap;
 
     protected final ExecutorService executor;
@@ -62,8 +63,9 @@ abstract class ASplitBregmanSolver {
     int iNoiseModel;
     protected final double energytab2[];
     private final double iMinIntensity;
+    psf<DoubleType> iPsf;
     
-    ASplitBregmanSolver(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
+    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
         iParameters = aParameters;
         ni = image[0].length; 
         nj = image[0][0].length;
@@ -121,6 +123,7 @@ abstract class ASplitBregmanSolver {
         
         iMinIntensity = aMinIntensity;
         iNoiseModel = iParameters.noise_model;
+        iPsf = aPsf;
     }
 
     final double[] getBetaMLE() {
@@ -169,7 +172,7 @@ abstract class ASplitBregmanSolver {
 
             if (aFirstPhase) {
                 if (moduloStep) {
-                    if (iParameters.livedisplay) {
+                    if (iParameters.debug) {
                         IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
                         if (stopFlag) IJ.log("energy stop");
                     }
@@ -198,12 +201,17 @@ abstract class ASplitBregmanSolver {
             LocalTools.copytab(w3kbest, w3k);
             bestIteration = stepk - 1;
             bestEnergy = energy;
-            if (iParameters.livedisplay && aFirstPhase) {
-                IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
+            
+            if (aFirstPhase) {
+                if (iParameters.debug) {
+                    IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
+                }
             }
         }
-        if (aFirstPhase && iParameters.livedisplay) {
-            IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
+        if (aFirstPhase) { 
+            if (iParameters.debug) {
+                IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
+            }
         }
         
         executor.shutdown();

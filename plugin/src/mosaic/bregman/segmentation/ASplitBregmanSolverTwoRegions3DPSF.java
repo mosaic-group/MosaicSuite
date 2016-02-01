@@ -4,8 +4,9 @@ package mosaic.bregman.segmentation;
 import java.util.concurrent.CountDownLatch;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
-import mosaic.bregman.Parameters;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
@@ -18,8 +19,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     private final double[][][] eigenPsf3D;
     private final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolverTwoRegions3DPSF(Parameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity) {
-        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity);
+    public ASplitBregmanSolverTwoRegions3DPSF(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
+        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity, aPsf);
         ukz = new double[nz][ni][nj];
         b2zk = new double[nz][ni][nj];
         dct3d = new DoubleDCT_3D(nz, ni, nj);
@@ -36,7 +37,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             }
         }
 
-        final int[] sz = iParameters.PSF.getSuggestedImageSize();
+        final int[] sz = iPsf.getSuggestedImageSize();
         eigenPsf3D = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
 
         // Reallocate temps
@@ -70,7 +71,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, iParameters.PSF, temp4);
+        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, iPsf, temp4);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -149,11 +150,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void compute_eigenPSF3D() {
-        int[] sz = iParameters.PSF.getSuggestedImageSize();
+        int[] sz = iPsf.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPsf3D[0].length);
         final int ymin = Math.min(sz[1], eigenPsf3D[0][0].length);
         final int zmin = Math.min(sz[2], eigenPsf3D.length);
-        Tools.convolve3Dseparable(eigenPsf3D, iParameters.PSF.getImage3DAsDoubleArray(), xmin, ymin, zmin, iParameters.PSF, temp4);
+        Tools.convolve3Dseparable(eigenPsf3D, iPsf.getImage3DAsDoubleArray(), xmin, ymin, zmin, iPsf, temp4);
 
         ArrayOps.fill(temp2, 0);
         for (int z = 0; z < zmin; z++) {

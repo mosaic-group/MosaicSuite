@@ -89,7 +89,7 @@ class ZoneTask3D implements Runnable {
 
         Tools.synchronizedWait(Sync3);
 
-        Tools.convolve3Dseparable(AS.temp4, AS.temp2, AS.ni, AS.nj, AS.nz, AS.iParameters.PSF, AS.temp1, iStart, iEnd);
+        Tools.convolve3Dseparable(AS.temp4, AS.temp2, AS.ni, AS.nj, AS.nz, AS.iPsf, AS.temp1, iStart, iEnd);
 
         Tools.synchronizedWait(Sync11);
 
@@ -106,7 +106,7 @@ class ZoneTask3D implements Runnable {
         Dct.await();
  
 
-        Tools.convolve3Dseparable(AS.temp2, AS.temp1, AS.ni, AS.nj, AS.nz, AS.iParameters.PSF, AS.temp3, iStart, iEnd);
+        Tools.convolve3Dseparable(AS.temp2, AS.temp1, AS.ni, AS.nj, AS.nz, AS.iPsf, AS.temp3, iStart, iEnd);
 
         Tools.synchronizedWait(Sync10);
 
@@ -195,7 +195,7 @@ class ZoneTask3D implements Runnable {
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp
         if (iEvaluateEnergy || iLastIteration) {
-            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_, AS.iParameters.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
+            AS.energytab2[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13, AS.iNoiseModel);
         }
     }

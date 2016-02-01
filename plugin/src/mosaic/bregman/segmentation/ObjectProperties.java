@@ -5,9 +5,10 @@ import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
-import mosaic.bregman.Parameters;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
+import net.imglib2.type.numeric.real.DoubleType;
 
 class ObjectProperties implements Runnable {
 
@@ -20,12 +21,12 @@ class ObjectProperties implements Runnable {
 
     private int sx, sy, sz;// size for object
     private final int nx, ny, nz;// size of full oversampled work zone
-    private final Parameters iParameters;
+    private final SegmentationParameters iParameters;
     private int cx, cy, cz;// coord of patch in full work zone (offset)
     private final int osxy, osz;
     private double[][][] mask;// nslices ni nj
-
-    ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters aParameters, int osxy, int osz, short[][][] regs) {
+    private  psf<DoubleType> iPsf;
+    ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, SegmentationParameters aParameters, int osxy, int osz, short[][][] regs,  psf<DoubleType> aPsf) {
         this.regions = regs;
         this.iParameters = aParameters;
         this.image = im;
@@ -36,7 +37,7 @@ class ObjectProperties implements Runnable {
 
         this.osxy = osxy;
         this.osz = osz;
-
+        iPsf = aPsf;
         set_patch_geom(region);
     }
 
@@ -73,7 +74,7 @@ class ObjectProperties implements Runnable {
 
     private void estimate_int(double[][][] mask) {
         double[][][][] temp = new double[3][sz][sx][sy];
-        Tools.normalizeAndConvolveMask(temp[2], mask, iParameters.PSF, temp[0], temp[1]);
+        Tools.normalizeAndConvolveMask(temp[2], mask, iPsf, temp[0], temp[1]);
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], patch, null, 10, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
         RSS.eval(temp[2] /* convolved mask */);
         cin = RSS.betaMLEin;
@@ -205,10 +206,6 @@ class ObjectProperties implements Runnable {
         double sumy = 0;
         double sumz = 0;
         for (Pix p : r.pixels) {
-            if (!iParameters.refinement) {
-                sum += image[p.pz][p.px][p.py];
-            }
-
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
@@ -216,9 +213,7 @@ class ObjectProperties implements Runnable {
         
         int count = r.pixels.size();
 
-        if (!iParameters.refinement) {
-            r.intensity = (sum / (count));
-        }// done in refinement
+        r.intensity = (sum / (count));
 
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);

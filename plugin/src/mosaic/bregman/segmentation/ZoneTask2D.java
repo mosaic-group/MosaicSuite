@@ -85,7 +85,7 @@ class ZoneTask2D implements Runnable {
         
         Tools.synchronizedWait(Sync3);
 
-        Tools.convolve2Dseparable(AS.temp4[0], AS.temp2[0], AS.ni, AS.nj, AS.iParameters.PSF, AS.temp1[0], iStart, iEnd);
+        Tools.convolve2Dseparable(AS.temp4[0], AS.temp2[0], AS.ni, AS.nj, AS.iPsf, AS.temp1[0], iStart, iEnd);
 
         Tools.synchronizedWait(Sync11);
 
@@ -100,7 +100,7 @@ class ZoneTask2D implements Runnable {
         Sync4.countDown();
         Dct.await();
 
-        Tools.convolve2Dseparable(AS.temp2[0], AS.temp1[0], AS.ni, AS.nj, AS.iParameters.PSF, AS.temp3[0], iStart, iEnd);
+        Tools.convolve2Dseparable(AS.temp2[0], AS.temp1[0], AS.ni, AS.nj, AS.iPsf, AS.temp3[0], iStart, iEnd);
 
         Tools.synchronizedWait(Sync10);
 
@@ -188,7 +188,7 @@ class ZoneTask2D implements Runnable {
         Tools.synchronizedWait(Sync7);
 
         if (iEvaluateEnergy || iLastIteration) {
-            AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_, AS.iParameters.PSF, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
+            AS.energytab2[num] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.lreg_, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.image, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, AS.iNoiseModel);
         }
     }

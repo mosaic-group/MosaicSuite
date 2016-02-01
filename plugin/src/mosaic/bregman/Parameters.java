@@ -39,24 +39,24 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private boolean firstphase = true;
     @SuppressWarnings("unused") final private int ni = -1, nj = -1, nz = -1;
     @SuppressWarnings("unused") final private int max_nsb = 151;
+    @SuppressWarnings("unused") final private boolean refinement = true;
+    @SuppressWarnings("unused") final private int energyEvaluationModulo = 5;
+    @SuppressWarnings("unused") final private boolean debug = false;
+    @SuppressWarnings("unused") final private double ldata = 1;
+    @SuppressWarnings("unused") final private double gamma = 1;
+    @SuppressWarnings("unused") final private double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
+    @SuppressWarnings("unused") final private double betaMLEindefault = 1.0;
+    @SuppressWarnings("unused") final private double betaMLEoutdefault = 0.0003;
+    @SuppressWarnings("unused") final private int minves_size = 2;
+    @SuppressWarnings("unused") final private psf<DoubleType> PSF = null;
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
     public final double colocthreshold = 0.5;
-    public final int energyEvaluationModulo = 5;
-    public final boolean debug = false;
-    public final double ldata = 1;
-    public final double gamma = 1;
-    public final double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
-    public final double betaMLEindefault = 1.0;
-    public final double betaMLEoutdefault = 0.0003;
-    public final int minves_size = 2;
     
     // ================================ not yet investigated
     public int interpolation = 1;// 4
     public int oversampling2ndstep = 2;// 2
-    public boolean refinement = false;
-    public psf<DoubleType> PSF;
     public String wd = null;
     public int nthreads = 4;
     public int nchannels = 2;

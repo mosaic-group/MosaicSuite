@@ -11,9 +11,10 @@ import ij.plugin.Resizer;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.bregman.Parameters;
+import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -57,7 +58,7 @@ class AnalysePatch implements Runnable {
     private final ImagePatches iImagePatches;
 
     private final Tools iLocalTools;
-    private final Parameters iParameters;
+    private final SegmentationParameters iParameters;
     
     final double iIntensityMin;
     final double iIntensityMax;
@@ -87,7 +88,7 @@ class AnalysePatch implements Runnable {
 
     private final double lreg_patch;
     private final double iMinIntensity;
-    
+    private final psf<DoubleType> iPsf;
     /**
      * Create patches
      *
@@ -99,7 +100,7 @@ class AnalysePatch implements Runnable {
      * @param regionsf ?
      * @param aImagePatches ?
      */
-    AnalysePatch(double[][][] aInputImage, Region aInputRegion, Parameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aLreg, double aMinIntensity) {
+    AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aLreg, double aMinIntensity,  psf<DoubleType> aPsf) {
         iSizeOrigX = aInputImage[0].length;
         iSizeOrigY = aInputImage[0][0].length;
         iSizeOrigZ = aInputImage.length;
@@ -107,7 +108,7 @@ class AnalysePatch implements Runnable {
         iInputRegion = aInputRegion;
         iParameters = aParameters;
         iImagePatches = aImagePatches;
-        
+        iPsf = aPsf;
         cout = 0;
         cin = 1;
 
@@ -115,7 +116,7 @@ class AnalysePatch implements Runnable {
         // old comment: check that the margin is at least 8 time bigger than the PSF
         int margin = 6;
         int zmargin = 1;// was 2
-        final int[] sz_psf = iParameters.PSF.getSuggestedImageSize();
+        final int[] sz_psf = iPsf.getSuggestedImageSize();
         if (sz_psf[0] > margin) {
             margin = sz_psf[0];
         }
@@ -208,10 +209,10 @@ class AnalysePatch implements Runnable {
         }
         
         if (iSizeOversZ > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity, iPsf);
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity);
+            A_solver = new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity, iPsf);
         }
 
         try {
@@ -354,7 +355,7 @@ class AnalysePatch implements Runnable {
     }
 
     private void estimate_int_weighted(double[][][] mask) {
-        Tools.normalizeAndConvolveMask(temp3, mask, iParameters.PSF, temp1, temp2);
+        Tools.normalizeAndConvolveMask(temp3, mask, iPsf, temp1, temp2);
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
         RSS.eval(temp3 /* convolved mask */);
 
@@ -461,7 +462,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, currentThr);
 
             if (objectFound && !border_attained) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch, iParameters.noise_model);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iPsf, cout_front, cin, iPatch, iParameters.noise_model);
                 if (tempEnergy < bestEenergy) {
                     bestEenergy = tempEnergy;
                     bestThreshold = currentThr;
@@ -484,7 +485,7 @@ class AnalysePatch implements Runnable {
             set_object(w3kbest, thr);
             if (objectFound && !border_attained) {
                 estimate_int_weighted(object);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iParameters.PSF, cout_front, cin, iPatch, iParameters.noise_model);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iPsf, cout_front, cin, iPatch, iParameters.noise_model);
                 if (tempEnergy < energy) {
                     energy = tempEnergy;
                     threshold = thr;
