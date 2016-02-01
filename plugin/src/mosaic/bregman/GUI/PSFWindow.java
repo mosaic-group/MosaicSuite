@@ -20,7 +20,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import ij.gui.GenericDialog;
-import mosaic.bregman.GaussianPSFModel;
 
 
 class PSFWindow implements ActionListener, PropertyChangeListener {

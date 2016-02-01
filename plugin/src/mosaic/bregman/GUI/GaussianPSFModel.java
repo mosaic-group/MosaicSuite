@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.GUI;
 
 
 import mosaic.utils.math.MathOps;

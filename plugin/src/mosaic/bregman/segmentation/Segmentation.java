@@ -195,7 +195,7 @@ public class Segmentation {
         var[0] = new DoubleType(iParameters.sigma_gaussian);
         var[1] = new DoubleType(iParameters.sigma_gaussian);
         if (psfDims == 3) var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
-        psf.setVar(var);
+        psf.setStdDeviation(var);
         // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
         psf.getSeparableImageAsDoubleArray(0);
         return psf;
