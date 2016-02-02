@@ -52,8 +52,9 @@ public class SquasshSegmentation {
         iImage = new double[nz][ni][nj];
         ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
 
-        iMask = new double[nz][ni][nj];
-        createmask(iMask, iImage, iParameters.defaultBetaMleIn);
+        // threshold should not be = 1: creates empty mask and wrong behavior in dct3D computation
+        double maskThreshold = (iParameters.defaultBetaMleIn == 1) ? 0.5 : iParameters.defaultBetaMleIn;
+        iMask = createMask(iImage, maskThreshold);
         
         iPsf = generatePsf();
         
@@ -90,11 +91,11 @@ public class SquasshSegmentation {
         out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
     
         // ========================      Compute segmentation
-        compute_connected_regions(iSolver.w3kbest);
+        computeConnectedRegions(iSolver.w3kbest);
     
         // refinement
         iSolver.regions_intensity_findthresh(iSolver.w3kbest);
-        SetRegionsObjsVoronoi(regionsList, iSolver.regionsvoronoi, iSolver.Ri);
+        setRegionsObjsVoronoi(regionsList, iSolver.regionsvoronoi, iSolver.Ri);
         IJ.showStatus("Computing segmentation 55%");
         IJ.showProgress(0.55);
     
@@ -123,81 +124,48 @@ public class SquasshSegmentation {
         return psf;
     }
     
-    private void createmask(double[][][] res, double[][][] image, double thr) {
-        if (thr == 1) {
-            // should not have threhold == 1: creates empty mask and wrong behavior in dct3D  computation
-            thr = 0.5;
-        }
+    private double[][][] createMask(double[][][] aInputImage, double aMaskThreshold) {
+        double[][][] result = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    if (image[z][i][j] >= thr) {
-                        res[z][i][j] = 1;
-                    }
-                    else {
-                        res[z][i][j] = 0;
+                    if (aInputImage[z][i][j] >= aMaskThreshold) {
+                        result[z][i][j] = 1;
                     }
                 }
             }
         }
+        
+        return result;
     }
 
-    private void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
-        for (Region r : regionlist) {
+    private void setRegionsObjsVoronoi(ArrayList<Region> aRegionsList, ArrayList<Region> aRegionsVoronoi, float[][][] aRi) {
+        for (Region r : aRegionsList) {
             int x = r.pixels.get(0).px;
             int y = r.pixels.get(0).py;
             int z = r.pixels.get(0).pz;
-            r.rvoronoi = regionsvoronoi.get((int) ri[z][x][y]);
+            r.rvoronoi = aRegionsVoronoi.get((int) aRi[z][x][y]);
         }
     }
     
-    private void compute_connected_regions(double[][][] mask) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        byte[][][] maskA = new byte[nz][ni][nj];
-        copyScaledMask(maskA, mask);
-
-        final FindConnectedRegions fcr = processConnectedRegions(iParameters.minObjectIntensity, maskA);
-        regions = fcr.getLabeledRegions();
-        regionsList = fcr.getFoundRegions();
-    }
-
-    private FindConnectedRegions processConnectedRegions(double intensity, byte[][][] mask) {
-        int ni = mask[0].length;
-        int nj = mask[0][0].length;
-        int nz = mask.length;
-        final ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(ni, nj);
-
+    private void computeConnectedRegions(double[][][] aMask) {
+        final ImageStack maskStack = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
             final byte[] mask_bytes = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mask_bytes[j * ni + i] = mask[z][i][j];
+                    mask_bytes[j * ni + i] = (byte)(255 * aMask[z][i][j]);
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(mask_bytes);
-            mask_ims.addSlice("", bp);
+            final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes);
+            maskStack.addSlice("", bp);
         }
-        mask_im.setStack("", mask_ims);
-        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * intensity), iParameters.excludeEdgesZ, 1, 1);
+        final ImagePlus maskImg = new ImagePlus("", maskStack);
         
-        return fcr;
-    }
-    
-    private void copyScaledMask(byte[][][] aDestination, double[][][] aSource) {
-        int ni = aSource[0].length;
-        int nj = aSource[0][0].length;
-        int nz = aSource.length;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    aDestination[z][i][j] = (byte) ((int) (255 * aSource[z][i][j]));
-                }
-            }
-        }
+        final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
+        fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * iParameters.minObjectIntensity), iParameters.excludeEdgesZ, 1, 1);
+        
+        regions = fcr.getLabeledRegions();
+        regionsList = fcr.getFoundRegions();
     }
 }
