@@ -9,19 +9,15 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-/**
- * Class that process the first Split bregman segmentation and refine with patches
- * @author Aurelien Ritz
- */
-public class Segmentation {
-    private static final Logger logger = Logger.getLogger(Segmentation.class);
+public class SquasshSegmentation {
+    private static final Logger logger = Logger.getLogger(SquasshSegmentation.class);
     
     // Input parameters
     private final SegmentationParameters iParameters;
@@ -42,7 +38,7 @@ public class Segmentation {
     public ImagePlus out_soft_mask;
     
     
-    public Segmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
+    public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
         logger.debug(aParameters);
         
         iParameters = aParameters;
@@ -66,32 +62,43 @@ public class Segmentation {
                 : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
     }
 
-    /**
-     * Run the split Bregman + patch refinement
-     */
     public void run() {        
-        stepOneImage();
+        stepOneFromImage();
         stepTwoSegmentation();
     }
     
     public void runWithProvidedMask(double[][][] aMask) {        
-        stepOnePatches(aMask);
+        stepOneFromPatches(aMask);
         stepTwoSegmentation();
+    }
+
+    private void stepOneFromImage() {
+        try {
+            IJ.showStatus("Computing segmentation 0%");
+            IJ.showProgress(0.0);
+            iSolver.first_run();
+        }
+        catch (final InterruptedException ex) {
+        }
+    }
+
+    private void stepOneFromPatches(double[][][] aInputMask) {
+        Tools.copytab(iSolver.w3kbest, aInputMask);
     }
 
     private void stepTwoSegmentation() {
         iSolver.regions_intensity_findthresh(iSolver.w3kbest);
     
-        out_soft_mask = generateImgFromArray(iSolver.w3k);
+        out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
     
         // ========================      Compute segmentation
         compute_connected_regions(iSolver.w3kbest);
-
+    
         // refinement
         SetRegionsObjsVoronoi(regionsList, iSolver.regionsvoronoi, iSolver.Ri);
-        IJ.showStatus("Computing segmentation  " + 55 + "%");
+        IJ.showStatus("Computing segmentation 55%");
         IJ.showProgress(0.55);
-
+    
         final ImagePatches ipatches = new ImagePatches(iParameters, regionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
         ipatches.distributeRegions();
         regionsList = ipatches.getRegionsList();
@@ -99,22 +106,8 @@ public class Segmentation {
         
         // Here we solved the patches and the regions that come from the patches
         // we rescale the intensity to the original one
-        for (final Region r1 : regionsList) {
-            r1.intensity = r1.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
-        }
-    }
-
-    private void stepOnePatches(double[][][] aInputMask) {
-        Tools.copytab(iSolver.w3kbest, aInputMask);
-    }
-
-    private void stepOneImage() {
-        try {
-            IJ.showStatus("Computing segmentation");
-            IJ.showProgress(0.0);
-            iSolver.first_run();
-        }
-        catch (final InterruptedException ex) {
+        for (final Region r : regionsList) {
+            r.intensity = r.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
         }
     }
 
@@ -126,7 +119,7 @@ public class Segmentation {
         var[1] = new DoubleType(iParameters.sigmaGaussianXY);
         if (psfDims == 3) var[2] = new DoubleType(iParameters.sigmaGaussianZ);
         psf.setStdDeviation(var);
-        // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
+        // Prepare PSF for further use (It prevents from multi-threading problems so it must be like that).
         psf.getSeparableImageAsDoubleArray(0);
         return psf;
     }
@@ -191,7 +184,7 @@ public class Segmentation {
         }
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * intensity), iParameters.excludeZedges, 1, 1);
+        fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * intensity), iParameters.excludeEdgesZ, 1, 1);
         
         return fcr;
     }
@@ -207,35 +200,5 @@ public class Segmentation {
                 }
             }
         }
-    }
-    
-    /**
-     * Display the soft membership
-     *
-     * @param aImgArray 3D array with image data [z][x][y]
-     * @param aTitle Title of the image.
-     * @return the generated ImagePlus
-     */
-    private ImagePlus generateImgFromArray(double[][][] aImgArray) {
-        int iWidth = aImgArray[0].length;
-        int iHeigth = aImgArray[0][0].length;
-        int iDepth = aImgArray.length;
-        final ImageStack stack = new ImageStack(iWidth, iHeigth);
-    
-        for (int z = 0; z < iDepth; z++) {
-            final float[][] pixels = new float[iWidth][iHeigth];
-            for (int i = 0; i < iWidth; i++) {
-                for (int j = 0; j < iHeigth; j++) {
-                    pixels[i][j] = (float) aImgArray[z][i][j];
-                }
-            }
-            stack.addSlice("", new FloatProcessor(pixels));
-        }
-    
-        final ImagePlus img = new ImagePlus();
-        img.setStack(stack);
-        img.changes = false;
-        
-        return img;
     }
 }

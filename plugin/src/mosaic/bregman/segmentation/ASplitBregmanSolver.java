@@ -253,7 +253,7 @@ abstract class ASplitBregmanSolver {
         proj.setMethod(ZProjector.MAX_METHOD);
         proj.doProjection();
         mask_im = proj.getProjection();
-        IJ.showStatus("Computing segmentation  52 %");
+        IJ.showStatus("Computing segmentation 52%");
         IJ.showProgress(0.52);
 
         // threshold mask
@@ -279,7 +279,7 @@ abstract class ASplitBregmanSolver {
         filtEDM.setup("voronoi", mask_im);
         filtEDM.run(mask_im.getProcessor());
         mask_im.getProcessor().invert();
-        IJ.showStatus("Computing segmentation  " + 53 + "%");
+        IJ.showStatus("Computing segmentation 53%");
         IJ.showProgress(0.53);
 
         // expand Voronoi in 3D
@@ -298,9 +298,9 @@ abstract class ASplitBregmanSolver {
         mask_im.setStack("Voronoi", mask_ims3);
 
         // Here we are elaborating the Voronoi mask to get a nice subdivision
-        final double thr = 254;
+        final float thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.excludeZedges, 1, 1);// min size was 5
+        fcr.run(ni * nj * nz, 0, thr, iParameters.excludeEdgesZ, 1, 1);
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;
@@ -309,7 +309,7 @@ abstract class ASplitBregmanSolver {
         ArrayOps.fill(Ri, 255);
         cluster_region_voronoi2(Ri, regionslist);
 
-        IJ.showStatus("Computing segmentation  " + 54 + "%");
+        IJ.showStatus("Computing segmentation 54%");
         IJ.showProgress(0.54);
     }
     

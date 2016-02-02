@@ -7,6 +7,7 @@ import ij.measure.Calibration;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import mosaic.utils.ArrayOps.MinMax;
 
 public class ImgUtils {
     /**
@@ -76,6 +77,39 @@ public class ImgUtils {
     }
 
     /**
+     * Converts ImageProcessor to 2D array with first dim X and second Y
+     * If new image array is bigger than input image then additional pixels (right column(s) and
+     * bottom row(s)) are padded with neighbors values.
+     * All pixels are normalized by dividing them by provided normalization value (if
+     * this step is not needed 1.0 should be given).
+     *
+     * @param aInputIp       Original image
+     * @param aNewImgArray   Created 2D array to keep converted original image
+     * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
+     */
+    static void ImgToXY2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
+        final float[] pixels = (float[])aInputIp.getPixels();
+        final int w = aInputIp.getWidth();
+        final int h = aInputIp.getHeight();
+        final int arrayW = aNewImgArray.length;
+        final int arrayH = aNewImgArray[0].length;
+    
+        for (int y = 0; y < arrayH; ++y) {
+            for (int x = 0; x < arrayW; ++x) {
+                int yIdx = y;
+                int xIdx = x;
+                if (yIdx >= h) {
+                    yIdx = h - 1;
+                }
+                if (xIdx >= w) {
+                    xIdx = w - 1;
+                }
+                aNewImgArray[x][y] = pixels[xIdx + yIdx * w]/aNormalizationValue;
+            }
+        }
+    }
+
+    /**
      * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
      * normalization value (if this step is not needed 1.0 should be provided)
      * If output image is smaller than pixel array then it is truncated.
@@ -118,39 +152,6 @@ public class ImgUtils {
     }
 
     /**
-     * Converts ImageProcessor to 2D array with first dim X and second Y
-     * If new image array is bigger than input image then additional pixels (right column(s) and
-     * bottom row(s)) are padded with neighbors values.
-     * All pixels are normalized by dividing them by provided normalization value (if
-     * this step is not needed 1.0 should be given).
-     *
-     * @param aInputIp       Original image
-     * @param aNewImgArray   Created 2D array to keep converted original image
-     * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
-     */
-    static void ImgToXY2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
-        final float[] pixels = (float[])aInputIp.getPixels();
-        final int w = aInputIp.getWidth();
-        final int h = aInputIp.getHeight();
-        final int arrayW = aNewImgArray.length;
-        final int arrayH = aNewImgArray[0].length;
-
-        for (int y = 0; y < arrayH; ++y) {
-            for (int x = 0; x < arrayW; ++x) {
-                int yIdx = y;
-                int xIdx = x;
-                if (yIdx >= h) {
-                    yIdx = h - 1;
-                }
-                if (xIdx >= w) {
-                    xIdx = w - 1;
-                }
-                aNewImgArray[x][y] = pixels[xIdx + yIdx * w]/aNormalizationValue;
-            }
-        }
-    }
-
-    /**
      * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
      * normalization value (if this step is not needed 1.0 should be provided)
      * If output image is smaller than pixel array then it is truncated.
@@ -169,6 +170,34 @@ public class ImgUtils {
                 pixels[x + y * w] = aImg[x][y] * aNormalizationValue;
             }
         }
+    }
+    
+    /**
+     * Creates ImagePlus (float) from provided array
+     * @param aImgArray 3D array with image data [z][x][y]
+     * @return the generated ImagePlus
+     */
+    public static ImagePlus ZXYarrayToImg(double[][][] aImgArray) {
+        int iWidth = aImgArray[0].length;
+        int iHeigth = aImgArray[0][0].length;
+        int iDepth = aImgArray.length;
+        final ImageStack stack = new ImageStack(iWidth, iHeigth);
+    
+        for (int z = 0; z < iDepth; z++) {
+            final float[][] pixels = new float[iWidth][iHeigth];
+            for (int i = 0; i < iWidth; i++) {
+                for (int j = 0; j < iHeigth; j++) {
+                    pixels[i][j] = (float) aImgArray[z][i][j];
+                }
+            }
+            stack.addSlice("", new FloatProcessor(pixels));
+        }
+    
+        final ImagePlus img = new ImagePlus();
+        img.setStack(stack);
+        img.changes = false;
+        
+        return img;
     }
 
     /**
@@ -291,5 +320,29 @@ public class ImgUtils {
         return copyIp;
     }
 
+    public static MinMax<Double> findMinMax(ImagePlus img) {
+        int ni = img.getWidth();
+        int nj = img.getHeight();
+        int nz = img.getNSlices();
+        double min = Double.MAX_VALUE;
+        double max = -Double.MAX_VALUE;
+        
+        for (int z = 0; z < nz; z++) {
+            img.setSlice(z + 1);
+            ImageProcessor imp = img.getProcessor();
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (imp.getPixel(i, j) > max) {
+                        max = imp.getPixel(i, j);
+                    }
+                    if (imp.getPixel(i, j) < min) {
+                        min = imp.getPixel(i, j);
+                    }
+                }
+            }
+        }
+        
+        return new MinMax<Double>(min, max);
+    }
 }
 

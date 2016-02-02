@@ -32,7 +32,7 @@ public class SegmentationParameters {
     // Segmentation parameters (from segmentation GUI)
     final double regularization;
     final double minObjectIntensity;
-    final boolean excludeZedges;
+    final boolean excludeEdgesZ;
     final IntensityMode intensityMode;
     final NoiseModel noiseModel;
     final double sigmaGaussianXY;
@@ -55,7 +55,7 @@ public class SegmentationParameters {
         
         regularization = aRegularization;
         minObjectIntensity = aMinObjectIntensity;
-        excludeZedges = aExcludeZedges;
+        excludeEdgesZ = aExcludeZedges;
         intensityMode = aIntensityMode;
         noiseModel = aNoiseModel;
         sigmaGaussianXY = aSigmaGaussianXY;

@@ -12,7 +12,7 @@ import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
-import mosaic.bregman.segmentation.Segmentation;
+import mosaic.bregman.segmentation.SquasshSegmentation;
 import mosaic.bregman.segmentation.SegmentationParameters;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
@@ -23,6 +23,7 @@ import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
@@ -188,7 +189,7 @@ public class Analysis {
         int nj = img.getHeight();
         int nz = img.getNSlices();
         if (Analysis.norm_max == 0) {
-            MinMax<Double> mm = findMinMax(img);
+            MinMax<Double> mm = ImgUtils.findMinMax(img);
             min = mm.getMin();
             max = mm.getMax();
         }
@@ -265,7 +266,7 @@ public class Analysis {
                                                     iParameters.min_region_filter_intensities );
         
         //  ============== SEGMENTATION
-        Segmentation rg = new Segmentation(iImage, sp, min, max);
+        SquasshSegmentation rg = new SquasshSegmentation(iImage, sp, min, max);
         if (iParameters.patches_from_file == null) {
             rg.run();
         }
@@ -640,30 +641,5 @@ public class Analysis {
         y = (int) y;
         y /= factor;
         return y;
-    }
-    
-    public static MinMax<Double> findMinMax(ImagePlus img) {
-        int ni = img.getWidth();
-        int nj = img.getHeight();
-        int nz = img.getNSlices();
-        double min = Double.MAX_VALUE;
-        double max = -Double.MAX_VALUE;
-        
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max) {
-                        max = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min) {
-                        min = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
-        
-        return new MinMax<Double>(min, max);
     }
 }

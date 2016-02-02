@@ -23,6 +23,7 @@ import ij.gui.GenericDialog;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.Analysis;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.ArrayOps.MinMax;
 
 
@@ -415,7 +416,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         ni = img.getWidth();
         nj = img.getHeight();
         nz = img.getNSlices();
-        MinMax<Double> mm = Analysis.findMinMax(img);
+        MinMax<Double> mm = ImgUtils.findMinMax(img);
         min = mm.getMin();
         max = mm.getMax();
     }
