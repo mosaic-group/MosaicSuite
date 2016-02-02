@@ -537,7 +537,7 @@ class AnalysePatch implements Runnable {
 
         final double thr = 0.5;
         final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);
-        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr, iParameters.exclude_z_edges, iParameters.subpixel, iParameters.oversampling2ndstep, iParameters.interpolation);// min size was 5
+        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, (float)thr, iParameters.exclude_z_edges, iOversamplingInXY, iInterpolationXY);// min size was 5
 
         // add to list with critical section
         iImagePatches.addRegionsToList(fcr.getFoundRegions());

@@ -314,11 +314,6 @@ public class GenericGUI {
 
         System.out.println("Parameters: " + Analysis.iParameters);
 
-        if (!Analysis.iParameters.subpixel) {
-            Analysis.iParameters.oversampling2ndstep = 1;
-            Analysis.iParameters.interpolation = 1;
-        }
-
         logger.debug("use_cluster = " + use_cluster);
         // Two different way to run the Segmentation and colocalization
         if (clustermode || use_cluster == false) {

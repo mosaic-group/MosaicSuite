@@ -106,8 +106,8 @@ abstract class ASplitBregmanSolver {
         LocalTools.fgradx2D(temp1, mask);
         LocalTools.fgrady2D(temp2, mask);
         
-        LocalTools.copytab(w1k, mask);
-        LocalTools.copytab(w3k, mask);
+        Tools.copytab(w1k, mask);
+        Tools.copytab(w3k, mask);
         
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -157,7 +157,7 @@ abstract class ASplitBregmanSolver {
             step(energyEvaluation, lastIteration);
 
             if (energy < bestEnergy) {
-                LocalTools.copytab(w3kbest, w3k);
+                Tools.copytab(w3kbest, w3k);
                 bestIteration = stepk;
                 bestEnergy = energy;
             }
@@ -198,7 +198,7 @@ abstract class ASplitBregmanSolver {
         }
 
         if (bestIteration < 50) { // use what iteration threshold ?
-            LocalTools.copytab(w3kbest, w3k);
+            Tools.copytab(w3kbest, w3k);
             bestIteration = stepk - 1;
             bestEnergy = energy;
             
@@ -298,7 +298,7 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.exclude_z_edges, iParameters.subpixel, iParameters.oversampling2ndstep, iParameters.interpolation);// min size was 5
+        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.exclude_z_edges, 1, 1);// min size was 5
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;

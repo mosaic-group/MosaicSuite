@@ -51,7 +51,7 @@ class FindConnectedRegions {
     }
 
     @SuppressWarnings("null")
-    void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold, boolean exclude_z_edges, boolean subpixel, int oversampling2ndstep, int interpolation) {
+    void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold, boolean exclude_z_edges, int oversampling2ndstep, int interpolation) {
         if (iInputImg == null) {
             IJ.error("No image to operate on.");
             return;
@@ -218,7 +218,7 @@ class FindConnectedRegions {
                 // check for z processing
 
                 if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
-                    regionCenter(region, subpixel, oversampling2ndstep, interpolation);
+                    regionCenter(region, oversampling2ndstep, interpolation);
                     if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
                         iFoundRegions.add(region);
                     }
@@ -232,7 +232,7 @@ class FindConnectedRegions {
         Collections.sort(iFoundRegions, Collections.reverseOrder());
     }
 
-    private static void regionCenter(Region r, boolean subpixel, int oversampling2ndstep, int interpolation) {
+    private static void regionCenter(Region r, int oversampling2ndstep, int interpolation) {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
@@ -246,11 +246,10 @@ class FindConnectedRegions {
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
-        if (subpixel) {
-            r.cx = r.cx / (oversampling2ndstep * interpolation);
-            r.cy = r.cy / (oversampling2ndstep * interpolation);
-            r.cz = r.cz / (oversampling2ndstep * interpolation);
-        }
+
+        r.cx = r.cx / (oversampling2ndstep * interpolation);
+        r.cy = r.cy / (oversampling2ndstep * interpolation);
+        r.cz = r.cz / (oversampling2ndstep * interpolation);
     }
     
     short[][][] getLabeledRegions() {

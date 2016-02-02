@@ -356,7 +356,10 @@ class Tools {
         }
     }
 
-    void copytab(double[][][] res, double[][][] m1) {
+    static void copytab(double[][][] res, double[][][] m1) {
+        int nz = res.length;
+        int ni = res[0].length;
+        int nj = res[0][0].length;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {

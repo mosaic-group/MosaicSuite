@@ -49,14 +49,14 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private double betaMLEoutdefault = 0.0003;
     @SuppressWarnings("unused") final private int minves_size = 2;
     @SuppressWarnings("unused") final private psf<DoubleType> PSF = null;
+    @SuppressWarnings("unused") final private int oversampling2ndstep = -3; // not used and set in segmentaiton
+    @SuppressWarnings("unused") final private int interpolation = 3;// 4
     
     // ================================ const segmentation parameters 
     // might be useful if beter names are given (config file for test update!).
     public final double colocthreshold = 0.5;
     
     // ================================ not yet investigated
-    public int interpolation = 1;// 4
-    public int oversampling2ndstep = 2;// 2
     public String wd = null;
     public int nthreads = 4;
     public int nchannels = 2;

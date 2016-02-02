@@ -28,6 +28,7 @@ import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -179,7 +180,7 @@ public class BLauncher {
      */
     private void displayResult(boolean sep) {
         
-        final int factor = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        final int factor = Analysis.iOutputImgScale;
         int fz = (nz > 1) ? factor : 1;
 
         if (Analysis.iParameters.dispoutline) {
@@ -413,9 +414,7 @@ public class BLauncher {
         Analysis.iParameters.nchannels = img2.getNChannels();
 
         Analysis.loadChannels(img2, Analysis.iParameters.nchannels);
-
-        Analysis.iParameters.interpolation = (nz > 1) ? 2 : 4;
-
+        
         ni = Analysis.imgA.getWidth();
         nj = Analysis.imgA.getHeight();
         nz = Analysis.imgA.getNSlices();
@@ -447,9 +446,10 @@ public class BLauncher {
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(1)), 1);
 
+            mosaic.utils.Debug.print("SIZES: ", Debug.getArrayDims(Analysis.getRegions(0)), nz, ni, nj);
             Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0), nz, ni, nj);
             Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1), nz, ni, nj);
-            final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+            final int factor2 = Analysis.iOutputImgScale;
             int fz2 = (nz > 1) ? factor2 : 1;
 
             ImagePlus colocImg = generateColocImg(Analysis.getRegionslist(0), Analysis.getRegionslist(1), ni * factor2, nj * factor2, nz * fz2);

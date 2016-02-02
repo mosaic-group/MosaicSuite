@@ -162,10 +162,7 @@ class ObjectProperties implements Runnable {
         }
 
         r.perimeter = pr;
-
-        if (iParameters.subpixel) {
-            r.perimeter = pr / (iParameters.oversampling2ndstep * iParameters.interpolation);
-        }
+        r.perimeter = pr / (osxy);
     }
 
     private void regionPerimeter3D(Region r, short[][][] regionsA) {
@@ -209,18 +206,15 @@ class ObjectProperties implements Runnable {
             sumy += p.py;
             sumz += p.pz;
         }
-        
         int count = r.pixels.size();
 
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);
         r.cz = (float) (sumz / count);
 
-        if (iParameters.subpixel) {
-            r.cx = r.cx / (iParameters.oversampling2ndstep * iParameters.interpolation);
-            r.cy = r.cy / (iParameters.oversampling2ndstep * iParameters.interpolation);
-            r.cz = r.cz / (iParameters.oversampling2ndstep * iParameters.interpolation);
-        }
+        r.cx = r.cx / (osxy);
+        r.cy = r.cy / (osxy);
+        r.cz = r.cz / (osxy);
     }
 
     private void setlength(Region r, short[][][] regionsA) {

@@ -2,6 +2,7 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -13,9 +14,15 @@ import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.bregman.segmentation.Segmentation;
 import mosaic.bregman.segmentation.SegmentationParameters;
+import mosaic.core.detection.Particle;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 
 public class Analysis {
@@ -48,7 +55,7 @@ public class Analysis {
     static boolean[][][] cellMaskABinary;
     static boolean[][][] cellMaskBBinary;
     private static boolean[][][] overallCellMaskBinary;
-
+    public static int iOutputImgScale = 1;
     public static Parameters iParameters = new Parameters();
     static public int frame;
 
@@ -244,27 +251,27 @@ public class Analysis {
         // TODO: Temporary copying for further cleaning up of parameters. When it is done
         //       some constructor would be nice.
         SegmentationParameters sp = new SegmentationParameters();
-        sp.interpolation = iParameters.interpolation;
-        sp.oversampling2ndstep = iParameters.oversampling2ndstep;
+        sp.interpolation = (Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1;
         sp.nthreads = iParameters.nthreads;
         sp.regularization = iParameters.lreg_[channel];
         sp.minObjectIntensity = minIntensity;
-        sp.subpixel = iParameters.subpixel;
         sp.exclude_z_edges = iParameters.exclude_z_edges;
         sp.mode_intensity = iParameters.mode_intensity;
         sp.noise_model = iParameters.noise_model;
         sp.sigma_gaussian = iParameters.sigma_gaussian;
         sp.zcorrec = iParameters.zcorrec;
         sp.min_region_filter_intensities = iParameters.min_region_filter_intensities;
-        sp.patches_from_file = iParameters.patches_from_file;
         
         //  ============== SEGMENTATION
-        Segmentation rg = new Segmentation(iImage, sp, min, max, Analysis.frame);
-        rg.run();
+        Segmentation rg = new Segmentation(iImage, sp, min, max);
+        if (iParameters.patches_from_file == null) {
+            rg.run();
+        }
+        else {
+            rg.runWithProvidedMask(generateMaskFromPatches(nz, ni, nj));
+        }
         
-        // TODO: These guys need to be cleanedup since they are set in segmentaiton
-        iParameters.interpolation = sp.interpolation;
-        iParameters.oversampling2ndstep = sp.oversampling2ndstep;
+        iOutputImgScale = rg.regions[0].length / ni;
         // =============================
         
         regionslist.set(channel, rg.regionsList);
@@ -284,6 +291,59 @@ public class Analysis {
         System.out.println("END ==============");
     }
 
+    private static double[][][] generateMaskFromPatches(int nz, int ni, int nj) {
+        final CSV<Particle> csv = new CSV<Particle>(Particle.class);
+        csv.setCSVPreferenceFromFile(iParameters.patches_from_file);
+        Vector<Particle> pt = csv.Read(iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+   
+        // Get the particle related inly to one frames
+        final Vector<Particle> pt_f = getPart(pt, frame - 1);
+        double[][][] mask = new double[nz][ni][nj];
+        // create a mask Image
+        drawParticles(mask, pt_f, (int) 3.0);
+        
+        return mask;
+    }
+    /**
+     * Get the particles related to one frame
+     *
+     * @param part particle vector
+     * @param frame frame number
+     * @return a vector with particles related to one frame
+     */
+    private static Vector<Particle> getPart(Vector<Particle> part, int frame) {
+        final Vector<Particle> pp = new Vector<Particle>();
+
+        // get the particle related to one frame
+        for (Particle p : part) {
+            if (p.getFrame() == frame) {
+                pp.add(p);
+            }
+        }
+
+        return pp;
+    }
+    
+    private static void drawParticles(double[][][] aOutputMask, Vector<Particle> aParticles, int aRadius) {
+        final int xyzDims[] = new int[] {aOutputMask[0].length, aOutputMask[0][0].length, aOutputMask.length};
+
+        // Create a circle Mask and an iterator
+        final BallMask cm = new BallMask(aRadius, /* num od dims */ 3);
+        final MaskOnSpaceMapper ballIter = new MaskOnSpaceMapper(cm, xyzDims);
+
+        for (Particle particle : aParticles) {
+            // Draw the sphere
+            ballIter.setMiddlePoint(new Point((int) (particle.iX), (int) (particle.iY), (int) (particle.iZ)));
+            while (ballIter.hasNext()) {
+                final Point p = ballIter.nextPoint();
+                final int x = p.iCoords[0];
+                final int y = p.iCoords[1];
+                final int z = p.iCoords[2];
+                aOutputMask[z][x][y] = 1.0f;
+            }
+        }
+    }
+    
     static double colocsegA() {
         return coloc(regionslist.get(0), imageb);
     }
@@ -369,7 +429,7 @@ public class Analysis {
         double intColoc = 0;
         double sizeColoc = 0;
         int nz = regions.length;
-        final int osxy = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        final int osxy = iOutputImgScale;
         for (Pix p : r.pixels) {
             int valcoloc = regions[p.pz][p.px][p.py];
             if (valcoloc > 0) {
@@ -401,7 +461,7 @@ public class Analysis {
     }
 
     private static double regionsum(Region r, double[][][] image) {
-        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        final int factor2 = iOutputImgScale;
         int fz2 = (image.length > 1) ? factor2 : 1;
 
         int count = 0;
@@ -430,7 +490,7 @@ public class Analysis {
         double totalsize = totalsize(aRegionsList);
 
         if (Analysis.iParameters.subpixel) {
-            return (totalsize / objects) / (Math.pow(Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation, 2));
+            return (totalsize / objects) / (Math.pow(iOutputImgScale, 2));
         }
         else {
             return (totalsize / objects);
@@ -468,7 +528,7 @@ public class Analysis {
     }
 
     private static boolean isInside(Region r) {
-        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        final int factor2 = iOutputImgScale;
         int fz2 = (overallCellMaskBinary.length > 1) ? factor2 : 1;
 
         double size = 0;
@@ -508,7 +568,7 @@ public class Analysis {
     }
 
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions, int nz, int ni, int nj) {
-        final int factor2 = Analysis.iParameters.oversampling2ndstep * Analysis.iParameters.interpolation;
+        final int factor2 = iOutputImgScale;
         int fz2 = (nz > 1) ? factor2 : 1;
         for (int z = 0; z < nz * fz2; z++) {
             for (int i = 0; i < ni * factor2; i++) {

@@ -101,11 +101,6 @@ class SegmentationGUI {
             Analysis.iParameters.noise_model = gd.getNextChoiceIndex();
         }
 
-        if (!Analysis.iParameters.subpixel) {
-            Analysis.iParameters.oversampling2ndstep = 1;
-            Analysis.iParameters.interpolation = 1;
-        }
-
         return 0;
     }
 }
