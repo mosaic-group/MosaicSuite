@@ -12,12 +12,12 @@ import ij.ImageStack;
 import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -46,7 +46,6 @@ abstract class ASplitBregmanSolver {
     protected double[][][] temp4;
 
     protected final float[][][] Ri;
-    private final float[][][] Ro;
 
     protected final int ni, nj, nz;
     protected double energy; 
@@ -98,7 +97,6 @@ abstract class ASplitBregmanSolver {
         w2yk = new double[nz][ni][nj];
         
         Ri = new float[nz][ni][nj];
-        Ro = new float[nz][ni][nj];
         
         temp1 = new double[nz][ni][nj];
         temp2 = new double[nz][ni][nj];
@@ -111,14 +109,6 @@ abstract class ASplitBregmanSolver {
         Tools.copytab(w1k, mask);
         Tools.copytab(w3k, mask);
         
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    Ro[z][i][j] = (float) (iBetaMleOut);
-                    Ri[z][i][j] = (float) (iBetaMleIn);
-                }
-            }
-        }
         lreg_ = aLreg;
         executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
         Ap = ap;
@@ -139,7 +129,6 @@ abstract class ASplitBregmanSolver {
     
     final void second_run() throws InterruptedException {
         final int secondStepNumOfIterations = 101;
-        
         run(false, secondStepNumOfIterations);
     }
     
@@ -223,101 +212,70 @@ abstract class ASplitBregmanSolver {
     abstract protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException;
     abstract protected void init();
 
-    final void regions_intensity_findthresh(double[][][] mask) {
-        MinMax<Double> mm = ArrayOps.findMinMax(mask);
-        mosaic.utils.Debug.print("MIN MAX in regions_intensity: ", mm.getMin(), mm.getMax());
-        double thresh = iMinIntensity;
-
-        ImagePlus mask_im = new ImagePlus();
-        final ImageStack mask_ims = new ImageStack(ni, nj);
-
-        // construct mask as an imageplus
-        for (int z = 0; z < nz; z++) {
-            final float[] mask_float = new float[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    mask_float[j * ni + i] = (float) mask[z][i][j];
-                }
-            }
-            final FloatProcessor fp = new FloatProcessor(ni, nj);
-            fp.setPixels(mask_float);
-            mask_ims.addSlice("", fp);
-        }
-        mask_im.setStack("test", mask_ims);
-
+    void regions_intensity_findthresh(double[][][] mask) {
+        ImagePlus maskImg = ImgUtils.ZXYarrayToImg(mask);
+        
         // project mask on single slice (maximum values)
-        final ZProjector proj = new ZProjector(mask_im);
-        proj.setImage(mask_im);
+        final ZProjector proj = new ZProjector(maskImg);
+        proj.setImage(maskImg);
         proj.setStartSlice(1);
         proj.setStopSlice(nz);
         proj.setMethod(ZProjector.MAX_METHOD);
         proj.doProjection();
-        mask_im = proj.getProjection();
+        maskImg = proj.getProjection();
         IJ.showStatus("Computing segmentation 52%");
         IJ.showProgress(0.52);
 
         // threshold mask
+        ImageProcessor imp = maskImg.getProcessor();
         final byte[] mask_bytes = new byte[ni * nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                if (((int) (255 * mask_im.getProcessor().getPixelValue(i, j))) > 255 * thresh) {
-                    // weird conversion to have same thing than in find connected regions
-                    mask_bytes[j * ni + i] = 0;
-                }
-                else {
+                // weird conversion to have same thing than in find connected regions
+                if ( (int)(255 * imp.getPixelValue(i, j)) <= (int)(255 * iMinIntensity) ) {
                     mask_bytes[j * ni + i] = (byte) 255;
                 }
             }
         }
-        final ByteProcessor bp = new ByteProcessor(ni, nj);
-        bp.setPixels(mask_bytes);
-        mask_im.setProcessor("Voronoi", bp);
+        final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes);
+        maskImg.setProcessor("Mask Thresholded", bp);
 
         // do voronoi in 2D on Z projection
         // Here we compute the Voronoi segmentation starting from the threshold mask
         final EDM filtEDM = new EDM();
-        filtEDM.setup("voronoi", mask_im);
-        filtEDM.run(mask_im.getProcessor());
-        mask_im.getProcessor().invert();
+        filtEDM.setup("voronoi", maskImg);
+        filtEDM.run(maskImg.getProcessor());
+        maskImg.getProcessor().invert();
         IJ.showStatus("Computing segmentation 53%");
         IJ.showProgress(0.53);
 
         // expand Voronoi in 3D
-        final ImageStack mask_ims3 = new ImageStack(ni, nj);
-        for (int z = 0; z < nz; z++) {
-            final byte[] mask_bytes3 = new byte[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    mask_bytes3[j * ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
-                }
+        ImageProcessor impVoronoi = maskImg.getProcessor();
+        final byte[] maskBytesVoronoi = new byte[ni * nj];
+        for (int i = 0; i < ni; i++) {
+            for (int j = 0; j < nj; j++) {
+                maskBytesVoronoi[j * ni + i] = (byte) impVoronoi.getPixelValue(i, j);
             }
-            final ByteProcessor bp3 = new ByteProcessor(ni, nj);
-            bp3.setPixels(mask_bytes3);
-            mask_ims3.addSlice("", bp3);
         }
-        mask_im.setStack("Voronoi", mask_ims3);
+        final ImageStack imgStackVoronoi = new ImageStack(ni, nj);
+        for (int z = 0; z < nz; z++) {
+            imgStackVoronoi.addSlice("", new ByteProcessor(ni, nj, maskBytesVoronoi.clone()));
+        }
+        maskImg.setStack("Voronoi", imgStackVoronoi);
 
         // Here we are elaborating the Voronoi mask to get a nice subdivision
-        final float thr = 254;
-        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(ni * nj * nz, 0, thr, iParameters.excludeEdgesZ, 1, 1);
-
-        ArrayList<Region> regionslist = fcr.getFoundRegions();
-        regionsvoronoi = regionslist;
-
+        final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
+        fcr.run(ni * nj * nz, 0, /* threshold > 254 = 255 */ 254f, iParameters.excludeEdgesZ, 1, 1);
+        regionsvoronoi = fcr.getFoundRegions();
+        
         // use Ri to store voronoi regions indices
         ArrayOps.fill(Ri, 255);
-        cluster_region_voronoi2(Ri, regionslist);
-
-        IJ.showStatus("Computing segmentation 54%");
-        IJ.showProgress(0.54);
-    }
-    
-    private void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
-        for (final Region r : regionslist) {
+        for (final Region r : regionsvoronoi) {
             for (final Pix p : r.pixels) {
-                Ri[p.pz][p.px][p.py] = regionslist.indexOf(r);
+                Ri[p.pz][p.px][p.py] = regionsvoronoi.indexOf(r);
             }
         }
+        IJ.showStatus("Computing segmentation 54%");
+        IJ.showProgress(0.54);
     }
 }
