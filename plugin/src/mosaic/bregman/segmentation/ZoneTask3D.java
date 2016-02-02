@@ -3,6 +3,8 @@ package mosaic.bregman.segmentation;
 
 import java.util.concurrent.CountDownLatch;
 
+import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
+
 
 class ZoneTask3D implements Runnable {
 
@@ -119,7 +121,7 @@ class ZoneTask3D implements Runnable {
         }
 
         // %-- w1k subproblem
-        if (AS.iParameters.noise_model == 0) {
+        if (AS.iParameters.noiseModel == NoiseModel.POISSON) {
             // poisson
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {

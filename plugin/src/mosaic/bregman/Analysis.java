@@ -14,6 +14,8 @@ import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.bregman.segmentation.Segmentation;
 import mosaic.bregman.segmentation.SegmentationParameters;
+import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
+import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -250,17 +252,17 @@ public class Analysis {
         
         // TODO: Temporary copying for further cleaning up of parameters. When it is done
         //       some constructor would be nice.
-        SegmentationParameters sp = new SegmentationParameters();
-        sp.interpolation = (Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1;
-        sp.nthreads = iParameters.nthreads;
-        sp.regularization = iParameters.lreg_[channel];
-        sp.minObjectIntensity = minIntensity;
-        sp.exclude_z_edges = iParameters.exclude_z_edges;
-        sp.mode_intensity = iParameters.mode_intensity;
-        sp.noise_model = iParameters.noise_model;
-        sp.sigma_gaussian = iParameters.sigma_gaussian;
-        sp.zcorrec = iParameters.zcorrec;
-        sp.min_region_filter_intensities = iParameters.min_region_filter_intensities;
+        SegmentationParameters sp = new SegmentationParameters(
+                                                    iParameters.nthreads,
+                                                    ((Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
+                                                    iParameters.lreg_[channel],
+                                                    minIntensity,
+                                                    iParameters.exclude_z_edges,
+                                                    IntensityMode.values()[iParameters.mode_intensity],
+                                                    NoiseModel.values()[iParameters.noise_model],
+                                                    iParameters.sigma_gaussian,
+                                                    iParameters.sigma_gaussian / iParameters.zcorrec,
+                                                    iParameters.min_region_filter_intensities );
         
         //  ============== SEGMENTATION
         Segmentation rg = new Segmentation(iImage, sp, min, max);
@@ -272,10 +274,10 @@ public class Analysis {
         }
         
         iOutputImgScale = rg.regions[0].length / ni;
-        // =============================
-        
         regionslist.set(channel, rg.regionsList);
         regions[channel] = rg.regions;
+        // =============================
+        
         IJ.log(rg.regionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
             // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
@@ -443,8 +445,8 @@ public class Analysis {
             }
             count++;
         }
-
-        r.colocpositive = ((double) countcoloc) / count > iParameters.colocthreshold;
+        final double colocthreshold = 0.5;
+        r.colocpositive = ((double) countcoloc) / count > colocthreshold;
         r.overlap = (float) Analysis.round(((double) countcoloc) / count, 3);
         r.over_size = (float) Analysis.round((sizeColoc) / countcoloc, 3);
         if (nz == 1) {

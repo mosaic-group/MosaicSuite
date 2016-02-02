@@ -75,7 +75,7 @@ class ObjectProperties implements Runnable {
     private void estimate_int(double[][][] mask) {
         double[][][][] temp = new double[3][sz][sx][sy];
         Tools.normalizeAndConvolveMask(temp[2], mask, iPsf, temp[0], temp[1]);
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], patch, null, 10, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], patch, null, 10, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn);
         RSS.eval(temp[2] /* convolved mask */);
         cin = RSS.betaMLEin;
     }

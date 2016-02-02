@@ -3,6 +3,8 @@ package mosaic.bregman.segmentation;
 
 import java.util.concurrent.CountDownLatch;
 
+import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
+
 
 class ZoneTask2D implements Runnable {
 
@@ -111,7 +113,7 @@ class ZoneTask2D implements Runnable {
         }
 
         // %-- w1k subproblem
-        if (AS.iParameters.noise_model == 0) {
+        if (AS.iParameters.noiseModel == NoiseModel.POISSON) {
             // poisson
             // temp3=detw2
             // detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;

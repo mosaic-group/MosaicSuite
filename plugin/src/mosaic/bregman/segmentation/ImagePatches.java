@@ -113,7 +113,7 @@ class ImagePatches {
         boolean changed = false;
         final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
         for (final Region r : iRegionsList) {
-            if (r.intensity * (iMax - iMin) + iMin > iParameters.min_region_filter_intensities) {
+            if (r.intensity * (iMax - iMin) + iMin > iParameters.minRegionIntensity) {
                 regionsListFiltered.add(r);
             }
             else {

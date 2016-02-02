@@ -13,6 +13,8 @@ import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
+import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
+import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
@@ -60,7 +62,7 @@ abstract class ASplitBregmanSolver {
     
     final double lreg_;
     
-    int iNoiseModel;
+    NoiseModel iNoiseModel;
     protected final double energytab2[];
     private final double iMinIntensity;
     psf<DoubleType> iPsf;
@@ -78,7 +80,7 @@ abstract class ASplitBregmanSolver {
         betaMle[0] = iBetaMleOut;
         betaMle[1] = iBetaMleIn;
         
-        energytab2 = new double[iParameters.nthreads];
+        energytab2 = new double[iParameters.numOfThreads];
         
         this.image = image;
         
@@ -118,11 +120,11 @@ abstract class ASplitBregmanSolver {
             }
         }
         lreg_ = aLreg;
-        executor = Executors.newFixedThreadPool(iParameters.nthreads);
+        executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
         Ap = ap;
         
         iMinIntensity = aMinIntensity;
-        iNoiseModel = iParameters.noise_model;
+        iNoiseModel = iParameters.noiseModel;
         iPsf = aPsf;
     }
 
@@ -164,7 +166,7 @@ abstract class ASplitBregmanSolver {
             
             
             if (moduloStep && stepk != 0) {
-                if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.tol) {
+                if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.energySearchThreshold) {
                     stopFlag = true;
                 }
             }
@@ -181,7 +183,7 @@ abstract class ASplitBregmanSolver {
                 IJ.showProgress(0.5 * (stepk) / (aNumOfIterations - 1));
             }
             else {
-                if (iParameters.mode_intensity == 0 && (stepk == 40 || stepk == 70)) {
+                if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (stepk == 40 || stepk == 70)) {
                     Ap.find_best_thresh_and_int(w3k);
                     betaMle[0] = Math.max(0, Ap.cout);
                     // lower bound withg some margin
@@ -298,7 +300,7 @@ abstract class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
         final double thr = 254;
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.exclude_z_edges, 1, 1);// min size was 5
+        fcr.run(ni * nj * nz, 0, (float) thr, iParameters.excludeZedges, 1, 1);// min size was 5
 
         ArrayList<Region> regionslist = fcr.getFoundRegions();
         regionsvoronoi = regionslist;

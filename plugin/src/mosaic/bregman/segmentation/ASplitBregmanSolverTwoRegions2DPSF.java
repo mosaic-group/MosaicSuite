@@ -61,29 +61,29 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     @Override
     protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException {
         // WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed from iteration to next iteration : do not change .
-        final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.nthreads);// subprob 1 and 3
-        final CountDownLatch Sync1 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync2 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync3 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync4 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync5 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync6 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync7 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync8 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync9 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync10 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync11 = new CountDownLatch(iParameters.nthreads);
-        final CountDownLatch Sync12 = new CountDownLatch(iParameters.nthreads);
+        final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.numOfThreads);// subprob 1 and 3
+        final CountDownLatch Sync1 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync2 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync3 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync4 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync5 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync6 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync7 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync8 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync9 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync10 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync11 = new CountDownLatch(iParameters.numOfThreads);
+        final CountDownLatch Sync12 = new CountDownLatch(iParameters.numOfThreads);
         final CountDownLatch Dct = new CountDownLatch(1);
 
-        final int ichunk = ni / iParameters.nthreads;
-        final int ilastchunk = ni - ichunk * (iParameters.nthreads - 1);
-        final int jchunk = nj / iParameters.nthreads;
-        final int jlastchunk = nj - jchunk * (iParameters.nthreads - 1);
+        final int ichunk = ni / iParameters.numOfThreads;
+        final int ilastchunk = ni - ichunk * (iParameters.numOfThreads - 1);
+        final int jchunk = nj / iParameters.numOfThreads;
+        final int jlastchunk = nj - jchunk * (iParameters.numOfThreads - 1);
         int iStart = 0;
         int jStart = 0;
 
-        for (int nt = 0; nt < iParameters.nthreads - 1; nt++) {
+        for (int nt = 0; nt < iParameters.numOfThreads - 1; nt++) {
             final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
                     this, LocalTools, aEvaluateEnergy, aLastIteration);
             executor.execute(task);
@@ -91,7 +91,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
             jStart += jchunk;
         }
         final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
-                iParameters.nthreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
+                iParameters.numOfThreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
         executor.execute(task);
         // temp1=uk
         Sync4.await();
@@ -114,7 +114,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
         if (aEvaluateEnergy) {
             energy = 0;
-            for (int nt = 0; nt < iParameters.nthreads; nt++) {
+            for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
                 energy += energytab2[nt];
             }
         }

@@ -3,6 +3,8 @@ package mosaic.bregman.segmentation;
 
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -19,6 +21,8 @@ import net.imglib2.type.numeric.real.DoubleType;
  * @author Aurelien Ritz
  */
 public class Segmentation {
+    private static final Logger logger = Logger.getLogger(Segmentation.class);
+    
     // Input parameters
     private final SegmentationParameters iParameters;
     private final double iGlobalMin;
@@ -39,6 +43,8 @@ public class Segmentation {
     
     
     public Segmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
+        logger.debug(aParameters);
+        
         iParameters = aParameters;
         iGlobalMin = aGlobalMin;
         iGlobalMax = aGlobalMax;
@@ -51,13 +57,13 @@ public class Segmentation {
         ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
 
         iMask = new double[nz][ni][nj];
-        createmask(iMask, iImage, iParameters.betaMLEindefault);
+        createmask(iMask, iImage, iParameters.defaultBetaMleIn);
         
         iPsf = generatePsf();
         
         iSolver = (nz > 1) 
-                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.regularization, iParameters.minObjectIntensity, iPsf)
-                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.betaMLEoutdefault, iParameters.betaMLEindefault, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
+                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iParameters.minObjectIntensity, iPsf)
+                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
     }
 
     /**
@@ -116,9 +122,9 @@ public class Segmentation {
         int psfDims = (nz > 1) ? 3 : 2;
         final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(psfDims, DoubleType.class);
         final DoubleType[] var = new DoubleType[psfDims];
-        var[0] = new DoubleType(iParameters.sigma_gaussian);
-        var[1] = new DoubleType(iParameters.sigma_gaussian);
-        if (psfDims == 3) var[2] = new DoubleType(iParameters.sigma_gaussian / iParameters.zcorrec);
+        var[0] = new DoubleType(iParameters.sigmaGaussianXY);
+        var[1] = new DoubleType(iParameters.sigmaGaussianXY);
+        if (psfDims == 3) var[2] = new DoubleType(iParameters.sigmaGaussianZ);
         psf.setStdDeviation(var);
         // Prepare PSF for futher use (It prevents from multiphreading problems so it must be like that).
         psf.getSeparableImageAsDoubleArray(0);
@@ -185,7 +191,7 @@ public class Segmentation {
         }
         mask_im.setStack("", mask_ims);
         final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
-        fcr.run(-1 /* no maximum size */, iParameters.minves_size, (float) (255 * intensity), iParameters.exclude_z_edges, 1, 1);
+        fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * intensity), iParameters.excludeZedges, 1, 1);
         
         return fcr;
     }

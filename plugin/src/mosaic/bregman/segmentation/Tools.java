@@ -3,6 +3,7 @@ package mosaic.bregman.segmentation;
 
 import java.util.concurrent.CountDownLatch;
 
+import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
@@ -369,11 +370,11 @@ class Tools {
         }
     }
 
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int aNoiseModel) {
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, NoiseModel aNoiseModel) {
         nllMean(res, image, mu, 0, ni, aNoiseModel);
     }
 
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int iStart, int iEnd, int aNoiseModel) {
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int iStart, int iEnd, NoiseModel aNoiseModel) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -383,12 +384,12 @@ class Tools {
         }
     }
 
-    private double noise(double im, double mu, int aNoiseModel) {
+    private double noise(double im, double mu, NoiseModel aNoiseModel) {
         double res;
         if (mu < 0) {
             mu = 0.0001;
         }
-        if (aNoiseModel == 0) {// poisson
+        if (aNoiseModel == NoiseModel.POISSON) {
 
             if (im != 0) {
                 res = (im * Math.log(im / mu) + mu - im);
@@ -577,13 +578,13 @@ class Tools {
         }
     }
 
-    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, int aNoiseModel) {
+    double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, NoiseModel aNoiseModel) {
         return (nz == 1) ? computeEnergyPSF2D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image, aNoiseModel) :
                            computeEnergyPSF3D_weighted(speedData, mask, maskx, masky, weights, ldata, lreg, aPsf, c0, c1, image, aNoiseModel);
     }
             
     private double computeEnergyPSF2D_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0,
-            double c1, double[][][] image, int aNoiseModel) {
+            double c1, double[][][] image, NoiseModel aNoiseModel) {
         if (aPsf.isSeparable() == true) {
             Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], 0, ni);
         }
@@ -624,7 +625,7 @@ class Tools {
         return energy;
     }
 
-    private double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, int aNoiseModel) {
+    private double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image, NoiseModel aNoiseModel) {
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp);
     
         for (int z = 0; z < nz; z++) {
@@ -690,7 +691,7 @@ class Tools {
     }
 
     double computeEnergyPSF(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
-            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, int aNoiseModel) throws InterruptedException {
+            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, NoiseModel aNoiseModel) throws InterruptedException {
         Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, aPsf, maskx[0], iStart, iEnd);
 
         for (int i = iStart; i < iEnd; i++) {
@@ -731,7 +732,7 @@ class Tools {
     }
 
     double computeEnergyPSF3D(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double ldata, double lreg, psf<DoubleType> aPsf, double c0, double c1, double[][][] image,
-            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, int aNoiseModel) throws InterruptedException {
+            int iStart, int iEnd, int jStart, int jEnd, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, NoiseModel aNoiseModel) throws InterruptedException {
 
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, aPsf, temp, iStart, iEnd);
 
