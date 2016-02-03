@@ -26,7 +26,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         dct3d = new DoubleDCT_3D(nz, ni, nj);
 
         w2zk = new double[nz][ni][nj];
-        LocalTools.fgradz2D(w2zk, mask);
+        iLocalTools.fgradz2D(w2zk, mask);
 
         eigenLaplacian3D = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
@@ -66,8 +66,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void calculateGradientsXandY(double[][][] aValues) {
-        LocalTools.fgradx2D(temp1, aValues);
-        LocalTools.fgrady2D(temp2, aValues);
+        iLocalTools.fgradx2D(temp1, aValues);
+        iLocalTools.fgrady2D(temp2, aValues);
     }
 
     private void convolveAndScale(double[][][] aValues) {
@@ -111,13 +111,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         for (int nt = 0; nt < iParameters.numOfThreads - 1; nt++) {
             // Check if we can create threads
             final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
-                    jStart + jchunk, nt, this, LocalTools, aEvaluateEnergy, aLastIteration);
+                    jStart + jchunk, nt, this, iLocalTools, aEvaluateEnergy, aLastIteration);
             executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
         final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
-                jStart, jStart + jlastchunk, iParameters.numOfThreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
+                jStart, jStart + jlastchunk, iParameters.numOfThreads - 1, this, iLocalTools, aEvaluateEnergy, aLastIteration);
         executor.execute(task);
         Sync4.await();
 
@@ -136,17 +136,10 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         Dct.countDown();
 
         // do fgradx without parallelization
-        LocalTools.fgradx2D(temp4, temp1);
+        iLocalTools.fgradx2D(temp4, temp1);
         SyncFgradx.countDown();
 
         ZoneDoneSignal.await();
-
-        if (aEvaluateEnergy) {
-            energy = 0;
-            for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
-                energy += energytab2[nt];
-            }
-        }
     }
 
     private void compute_eigenPSF3D() {
@@ -169,7 +162,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
 
-        LocalTools.dctshift3D(temp3, temp2, cr, cc, cs);
+        iLocalTools.dctshift3D(temp3, temp2, cr, cc, cs);
         dct3d.forward(temp3, true);
         
         ArrayOps.fill(temp1, 0);

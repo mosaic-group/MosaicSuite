@@ -92,10 +92,10 @@ public class SquasshSegmentation {
 
     private void stepTwoSegmentation() {
         out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
-    
+     
         // ========================      Compute segmentation
         computeConnectedRegions(iSolver.w3kbest);
-    
+        
         // refinement
         computeVoronoiRegions(iSolver.w3kbest);
         IJ.showStatus("Computing segmentation 55%");

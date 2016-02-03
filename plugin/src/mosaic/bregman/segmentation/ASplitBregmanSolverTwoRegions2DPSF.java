@@ -54,8 +54,8 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     }
 
     private void calculateGradientsXandY(double[][][] aValues) {
-        LocalTools.fgradx2D(w2xk, aValues);
-        LocalTools.fgrady2D(w2yk, aValues);
+        iLocalTools.fgradx2D(w2xk, aValues);
+        iLocalTools.fgrady2D(w2yk, aValues);
     }
 
     @Override
@@ -85,13 +85,13 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
         for (int nt = 0; nt < iParameters.numOfThreads - 1; nt++) {
             final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ichunk, jStart, jStart + jchunk, nt,
-                    this, LocalTools, aEvaluateEnergy, aLastIteration);
+                    this, iLocalTools, aEvaluateEnergy, aLastIteration);
             executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
         final ZoneTask2D task = new ZoneTask2D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Dct, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
-                iParameters.numOfThreads - 1, this, LocalTools, aEvaluateEnergy, aLastIteration);
+                iParameters.numOfThreads - 1, this, iLocalTools, aEvaluateEnergy, aLastIteration);
         executor.execute(task);
         // temp1=uk
         Sync4.await();
@@ -111,13 +111,6 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         dct2d.inverse(temp1[0], true);
         Dct.countDown();
         ZoneDoneSignal.await();
-
-        if (aEvaluateEnergy) {
-            energy = 0;
-            for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
-                energy += energytab2[nt];
-            }
-        }
     }
 
     private void compute_eigenPSF() {
@@ -136,7 +129,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         final int cc = (sz[0] / 2) + 1;
         final int cr = (sz[1] / 2) + 1;
 
-        LocalTools.dctshift(temp3[0], temp1[0], cc, cr);
+        iLocalTools.dctshift(temp3[0], temp1[0], cc, cr);
         dct2d.forward(temp3[0], true);
 
         ArrayOps.fill(temp2, 0);

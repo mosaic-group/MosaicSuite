@@ -13,95 +13,82 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 
 abstract class ASplitBregmanSolver {
-    protected final Tools LocalTools;
+    // Input parameters
+    protected final SegmentationParameters iParameters;
+    protected final double[][][] iImage;
+    private final AnalysePatch iAnalysePatch;
+    protected final Tools iLocalTools;
+    protected double iBetaMleOut;
+    protected double iBetaMleIn;
+    final double iRegularization;
+    private final double iMinObjectIntensity;
+    protected final psf<DoubleType> iPsf;
 
-    protected final double[][][] image;
+    // Internal data
+    protected final int ni, nj, nz;
+    protected final ExecutorService executor;
+    // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
+    // being updated in 2D case but not in 3D.
+    final double[] betaMle = new double[2];
 
-    protected final double[][][] w1k;
+    // Segmentation masks
     protected final double[][][] w3k;
-
+    protected final double[][][] w3kbest;
+    
+    // Used by superclasses and utils
+    protected final NoiseModel iNoiseModel;
+    protected final double iEnergies[];
+    protected final double[][][] w1k;
     protected final double[][][] w2xk;
     protected final double[][][] w2yk;
-
-    protected final double[][][] w3kbest;
     protected final double[][][] b2xk;
     protected final double[][][] b2yk;
-
     protected final double[][][] b1k;
     protected final double[][][] b3k;
-
     protected double[][][] temp1;
     protected double[][][] temp2;
     protected double[][][] temp3;
     protected double[][][] temp4;
-
-    protected final int ni, nj, nz;
-    protected double energy; 
-    protected final SegmentationParameters iParameters;
-    private final AnalysePatch Ap;
-
-    protected final ExecutorService executor;
     
-    // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
-    // being updated in 2D case but not in 3D.
-    double iBetaMleOut, iBetaMleIn;
-    final double[] betaMle = new double[2];
     
-    final double lreg_;
-    
-    NoiseModel iNoiseModel;
-    protected final double energytab2[];
-    private final double iMinIntensity;
-    psf<DoubleType> iPsf;
-    
-    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
+    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] aImage, double[][][] aMask, AnalysePatch aAnalazePatch, double aBetaMleOut, double aBetaMleIn, double aRegularization, double aMinObjectIntensity, psf<DoubleType> aPsf) {
         iParameters = aParameters;
-        ni = image[0].length; 
-        nj = image[0][0].length;
-        nz = image.length; 
-        LocalTools = new Tools(ni, nj, nz);
-        
-        // Beta MLE in and out
+        iImage = aImage;
+        iAnalysePatch = aAnalazePatch;
         iBetaMleOut = aBetaMleOut;
         iBetaMleIn = aBetaMleIn;
+        iRegularization = aRegularization;
+        iMinObjectIntensity = aMinObjectIntensity;
+        iPsf = aPsf;
+        ni = aImage[0].length; 
+        nj = aImage[0][0].length;
+        nz = aImage.length; 
+
+        w3k = new double[nz][ni][nj];
+        Tools.copytab(w3k, aMask);
+        w3kbest = new double[nz][ni][nj];
+        
+        iLocalTools = new Tools(ni, nj, nz);
+        // Beta MLE in and out
         betaMle[0] = iBetaMleOut;
         betaMle[1] = iBetaMleIn;
         
-        energytab2 = new double[iParameters.numOfThreads];
-        
-        this.image = image;
+        iEnergies = new double[iParameters.numOfThreads];
         
         w1k = new double[nz][ni][nj];
-        w3k = new double[nz][ni][nj];
-        w3kbest = new double[nz][ni][nj];
-        
         b2xk = new double[nz][ni][nj];
         b2yk = new double[nz][ni][nj];
-        
         b1k = new double[nz][ni][nj];
         b3k = new double[nz][ni][nj];
-        
         w2xk = new double[nz][ni][nj];
         w2yk = new double[nz][ni][nj];
-        
         temp1 = new double[nz][ni][nj];
         temp2 = new double[nz][ni][nj];
         temp3 = new double[nz][ni][nj];
         temp4 = new double[nz][ni][nj];
         
-        LocalTools.fgradx2D(temp1, mask);
-        LocalTools.fgrady2D(temp2, mask);
-        
-        Tools.copytab(w1k, mask);
-        Tools.copytab(w3k, mask);
-        
-        lreg_ = aLreg;
         executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
-        Ap = ap;
-        
-        iMinIntensity = aMinIntensity;
         iNoiseModel = iParameters.noiseModel;
-        iPsf = aPsf;
     }
 
     final double[] getBetaMLE() {
@@ -125,6 +112,7 @@ abstract class ASplitBregmanSolver {
         boolean stopFlag = false;
         double bestEnergy = Double.MAX_VALUE;
         double lastenergy = 0;
+        double energy = 0;
         
         while (stepk < aNumOfIterations && !stopFlag) {
             final boolean lastIteration = (stepk == aNumOfIterations - 1);
@@ -133,12 +121,18 @@ abstract class ASplitBregmanSolver {
 
             step(energyEvaluation, lastIteration);
 
+            if (energyEvaluation) {
+                energy = 0;
+                for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
+                    energy += iEnergies[nt];
+                }
+            }
+            
             if (energy < bestEnergy) {
                 Tools.copytab(w3kbest, w3k);
                 bestIteration = stepk;
                 bestEnergy = energy;
             }
-            
             
             if (moduloStep && stepk != 0) {
                 if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.energySearchThreshold) {
@@ -159,14 +153,14 @@ abstract class ASplitBregmanSolver {
             }
             else {
                 if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (stepk == 40 || stepk == 70)) {
-                    Ap.find_best_thresh_and_int(w3k);
-                    betaMle[0] = Math.max(0, Ap.cout);
+                    iAnalysePatch.find_best_thresh_and_int(w3k);
+                    betaMle[0] = Math.max(0, iAnalysePatch.cout);
                     // lower bound withg some margin
-                    betaMle[1] = Math.max(0.75 * (iMinIntensity - Ap.iIntensityMin) / (Ap.iIntensityMax - Ap.iIntensityMin), Ap.cin);
+                    betaMle[1] = Math.max(0.75 * (iMinObjectIntensity - iAnalysePatch.iIntensityMin) / (iAnalysePatch.iIntensityMax - iAnalysePatch.iIntensityMin), iAnalysePatch.cin);
                     init();
                     if (iParameters.debug) {
-                        IJ.log("region" + Ap.iInputRegion.value + " pcout" + betaMle[1]);
-                        IJ.log("region" + Ap.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));
+                        IJ.log("region" + iAnalysePatch.iInputRegion.value + " pcout" + betaMle[1]);
+                        IJ.log("region" + iAnalysePatch.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
                     }
                 }
             }
