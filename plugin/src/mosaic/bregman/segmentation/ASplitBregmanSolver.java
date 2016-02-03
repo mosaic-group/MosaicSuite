@@ -17,7 +17,6 @@ abstract class ASplitBregmanSolver {
     protected final SegmentationParameters iParameters;
     protected final double[][][] iImage;
     private final AnalysePatch iAnalysePatch;
-    protected final Tools iLocalTools;
     protected double iBetaMleOut;
     protected double iBetaMleIn;
     final double iRegularization;
@@ -26,9 +25,11 @@ abstract class ASplitBregmanSolver {
 
     // Internal data
     protected final int ni, nj, nz;
+    protected final Tools iLocalTools;
     protected final ExecutorService executor;
-    // These guys seems to be duplicated but it is not a case. betaMleOut/betaMleIn are 
-    // being updated in 2D case but not in 3D.
+    protected final double iEnergies[];
+    // betaMleOut/betaMleIn are being updated in 2D case but not in 3D. In 3d only returned
+    // getBetaMLE() is based on updated stuff
     final double[] betaMle = new double[2];
 
     // Segmentation masks
@@ -37,7 +38,6 @@ abstract class ASplitBregmanSolver {
     
     // Used by superclasses and utils
     protected final NoiseModel iNoiseModel;
-    protected final double iEnergies[];
     protected final double[][][] w1k;
     protected final double[][][] w2xk;
     protected final double[][][] w2yk;
@@ -69,12 +69,12 @@ abstract class ASplitBregmanSolver {
         w3kbest = new double[nz][ni][nj];
         
         iLocalTools = new Tools(ni, nj, nz);
-        // Beta MLE in and out
+        executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
+        iEnergies = new double[iParameters.numOfThreads];
         betaMle[0] = iBetaMleOut;
         betaMle[1] = iBetaMleIn;
         
-        iEnergies = new double[iParameters.numOfThreads];
-        
+        iNoiseModel = iParameters.noiseModel;
         w1k = new double[nz][ni][nj];
         b2xk = new double[nz][ni][nj];
         b2yk = new double[nz][ni][nj];
@@ -86,9 +86,6 @@ abstract class ASplitBregmanSolver {
         temp2 = new double[nz][ni][nj];
         temp3 = new double[nz][ni][nj];
         temp4 = new double[nz][ni][nj];
-        
-        executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
-        iNoiseModel = iParameters.noiseModel;
     }
 
     final double[] getBetaMLE() {
