@@ -275,15 +275,12 @@ public class Analysis {
         }
         
         iOutputImgScale = rg.regions[0].length / ni;
-        regionslist.set(channel, rg.regionsList);
+        regionslist.set(channel, rg.iRegionsList);
         regions[channel] = rg.regions;
         // =============================
         
-        IJ.log(rg.regionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
+        IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
-            // TODO: Added temporarily to since soft mask for channel 2 is not existing ;
-            if (channel > 1) return;
-            
             if (out_soft_mask[channel] == null) {
                 out_soft_mask[channel] = new ImagePlus();
             }
