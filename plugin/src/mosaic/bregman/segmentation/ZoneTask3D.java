@@ -70,8 +70,8 @@ class ZoneTask3D implements Runnable {
     }
 
     private void doWork() throws InterruptedException {
-        LocalTools.subtab(AS.temp1, AS.temp1, AS.b2xk, iStart, iEnd);
-        LocalTools.subtab(AS.temp2, AS.temp2, AS.b2yk, iStart, iEnd);
+        LocalTools.subtab(AS.temp1, AS.w2xk, AS.b2xk, iStart, iEnd);
+        LocalTools.subtab(AS.temp2, AS.w2yk, AS.b2yk, iStart, iEnd);
         LocalTools.subtab(AS.temp4, AS.w2zk, AS.b2zk, iStart, iEnd);
 
         Tools.synchronizedWait(Sync1);
@@ -176,17 +176,17 @@ class ZoneTask3D implements Runnable {
 
         Tools.synchronizedWait(Sync6);
         
-        LocalTools.addtab(AS.temp1, AS.temp3, AS.b2xk, iStart, iEnd);
-        LocalTools.addtab(AS.temp2, AS.temp4, AS.b2yk, iStart, iEnd);
+        LocalTools.addtab(AS.w2xk, AS.temp3, AS.b2xk, iStart, iEnd);
+        LocalTools.addtab(AS.w2yk, AS.temp4, AS.b2yk, iStart, iEnd);
         LocalTools.addtab(AS.w2zk, AS.ukz, AS.b2zk, iStart, iEnd);
 
-        LocalTools.shrink3D(AS.temp1, AS.temp2, AS.w2zk, AS.temp1, AS.temp2, AS.w2zk, AS.iParameters.gamma, iStart, iEnd);
+        LocalTools.shrink3D(AS.w2xk, AS.w2yk, AS.w2zk, AS.w2xk, AS.w2yk, AS.w2zk, AS.iParameters.gamma, iStart, iEnd);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-                    AS.b2xk[z][i][j] = AS.b2xk[z][i][j] + AS.temp3[z][i][j] - AS.temp1[z][i][j];
-                    AS.b2yk[z][i][j] = AS.b2yk[z][i][j] + AS.temp4[z][i][j] - AS.temp2[z][i][j];
+                    AS.b2xk[z][i][j] = AS.b2xk[z][i][j] + AS.temp3[z][i][j] - AS.w2xk[z][i][j];
+                    AS.b2yk[z][i][j] = AS.b2yk[z][i][j] + AS.temp4[z][i][j] - AS.w2yk[z][i][j];
                     AS.b2zk[z][i][j] = AS.b2zk[z][i][j] + AS.ukz[z][i][j] - AS.w2zk[z][i][j];
                 }
             }
@@ -197,7 +197,7 @@ class ZoneTask3D implements Runnable {
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp
         if (iEvaluateEnergy || iLastIteration) {
-            AS.iEnergies[nt] = LocalTools.computeEnergyPSF3D(AS.w2xk, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
+            AS.iEnergies[nt] = LocalTools.computeEnergyPSF3D(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13, AS.iNoiseModel);
         }
     }

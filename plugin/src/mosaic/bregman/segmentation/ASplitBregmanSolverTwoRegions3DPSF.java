@@ -57,8 +57,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     protected void init() {
         // TODO: Why these values are not updated and compute_eigenPSF3D() is not called? (as
         //       it is done for 2D case?
-//        c0 = clIntensities[0];
-//        c1 = clIntensities[1];
+//        iBetaMleOut = betaMle[0];
+//        iBetaMleIn = betaMle[1];
 //        compute_eigenPSF3D();
         
         convolveAndScale(w3k);
@@ -66,8 +66,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     }
 
     private void calculateGradientsXandY(double[][][] aValues) {
-        iLocalTools.fgradx2D(temp1, aValues);
-        iLocalTools.fgrady2D(temp2, aValues);
+        iLocalTools.fgradx2D(w2xk, aValues);
+        iLocalTools.fgrady2D(w2yk, aValues);
     }
 
     private void convolveAndScale(double[][][] aValues) {
@@ -149,11 +149,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int zmin = Math.min(sz[2], eigenPsf3D.length);
         Tools.convolve3Dseparable(eigenPsf3D, iPsf.getImage3DAsDoubleArray(), xmin, ymin, zmin, iPsf, temp4);
 
-        ArrayOps.fill(temp2, 0);
+        ArrayOps.fill(temp1, 0);
         for (int z = 0; z < zmin; z++) {
             for (int i = 0; i < xmin; i++) {
                 for (int j = 0; j < ymin; j++) {
-                    temp2[z][i][j] = eigenPsf3D[z][i][j];
+                    temp1[z][i][j] = eigenPsf3D[z][i][j];
                 }
             }
         }
@@ -162,17 +162,17 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
 
-        iLocalTools.dctshift3D(temp3, temp2, cr, cc, cs);
+        iLocalTools.dctshift3D(temp3, temp1, cr, cc, cs);
         dct3d.forward(temp3, true);
         
-        ArrayOps.fill(temp1, 0);
-        temp1[0][0][0] = 1;
-        dct3d.forward(temp1, true);
+        ArrayOps.fill(temp2, 0);
+        temp2[0][0][0] = 1;
+        dct3d.forward(temp2, true);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    eigenPsf3D[z][i][j] = Math.pow(iBetaMleIn - iBetaMleOut, 2) * temp3[z][i][j] / temp1[z][i][j];
+                    eigenPsf3D[z][i][j] = Math.pow(iBetaMleIn - iBetaMleOut, 2) * temp3[z][i][j] / temp2[z][i][j];
                 }
             }
         }
