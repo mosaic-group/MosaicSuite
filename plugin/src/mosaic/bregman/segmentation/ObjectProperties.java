@@ -4,10 +4,10 @@ package mosaic.bregman.segmentation;
 import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.plugin.Duplicator;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -39,7 +39,7 @@ class ObjectProperties implements Runnable {
         this.nz = nz;
         this.osxy = osxy;
         this.osz = osz;
-        mosaic.utils.Debug.print(Debug.getArrayDims(iRegions), nx, ny, nz, osxy, osz);
+        
         set_patch_geom(aRegion);
     }
 
@@ -50,21 +50,17 @@ class ObjectProperties implements Runnable {
         double[][][] mask = fillMask(iRegion);
         double cin = estimateIntensity(mask, patch);
         iRegion.intensity = cin * (patchMinMax.getMax() - patchMinMax.getMin()) + patchMinMax.getMin();
-        if (sz == 1) {
-            iRegion.rsize = (float) Tools.round((iRegion.pixels.size()) / ((float) osxy * osxy), 3);
-        }
-        else {
-            iRegion.rsize = (float) Tools.round((iRegion.pixels.size()) / ((float) osxy * osxy * osz), 3);
-        }
+        iRegion.rsize = (float) Tools.round((iRegion.pixels.size()) / ((float) osxy * osxy * osz), 3);
 
         // Probably some stuff for saving images - recalculations etc.
-        regionIntensityAndCenter(iRegion);
-        setPerimeter(iRegion, iRegions);
-        setlength(iRegion, iRegions);
+        calculateRegionCenter(iRegion);
+        iRegion.perimeter = calculatePerimeter(iRegion, iRegions);
+        calculateLength(iRegion, iRegions);
     }
 
     private double[][][] fillPatch(double[][][] image) {
         double[][][] patchResult = new double[sz][sx][sy];
+        mosaic.utils.Debug.print("SIZE OBJ: ", sz, sx, sy);
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
@@ -96,115 +92,92 @@ class ObjectProperties implements Runnable {
         return RSS.betaMLEin;
     }
 
-    private void regionIntensityAndCenter(Region r) {
+    private void calculateRegionCenter(Region aRegion) {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (Pix p : r.pixels) {
+        for (Pix p : aRegion.pixels) {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
         }
-        int count = r.pixels.size();
+        int count = aRegion.pixels.size();
     
-        r.cx = (float) (sumx / count);
-        r.cy = (float) (sumy / count);
-        r.cz = (float) (sumz / count);
-    
-        r.cx = r.cx / (osxy);
-        r.cy = r.cy / (osxy);
-        r.cz = r.cz / (osxy);
+        aRegion.cx = (float) (sumx / count) / osxy;
+        aRegion.cy = (float) (sumy / count) / osxy;
+        aRegion.cz = (float) (sumz / count) / osz;
     }
 
-    private void setPerimeter(Region r, short[][][] regionsA) {
+    private double calculatePerimeter(Region aRegion, short[][][] aRegions) {
         if (sz == 1) {
-            regionPerimeter2D(r, regionsA);
+            return regionPerimeter2D(aRegion, aRegions);
         }
         else {
-            regionPerimeter3D(r, regionsA);
+            return regionPerimeter3D(aRegion, aRegions);
         }
     }
 
-    private void regionPerimeter2D(Region r, short[][][] regionsA) {
-        double pr = 0;
+    private double regionPerimeter2D(Region aRegion, short[][][] aRegions) {
+        int numOfFreeEdges = 0;
     
-        for (Pix v : r.pixels) {
-            int numOfFreeEdges = 0;
-            if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1) {
-                // not on edges of image
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) numOfFreeEdges++;
-            }
-            else {
-                numOfFreeEdges++;
-            }
-            pr += numOfFreeEdges; // real number of edges (should be used with the subpixel)
-        }
-    
-        r.perimeter = pr / (osxy);
-    }
-
-    private void regionPerimeter3D(Region r, short[][][] regionsA) {
-        // 2 Dimensions only
-        double pr = 0;
-    
-        for (Pix v : r.pixels) {
-            int numOfFreeEdges = 0;
+        for (Pix p : aRegion.pixels) {
             // not on edges of image
-            if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz + 1][v.px][v.py] == 0) numOfFreeEdges++;
-                if (regionsA[v.pz - 1][v.px][v.py] == 0) numOfFreeEdges++;
+            if (p.px != 0 && p.px != nx - 1 && p.py != 0 && p.py != ny - 1) {
+                if (aRegions[p.pz][p.px - 1][p.py] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px + 1][p.py] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px][p.py - 1] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px][p.py + 1] == 0) numOfFreeEdges++;
             }
             else {
                 numOfFreeEdges++;
             }
-            pr += numOfFreeEdges;
         }
     
-        r.perimeter = pr;
-        if (osxy > 1) {
-            if (sz == 1) {
-                r.perimeter = pr / (osxy);
-            }
-            else {
-                r.perimeter = pr / (osxy * osxy);
-            }
-        }
+        return (double)numOfFreeEdges / (osxy);
     }
 
-    private void setlength(Region r, short[][][] regionsA) {
+    private double regionPerimeter3D(Region aRegion, short[][][] aRegions) {
+        int numOfFreeEdges = 0;
+    
+        for (Pix p : aRegion.pixels) {
+            // not on edges of image
+            if (p.px != 0 && p.px != nx - 1 && p.py != 0 && p.py != ny - 1 && p.pz != 0 && p.pz != nz - 1) {
+                if (aRegions[p.pz][p.px - 1][p.py] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px + 1][p.py] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px][p.py - 1] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz][p.px][p.py + 1] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz + 1][p.px][p.py] == 0) numOfFreeEdges++;
+                if (aRegions[p.pz - 1][p.px][p.py] == 0) numOfFreeEdges++;
+            }
+            else {
+                numOfFreeEdges++;
+            }
+        }
+    
+        return (double)numOfFreeEdges / (osxy * osz);
+    }
+
+    private void calculateLength(Region aRegion, short[][][] aRegions) {
         final ImageStack is = new ImageStack(sx, sy);
         for (int k = 0; k < sz; k++) {
-            final byte[] mask_bytes = new byte[sx * sy];
+            final byte[] maskBytes = new byte[sx * sy];
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    if (regionsA[cz + k][cx + i][cy + j] > 0) {
-                        mask_bytes[j * sx + i] = (byte) 255;
-                    }
-                    else {
-                        mask_bytes[j * sx + i] = (byte) 0;
+                    if (aRegions[cz + k][cx + i][cy + j] > 0) {
+                        maskBytes[j * sx + i] = (byte) 255;
                     }
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(sx, sy);
-            bp.setPixels(mask_bytes);
+            final ByteProcessor bp = new ByteProcessor(sx, sy, maskBytes);
             is.addSlice(bp);
         }
-    
-        final ImagePlus skeleton = new ImagePlus("", is);
-    
-        // do voronoi in 2D on Z projection
+        final ImagePlus skeleton = new ImagePlus("Skeletonized", is);
+        
         Skeletonize3D_ skel = new Skeletonize3D_();
         skel.setup("", skeleton);
         skel.run(skeleton.getProcessor());
-        
-        regionlength(r, skeleton);
+
+        regionlength(aRegion, skeleton);
     }
 
     private void regionlength(Region r, ImagePlus skel) {
@@ -218,11 +191,7 @@ class ObjectProperties implements Runnable {
             }
         }
     
-        r.length = length;
-        // osz assumed to me == osxy
-        if (osxy > 1) {
-            r.length = ((double) length) / osxy;
-        }
+        r.length = ((double) length) / (osxy * osz);
     }
 
     private void set_patch_geom(Region r) {
@@ -241,10 +210,8 @@ class ObjectProperties implements Runnable {
         xmax = Math.min(nx, xmax + margin + 1);
         ymin = Math.max(0, ymin - margin);
         ymax = Math.min(ny, ymax + margin + 1);
-        if (nz > 1) {
-            zmin = Math.max(0, zmin - zmargin);
-            zmax = Math.min(nz, zmax + zmargin + 1);
-        }
+        zmin = Math.max(0, zmin - zmargin);
+        zmax = Math.min(nz, zmax + zmargin + 1);
 
         sx = (xmax - xmin);
         sy = (ymax - ymin);
@@ -252,13 +219,7 @@ class ObjectProperties implements Runnable {
         cx = xmin;
         cy = ymin;
 
-        if (nz == 1) {
-            sz = 1;
-            cz = 0;
-        }
-        else {
-            sz = (zmax - zmin);
-            cz = zmin;
-        }
+        sz = (zmax - zmin);
+        cz = zmin;
     }
 }

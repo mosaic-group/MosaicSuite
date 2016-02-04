@@ -12,19 +12,21 @@ public class Region implements Comparable<Region> {
     }
 
     public ArrayList<Pix> pixels = new ArrayList<Pix>();
-    public double intensity;
-    public double length;
     public float over_int;
     public float over_size;
     public float overlap;
     public final int points;
-    public float rsize;
     public double coloc_o_int;
     public boolean colocpositive = false;
-    public double perimeter;
     public boolean singlec;
     
-    float cx, cy, cz;
+    // Object properties
+    public double intensity; // estimated intensity
+    public double length;
+    public double perimeter;
+    public float rsize; // reale size in pixels (interpolation and/or oversampling taken into account)
+    float cx, cy, cz; // region center
+
     int value;
     Region rvoronoi;
 

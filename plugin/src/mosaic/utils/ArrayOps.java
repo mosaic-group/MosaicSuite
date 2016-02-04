@@ -18,6 +18,11 @@ public class ArrayOps {
         public T getMax() {
             return max;
         }
+        
+        @Override
+        public String toString() {
+            return "Min/Max: " + min + " / " + max;
+        }
     }
 
     static public MinMax<Float> findMinMax(final float[][] aArray) {
