@@ -6,6 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -14,19 +15,25 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
     final double[][][] w2zk;
     final double[][][] b2zk;
     final double[][][] ukz;
-    private final double[][][] eigenLaplacian3D;
-
+    
     private final double[][][] eigenPsf3D;
     private final DoubleDCT_3D dct3d;
+    private final double[][][] eigenLaplacian3D;
 
     public ASplitBregmanSolverTwoRegions3DPSF(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity, aPsf);
-        ukz = new double[nz][ni][nj];
-        b2zk = new double[nz][ni][nj];
-        dct3d = new DoubleDCT_3D(nz, ni, nj);
-
         w2zk = new double[nz][ni][nj];
-        iLocalTools.fgradz2D(w2zk, mask);
+        b2zk = new double[nz][ni][nj];
+        ukz = new double[nz][ni][nj];
+        // Old comment: Reallocate temps. Unfortunatelly is allocated in ASplitBregmanSolver
+        // TODO: This must be fixed, not "fixed"
+        final int[] sz = iPsf.getSuggestedImageSize();
+        temp4 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp3 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp2 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+        temp1 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
+
+        dct3d = new DoubleDCT_3D(nz, ni, nj);
 
         eigenLaplacian3D = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
@@ -37,37 +44,30 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
             }
         }
 
-        final int[] sz = iPsf.getSuggestedImageSize();
         eigenPsf3D = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-
-        // Reallocate temps
-        // Unfortunatelly is allocated in ASplitBregmanSolver
-        temp4 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp3 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp2 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        temp1 = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-
         compute_eigenPSF3D();
 
         convolveAndScale(mask);
-        calculateGradientsXandY(mask);
+        calculateGradients(mask);
     }
     
     @Override
     protected void init() {
         // TODO: Why these values are not updated and compute_eigenPSF3D() is not called? (as
         //       it is done for 2D case?
+//        mosaic.utils.Debug.print("BetaMLE: ", betaMle);
 //        iBetaMleOut = betaMle[0];
 //        iBetaMleIn = betaMle[1];
 //        compute_eigenPSF3D();
         
         convolveAndScale(w3k);
-        calculateGradientsXandY(w3k);
+        calculateGradients(w3k);
     }
 
-    private void calculateGradientsXandY(double[][][] aValues) {
+    private void calculateGradients(double[][][] aValues) {
         iLocalTools.fgradx2D(w2xk, aValues);
         iLocalTools.fgrady2D(w2yk, aValues);
+        iLocalTools.fgradz2D(w2zk, aValues);
     }
 
     private void convolveAndScale(double[][][] aValues) {
@@ -99,7 +99,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final CountDownLatch Sync12 = new CountDownLatch(iParameters.numOfThreads);
         final CountDownLatch Sync13 = new CountDownLatch(iParameters.numOfThreads);
         final CountDownLatch Dct = new CountDownLatch(1);
-        final CountDownLatch SyncFgradx = new CountDownLatch(1);
 
         int iStart = 0;
         int jStart = 0;
@@ -121,24 +120,22 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         executor.execute(task);
         Sync4.await();
 
+     // Check match here
         dct3d.forward(temp1, true);
+     // inversion int DCT space
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    if ((1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[0][i][j]) != 0) {
-                        temp1[z][i][j] = temp1[z][i][j] / (1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[z][i][j]);
+                    final double denominator = 1 + eigenLaplacian3D[z][i][j] + eigenPsf3D[z][i][j];
+                    if (denominator != 0) {
+                        temp1[z][i][j] = temp1[z][i][j] / denominator;
                     }
                 }
             }
         }
         dct3d.inverse(temp1, true);
-
         Dct.countDown();
-
-        // do fgradx without parallelization
-        iLocalTools.fgradx2D(temp4, temp1);
-        SyncFgradx.countDown();
-
+        
         ZoneDoneSignal.await();
     }
 
@@ -148,7 +145,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int ymin = Math.min(sz[1], eigenPsf3D[0][0].length);
         final int zmin = Math.min(sz[2], eigenPsf3D.length);
         Tools.convolve3Dseparable(eigenPsf3D, iPsf.getImage3DAsDoubleArray(), xmin, ymin, zmin, iPsf, temp4);
-
         ArrayOps.fill(temp1, 0);
         for (int z = 0; z < zmin; z++) {
             for (int i = 0; i < xmin; i++) {
@@ -161,6 +157,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cr = (sz[0] / 2) + 1;
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
+        mosaic.utils.Debug.print(xmin, ymin, zmin, Debug.getArrayDims(eigenPsf3D), Debug.getArrayDims(temp3), Debug.getArrayDims(temp1), cr, cc, cs);
 
         iLocalTools.dctshift3D(temp3, temp1, cr, cc, cs);
         dct3d.forward(temp3, true);

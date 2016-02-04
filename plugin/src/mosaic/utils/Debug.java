@@ -1,6 +1,7 @@
 package mosaic.utils;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -34,7 +35,16 @@ public class Debug { // NO_UCD (code used only for debugging)
     public static String getString(Object... aObjects) {
         String str = "";
         for (final Object o : aObjects) {
-            str += "[" + o + "] ";
+            if (o.getClass().isArray()) {
+                // Just to be able use Arrays utils pack an array (of unknown type) into one level more of
+                // objects array. Arrays.* will do the job. Additionally it will allow to pack more information
+                // like dimensions of array
+                Object[] arr = new Object[] {"Dim/Content", getArrayDims(o), o};
+                str += Arrays.deepToString(arr);
+            }
+            else {
+                str += "[" + o + "] ";
+            }
         }
         return str;
     }

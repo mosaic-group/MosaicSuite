@@ -23,9 +23,9 @@ class ZoneTask3D implements Runnable {
     private final CountDownLatch Sync12;
     private final CountDownLatch Sync13;
     private final CountDownLatch Dct;
+    private final ASplitBregmanSolverTwoRegions3DPSF AS;
     private final int iStart, iEnd, jStart, jEnd, nt;
     private final Tools LocalTools;
-    private final ASplitBregmanSolverTwoRegions3DPSF AS;
     private final boolean iEvaluateEnergy;
     private final boolean iLastIteration;
     
@@ -63,8 +63,7 @@ class ZoneTask3D implements Runnable {
         try {
             doWork();
         }
-        catch (final InterruptedException ex) {
-        }
+        catch (final InterruptedException ex) {}
 
         ZoneDoneSignal.countDown();
     }
@@ -106,7 +105,6 @@ class ZoneTask3D implements Runnable {
         Sync4.countDown();
 
         Dct.await();
- 
 
         Tools.convolve3Dseparable(AS.temp2, AS.temp1, AS.ni, AS.nj, AS.nz, AS.iPsf, AS.temp3, iStart, iEnd);
 
@@ -123,6 +121,8 @@ class ZoneTask3D implements Runnable {
         // %-- w1k subproblem
         if (AS.iParameters.noiseModel == NoiseModel.POISSON) {
             // poisson
+            // temp3=detw2
+            // detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
@@ -141,6 +141,7 @@ class ZoneTask3D implements Runnable {
         }
         else {
             // gaussian
+            // w2k = (b2k+muk+2*lambda*gamma*weightData.*image)./(1+2*lambda*gamma*weightData);
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
@@ -179,7 +180,6 @@ class ZoneTask3D implements Runnable {
         LocalTools.addtab(AS.w2xk, AS.temp3, AS.b2xk, iStart, iEnd);
         LocalTools.addtab(AS.w2yk, AS.temp4, AS.b2yk, iStart, iEnd);
         LocalTools.addtab(AS.w2zk, AS.ukz, AS.b2zk, iStart, iEnd);
-
         LocalTools.shrink3D(AS.w2xk, AS.w2yk, AS.w2zk, AS.w2xk, AS.w2yk, AS.w2zk, AS.iParameters.gamma, iStart, iEnd);
 
         for (int z = 0; z < AS.nz; z++) {

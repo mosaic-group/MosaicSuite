@@ -21,10 +21,10 @@ class ZoneTask2D implements Runnable {
     private final CountDownLatch Sync10;
     private final CountDownLatch Sync11;
     private final CountDownLatch Sync12;
+    
     private final CountDownLatch Dct;
     private final ASplitBregmanSolverTwoRegions2DPSF AS;
-    private final int iStart, iEnd, jStart, jEnd;
-    private final int num;
+    private final int iStart, iEnd, jStart, jEnd, nt;
     private final Tools LocalTools;
     private final boolean iEvaluateEnergy;
     private final boolean iLastIteration;
@@ -46,9 +46,10 @@ class ZoneTask2D implements Runnable {
         this.Sync10 = Sync10;
         this.Sync11 = Sync11;
         this.Sync12 = Sync12;
-        this.num = num;
+        
         this.Dct = Dct;
         this.AS = AS;
+        this.nt = num;
         this.iStart = iStart;
         this.jStart = jStart;
         this.iEnd = iEnd;
@@ -71,8 +72,10 @@ class ZoneTask2D implements Runnable {
         LocalTools.subtab(AS.temp1, AS.w2xk, AS.b2xk, iStart, iEnd);
         LocalTools.subtab(AS.temp2, AS.w2yk, AS.b2yk, iStart, iEnd);
 
+        
         Tools.synchronizedWait(Sync1);
 
+        
         LocalTools.mydivergence(AS.temp3, AS.temp1, AS.temp2, AS.temp4, Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
 
         Tools.synchronizedWait(Sync12);
@@ -100,24 +103,26 @@ class ZoneTask2D implements Runnable {
         }
 
         Sync4.countDown();
+        
         Dct.await();
 
         Tools.convolve2Dseparable(AS.temp2[0], AS.temp1[0], AS.ni, AS.nj, AS.iPsf, AS.temp3[0], iStart, iEnd);
 
         Tools.synchronizedWait(Sync10);
 
+        
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < AS.nj; j++) {
                 AS.temp2[0][i][j] = (AS.iBetaMleIn - AS.iBetaMleOut) * AS.temp2[0][i][j] + AS.iBetaMleOut;
             }
         }
 
+        
         // %-- w1k subproblem
         if (AS.iParameters.noiseModel == NoiseModel.POISSON) {
             // poisson
             // temp3=detw2
             // detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
-
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
@@ -126,7 +131,6 @@ class ZoneTask2D implements Runnable {
                     }
                 }
             }
-
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
@@ -146,9 +150,7 @@ class ZoneTask2D implements Runnable {
                     }
                 }
             }
-
         }
-
         // %-- w3k subproblem
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -172,25 +174,30 @@ class ZoneTask2D implements Runnable {
         LocalTools.fgradx2D(AS.temp3, AS.temp1, jStart, jEnd);
         LocalTools.fgrady2D(AS.temp4, AS.temp1, iStart, iEnd);
 
+        
         Tools.synchronizedWait(Sync6);
 
         LocalTools.addtab(AS.w2xk, AS.temp3, AS.b2xk, iStart, iEnd);
         LocalTools.addtab(AS.w2yk, AS.temp4, AS.b2yk, iStart, iEnd);
         LocalTools.shrink2D(AS.w2xk, AS.w2yk, AS.w2xk, AS.w2yk, AS.iParameters.gamma, iStart, iEnd);
-        //
+        
+        
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < AS.nj; j++) {
                     AS.b2xk[z][i][j] = AS.b2xk[z][i][j] + AS.temp3[z][i][j] - AS.w2xk[z][i][j];
                     AS.b2yk[z][i][j] = AS.b2yk[z][i][j] + AS.temp4[z][i][j] - AS.w2yk[z][i][j];
+                    
                 }
             }
         }
 
         Tools.synchronizedWait(Sync7);
 
+        // faire le menage dans les tableaux ici w2xk utilise comme temp
+        // Google translation: do the household in here w2xk tables used as Temp
         if (iEvaluateEnergy || iLastIteration) {
-            AS.iEnergies[num] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
+            AS.iEnergies[nt] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, AS.iNoiseModel);
         }
     }

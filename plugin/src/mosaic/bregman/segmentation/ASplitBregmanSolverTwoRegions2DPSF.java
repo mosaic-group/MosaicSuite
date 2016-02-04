@@ -18,8 +18,6 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
     public ASplitBregmanSolverTwoRegions2DPSF(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, double aMinIntensity, psf<DoubleType> aPsf) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aMinIntensity, aPsf);
         dct2d = new DoubleDCT_2D(ni, nj);
-        eigenPsf2D = new double[ni][nj];
-        compute_eigenPSF();
 
         eigenLaplacian = new double[ni][nj];
         for (int i = 0; i < ni; i++) {
@@ -28,8 +26,11 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
             }
         }
         
+        eigenPsf2D = new double[ni][nj];
+        compute_eigenPSF();
+        
         convolveAndScale(mask[0]);
-        calculateGradientsXandY(mask);
+        calculateGradients(mask);
     }
 
     @Override
@@ -39,7 +40,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         compute_eigenPSF();
         
         convolveAndScale(w3k[0]);
-        calculateGradientsXandY(w3k);
+        calculateGradients(w3k);
     }
 
     private void convolveAndScale(double[][] aValues) {
@@ -53,7 +54,7 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
         }
     }
 
-    private void calculateGradientsXandY(double[][][] aValues) {
+    private void calculateGradients(double[][][] aValues) {
         iLocalTools.fgradx2D(w2xk, aValues);
         iLocalTools.fgrady2D(w2yk, aValues);
     }
@@ -98,18 +99,18 @@ class ASplitBregmanSolverTwoRegions2DPSF extends ASplitBregmanSolver {
 
         // Check match here
         dct2d.forward(temp1[0], true);
-
         // inversion int DCT space
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                if ((1 + eigenLaplacian[i][j] + eigenPsf2D[i][j]) != 0) {
-                    temp1[0][i][j] = temp1[0][i][j] / (1 + eigenLaplacian[i][j] + eigenPsf2D[i][j]);
+                final double denominator = 1 + eigenLaplacian[i][j] + eigenPsf2D[i][j];
+                if (denominator != 0) {
+                    temp1[0][i][j] = temp1[0][i][j] / denominator;
                 }
             }
         }
-
         dct2d.inverse(temp1[0], true);
         Dct.countDown();
+        
         ZoneDoneSignal.await();
     }
 
