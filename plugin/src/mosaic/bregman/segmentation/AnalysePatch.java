@@ -88,7 +88,7 @@ class AnalysePatch implements Runnable {
     private final double[][][] temp3;
 
     private final double lreg_patch;
-    private final double iMinIntensity;
+    private final double iMinObjectIntensity;
     private final psf<DoubleType> iPsf;
     /**
      * Create patches
@@ -101,7 +101,7 @@ class AnalysePatch implements Runnable {
      * @param regionsf ?
      * @param aImagePatches ?
      */
-    AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aLreg, double aMinIntensity,  psf<DoubleType> aPsf) {
+    AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
         iSizeOrigX = aInputImage[0].length;
         iSizeOrigY = aInputImage[0][0].length;
         iSizeOrigZ = aInputImage.length;
@@ -154,20 +154,19 @@ class AnalysePatch implements Runnable {
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
-        iMinIntensity = aMinIntensity;
-        iScaledIntensityMin = ( iMinIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
+        iMinObjectIntensity = aMinObjectIntensity;
+        iScaledIntensityMin = ( iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
         if (iParameters.intensityMode == IntensityMode.HIGH) {
             ArrayOps.normalize(w3kpatch[0]);
         }
 
-        rescaled_min_int_all = iMinIntensity / 0.99; // first val with ~3% margin
-        // (15 % compensated in find_best_t_and_int...)
+        rescaled_min_int_all = iMinObjectIntensity / 0.99;
 
         temp1 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         temp2 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         temp3 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
         
-        lreg_patch = aLreg * aOversampling;
+        lreg_patch = aRegularization * aOversampling;
         
         // estimate ints
         if (iParameters.intensityMode == IntensityMode.AUTOMATIC) {
@@ -181,7 +180,7 @@ class AnalysePatch implements Runnable {
         }
         
         clBetaMleIntensities[0] = Math.max(cout, 0);
-        clBetaMleIntensities[1] = Math.max(0.75 * (iMinIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
+        clBetaMleIntensities[1] = Math.max(0.75 * (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
 
         if (iParameters.intensityMode == IntensityMode.HIGH) {
             clBetaMleIntensities[0] = iParameters.defaultBetaMleOut;
@@ -195,25 +194,70 @@ class AnalysePatch implements Runnable {
         }
     }
 
+    double find_best_thresh_and_int(double[][][] w3kbest) {
+        double energy = Double.MAX_VALUE;
+        double threshold = 0.75;
+        double cin_previous = cin;
+        double cout_previous = cout;
+        double cinbest = 1;
+        double coutbest = 0.0001;
+        
+        for (double thr = 0.95; thr > rescaled_min_int_all * 0.96; thr -= 0.02) {
+            set_object(w3kbest, thr);
+            if (objectFound && !border_attained) {
+                estimate_int_weighted(object);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
+                if (tempEnergy < energy) {
+                    energy = tempEnergy;
+                    threshold = thr;
+                    cinbest = cin;
+                    coutbest = cout;
+                }
+            }
+            else {
+                cin = 1;
+                cout_front = 0;
+            }
+        }
+    
+        cin = cinbest;
+        cout = coutbest;
+        cout_front = cout;
+    
+        if (!objectFound) {
+            cin = cin_previous;
+            cout = cout_previous;
+        }
+    
+        rescaled_min_int_all = Math.max((iScaledIntensityMin - cout) / (cin - cout), 0);
+        if (iParameters.debug) {
+            IJ.log("fbest" + iInputRegion.value + "min all " + rescaled_min_int_all);
+        }
+    
+        if (iParameters.debug) {
+            IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.value + " cin " + cin + " cout " + cout);
+        }
+    
+        return threshold;
+    }
+
     /**
      * Analyse one Patch
      * Or run SplitBregman segmentation solver on it
      */
     @Override
     public void run() {
-        // Check the delta beta, if it is bigger than two ignore it, because
-        // I cannot warrant stability
+        // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
         if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
-            // reset
             clBetaMleIntensities[0] = iParameters.defaultBetaMleOut;
             clBetaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
         
         if (iSizeOversZ > 1) {
-            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity, iPsf);
+            A_solver = new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinObjectIntensity, iPsf);
         }
         else {
-            A_solver = new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinIntensity, iPsf);
+            A_solver = new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], lreg_patch, iMinObjectIntensity, iPsf);
         }
 
         try {
@@ -234,19 +278,17 @@ class AnalysePatch implements Runnable {
 
             }
             double t = 0;
-            if (iParameters.intensityMode != IntensityMode.HIGH) {
-                t = find_best_thresh(A_solver.w3kbest);
-            }
-
-            if (iParameters.intensityMode == IntensityMode.HIGH)// mode high
-            {
-                estimate_int_clustering(2);// (-1
-
+            if (iParameters.intensityMode == IntensityMode.HIGH) {
+                estimate_int_clustering(2);
+                
                 t_high = cin;
                 if (iParameters.debug) {
                     IJ.log("obj" + iInputRegion.value + " effective t:" + t_high);
                 }
                 t = t_high - 0.04;
+            }
+            else {
+                t = find_best_thresh(A_solver.w3kbest);
             }
 
             if (iParameters.debug) {
@@ -471,53 +513,6 @@ class AnalysePatch implements Runnable {
         }
         
         return bestThreshold;
-    }
-
-    double find_best_thresh_and_int(double[][][] w3kbest) {
-        double energy = Double.MAX_VALUE;
-        double threshold = 0.75;
-        double cin_previous = cin;
-        double cout_previous = cout;
-        double cinbest = 1;
-        double coutbest = 0.0001;
-        
-        for (double thr = 0.95; thr > rescaled_min_int_all * 0.96; thr -= 0.02) {
-            set_object(w3kbest, thr);
-            if (objectFound && !border_attained) {
-                estimate_int_weighted(object);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, object, temp2, temp3, iRegionMask, iParameters.ldata, lreg_patch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
-                if (tempEnergy < energy) {
-                    energy = tempEnergy;
-                    threshold = thr;
-                    cinbest = cin;
-                    coutbest = cout;
-                }
-            }
-            else {
-                cin = 1;
-                cout_front = 0;
-            }
-        }
-
-        cin = cinbest;
-        cout = coutbest;
-        cout_front = cout;
-
-        if (!objectFound) {
-            cin = cin_previous;
-            cout = cout_previous;
-        }
-
-        rescaled_min_int_all = Math.max((iScaledIntensityMin - cout) / (cin - cout), 0);
-        if (iParameters.debug) {
-            IJ.log("fbest" + iInputRegion.value + "min all " + rescaled_min_int_all);
-        }
-
-        if (iParameters.debug) {
-            IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.value + " cin " + cin + " cout " + cout);
-        }
-
-        return threshold;
     }
 
     // build local object list

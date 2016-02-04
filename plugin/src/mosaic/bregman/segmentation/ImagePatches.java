@@ -40,12 +40,12 @@ class ImagePatches {
     private int iNumberOfJobs = 0;
     private int iNumOfDoneJobs = 0;
 
-    private final double iLreg;
-    private final double iMinIntensity;
+    private final double iRegularization;
+    private final double iMinObjectIntensity;
     private  psf<DoubleType> iPsf;
     private int oversampling2ndstep = 0;
     
-    ImagePatches(SegmentationParameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aLreg, double aMinIntensity,  psf<DoubleType> aPsf) {
+    ImagePatches(SegmentationParameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
         logger.debug("ImagePatches ----------------------------");
         iParameters = aParameters;
         iRegionsList = aRegionsList;
@@ -74,8 +74,8 @@ class ImagePatches {
         iGlobalRegionsList = new ArrayList<Region>();
         iRegions = new short[iSizeZ][iSizeX][iSizeY];
         
-        iLreg = aLreg;
-        iMinIntensity = aMinIntensity;
+        iRegularization = aRegularization;
+        iMinObjectIntensity = aMinObjectIntensity;
     }
 
     ArrayList<Region> getRegionsList() {
@@ -94,7 +94,7 @@ class ImagePatches {
 
         iNumberOfJobs = iRegionsList.size();
         for (final Region r : iRegionsList) {
-            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, oversampling2ndstep, this, w3kbest, iLreg, iMinIntensity, iPsf);
+            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, oversampling2ndstep, this, w3kbest, iRegularization, iMinObjectIntensity, iPsf);
             // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
             ap.run();
         }

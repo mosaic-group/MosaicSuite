@@ -157,7 +157,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolver {
         final int cr = (sz[0] / 2) + 1;
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
-        mosaic.utils.Debug.print(xmin, ymin, zmin, Debug.getArrayDims(eigenPsf3D), Debug.getArrayDims(temp3), Debug.getArrayDims(temp1), cr, cc, cs);
 
         iLocalTools.dctshift3D(temp3, temp1, cr, cc, cs);
         dct3d.forward(temp3, true);
