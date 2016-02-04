@@ -77,13 +77,9 @@ public class SquasshSegmentation {
     }
 
     private void stepOneFromImage() {
-        try {
-            IJ.showStatus("Computing segmentation 0%");
-            IJ.showProgress(0.0);
-            iSolver.first_run();
-        }
-        catch (final InterruptedException ex) {
-        }
+        IJ.showStatus("Computing segmentation 0%");
+        IJ.showProgress(0.0);
+        iSolver.first_run();
     }
 
     private void stepOneFromPatches(double[][][] aInputMask) {

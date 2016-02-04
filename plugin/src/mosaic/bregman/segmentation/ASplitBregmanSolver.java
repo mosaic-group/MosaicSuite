@@ -92,14 +92,24 @@ abstract class ASplitBregmanSolver {
         return betaMle;
     }
 
-    final void first_run() throws InterruptedException {
+    final void first_run() {
         final int firstStepNumOfIterations = 151;
-        run(true, firstStepNumOfIterations);
+        try {
+            run(true, firstStepNumOfIterations);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
     
-    final void second_run() throws InterruptedException {
+    final void second_run() {
         final int secondStepNumOfIterations = 101;
-        run(false, secondStepNumOfIterations);
+        try {
+            run(false, secondStepNumOfIterations);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
     
     private final void run(boolean aFirstPhase, int aNumOfIterations) throws InterruptedException {

@@ -104,7 +104,7 @@ class ImagePatches {
         
         // calculate regions intensities
         for (final Region r : iRegionsList) {
-            ObjectProperties op = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverInterInXY, iOverInterInZ, iRegions, iPsf);
+            ObjectProperties op = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
             op.run();
         }
 
@@ -180,7 +180,7 @@ class ImagePatches {
         ImagePatches.assemble(r_list.values(), iRegions);
     
         for (final Region r : r_list.values()) {
-            final ObjectProperties obj = new ObjectProperties(iImage, r, iSizeX, iSizeY, iSizeZ, iParameters, iOverInterInXY, iOverInterInZ, iRegions, iPsf);
+            final ObjectProperties obj = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
             obj.run();
         }
     }
