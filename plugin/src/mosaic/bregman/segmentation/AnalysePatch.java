@@ -176,8 +176,8 @@ class AnalysePatch {
         double threshold = 0.75;
         double cin_previous = cin;
         double cout_previous = cout;
-        double cinbest = cin;
-        double coutbest = cout;
+        double cinbest = 1;
+        double coutbest = 0.0001;
        
         for (double thr = 0.95; thr > iRescaledMinIntensityAll * 0.96; thr -= 0.02) {
             set_object(w3kbest, thr);
