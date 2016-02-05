@@ -25,7 +25,7 @@ import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 
 
-class AnalysePatch implements Runnable {
+class AnalysePatch {
     // size of original image 
     private final int iSizeOrigX;
     private final int iSizeOrigY;
@@ -37,9 +37,9 @@ class AnalysePatch implements Runnable {
     private int iOffsetOrigZ;
     
     // size of patch (oversampled)
-    private int iSizeOversX;
-    private int iSizeOversY;
-    private int iSizeOversZ;
+    private int iSizeOverX;
+    private int iSizeOverY;
+    private int iSizeOverZ;
     
     // interpolated object sizes (interpolated and oversampled)
     private int iSizeOverInterX;
@@ -48,14 +48,13 @@ class AnalysePatch implements Runnable {
     
     private int iInterpolationXY;
     private int iInterpolationZ;
-    private int iOversamplingInXY;
-    private int iOverInterInXY; 
-    private int iOversamplingInZ;
-    private int iOverInterInZ;
+    private int iOversamplingXY;
+    private int iOverInterXY; 
+    private int iOversamplingZ;
+    private int iOverInterZ;
     
     // Input parameters
     final Region iInputRegion;
-    private final ImagePatches iImagePatches;
 
     private final Tools iLocalTools;
     private final SegmentationParameters iParameters;
@@ -98,14 +97,13 @@ class AnalysePatch implements Runnable {
      * @param regionsf ?
      * @param aImagePatches ?
      */
-    AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, ImagePatches aImagePatches, double[][][] w3kbest, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
+    AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, double[][][] w3kbest, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
         iSizeOrigX = aInputImage[0].length;
         iSizeOrigY = aInputImage[0][0].length;
         iSizeOrigZ = aInputImage.length;
 
         iInputRegion = aInputRegion;
         iParameters = aParameters;
-        iImagePatches = aImagePatches;
         iPsf = aPsf;
         cout = 0;
         cin = 1;
@@ -132,20 +130,20 @@ class AnalysePatch implements Runnable {
         iRegionMask = generateMask(aInputRegion.rvoronoi, true);// mask for voronoi region into weights
 
         // create patch image with oversampling
-        iPatch = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
-        fill_patch(aInputImage, iPatch, iRegionMask, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        iPatch = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        fill_patch(aInputImage, iPatch, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
 
         // for testing
-        w3kpatch = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
-        fill_patch(w3kbest, w3kpatch, iRegionMask, iOversamplingInXY, iOversamplingInZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        w3kpatch = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        fill_patch(w3kbest, w3kpatch, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
         
         // create object (for result)
-        result = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        result = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
 
         // create mask
         double[][][] mask = generateMask(aInputRegion, false);
 
-        iLocalTools = new Tools(iSizeOversX, iSizeOversY, iSizeOversZ);
+        iLocalTools = new Tools(iSizeOverX, iSizeOverY, iSizeOverZ);
         
         // normalize
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
@@ -159,9 +157,9 @@ class AnalysePatch implements Runnable {
 
         rescaled_min_int_all = iMinObjectIntensity / 0.99;
 
-        temp1 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
-        temp2 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
-        temp3 = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        temp1 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        temp2 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        temp3 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
         
         iRegulariztionPatch = aRegularization * aOversampling;
         
@@ -259,9 +257,9 @@ class AnalysePatch implements Runnable {
         final double[] pixel = new double[1];
         int cpt_vals = 0;
         final Dataset data = new DefaultDataset();
-        for (int z = 0; z < iSizeOversZ; z++) {
-            for (int i = 0; i < iSizeOversX; i++) {
-                for (int j = 0; j < iSizeOversY; j++) {
+        for (int z = 0; z < iSizeOverZ; z++) {
+            for (int i = 0; i < iSizeOverX; i++) {
+                for (int j = 0; j < iSizeOverY; j++) {
                     pixel[0] = aValues[z][i][j];
                     if (iRegionMask[z][i][j] == 1) {
                         data.add(new DenseInstance(pixel));
@@ -312,15 +310,15 @@ class AnalysePatch implements Runnable {
     /**
      * Analyse one Patch
      * Or run SplitBregman segmentation solver on it
+     * @return 
      */
-    @Override
-    public void run() {
+    public ArrayList<Region> calculateRegions() {
         // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
         if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
             clBetaMleIntensities[0] = iParameters.defaultBetaMleOut;
             clBetaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
-        ASplitBregmanSolver A_solver = (iSizeOversZ > 1)
+        ASplitBregmanSolver A_solver = (iSizeOverZ > 1)
                 ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iMinObjectIntensity, iPsf)
                 : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iMinObjectIntensity, iPsf);
 
@@ -363,21 +361,21 @@ class AnalysePatch implements Runnable {
         }
 
         // assemble result into full image
-        assemble_patch();
+        return assemble_patch();
     }
 
     private void set_object(double[][][] w3kbest, double aThreshold) {
         objectFound = false;
         border_attained = false;
-        for (int z = 0; z < iSizeOversZ; z++) {
-            for (int i = 0; i < iSizeOversX; i++) {
-                for (int j = 0; j < iSizeOversY; j++) {
+        for (int z = 0; z < iSizeOverZ; z++) {
+            for (int i = 0; i < iSizeOverX; i++) {
+                for (int j = 0; j < iSizeOverY; j++) {
                     if (w3kbest[z][i][j] > aThreshold && iRegionMask[z][i][j] == 1) {
                         result[z][i][j] = 1;
                         objectFound = true;
-                        if (iSizeOversZ <= 1) {
-                            if ((i == 0 && iOffsetOrigX != 0) || (i == (iSizeOversX - 1) && (iOffsetOrigX + iSizeOversX / iOversamplingInXY) != iSizeOrigX) || 
-                                (j == 0 && iOffsetOrigY != 0) || (j == (iSizeOversY - 1) && (iOffsetOrigY + iSizeOversY / iOversamplingInXY) != iSizeOrigY)) {
+                        if (iSizeOverZ <= 1) {
+                            if ((i == 0 && iOffsetOrigX != 0) || (i == (iSizeOverX - 1) && (iOffsetOrigX + iSizeOverX / iOversamplingXY) != iSizeOrigX) || 
+                                (j == 0 && iOffsetOrigY != 0) || (j == (iSizeOverY - 1) && (iOffsetOrigY + iSizeOverY / iOversamplingXY) != iSizeOrigY)) {
                                 border_attained = true;
                             }
                         }
@@ -419,36 +417,36 @@ class AnalysePatch implements Runnable {
         iOffsetOrigY = ymin;
         iOffsetOrigZ = zmin;
         
-        iOversamplingInXY = aOversampling;
-        iSizeOversX = (xmax - xmin) * iOversamplingInXY;
-        iSizeOversY = (ymax - ymin) * iOversamplingInXY;
+        iOversamplingXY = aOversampling;
+        iSizeOverX = (xmax - xmin) * iOversamplingXY;
+        iSizeOverY = (ymax - ymin) * iOversamplingXY;
         
         iInterpolationXY = aInterpolation;
-        iSizeOverInterX = iSizeOversX * iInterpolationXY;
-        iSizeOverInterY = iSizeOversY * iInterpolationXY;
+        iSizeOverInterX = iSizeOverX * iInterpolationXY;
+        iSizeOverInterY = iSizeOverY * iInterpolationXY;
 
-        iOverInterInXY = iOversamplingInXY * iInterpolationXY;
+        iOverInterXY = iOversamplingXY * iInterpolationXY;
         
         if (iSizeOrigZ == 1) {
-            iOversamplingInZ = 1;
-            iSizeOversZ = 1;
+            iOversamplingZ = 1;
+            iSizeOverZ = 1;
             iInterpolationZ = 1;
             iSizeOverInterZ = 1;
-            iOverInterInZ = 1;
+            iOverInterZ = 1;
         }
         else {
-            iOversamplingInZ = aOversampling;
-            iSizeOversZ = (zmax - zmin) * iOversamplingInZ;
+            iOversamplingZ = aOversampling;
+            iSizeOverZ = (zmax - zmin) * iOversamplingZ;
             iInterpolationZ = aInterpolation;
-            iSizeOverInterZ = iSizeOversZ * iInterpolationZ;
-            iOverInterInZ = iOversamplingInZ * iInterpolationZ;
+            iSizeOverInterZ = iSizeOverZ * iInterpolationZ;
+            iOverInterZ = iOversamplingZ * iInterpolationZ;
         }
     }
 
     private void fill_patch(double[][][] aSourceImage, double[][][] aOutput, double[][][] aWeights, int aOversamplingXY, int aOversamplingZ, int aOffsetX, int aOffsetY, int aOffsetZ) {
-        for (int z = 0; z < iSizeOversZ; z++) {
-            for (int i = 0; i < iSizeOversX; i++) {
-                for (int j = 0; j < iSizeOversY; j++) {
+        for (int z = 0; z < iSizeOverZ; z++) {
+            for (int i = 0; i < iSizeOverX; i++) {
+                for (int j = 0; j < iSizeOverY; j++) {
                     // aWeights are set to 0 or 1.
                     aOutput[z][i][j] = aWeights[z][i][j] * aSourceImage[z / aOversamplingZ + aOffsetZ][i / aOversamplingXY + aOffsetX][j / aOversamplingXY + aOffsetY];
                 }
@@ -457,19 +455,19 @@ class AnalysePatch implements Runnable {
     }
 
     private double[][][] generateMask(Region r, boolean aCheckBoundaries) {
-        double[][][] mask = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
+        double[][][] mask = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
 
         for (final Pix p : r.iPixels) {
-            int rz = iOversamplingInXY * (p.pz - iOffsetOrigZ);
-            int rx = iOversamplingInXY * (p.px - iOffsetOrigX);
-            int ry = iOversamplingInXY * (p.py - iOffsetOrigY);
-            if (aCheckBoundaries && (rz < 0 || rz + iOversamplingInZ > iSizeOversZ || rx < 0 || rx + iOversamplingInXY > iSizeOversX || ry < 0 || ry + iOversamplingInXY > iSizeOversY)) {
+            int rz = iOversamplingXY * (p.pz - iOffsetOrigZ);
+            int rx = iOversamplingXY * (p.px - iOffsetOrigX);
+            int ry = iOversamplingXY * (p.py - iOffsetOrigY);
+            if (aCheckBoundaries && (rz < 0 || rz + iOversamplingZ > iSizeOverZ || rx < 0 || rx + iOversamplingXY > iSizeOverX || ry < 0 || ry + iOversamplingXY > iSizeOverY)) {
                 continue;
             }
             
-            for (int z = rz; z < rz + iOversamplingInZ; z++) {
-                for (int i = rx; i < rx + iOversamplingInXY; i++) {
-                    for (int j = ry; j < ry + iOversamplingInXY; j++) {
+            for (int z = rz; z < rz + iOversamplingZ; z++) {
+                for (int i = rx; i < rx + iOversamplingXY; i++) {
+                    for (int j = ry; j < ry + iOversamplingXY; j++) {
                         mask[z][i][j] = 1;
                     }
                 }
@@ -504,7 +502,7 @@ class AnalysePatch implements Runnable {
     }
 
     // build local object list
-    private void assemble_patch() {
+    private ArrayList<Region> assemble_patch() {
         final ImageStack maska_ims = new ImageStack(iSizeOverInterX, iSizeOverInterY);
         for (int z = 0; z < iSizeOverInterZ; z++) {
             final byte[] maska_bytes = new byte[iSizeOverInterX * iSizeOverInterY];
@@ -519,42 +517,42 @@ class AnalysePatch implements Runnable {
         final ImagePlus maska_im = new ImagePlus("test Mask vo2", maska_ims);
 
         final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);
-        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterInXY, /* threshold */ 0.5f, iParameters.excludeEdgesZ, iOversamplingInXY, iInterpolationXY);
-
-        // add to list with critical section
-        iImagePatches.addRegionsToList(fcr.getFoundRegions());
+        fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterXY, /* threshold */ 0.5f, iParameters.excludeEdgesZ, iOversamplingXY, iInterpolationXY);
 
         // add to regions refined with correct indexes
-        rescalePixelPositions(fcr.getFoundRegions());
+        final ArrayList<Region> foundRegions = fcr.getFoundRegions();
+        rescalePixelPositions(foundRegions);
+
+        return foundRegions;
     }
 
     private void rescalePixelPositions(ArrayList<Region> localList) {
         for (final Region r : localList) {
             for (final Pix p : r.iPixels) {
-                p.pz = p.pz + iOffsetOrigZ * iOverInterInZ;
-                p.px = p.px + iOffsetOrigX * iOverInterInXY;
-                p.py = p.py + iOffsetOrigY * iOverInterInXY;
+                p.pz = p.pz + iOffsetOrigZ * iOverInterZ;
+                p.px = p.px + iOffsetOrigX * iOverInterXY;
+                p.py = p.py + iOffsetOrigY * iOverInterXY;
             }
         }
     }
 
     private double[][][] createInterpolatedObject(double[][][] aInputData, double aThreshold) {
         // Build non interpolated image
-        ImageStack imgStack = new ImageStack(iSizeOversX, iSizeOversY);
-        for (int z = 0; z < iSizeOversZ; z++) {
-            final float[] pixels = new float[iSizeOversX * iSizeOversY];
-            for (int i = 0; i < iSizeOversX; i++) {
-                for (int j = 0; j < iSizeOversY; j++) {
-                    pixels[j * iSizeOversX + i] = (float) aInputData[z][i][j];
+        ImageStack imgStack = new ImageStack(iSizeOverX, iSizeOverY);
+        for (int z = 0; z < iSizeOverZ; z++) {
+            final float[] pixels = new float[iSizeOverX * iSizeOverY];
+            for (int i = 0; i < iSizeOverX; i++) {
+                for (int j = 0; j < iSizeOverY; j++) {
+                    pixels[j * iSizeOverX + i] = (float) aInputData[z][i][j];
                 }
             }
-            final FloatProcessor fp = new FloatProcessor(iSizeOversX, iSizeOversY, pixels);
+            final FloatProcessor fp = new FloatProcessor(iSizeOverX, iSizeOverY, pixels);
             imgStack.addSlice("", fp);
         }
         ImagePlus interpolatedImg = new ImagePlus("Object x", imgStack);
         
         // Interpolate in Z and XY planes
-        if (iSizeOverInterZ != iSizeOversZ) {
+        if (iSizeOverInterZ != iSizeOverZ) {
             interpolatedImg = new Resizer().zScale(interpolatedImg, iSizeOverInterZ, ImageProcessor.BILINEAR);
         }
         final ImageStack imgStackInter = new ImageStack(iSizeOverInterX, iSizeOverInterY);

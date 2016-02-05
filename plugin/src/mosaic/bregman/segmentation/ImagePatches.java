@@ -21,123 +21,100 @@ import net.imglib2.type.numeric.real.DoubleType;
 class ImagePatches {
     private static final Logger logger = Logger.getLogger(ImagePatches.class);
     
+    // Input params
     private final SegmentationParameters iParameters;
-    private ArrayList<Region> iRegionsList;
+    private final ArrayList<Region> iRegionsList;
     private final double[][][] iImage;
     private final double[][][] w3kbest;
-    private final double iMax;
-    private final double iMin;
-
-    private final int iOverInterInXY;
-    private final int iSizeX;
-    private final int iSizeY;
-    
-    private final int iOverInterInZ;
-    private final int iSizeZ;
-    
-    private final ArrayList<Region> iGlobalRegionsList;
-    private final short[][][] iRegions;
-    
-    private int iNumberOfJobs = 0;
-    private int iNumOfDoneJobs = 0;
-
+    private final double iGlobalMax;
+    private final double iGlobalMin;
     private final double iRegularization;
     private final double iMinObjectIntensity;
-    private  psf<DoubleType> iPsf;
-    private int oversampling2ndstep = 0;
+    private final psf<DoubleType> iPsf;
+
+    private final int iOversampling;
+    private final int iOverInterXY;
+    private final int iOverInterZ;
+    private final int iSizeOverInterX;
+    private final int iSizeOverInterY;
+    private final int iSizeOverInterZ;
+
+    // Output data
+    private ArrayList<Region> iOutputRegionsList;
+    private final short[][][] iOutputLabeledRegions;
     
-    ImagePatches(SegmentationParameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aMin, double aMax, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
-        logger.debug("ImagePatches ----------------------------");
+    
+    ImagePatches(SegmentationParameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
+        logger.debug("ImagePatches");
+        
+        // Save inputs
         iParameters = aParameters;
         iRegionsList = aRegionsList;
         iImage = aImage;
         w3kbest = w3k;
-        iMin = aMin;
-        iMax = aMax;
+        iGlobalMin = aGlobalMin;
+        iGlobalMax = aGlobalMax;
+        iRegularization = aRegularization;
+        iMinObjectIntensity = aMinObjectIntensity;
         iPsf = aPsf;
-        if (iParameters.interpolation > 1) {
-            oversampling2ndstep = 2;
-        }
-        else {
-            oversampling2ndstep = 1;
-        }
         
+        // Calculate geometry
         int ni = aImage[0].length;
         int nj = aImage[0][0].length;
         int nz = aImage.length;
-        iOverInterInXY = oversampling2ndstep * iParameters.interpolation;
-        iSizeX = ni * iOverInterInXY;
-        iSizeY = nj * iOverInterInXY;
-
-        iOverInterInZ = (nz == 1) ? 1 : oversampling2ndstep * iParameters.interpolation; 
-        iSizeZ = nz * iOverInterInZ;
+        iOversampling = (iParameters.interpolation > 1) ? 2 : 1;
+        iOverInterXY = iOversampling * iParameters.interpolation;
+        iOverInterZ = (nz == 1) ? 1 : iOversampling * iParameters.interpolation; 
+        iSizeOverInterX = ni * iOverInterXY;
+        iSizeOverInterY = nj * iOverInterXY;
+        iSizeOverInterZ = nz * iOverInterZ;
         
-        iGlobalRegionsList = new ArrayList<Region>();
-        iRegions = new short[iSizeZ][iSizeX][iSizeY];
-        
-        iRegularization = aRegularization;
-        iMinObjectIntensity = aMinObjectIntensity;
+        // Initialize outputs
+        iOutputRegionsList = new ArrayList<Region>();
+        iOutputLabeledRegions = new short[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
     }
 
     ArrayList<Region> getRegionsList() {
-        return iRegionsList;
+        return iOutputRegionsList;
     }
     
-    short[][][] getRegions() {
-        return iRegions;
+    short[][][] getLabeledRegions() {
+        return iOutputLabeledRegions;
     }
 
     /**
      * Patch creation, distribution and assembly
      */
-    void distributeRegions() {
-        // assuming rvoronoi and regionslists (objects) in same order (and same length)
-
-        iNumberOfJobs = iRegionsList.size();
-        for (final Region r : iRegionsList) {
-            AnalysePatch ap = new AnalysePatch(iImage, r, iParameters, oversampling2ndstep, this, w3kbest, iRegularization, iMinObjectIntensity, iPsf);
-            // TODO: It causes problems when run in more then 1 thread. Should be investigated why.
-            ap.run();
-        }
-
-        iRegionsList = iGlobalRegionsList;
-        assemble(iRegionsList, iRegions);
-        
-        // calculate regions properties
-        stepThreePostprocessing();
-
-        // if we have a big region with intensity near the background kill that region
-        boolean changed = false;
-        final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
-        for (final Region r : iRegionsList) {
-            // Here we solved the patches and the regions that come from the patches
-            // we rescale the intensity to the original one
-            r.intensity = r.intensity * (iMax - iMin) + iMin;
-
-            if (r.intensity > iParameters.minRegionIntensity) {
-                regionsListFiltered.add(r);
+    void processPatches() {
+        // ---------------------------------------------------------------------
+        // - Compute Patches and Regions in each patch 
+        // --------------------------------------------------------------------
+        int numberOfJobs = iRegionsList.size();
+        int numOfDoneJobs = 0;
+        int newLabel = 1;
+        for (final Region inputRegion : iRegionsList) {
+            AnalysePatch ap = new AnalysePatch(iImage, inputRegion, iParameters, iOversampling, w3kbest, iRegularization, iMinObjectIntensity, iPsf);
+            final ArrayList<Region> regions = ap.calculateRegions();
+            
+            for (final Region r : regions) {
+                r.iLabel = newLabel++;
+                iOutputRegionsList.add(r);
             }
-            else {
-                changed = true;
-            }
+            numOfDoneJobs++;
+            
+            double progress = 55 + (45 * ((double) numOfDoneJobs) / (numberOfJobs));
+            IJ.showStatus("Computing segmentation  " + Tools.round(progress, 2) + "%");
+            IJ.showProgress(progress/100);
         }
-        iRegionsList = regionsListFiltered;
-        
-        // if changed, reassemble
-        if (changed == true) {
-            ArrayOps.fill(iRegions, (short) 0);
-            assemble(iRegionsList, iRegions);
-        }
-        
-    }
+        generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
 
-    private void stepThreePostprocessing() {
-        //  ========================      Postprocessing phase
-        // Well we did not finished yet at this stage you can have several artifact produced by the patches
-        // for example one region can be segmented partially by two patches, this mean that at least in theory
-        // you should repatch (this produce a finer decomposition) again and rerun the second stage until each
-        // patches has one and only one region. The method eventually converge because it always produce finer 
-        // decomposition, in the opposite case you stop.
+        // --------------------------------------------------------------------
+        // - Postprocess computed regions -------------
+        // --------------------------------------------------------------------
+        // At this stage you can have several artifact produced by the patches for example one region can be segmented 
+        // partially by two patches, this mean that at least in theory you should repatch (this produce a finer decomposition) 
+        // again and rerun the second stage until each patches has one and only one region. 
+        // The method eventually converge because it always produce finer decomposition, in the opposite case you stop.
         // The actual patching algorithm use a first phase Split-Bregman segmentation + Threasholding + Voronoi 
         // (unfortunately only 2D, for 3D a 2D Maximum projection is computed)
         // The 2D Maximal projection unfortunately complicate even more the things, and produce even more artifacts,
@@ -151,71 +128,71 @@ class ImagePatches {
         // on the leaf ( other algorithms can be implemented to analyze this graph ... )
         //
         // (Temporarily we fix in this way)
-        // Save the old intensity label image as an hashmap (to save memory) run find connected region to recompute 
-        // the regions again. Recompute the statistics using the old intensity label image.
-
-        // we run find connected regions
-        final LabelImage img = new LabelImage(iRegions);
+        // Run find connected region to recompute the regions again. Recompute regions list and labeled regions.
+        final LabelImage img = new LabelImage(iOutputLabeledRegions);
         img.connectedComponents();
         
-        final HashMap<Integer, ArrayList<Pix>> r_list = new HashMap<Integer, ArrayList<Pix>>();
-    
-        // Run on all pixels of the label to add pixels to the regions
+        final HashMap<Integer, ArrayList<Pix>> newRegionList = new HashMap<Integer, ArrayList<Pix>>();
         final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
         while (rit.hasNext()) {
             final Point p = rit.next();
-            final int lbl = img.getLabel(p);
-            if (lbl != 0) {
+            final int label = img.getLabel(p);
+            if (label != 0) {
                 // foreground
-                ArrayList<Pix> r = r_list.get(lbl);
-                if (r == null) {
-                    r = new ArrayList<Pix>();
-                    r_list.put(lbl, r);
+                ArrayList<Pix> pixels = newRegionList.get(label);
+                if (pixels == null) {
+                    pixels = new ArrayList<Pix>();
+                    newRegionList.put(label, pixels);
                 }
-                r.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
+                pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
             }
         }
         
-        iRegionsList.clear();
-        for (Entry<Integer, ArrayList<Pix>> e : r_list.entrySet()) {
-            iRegionsList.add(new Region(e.getKey(), e.getValue()));
+        iOutputRegionsList.clear();
+        for (Entry<Integer, ArrayList<Pix>> e : newRegionList.entrySet()) {
+            iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
         }
         
         // Now we run Object properties on this regions list, it is not needed to zeroed iRegions since
         // it overwrite all pixels of old regions with new values
-        assemble(iRegionsList, iRegions);
-    
-        for (final Region r : iRegionsList) {
-            final ObjectProperties obj = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
+        generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
+        
+        // --------------------------------------------------------------------
+        // - Compute regions properties (intensity...)
+        // --------------------------------------------------------------------
+        for (final Region r : iOutputRegionsList) {
+            final ObjectProperties obj = new ObjectProperties(iImage, r, iOutputLabeledRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeOverInterX, iSizeOverInterY, iSizeOverInterZ, iOverInterXY, iOverInterZ);
             obj.run();
         }
-    }
-    
-    /**
-     * Assemble the result
-     * @param aRegionsListRefined List of regions to assemble
-     * @param aRegionsRefined regions refined
-     */
-    static void assemble(Collection<Region> aRegionsListRefined, short[][][] aRegionsRefined) {
-        for (final Region r : aRegionsListRefined) {
-            for (final Pix p : r.iPixels) {
-                aRegionsRefined[p.pz][p.px][p.py] = (short) r.iLabel;
+
+        // --------------------------------------------------------------------
+        // - Filter regions - remove these with small intensity
+        // --------------------------------------------------------------------
+        final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
+        for (final Region r : iOutputRegionsList) {
+            // Rescale the intensity to the original one
+            r.intensity = r.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
+
+            if (r.intensity >= iParameters.minRegionIntensity) {
+                regionsListFiltered.add(r);
             }
         }
+        // Number of regions changed, re-compute labeledRegions
+        if (regionsListFiltered.size() != iOutputRegionsList.size()) {
+            ArrayOps.fill(iOutputLabeledRegions, (short) 0);
+            generateLabeledRegions(regionsListFiltered, iOutputLabeledRegions);
+        }
+        iOutputRegionsList = regionsListFiltered;
     }
 
-    synchronized void addRegionsToList(ArrayList<Region> localList) {
-        for (final Region r : localList) {
-            // Relabel region - each AnalysePatch starts numbering from same number
-            int index = iGlobalRegionsList.size() + 1;
-            r.iLabel = index;
-            System.out.println("----> " + r.iLabel);
-            iGlobalRegionsList.add(r);
+    /**
+     * Generate labeled regions from provided list of regions
+     */
+    private void generateLabeledRegions(Collection<Region> aRegionsList, short[][][] aOutputRegions) {
+        for (final Region r : aRegionsList) {
+            for (final Pix p : r.iPixels) {
+                aOutputRegions[p.pz][p.px][p.py] = (short) r.iLabel;
+            }
         }
-
-        iNumOfDoneJobs++;
-
-        IJ.showStatus("Computing segmentation  " + Tools.round(55 + (45 * ((double) iNumOfDoneJobs) / (iNumberOfJobs)), 2) + "%");
-        IJ.showProgress(0.55 + 0.45 * (iNumOfDoneJobs) / (iNumberOfJobs));
     }
 }

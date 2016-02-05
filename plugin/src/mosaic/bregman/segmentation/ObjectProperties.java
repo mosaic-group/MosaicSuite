@@ -11,6 +11,7 @@ import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
+
 class ObjectProperties implements Runnable {
     // Input parameters
     private final double[][][] iImage;

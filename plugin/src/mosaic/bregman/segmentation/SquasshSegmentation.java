@@ -91,18 +91,15 @@ public class SquasshSegmentation {
     private void stepTwoSegmentation() {
         out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
      
-        // ========================      Compute segmentation
         computeConnectedRegions(iSolver.w3kbest);
-        
-        // refinement
         computeVoronoiRegions(iSolver.w3kbest);
         IJ.showStatus("Computing segmentation 55%");
         IJ.showProgress(0.55);
     
         final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
-        ipatches.distributeRegions();
+        ipatches.processPatches();
         iRegionsList = ipatches.getRegionsList();
-        regions = ipatches.getRegions();
+        regions = ipatches.getLabeledRegions();
     }
 
     private GaussPSF<DoubleType> generatePsf() {
