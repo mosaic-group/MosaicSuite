@@ -64,8 +64,8 @@ public class SquasshSegmentation {
         iPsf = generatePsf();
         
         iSolver = (nz > 1) 
-                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf)
-                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf);
+                ? new ASplitBregmanSolver3D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf)
+                : new ASplitBregmanSolver2D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf);
     }
 
     public void run() {        

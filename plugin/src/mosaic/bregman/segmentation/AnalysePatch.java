@@ -319,8 +319,8 @@ class AnalysePatch {
             clBetaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
         ASplitBregmanSolver A_solver = (iSizeOverZ > 1)
-                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf)
-                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf);
+                ? new ASplitBregmanSolver3D(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf)
+                : new ASplitBregmanSolver2D(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf);
 
         A_solver.second_run();
 

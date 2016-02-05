@@ -23,7 +23,7 @@ class ZoneTask3D implements Runnable {
     private final CountDownLatch Sync12;
     private final CountDownLatch Sync13;
     private final CountDownLatch Dct;
-    private final ASplitBregmanSolverTwoRegions3DPSF AS;
+    private final ASplitBregmanSolver3D AS;
     private final int iStart, iEnd, jStart, jEnd, nt;
     private final Tools LocalTools;
     private final boolean iEvaluateEnergy;
@@ -31,7 +31,7 @@ class ZoneTask3D implements Runnable {
     
     ZoneTask3D(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Sync5, CountDownLatch Sync6, CountDownLatch Sync7,
             CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, CountDownLatch Sync13, CountDownLatch Dct, int iStart, int iEnd,
-            int jStart, int jEnd, int nt, ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools, boolean aEvaluateEnergy, boolean aLastIteration) {
+            int jStart, int jEnd, int nt, ASplitBregmanSolver3D AS, Tools tTools, boolean aEvaluateEnergy, boolean aLastIteration) {
         this.LocalTools = tTools;
         this.ZoneDoneSignal = ZoneDoneSignal;
         this.Sync1 = Sync1;
