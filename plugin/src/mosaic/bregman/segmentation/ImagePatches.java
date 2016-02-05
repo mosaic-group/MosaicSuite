@@ -102,11 +102,8 @@ class ImagePatches {
         iRegionsList = iGlobalRegionsList;
         assemble(iRegionsList, iRegions);
         
-        // calculate regions intensities
-        for (final Region r : iRegionsList) {
-            ObjectProperties op = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
-            op.run();
-        }
+        // calculate regions properties
+        stepThreePostprocessing();
 
         // here we analyse the patch
         // if we have a big region with intensity near the background kill that region
@@ -128,7 +125,6 @@ class ImagePatches {
             assemble(iRegionsList, iRegions);
         }
         
-        stepThreePostprocessing();
     }
 
     private void stepThreePostprocessing() {
@@ -177,12 +173,15 @@ class ImagePatches {
         }
     
         // Now we run Object properties on this regions list
-        ImagePatches.assemble(r_list.values(), iRegions);
+        assemble(r_list.values(), iRegions);
     
         for (final Region r : r_list.values()) {
             final ObjectProperties obj = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
             obj.run();
+            r.points = r.pixels.size();
         }
+        
+        iRegionsList.clear(); iRegionsList.addAll(r_list.values());
     }
     /**
      * Assemble the result

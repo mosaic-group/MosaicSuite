@@ -244,11 +244,11 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
-    @org.junit.Ignore
+//    @org.junit.Ignore
     public void testCluster()  {
         
         // Define test data
-        final String tcDirName           = "Squassh_cluster/file_dir/";
+        final String tcDirName           = "Squassh/cluster/";
         final String setupString         = "run";
         final String macroOptions        = "username=" + System.getProperty("user.name");
         final String inputFile           = null;

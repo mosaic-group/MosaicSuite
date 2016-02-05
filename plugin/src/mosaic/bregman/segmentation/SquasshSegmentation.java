@@ -15,6 +15,7 @@ import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -43,6 +44,8 @@ public class SquasshSegmentation {
     
     public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
         logger.debug(aParameters);
+        logger.debug("Input Image dimensions:" + Debug.getArrayDims(aInputImg));
+        logger.debug("Global min/max: " + aGlobalMin + " / " + aGlobalMax);
         
         iParameters = aParameters;
         iGlobalMin = aGlobalMin;
@@ -51,7 +54,6 @@ public class SquasshSegmentation {
         ni = aInputImg[0].length;
         nj = aInputImg[0][0].length;
         nz = aInputImg.length;
-
         iImage = new double[nz][ni][nj];
         ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
 

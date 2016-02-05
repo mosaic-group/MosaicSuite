@@ -6,7 +6,6 @@ import java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.Debug;
 import net.imglib2.type.numeric.real.DoubleType;
 
 

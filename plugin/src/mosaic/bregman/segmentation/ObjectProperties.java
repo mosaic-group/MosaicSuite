@@ -4,10 +4,10 @@ package mosaic.bregman.segmentation;
 import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.Duplicator;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
@@ -15,21 +15,21 @@ class ObjectProperties implements Runnable {
     // Input parameters
     private final double[][][] iImage;
     private final Region iRegion;
-    private final short[][][] iRegions;
+    private final short[][][] iSingleRegion;
     private  psf<DoubleType> iPsf;
     private final double iBetaMleOut;
     private final double iBetaMleIn;
 
     private final int nx, ny, nz;// size of full oversampled work zone
-    private final int osxy, osz;
+    private final int osxy, osz; // oversampling
     private int sx, sy, sz;// size for object
-    private int cx, cy, cz;// coord of patch in full work zone (offset)
+    private int cx, cy, cz;// offset of patch
     
     
-    ObjectProperties(double[][][] aImage, Region aRegion, short[][][] aRegions, psf<DoubleType> aPsf, double aBetaMleOut, double aBetaMleIn, int nx, int ny,  int nz, int osxy, int osz) {
+    ObjectProperties(double[][][] aImage, Region aRegion, short[][][] aSingleRegion, psf<DoubleType> aPsf, double aBetaMleOut, double aBetaMleIn, int nx, int ny,  int nz, int osxy, int osz) {
         iImage = aImage;
         iRegion = aRegion;
-        iRegions = aRegions;
+        iSingleRegion = aSingleRegion;
         iPsf = aPsf;
         iBetaMleOut = aBetaMleOut;
         iBetaMleIn = aBetaMleIn;
@@ -40,7 +40,7 @@ class ObjectProperties implements Runnable {
         this.osxy = osxy;
         this.osz = osz;
         
-        set_patch_geom(aRegion);
+        calculatePatchGeometry(aRegion);
     }
 
     @Override
@@ -54,13 +54,12 @@ class ObjectProperties implements Runnable {
 
         // Probably some stuff for saving images - recalculations etc.
         calculateRegionCenter(iRegion);
-        iRegion.perimeter = calculatePerimeter(iRegion, iRegions);
-        calculateLength(iRegion, iRegions);
+        iRegion.perimeter = calculatePerimeter(iRegion, iSingleRegion);
+        calculateLength(iRegion, iSingleRegion);
     }
 
     private double[][][] fillPatch(double[][][] image) {
         double[][][] patchResult = new double[sz][sx][sy];
-        mosaic.utils.Debug.print("SIZE OBJ: ", sz, sx, sy);
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
@@ -84,9 +83,9 @@ class ObjectProperties implements Runnable {
         return result;
     }
 
-    private double estimateIntensity(double[][][] mask, double[][][] aPatch) {
+    private double estimateIntensity(double[][][] aMask, double[][][] aPatch) {
         double[][][][] temp = new double[3][sz][sx][sy];
-        Tools.normalizeAndConvolveMask(temp[2], mask, iPsf, temp[0], temp[1]);
+        Tools.normalizeAndConvolveMask(temp[2], aMask, iPsf, temp[0], temp[1]);
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], aPatch, null, 10, iBetaMleOut, iBetaMleIn);
         RSS.eval(temp[2] /* convolved mask */);
         return RSS.betaMLEin;
@@ -194,8 +193,8 @@ class ObjectProperties implements Runnable {
         r.length = ((double) length) / (osxy * osz);
     }
 
-    private void set_patch_geom(Region r) {
-        Pix[] mm = r.getMinMaxCoordinates();
+    private void calculatePatchGeometry(Region aRegion) {
+        Pix[] mm = aRegion.getMinMaxCoordinates();
         Pix min = mm[0]; Pix max = mm[1];
         int xmin = min.px;
         int ymin = min.py;
@@ -203,6 +202,7 @@ class ObjectProperties implements Runnable {
         int xmax = max.px;
         int ymax = max.py;
         int zmax = max.pz;
+        
         
         final int margin = 5;
         final int zmargin = 2;
@@ -221,5 +221,7 @@ class ObjectProperties implements Runnable {
 
         sz = (zmax - zmin);
         cz = zmin;
+        mosaic.utils.Debug.print(Debug.getArrayDims(iImage));
+        mosaic.utils.Debug.print(min, max, sx, sy, sz, cx, cy, cz, osxy, osz);
     }
 }

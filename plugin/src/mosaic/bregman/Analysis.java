@@ -4,6 +4,8 @@ package mosaic.bregman;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -29,6 +31,7 @@ import mosaic.utils.io.csv.CsvColumnConfig;
 
 
 public class Analysis {
+    private static final Logger logger = Logger.getLogger(Analysis.class);
     // This is the output for cluster
     public final static String out[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
                                         "*_mask_c1.zip", "*_mask_c2.zip", 
@@ -251,8 +254,6 @@ public class Analysis {
         }
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
         
-        // TODO: Temporary copying for further cleaning up of parameters. When it is done
-        //       some constructor would be nice.
         SegmentationParameters sp = new SegmentationParameters(
                                                     iParameters.nthreads,
                                                     ((Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
@@ -266,6 +267,7 @@ public class Analysis {
                                                     iParameters.min_region_filter_intensities );
         
         //  ============== SEGMENTATION
+        logger.debug("------------------- Segmentation of channel: " + channel + ", frame: " + frame);
         SquasshSegmentation rg = new SquasshSegmentation(iImage, sp, min, max);
         if (iParameters.patches_from_file == null) {
             rg.run();
@@ -277,8 +279,8 @@ public class Analysis {
         iOutputImgScale = rg.regions[0].length / ni;
         regionslist.set(channel, rg.iRegionsList);
         regions[channel] = rg.regions;
+        logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
-        
         IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
             if (out_soft_mask[channel] == null) {

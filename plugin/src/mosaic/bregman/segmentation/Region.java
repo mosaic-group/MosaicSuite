@@ -15,7 +15,7 @@ public class Region implements Comparable<Region> {
     public float over_int;
     public float over_size;
     public float overlap;
-    public final int points;
+    public int points;
     public double coloc_o_int;
     public boolean colocpositive = false;
     public boolean singlec;
@@ -24,7 +24,7 @@ public class Region implements Comparable<Region> {
     public double intensity; // estimated intensity
     public double length;
     public double perimeter;
-    public float rsize; // reale size in pixels (interpolation and/or oversampling taken into account)
+    public float rsize; // real size in pixels (interpolation and/or oversampling taken into account)
     float cx, cy, cz; // region center
 
     int value;
