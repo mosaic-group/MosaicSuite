@@ -15,6 +15,7 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.Debug;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -45,7 +46,7 @@ class ImagePatches {
     
     
     ImagePatches(SegmentationParameters aParameters, ArrayList<Region> aRegionsList, double[][][] aImage, double[][][] w3k, double aGlobalMin, double aGlobalMax, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
-        logger.debug("ImagePatches");
+        logger.debug("ImagePatches: numOfInputRegions: " + aRegionsList.size() + ", inputImage: " + Debug.getArrayDims(aImage));
         
         // Save inputs
         iParameters = aParameters;
@@ -72,6 +73,8 @@ class ImagePatches {
         // Initialize outputs
         iOutputRegionsList = new ArrayList<Region>();
         iOutputLabeledRegions = new short[iSizeOverInterZ][iSizeOverInterX][iSizeOverInterY];
+
+        logger.debug("              oversampling/interpolation: " + iOversampling + " / " + iParameters.interpolation);
     }
 
     ArrayList<Region> getRegionsList() {
@@ -107,7 +110,7 @@ class ImagePatches {
             IJ.showProgress(progress/100);
         }
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
-
+        logger.debug("number of found regions: " + iOutputRegionsList.size() + ", output label regions: " + Debug.getArrayDims(iOutputLabeledRegions));
         // --------------------------------------------------------------------
         // - Postprocess computed regions 
         // --------------------------------------------------------------------
