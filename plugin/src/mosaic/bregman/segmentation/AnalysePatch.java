@@ -59,6 +59,7 @@ class AnalysePatch {
     private final Tools iLocalTools;
     private final SegmentationParameters iParameters;
     
+    final double iMinObjectIntensity;
     final double iIntensityMin;
     final double iIntensityMax;
     private final double iScaledIntensityMin;
@@ -84,7 +85,6 @@ class AnalysePatch {
     private final double[][][] temp3;
 
     private final double iRegulariztionPatch;
-    private final double iMinObjectIntensity;
     private final psf<DoubleType> iPsf;
     /**
      * Create patches
@@ -319,8 +319,8 @@ class AnalysePatch {
             clBetaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
         ASplitBregmanSolver A_solver = (iSizeOverZ > 1)
-                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iMinObjectIntensity, iPsf)
-                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iMinObjectIntensity, iPsf);
+                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf)
+                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf);
 
         A_solver.second_run();
 

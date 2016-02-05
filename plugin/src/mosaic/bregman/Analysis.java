@@ -276,9 +276,9 @@ public class Analysis {
             rg.runWithProvidedMask(generateMaskFromPatches(nz, ni, nj));
         }
         
-        iOutputImgScale = rg.regions[0].length / ni;
+        iOutputImgScale = rg.iLabeledRegions[0].length / ni;
         regionslist.set(channel, rg.iRegionsList);
-        regions[channel] = rg.regions;
+        regions[channel] = rg.iLabeledRegions;
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
         IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");

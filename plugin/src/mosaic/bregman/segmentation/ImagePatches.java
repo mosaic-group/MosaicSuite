@@ -109,7 +109,7 @@ class ImagePatches {
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
 
         // --------------------------------------------------------------------
-        // - Postprocess computed regions -------------
+        // - Postprocess computed regions 
         // --------------------------------------------------------------------
         // At this stage you can have several artifact produced by the patches for example one region can be segmented 
         // partially by two patches, this mean that at least in theory you should repatch (this produce a finer decomposition) 

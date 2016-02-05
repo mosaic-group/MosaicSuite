@@ -20,7 +20,6 @@ abstract class ASplitBregmanSolver {
     protected double iBetaMleOut;
     protected double iBetaMleIn;
     final double iRegularization;
-    private final double iMinObjectIntensity;
     protected final psf<DoubleType> iPsf;
 
     // Internal data
@@ -51,14 +50,13 @@ abstract class ASplitBregmanSolver {
     protected double[][][] temp4;
     
     
-    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] aImage, double[][][] aMask, AnalysePatch aAnalazePatch, double aBetaMleOut, double aBetaMleIn, double aRegularization, double aMinObjectIntensity, psf<DoubleType> aPsf) {
+    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] aImage, double[][][] aMask, AnalysePatch aAnalazePatch, double aBetaMleOut, double aBetaMleIn, double aRegularization, psf<DoubleType> aPsf) {
         iParameters = aParameters;
         iImage = aImage;
         iAnalysePatch = aAnalazePatch;
         iBetaMleOut = aBetaMleOut;
         iBetaMleIn = aBetaMleIn;
         iRegularization = aRegularization;
-        iMinObjectIntensity = aMinObjectIntensity;
         iPsf = aPsf;
         ni = aImage[0].length; 
         nj = aImage[0][0].length;
@@ -163,7 +161,7 @@ abstract class ASplitBregmanSolver {
                     iAnalysePatch.find_best_thresh_and_int(w3k);
                     betaMle[0] = Math.max(0, iAnalysePatch.cout);
                     // lower bound withg some margin
-                    betaMle[1] = Math.max(0.75 * (iMinObjectIntensity - iAnalysePatch.iIntensityMin) / (iAnalysePatch.iIntensityMax - iAnalysePatch.iIntensityMin), iAnalysePatch.cin);
+                    betaMle[1] = Math.max(0.75 * (iAnalysePatch.iMinObjectIntensity - iAnalysePatch.iIntensityMin) / (iAnalysePatch.iIntensityMax - iAnalysePatch.iIntensityMin), iAnalysePatch.cin);
                     init();
                     if (iParameters.debug) {
                         IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + " pcout" + betaMle[1]);

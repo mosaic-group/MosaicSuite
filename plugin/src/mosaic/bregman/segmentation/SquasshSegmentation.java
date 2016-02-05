@@ -37,7 +37,7 @@ public class SquasshSegmentation {
     
     // Output of segmentation
     // TODO: Make it accessible via getters
-    public short[][][] regions;
+    public short[][][] iLabeledRegions;
     public ArrayList<Region> iRegionsList;
     public ImagePlus out_soft_mask;
     
@@ -64,8 +64,8 @@ public class SquasshSegmentation {
         iPsf = generatePsf();
         
         iSolver = (nz > 1) 
-                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iParameters.minObjectIntensity, iPsf)
-                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
+                ? new ASplitBregmanSolverTwoRegions3DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf)
+                : new ASplitBregmanSolverTwoRegions2DPSF(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf);
     }
 
     public void run() {        
@@ -99,7 +99,7 @@ public class SquasshSegmentation {
         final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
         ipatches.processPatches();
         iRegionsList = ipatches.getRegionsList();
-        regions = ipatches.getLabeledRegions();
+        iLabeledRegions = ipatches.getLabeledRegions();
     }
 
     private GaussPSF<DoubleType> generatePsf() {
@@ -147,7 +147,7 @@ public class SquasshSegmentation {
         final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
         fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * iParameters.minObjectIntensity), iParameters.excludeEdgesZ, 1, 1);
         
-        regions = fcr.getLabeledRegions();
+        iLabeledRegions = fcr.getLabeledRegions();
         iRegionsList = fcr.getFoundRegions();
     }
     

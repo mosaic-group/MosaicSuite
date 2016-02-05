@@ -17,7 +17,7 @@ class ObjectProperties implements Runnable {
     private final double[][][] iImage;
     private final Region iRegion;
     private final short[][][] iSingleRegion;
-    private  psf<DoubleType> iPsf;
+    private final psf<DoubleType> iPsf;
     private final double iBetaMleOut;
     private final double iBetaMleIn;
 
