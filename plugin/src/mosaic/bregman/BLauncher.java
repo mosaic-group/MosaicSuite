@@ -503,7 +503,7 @@ public class BLauncher {
 
         // set green pixels
         for (final Region r : aRegionsListA) {
-            for (final Pix p : r.pixels) {
+            for (final Pix p : r.iPixels) {
                 final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
                 imagecolor[t + p.py * 3 + 1] = (byte) 255;
             }
@@ -511,7 +511,7 @@ public class BLauncher {
 
         // set red pixels
         for (final Region r : aRegionsListB) {
-            for (final Pix p : r.pixels) {
+            for (final Pix p : r.iPixels) {
                 final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
                 imagecolor[t + p.py * 3 + 0] = (byte) 255;
             }
@@ -644,7 +644,7 @@ public class BLauncher {
         // for each region draw the region with specified intensity
         for (final Region r : regionslist) {
             // for each pixel in the region
-            for (final Pix p : r.pixels) {
+            for (final Pix p : r.iPixels) {
                 pos[0] = p.px;
                 pos[1] = p.py;
                 pos[2] = p.pz;

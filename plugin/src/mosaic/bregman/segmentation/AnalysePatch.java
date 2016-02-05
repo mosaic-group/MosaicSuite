@@ -187,7 +187,7 @@ class AnalysePatch implements Runnable {
 
         rescaled_min_int_all = Math.max(0, (iScaledIntensityMin - cout) / (cin - cout));
         if (iParameters.debug) {
-            IJ.log(aInputRegion.value + "min all " + rescaled_min_int_all);
+            IJ.log(aInputRegion.iLabel + "min all " + rescaled_min_int_all);
         }
     }
 
@@ -228,11 +228,11 @@ class AnalysePatch implements Runnable {
     
         rescaled_min_int_all = Math.max((iScaledIntensityMin - cout) / (cin - cout), 0);
         if (iParameters.debug) {
-            IJ.log("fbest" + iInputRegion.value + "min all " + rescaled_min_int_all);
+            IJ.log("fbest" + iInputRegion.iLabel + "min all " + rescaled_min_int_all);
         }
     
         if (iParameters.debug) {
-            IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.value + " cin " + cin + " cout " + cout);
+            IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.iLabel + " cin " + cin + " cout " + cout);
         }
     
         return threshold;
@@ -248,7 +248,7 @@ class AnalysePatch implements Runnable {
         cin = RSS.betaMLEin;
     
         if (iParameters.debug) {
-            IJ.log("reg" + iInputRegion.value + "rescaled min int" + iScaledIntensityMin);
+            IJ.log("reg" + iInputRegion.iLabel + "rescaled min int" + iScaledIntensityMin);
             IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
         }
     }
@@ -298,7 +298,7 @@ class AnalysePatch implements Runnable {
                 IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
                 IJ.log("levels :");
                 for (int i = 0; i < nk; i++) {
-                    IJ.log("level r" + iInputRegion.value + " " + (i + 1) + " : " + levels[i]);
+                    IJ.log("level r" + iInputRegion.iLabel + " " + (i + 1) + " : " + levels[i]);
                 }
             }
         }
@@ -337,7 +337,7 @@ class AnalysePatch implements Runnable {
         }
 
         if (iParameters.debug) {
-            IJ.log("region" + iInputRegion.value + "minth " + min_thresh);
+            IJ.log("region" + iInputRegion.iLabel + "minth " + min_thresh);
 
         }
         double t = 0;
@@ -346,7 +346,7 @@ class AnalysePatch implements Runnable {
 
             t_high = cin;
             if (iParameters.debug) {
-                IJ.log("obj" + iInputRegion.value + " effective t:" + t_high);
+                IJ.log("obj" + iInputRegion.iLabel + " effective t:" + t_high);
             }
             t = t_high - 0.04;
         }
@@ -355,7 +355,7 @@ class AnalysePatch implements Runnable {
         }
 
         if (iParameters.debug) {
-            IJ.log("best thresh : " + t + "region" + iInputRegion.value);
+            IJ.log("best thresh : " + t + "region" + iInputRegion.iLabel);
         }
         set_object(A_solver.w3kbest, t);
         if (iInterpolationXY > 1) {
@@ -459,7 +459,7 @@ class AnalysePatch implements Runnable {
     private double[][][] generateMask(Region r, boolean aCheckBoundaries) {
         double[][][] mask = new double[iSizeOversZ][iSizeOversX][iSizeOversY];
 
-        for (final Pix p : r.pixels) {
+        for (final Pix p : r.iPixels) {
             int rz = iOversamplingInXY * (p.pz - iOffsetOrigZ);
             int rx = iOversamplingInXY * (p.px - iOffsetOrigX);
             int ry = iOversamplingInXY * (p.py - iOffsetOrigY);
@@ -525,16 +525,16 @@ class AnalysePatch implements Runnable {
         iImagePatches.addRegionsToList(fcr.getFoundRegions());
 
         // add to regions refined with correct indexes
-        assemble(fcr.getFoundRegions());
+        rescalePixelPositions(fcr.getFoundRegions());
     }
 
-    private void assemble(ArrayList<Region> localList) {
+    private void rescalePixelPositions(ArrayList<Region> localList) {
         for (final Region r : localList) {
-            final ArrayList<Pix> pixelsTemp = new ArrayList<Pix>(r.pixels.size());
-            for (final Pix p : r.pixels) {
-                pixelsTemp.add(new Pix(p.pz + iOffsetOrigZ * iOverInterInZ, p.px + iOffsetOrigX * iOverInterInXY, p.py + iOffsetOrigY * iOverInterInXY));
+            for (final Pix p : r.iPixels) {
+                p.pz = p.pz + iOffsetOrigZ * iOverInterInZ;
+                p.px = p.px + iOffsetOrigX * iOverInterInXY;
+                p.py = p.py + iOffsetOrigY * iOverInterInXY;
             }
-            r.pixels = pixelsTemp;
         }
     }
 

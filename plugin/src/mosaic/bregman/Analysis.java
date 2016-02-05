@@ -432,7 +432,7 @@ public class Analysis {
         double sizeColoc = 0;
         int nz = regions.length;
         final int osxy = iOutputImgScale;
-        for (Pix p : r.pixels) {
+        for (Pix p : r.iPixels) {
             int valcoloc = regions[p.pz][p.px][p.py];
             if (valcoloc > 0) {
                 countcoloc++;
@@ -440,7 +440,7 @@ public class Analysis {
                     oneColoc = false;
                 }
                 intColoc += regionlist.get(valcoloc - 1).intensity;
-                sizeColoc += regionlist.get(valcoloc - 1).points;
+                sizeColoc += regionlist.get(valcoloc - 1).iPixels.size();
                 previousvalcoloc = valcoloc;
             }
             count++;
@@ -468,7 +468,7 @@ public class Analysis {
 
         int count = 0;
         double sum = 0;
-        for (Pix p : r.pixels) {
+        for (Pix p : r.iPixels) {
             sum += image[p.pz / fz2][p.px / factor2][p.py / factor2];
             count++;
         }
@@ -512,7 +512,7 @@ public class Analysis {
     private static double totalsize(ArrayList<Region> aRegionsList) {
         double totalsize = 0;
         for (Region r : aRegionsList) {
-            totalsize += r.points;
+            totalsize += r.iPixels.size();
         }
         
         return totalsize;
@@ -535,7 +535,7 @@ public class Analysis {
 
         double size = 0;
         int inside = 0;
-        for (Pix px : r.pixels) {
+        for (Pix px : r.iPixels) {
             if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
                 inside++;
             }
@@ -587,7 +587,7 @@ public class Analysis {
     }
 
     private static void setRegionLabel(Region r, short[][][] regions, short label) {
-        for (Pix px : r.pixels) {
+        for (Pix px : r.iPixels) {
             regions[px.pz][px.px][px.py] = label;
         }
     }

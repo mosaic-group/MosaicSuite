@@ -366,6 +366,7 @@ public class CommonBase extends Info {
         ImagePlus ip = loadImagePlus(aFileName);
         if (ip == null) {
             logger.error("Failed to load: [" + aFileName + "]");
+            fail();
         }
         return ImagePlusAdapter.wrap(ip);
         

@@ -191,41 +191,34 @@ class FindConnectedRegions {
 
             // tag only if region not too small or big
             tag++;
-            Region region = new Region(maxValueInt, pointsInThisRegion);
-
+            ArrayList<Pix> pixels = new ArrayList<Pix>(pointsInThisRegion);
             for (int z = 0; z < depth; ++z) {
                 for (int y = 0; y < height; ++y) {
                     for (int x = 0; x < width; ++x) {
                         final byte status = pointState[width * (z * height + y) + x];
-
-                        if (status == IN_QUEUE) {
-                            IJ.log("BUG: point " + x + "," + y + "," + z + " is still marked as IN_QUEUE");
-                        }
-
                         if (status == ADDED) {
-                            if (region.points <= aMaximumPointsInRegion) {
-                                iLabeledRegions[z][x][y] = (short) tag;
-                                region.pixels.add(new Pix(z, x, y));
-                                region.value = tag;
-                            }
+                            iLabeledRegions[z][x][y] = (short) tag;
+                            pixels.add(new Pix(z, x, y));
+                        }
+                        else if (status == IN_QUEUE) {
+                            IJ.log("BUG: point " + x + "," + y + "," + z + " is still marked as IN_QUEUE");
                         }
                     }
                 }
             }
+            
+            Region region = new Region(tag, pixels);
 
             // Check for z Edge and maxvesiclesize
-            if (region.points <= aMaximumPointsInRegion) {
-                // check for z processing
-
-                if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
-                    regionCenter(region, oversampling2ndstep, interpolation);
-                    if (region.getcz() >= 1.0 && region.getcz() <= depth /*aThreshold.length*/ - 2) {
-                        iFoundRegions.add(region);
-                    }
-                }
-                else {
+            // check for z processing
+            if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
+                regionCenter(region, oversampling2ndstep, interpolation);
+                if (region.getcz() >= 1.0 && region.getcz() <= depth - 2) {
                     iFoundRegions.add(region);
                 }
+            }
+            else {
+                iFoundRegions.add(region);
             }
         }
 
@@ -236,12 +229,12 @@ class FindConnectedRegions {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (Pix p : r.pixels) {
+        for (Pix p : r.iPixels) {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
         }
-        int count = r.pixels.size();
+        int count = r.iPixels.size();
 
         r.cx = (float) (sumx / count);
         r.cy = (float) (sumy / count);

@@ -103,12 +103,6 @@ public class SquasshSegmentation {
         ipatches.distributeRegions();
         iRegionsList = ipatches.getRegionsList();
         regions = ipatches.getRegions();
-        
-        // Here we solved the patches and the regions that come from the patches
-        // we rescale the intensity to the original one
-        for (final Region r : iRegionsList) {
-            r.intensity = r.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
-        }
     }
 
     private GaussPSF<DoubleType> generatePsf() {
@@ -220,7 +214,7 @@ public class SquasshSegmentation {
         float[][][] Ri = new float[nz][ni][nj];
         ArrayOps.fill(Ri, 255);
         for (final Region r : regionsvoronoi) {
-            for (final Pix p : r.pixels) {
+            for (final Pix p : r.iPixels) {
                 Ri[p.pz][p.px][p.py] = regionsvoronoi.indexOf(r);
             }
         }
@@ -232,7 +226,7 @@ public class SquasshSegmentation {
 
     private void setRegionsObjsVoronoi(ArrayList<Region> aRegionsList, ArrayList<Region> aRegionsVoronoi, float[][][] aRi) {
         for (Region r : aRegionsList) {
-            final Pix pixel = r.pixels.get(0);
+            final Pix pixel = r.iPixels.get(0);
             int x = pixel.px;
             int y = pixel.py;
             int z = pixel.pz;

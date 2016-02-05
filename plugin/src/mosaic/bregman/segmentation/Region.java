@@ -6,29 +6,32 @@ import java.util.ArrayList;
 
 public class Region implements Comparable<Region> {
 
-    Region(int value, int points) {
-        this.value = value;
-        this.points = points;
+    Region(int aLabel, ArrayList<Pix> aPixels) {
+        iLabel = aLabel;
+        iPixels = aPixels;
     }
 
-    public ArrayList<Pix> pixels = new ArrayList<Pix>();
+    // Object definition
+    public final ArrayList<Pix> iPixels;
+    int iLabel;
+    
+    // Object properties
+    public double intensity; // estimated intensity
+    public double length; // length of skeleton
+    public double perimeter; // perimeter for 2D, surface for 3D
+    public float rsize; // real size in pixels (interpolation and/or oversampling taken into account)
+    float cx, cy, cz; // region center
+    
+    Region rvoronoi;
+
+    // Used only in regions analysis
     public float over_int;
     public float over_size;
     public float overlap;
-    public int points;
     public double coloc_o_int;
     public boolean colocpositive = false;
     public boolean singlec;
     
-    // Object properties
-    public double intensity; // estimated intensity
-    public double length;
-    public double perimeter;
-    public float rsize; // real size in pixels (interpolation and/or oversampling taken into account)
-    float cx, cy, cz; // region center
-
-    int value;
-    Region rvoronoi;
 
     /**
      * @return 2-element array of type Pix with {minPixCoord, maxPixCoord}
@@ -41,7 +44,7 @@ public class Region implements Comparable<Region> {
         int ymax = Integer.MIN_VALUE;
         int zmax = Integer.MIN_VALUE;
 
-        for (final Pix p : pixels) {
+        for (final Pix p : iPixels) {
             if (p.px < xmin) xmin = p.px;
             if (p.px > xmax) xmax = p.px;
             if (p.py < ymin) ymin = p.py;
@@ -58,7 +61,7 @@ public class Region implements Comparable<Region> {
     
     @Override
     public int compareTo(Region otherRegion) {
-        return (value < otherRegion.value) ? 1 : ((value > otherRegion.value) ? -1 : 0);
+        return (iLabel < otherRegion.iLabel) ? 1 : ((iLabel > otherRegion.iLabel) ? -1 : 0);
     }
 
     public double getcx() {

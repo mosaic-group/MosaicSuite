@@ -50,7 +50,7 @@ class ObjectProperties implements Runnable {
         double[][][] mask = fillMask(iRegion);
         double cin = estimateIntensity(mask, patch);
         iRegion.intensity = cin * (patchMinMax.getMax() - patchMinMax.getMin()) + patchMinMax.getMin();
-        iRegion.rsize = (float) Tools.round((iRegion.pixels.size()) / ((float) osxy * osxy * osz), 3);
+        iRegion.rsize = (float) Tools.round((iRegion.iPixels.size()) / ((float) osxy * osxy * osz), 3);
 
         // Probably some stuff for saving images - recalculations etc.
         calculateRegionCenter(iRegion);
@@ -73,7 +73,7 @@ class ObjectProperties implements Runnable {
     private double[][][] fillMask(Region r) {
         double[][][] result = new double[sz][sx][sy];
         
-        for (Pix p : r.pixels) {
+        for (Pix p : r.iPixels) {
             int rz = (p.pz - cz);
             int rx = (p.px - cx);
             int ry = (p.py - cy);
@@ -95,12 +95,12 @@ class ObjectProperties implements Runnable {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (Pix p : aRegion.pixels) {
+        for (Pix p : aRegion.iPixels) {
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
         }
-        int count = aRegion.pixels.size();
+        int count = aRegion.iPixels.size();
     
         aRegion.cx = (float) (sumx / count) / osxy;
         aRegion.cy = (float) (sumy / count) / osxy;
@@ -119,7 +119,7 @@ class ObjectProperties implements Runnable {
     private double regionPerimeter2D(Region aRegion, short[][][] aRegions) {
         int numOfFreeEdges = 0;
     
-        for (Pix p : aRegion.pixels) {
+        for (Pix p : aRegion.iPixels) {
             // not on edges of image
             if (p.px != 0 && p.px != nx - 1 && p.py != 0 && p.py != ny - 1) {
                 if (aRegions[p.pz][p.px - 1][p.py] == 0) numOfFreeEdges++;
@@ -138,7 +138,7 @@ class ObjectProperties implements Runnable {
     private double regionPerimeter3D(Region aRegion, short[][][] aRegions) {
         int numOfFreeEdges = 0;
     
-        for (Pix p : aRegion.pixels) {
+        for (Pix p : aRegion.iPixels) {
             // not on edges of image
             if (p.px != 0 && p.px != nx - 1 && p.py != 0 && p.py != ny - 1 && p.pz != 0 && p.pz != nz - 1) {
                 if (aRegions[p.pz][p.px - 1][p.py] == 0) numOfFreeEdges++;
@@ -183,7 +183,7 @@ class ObjectProperties implements Runnable {
         int length = 0;
         final ImageStack is = skel.getStack();
     
-        for (Pix v : r.pixels) {
+        for (Pix v : r.iPixels) {
             // count number of pixels in skeleton
             if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) {
                 length++;
@@ -222,6 +222,7 @@ class ObjectProperties implements Runnable {
         sz = (zmax - zmin);
         cz = zmin;
         mosaic.utils.Debug.print(Debug.getArrayDims(iImage));
+        mosaic.utils.Debug.print(Debug.getArrayDims(iSingleRegion));
         mosaic.utils.Debug.print(min, max, sx, sy, sz, cx, cy, cz, osxy, osz);
     }
 }

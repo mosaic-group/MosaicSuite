@@ -166,8 +166,8 @@ abstract class ASplitBregmanSolver {
                     betaMle[1] = Math.max(0.75 * (iMinObjectIntensity - iAnalysePatch.iIntensityMin) / (iAnalysePatch.iIntensityMax - iAnalysePatch.iIntensityMin), iAnalysePatch.cin);
                     init();
                     if (iParameters.debug) {
-                        IJ.log("region" + iAnalysePatch.iInputRegion.value + " pcout" + betaMle[1]);
-                        IJ.log("region" + iAnalysePatch.iInputRegion.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
+                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + " pcout" + betaMle[1]);
+                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
                     }
                 }
             }

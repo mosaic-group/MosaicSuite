@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -105,12 +106,15 @@ class ImagePatches {
         // calculate regions properties
         stepThreePostprocessing();
 
-        // here we analyse the patch
         // if we have a big region with intensity near the background kill that region
         boolean changed = false;
         final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
         for (final Region r : iRegionsList) {
-            if (r.intensity * (iMax - iMin) + iMin > iParameters.minRegionIntensity) {
+            // Here we solved the patches and the regions that come from the patches
+            // we rescale the intensity to the original one
+            r.intensity = r.intensity * (iMax - iMin) + iMin;
+
+            if (r.intensity > iParameters.minRegionIntensity) {
                 regionsListFiltered.add(r);
             }
             else {
@@ -153,8 +157,8 @@ class ImagePatches {
         // we run find connected regions
         final LabelImage img = new LabelImage(iRegions);
         img.connectedComponents();
-    
-        final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
+        
+        final HashMap<Integer, ArrayList<Pix>> r_list = new HashMap<Integer, ArrayList<Pix>>();
     
         // Run on all pixels of the label to add pixels to the regions
         final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
@@ -163,26 +167,30 @@ class ImagePatches {
             final int lbl = img.getLabel(p);
             if (lbl != 0) {
                 // foreground
-                Region r = r_list.get(lbl);
+                ArrayList<Pix> r = r_list.get(lbl);
                 if (r == null) {
-                    r = new Region(lbl, 0);
+                    r = new ArrayList<Pix>();
                     r_list.put(lbl, r);
                 }
-                r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
+                r.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
             }
         }
-    
-        // Now we run Object properties on this regions list
-        assemble(r_list.values(), iRegions);
-    
-        for (final Region r : r_list.values()) {
-            final ObjectProperties obj = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
-            obj.run();
-            r.points = r.pixels.size();
+        
+        iRegionsList.clear();
+        for (Entry<Integer, ArrayList<Pix>> e : r_list.entrySet()) {
+            iRegionsList.add(new Region(e.getKey(), e.getValue()));
         }
         
-        iRegionsList.clear(); iRegionsList.addAll(r_list.values());
+        // Now we run Object properties on this regions list, it is not needed to zeroed iRegions since
+        // it overwrite all pixels of old regions with new values
+        assemble(iRegionsList, iRegions);
+    
+        for (final Region r : iRegionsList) {
+            final ObjectProperties obj = new ObjectProperties(iImage, r, iRegions, iPsf, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iSizeX, iSizeY, iSizeZ, iOverInterInXY, iOverInterInZ);
+            obj.run();
+        }
     }
+    
     /**
      * Assemble the result
      * @param aRegionsListRefined List of regions to assemble
@@ -190,16 +198,18 @@ class ImagePatches {
      */
     static void assemble(Collection<Region> aRegionsListRefined, short[][][] aRegionsRefined) {
         for (final Region r : aRegionsListRefined) {
-            for (final Pix p : r.pixels) {
-                aRegionsRefined[p.pz][p.px][p.py] = (short) r.value;
+            for (final Pix p : r.iPixels) {
+                aRegionsRefined[p.pz][p.px][p.py] = (short) r.iLabel;
             }
         }
     }
 
     synchronized void addRegionsToList(ArrayList<Region> localList) {
         for (final Region r : localList) {
+            // Relabel region - each AnalysePatch starts numbering from same number
             int index = iGlobalRegionsList.size() + 1;
-            r.value = index;
+            r.iLabel = index;
+            System.out.println("----> " + r.iLabel);
             iGlobalRegionsList.add(r);
         }
 
