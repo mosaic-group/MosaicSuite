@@ -187,10 +187,11 @@ class AnalysePatch {
         double coutbest = 0.0001;
         double cin_previous = cin;
         double cout_previous = cout;
-       
+        boolean found = false;
         for (double thr = 0.95; thr > iRescaledMinIntensityAll * 0.96; thr -= 0.02) {
             set_object(w3kbest, thr);
             if (objectFound && !border_attained) {
+                found = true;
                 estimateIntensityRSS(result);
                 double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout, cin, iPatch, iParameters.noiseModel);
                 if (tempEnergy < bestEnergy) {
@@ -205,7 +206,8 @@ class AnalysePatch {
             }
         }
 
-        if (objectFound) {
+//        if (objectFound) {
+        if (found) {
             cin = cinbest;
             cout = coutbest;
             cout_front = cout;
