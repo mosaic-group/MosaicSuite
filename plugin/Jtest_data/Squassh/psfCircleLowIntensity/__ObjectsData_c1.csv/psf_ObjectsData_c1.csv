@@ -1,0 +1,3 @@
+Image_ID;Object_ID;Size;Perimeter;Length;Intensity;Coord_X;Coord_Y;Coord_Z
+%background:/tmp/test//psf.tif
+0;0;4584.0;304.0;1.0;143.52796519179302;73.66535949707031;62.607765197753906;0.0

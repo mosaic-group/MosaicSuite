@@ -4,6 +4,8 @@ package mosaic.bregman.segmentation;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -26,6 +28,8 @@ import net.sf.javaml.tools.DatasetTools;
 
 
 class AnalysePatch {
+    private static final Logger logger = Logger.getLogger(AnalysePatch.class);
+    
     // size of original image 
     private final int iSizeOrigX;
     private final int iSizeOrigY;
@@ -64,7 +68,7 @@ class AnalysePatch {
     private final double iScaledIntensityMin;
     double cin, cout; 
     private double cout_front;// estimated intensities
-    private final double[] clBetaMleIntensities = new double[2];
+    private final double[] betaMleIntensities = new double[2];
 
     private final double iRegulariztionPatch;
     
@@ -75,8 +79,6 @@ class AnalysePatch {
     
     private boolean border_attained = false;
     private boolean objectFound = false;
-    
-    private double min_thresh;
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
     private final double[][][] temp1;
@@ -103,48 +105,32 @@ class AnalysePatch {
         iInputRegion = aInputRegion;
         iParameters = aParameters;
         iPsf = aPsf;
-        cout = 0;
-        cin = 1;
 
-        // compute patch geometry
-        computePatchGeometry(aInputRegion, aOversampling, iParameters.interpolation);
-        
-        // create weights mask (binary)
-        iRegionMask = generateMask(aInputRegion.rvoronoi, true);// mask for voronoi region into weights
-
-        // create patch image with oversampling
-        iPatch = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
-        fill_patch(aInputImage, iPatch, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
-
-        // for testing
-        w3kpatch = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
-        fill_patch(w3kbest, w3kpatch, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
-        
-        // create object (for result)
-        result = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
-
-        // create mask
-        double[][][] mask = generateMask(aInputRegion, false);
-
+        computePatchGeometry(iInputRegion, aOversampling, iParameters.interpolation);
         iLocalTools = new Tools(iSizeOverX, iSizeOverY, iSizeOverZ);
         
+        iRegionMask = generateMask(iInputRegion.rvoronoi, true);
+        iPatch = fill_patch(aInputImage, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        w3kpatch = fill_patch(w3kbest, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
+        result = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        iRegulariztionPatch = aRegularization * iOversamplingXY;
+        iMinObjectIntensity = aMinObjectIntensity;
+        
+        temp1 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        temp2 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        temp3 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+
+        double[][][] mask = generateMask(iInputRegion, false);
+        
+        cout = 0;
+        cin = 1;
         // normalize
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
-        iMinObjectIntensity = aMinObjectIntensity;
-        iScaledIntensityMin = ( iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
-        if (iParameters.intensityMode == IntensityMode.HIGH) {
-            ArrayOps.normalize(w3kpatch[0]);
-        }
-
-        iRescaledMinIntensityAll = iMinObjectIntensity / 0.99;
-
-        temp1 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
-        temp2 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
-        temp3 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
+        iScaledIntensityMin = (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
         
-        iRegulariztionPatch = aRegularization * aOversampling;
+        iRescaledMinIntensityAll = iMinObjectIntensity / 0.99;
         
         // estimate ints
         if (iParameters.intensityMode == IntensityMode.AUTOMATIC) {
@@ -157,18 +143,60 @@ class AnalysePatch {
             estimate_int_clustering(iPatch, 4, false);
         }
         
-        clBetaMleIntensities[0] = Math.max(cout, 0);
-        clBetaMleIntensities[1] = Math.max(0.75 * (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
+        betaMleIntensities[0] = Math.max(cout, 0);
+        betaMleIntensities[1] = Math.max(0.75 * (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
 
         if (iParameters.intensityMode == IntensityMode.HIGH) {
-            clBetaMleIntensities[0] = iParameters.defaultBetaMleOut;
-            clBetaMleIntensities[1] = 1;
+            ArrayOps.normalize(w3kpatch);
+            betaMleIntensities[0] = iParameters.defaultBetaMleOut;
+            betaMleIntensities[1] = 1;
         }
 
         iRescaledMinIntensityAll = Math.max(0, (iScaledIntensityMin - cout) / (cin - cout));
-        if (iParameters.debug) {
-            IJ.log(aInputRegion.iLabel + "min all " + iRescaledMinIntensityAll);
+    }
+
+    /**
+     * Analyse one Patch
+     * Or run SplitBregman segmentation solver on it
+     * @return 
+     */
+    ArrayList<Region> calculateRegions() {
+        // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
+        if (Math.abs(betaMleIntensities[0] - betaMleIntensities[1]) > 2.0) {
+            betaMleIntensities[0] = iParameters.defaultBetaMleOut;
+            betaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
+        ASplitBregmanSolver solver = (iSizeOverZ > 1)
+                ? new ASplitBregmanSolver3D(iParameters, iPatch, w3kpatch, this, betaMleIntensities[0], betaMleIntensities[1], iRegulariztionPatch, iPsf)
+                : new ASplitBregmanSolver2D(iParameters, iPatch, w3kpatch, this, betaMleIntensities[0], betaMleIntensities[1], iRegulariztionPatch, iPsf);
+    
+        solver.second_run();
+    
+        cout = solver.getBetaMLE()[0];
+        cin = solver.getBetaMLE()[1];
+    
+        double t = 0;
+        if (iParameters.intensityMode == IntensityMode.HIGH) {
+            estimate_int_clustering(solver.w3kbest, 3, true);
+    
+            if (iParameters.debug) {
+                IJ.log("obj" + iInputRegion.iLabel + " effective t high:" + cin);
+            }
+            t = cin - 0.04;
+        }
+        else {
+            double minThreshold = (iParameters.intensityMode == IntensityMode.MEDIUM) ? 0.25 : iRescaledMinIntensityAll * 0.96;
+            t = find_best_thresh(solver.w3kbest, minThreshold);
+        }
+        logger.debug("Best found threshold: " + t + " in region: " + iInputRegion.iLabel);
+        
+        set_object(solver.w3kbest, t);
+        if (iInterpolationXY > 1) {
+            result = createInterpolatedObject(solver.w3kbest, t);
+        }
+    
+        // assemble result into full image
+        return assemble_patch();
     }
 
     double find_best_thresh_and_int(double[][][] w3kbest) {
@@ -200,7 +228,6 @@ class AnalysePatch {
         cin = cinbest;
         cout = coutbest;
         cout_front = cout;
-    mosaic.utils.Debug.print("OBJECT FOUND: ", objectFound, border_attained);
         if (!objectFound) {
             cin = cin_previous;
             cout = cout_previous;
@@ -229,10 +256,8 @@ class AnalysePatch {
             IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
         }
     }
-    // 2 - A_solver.w3kbest, 3, aUpdateCout true
-    // 1 - iPatch, 4
+
     private void estimate_int_clustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
-        
         final double[] pixel = new double[1];
         int cpt_vals = 0;
         final Dataset data = new DefaultDataset();
@@ -284,62 +309,6 @@ class AnalysePatch {
             cout_front = iParameters.defaultBetaMleOut;
             cout = iParameters.defaultBetaMleOut;
         }
-    }
-
-    /**
-     * Analyse one Patch
-     * Or run SplitBregman segmentation solver on it
-     * @return 
-     */
-    public ArrayList<Region> calculateRegions() {
-        // Check the delta beta, if it is bigger than two ignore it, because I cannot warrant stability
-        if (Math.abs(clBetaMleIntensities[0] - clBetaMleIntensities[1]) > 2.0) {
-            clBetaMleIntensities[0] = iParameters.defaultBetaMleOut;
-            clBetaMleIntensities[1] = iParameters.defaultBetaMleIn;
-        }
-        ASplitBregmanSolver A_solver = (iSizeOverZ > 1)
-                ? new ASplitBregmanSolver3D(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf)
-                : new ASplitBregmanSolver2D(iParameters, iPatch, w3kpatch, this, clBetaMleIntensities[0], clBetaMleIntensities[1], iRegulariztionPatch, iPsf);
-
-        A_solver.second_run();
-
-        cout = A_solver.getBetaMLE()[0];
-        cin = A_solver.getBetaMLE()[1];
-
-        if (iParameters.intensityMode == IntensityMode.AUTOMATIC || iParameters.intensityMode == IntensityMode.LOW) {
-            min_thresh = iRescaledMinIntensityAll * 0.96;
-        }
-        else {
-            min_thresh = 0.25;
-        }
-
-        if (iParameters.debug) {
-            IJ.log("region" + iInputRegion.iLabel + "minth " + min_thresh);
-
-        }
-        double t = 0;
-        if (iParameters.intensityMode == IntensityMode.HIGH) {
-            estimate_int_clustering(A_solver.w3kbest, 3, true);
-
-            if (iParameters.debug) {
-                IJ.log("obj" + iInputRegion.iLabel + " effective t high:" + cin);
-            }
-            t = cin - 0.04;
-        }
-        else {
-            t = find_best_thresh(A_solver.w3kbest);
-        }
-
-        if (iParameters.debug) {
-            IJ.log("best thresh : " + t + "region" + iInputRegion.iLabel);
-        }
-        set_object(A_solver.w3kbest, t);
-        if (iInterpolationXY > 1) {
-            result = createInterpolatedObject(A_solver.w3kbest, t);
-        }
-
-        // assemble result into full image
-        return assemble_patch();
     }
 
     private void set_object(double[][][] w3kbest, double aThreshold) {
@@ -429,21 +398,23 @@ class AnalysePatch {
         iSizeOverInterZ = iSizeOverZ * iInterpolationZ;
     }
 
-    private void fill_patch(double[][][] aSourceImage, double[][][] aOutput, double[][][] aWeights, int aOversamplingXY, int aOversamplingZ, int aOffsetX, int aOffsetY, int aOffsetZ) {
+    private double[][][] fill_patch(double[][][] aSourceImage, double[][][] aWeights, int aOversamplingXY, int aOversamplingZ, int aOffsetX, int aOffsetY, int aOffsetZ) {
+        double[][][] result = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
         for (int z = 0; z < iSizeOverZ; z++) {
             for (int i = 0; i < iSizeOverX; i++) {
                 for (int j = 0; j < iSizeOverY; j++) {
                     // aWeights are set to 0 or 1.
-                    aOutput[z][i][j] = aWeights[z][i][j] * aSourceImage[z / aOversamplingZ + aOffsetZ][i / aOversamplingXY + aOffsetX][j / aOversamplingXY + aOffsetY];
+                    result[z][i][j] = aWeights[z][i][j] * aSourceImage[z / aOversamplingZ + aOffsetZ][i / aOversamplingXY + aOffsetX][j / aOversamplingXY + aOffsetY];
                 }
             }
         }
+        return result;
     }
 
-    private double[][][] generateMask(Region r, boolean aCheckBoundaries) {
+    private double[][][] generateMask(Region aRegion, boolean aCheckBoundaries) {
         double[][][] mask = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
 
-        for (final Pix p : r.iPixels) {
+        for (final Pix p : aRegion.iPixels) {
             int rz = iOversamplingXY * (p.pz - iOffsetOrigZ);
             int rx = iOversamplingXY * (p.px - iOffsetOrigX);
             int ry = iOversamplingXY * (p.py - iOffsetOrigY);
@@ -468,11 +439,11 @@ class AnalysePatch {
      * @param w3kbest the mask
      * @return the best threshold based on energy calculation
      */
-    private double find_best_thresh(double[][][] w3kbest) {
+    private double find_best_thresh(double[][][] w3kbest, double aMinThreshold) {
         double bestEenergy = Double.MAX_VALUE;
         double bestThreshold = 0.75;
         
-        for (double currentThr = 1; currentThr > min_thresh; currentThr -= 0.02) {
+        for (double currentThr = 1; currentThr > aMinThreshold; currentThr -= 0.02) {
             set_object(w3kbest, currentThr);
 
             if (objectFound && !border_attained) {
