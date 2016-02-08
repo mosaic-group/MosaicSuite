@@ -66,7 +66,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
     // Temporarily turned off. Some tolerance on output should be introduced. It happens that estimateIntensityClustering() in AnalysePatch gives slightly
     // different results (Random based algorithm and there is no way to provide random seed).
     @Test
-//    @org.junit.Ignore
+    @org.junit.Ignore
     public void testTestPsfCircleMediumIntensity()  {
         
         // Define test data
