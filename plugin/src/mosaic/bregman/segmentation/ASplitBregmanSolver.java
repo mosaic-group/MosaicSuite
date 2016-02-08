@@ -86,8 +86,8 @@ abstract class ASplitBregmanSolver {
         temp4 = new double[nz][ni][nj];
     }
 
-    final double[] getBetaMLE() {
-        return betaMle;
+    final double getBetaMleIn() {
+        return betaMle[1];
     }
 
     final void first_run() {
@@ -158,14 +158,12 @@ abstract class ASplitBregmanSolver {
             }
             else {
                 if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (stepk == 40 || stepk == 70)) {
-                    iAnalysePatch.find_best_thresh_and_int(w3k);
+                    iAnalysePatch.estimateIntensity(w3k);
                     betaMle[0] = Math.max(0, iAnalysePatch.cout);
-                    // lower bound withg some margin
-                    betaMle[1] = Math.max(0.75 * (iAnalysePatch.iMinObjectIntensity - iAnalysePatch.iIntensityMin) / (iAnalysePatch.iIntensityMax - iAnalysePatch.iIntensityMin), iAnalysePatch.cin);
+                    betaMle[1] = Math.max(0.75 * iAnalysePatch.iNormalizedMinObjectIntensity, iAnalysePatch.cin);
                     init();
                     if (iParameters.debug) {
-                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + " pcout" + betaMle[1]);
-                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
+                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
                     }
                 }
             }

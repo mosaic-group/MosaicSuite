@@ -18,7 +18,6 @@ import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
-import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
@@ -60,16 +59,6 @@ class AnalysePatch {
     private final psf<DoubleType> iPsf;
 
     private final Tools iLocalTools;
-    
-    private double iRescaledMinIntensityAll;
-    final double iMinObjectIntensity;
-    final double iIntensityMin;
-    final double iIntensityMax;
-    private final double iScaledIntensityMin;
-    double cin, cout; 
-    private double cout_front;// estimated intensities
-    private final double[] betaMleIntensities = new double[2];
-
     private final double iRegulariztionPatch;
     
     private final double[][][] iRegionMask;
@@ -77,26 +66,23 @@ class AnalysePatch {
     private final double[][][] w3kpatch;
     private double[][][] result;
     
-    private boolean border_attained = false;
-    private boolean objectFound = false;
+    private final double iMinObjectIntensity;
+    private final double iIntensityMin;
+    private final double iIntensityMax;
+    final double iNormalizedMinObjectIntensity;
+    private double iRescaledMinIntensityAll;
+    double cin, cout; 
+    private double cout_front;// estimated intensities
+    private final double[] betaMleIntensities = new double[2];
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
     private final double[][][] temp1;
     private final double[][][] temp2;
     private final double[][][] temp3;
 
+    private boolean border_attained = false;
+    private boolean objectFound = false;
     
-    /**
-     * Create patches
-     *
-     * @param aInputImage Image
-     * @param aInputRegion Region
-     * @param aParameters Paramenters for split Bregman
-     * @param aOversampling level of overlampling
-     * @param aChannel ?
-     * @param regionsf ?
-     * @param aImagePatches ?
-     */
     AnalysePatch(double[][][] aInputImage, Region aInputRegion, SegmentationParameters aParameters, int aOversampling, double[][][] w3kbest, double aRegularization, double aMinObjectIntensity,  psf<DoubleType> aPsf) {
         iSizeOrigX = aInputImage[0].length;
         iSizeOrigY = aInputImage[0][0].length;
@@ -128,23 +114,23 @@ class AnalysePatch {
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
-        iScaledIntensityMin = (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
+        iNormalizedMinObjectIntensity = (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
         
         iRescaledMinIntensityAll = iMinObjectIntensity / 0.99;
         
-        // estimate ints
+        // estimate intensities
         if (iParameters.intensityMode == IntensityMode.AUTOMATIC) {
-            find_best_thresh_and_int(w3kpatch);
+            estimateIntensity(w3kpatch);
         }
         else if (iParameters.intensityMode == IntensityMode.LOW) {
-            estimate_int_weighted(mask);
+            estimateIntensityRSS(mask);
         }
         else if (iParameters.intensityMode == IntensityMode.MEDIUM) {
-            estimate_int_clustering(iPatch, 4, false);
+            estimateIntensityClustering(iPatch, 4, false);
         }
         
         betaMleIntensities[0] = Math.max(cout, 0);
-        betaMleIntensities[1] = Math.max(0.75 * (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin), cin);
+        betaMleIntensities[1] = Math.max(0.75 * iNormalizedMinObjectIntensity, cin);
 
         if (iParameters.intensityMode == IntensityMode.HIGH) {
             ArrayOps.normalize(w3kpatch);
@@ -152,7 +138,8 @@ class AnalysePatch {
             betaMleIntensities[1] = 1;
         }
 
-        iRescaledMinIntensityAll = Math.max(0, (iScaledIntensityMin - cout) / (cin - cout));
+        iRescaledMinIntensityAll = Math.max(0, (iNormalizedMinObjectIntensity - cout) / (cin - cout));
+        logger.debug("Photometry for region " + iInputRegion.iLabel + ": out=" + cout + ", outFront=" + cout_front + ", cin=" + cin + ", NormalizedMinObjectIntensity=" + iNormalizedMinObjectIntensity);
     }
 
     /**
@@ -172,143 +159,92 @@ class AnalysePatch {
     
         solver.second_run();
     
-        cout = solver.getBetaMLE()[0];
-        cin = solver.getBetaMLE()[1];
+        cin = solver.getBetaMleIn();
     
-        double t = 0;
+        double threshold = 0;
         if (iParameters.intensityMode == IntensityMode.HIGH) {
-            estimate_int_clustering(solver.w3kbest, 3, true);
-    
-            if (iParameters.debug) {
-                IJ.log("obj" + iInputRegion.iLabel + " effective t high:" + cin);
-            }
-            t = cin - 0.04;
+            estimateIntensityClustering(solver.w3kbest, 3, true);
+            threshold = cin - 0.04;
         }
         else {
             double minThreshold = (iParameters.intensityMode == IntensityMode.MEDIUM) ? 0.25 : iRescaledMinIntensityAll * 0.96;
-            t = find_best_thresh(solver.w3kbest, minThreshold);
+            threshold = findBestThreshold(solver.w3kbest, minThreshold);
         }
-        logger.debug("Best found threshold: " + t + " in region: " + iInputRegion.iLabel);
+        logger.debug("Best found threshold: " + threshold + " in region: " + iInputRegion.iLabel);
         
-        set_object(solver.w3kbest, t);
+        set_object(solver.w3kbest, threshold);
         if (iInterpolationXY > 1) {
-            result = createInterpolatedObject(solver.w3kbest, t);
+            result = createInterpolatedObject(solver.w3kbest, threshold);
         }
     
         // assemble result into full image
-        return assemble_patch();
+        return generateRegions();
     }
 
-    double find_best_thresh_and_int(double[][][] w3kbest) {
-        double energy = Double.MAX_VALUE;
-        double threshold = 0.75;
-        double cin_previous = cin;
-        double cout_previous = cout;
+    void estimateIntensity(double[][][] w3kbest) {
+        double bestEnergy = Double.MAX_VALUE;
         double cinbest = 1;
         double coutbest = 0.0001;
+        double cin_previous = cin;
+        double cout_previous = cout;
        
         for (double thr = 0.95; thr > iRescaledMinIntensityAll * 0.96; thr -= 0.02) {
             set_object(w3kbest, thr);
             if (objectFound && !border_attained) {
-                estimate_int_weighted(result);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
-                if (tempEnergy < energy) {
-                    energy = tempEnergy;
-                    threshold = thr;
+                estimateIntensityRSS(result);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout, cin, iPatch, iParameters.noiseModel);
+                if (tempEnergy < bestEnergy) {
+                    bestEnergy = tempEnergy;
                     cinbest = cin;
                     coutbest = cout;
                 }
             }
             else {
                 cin = 1;
-                cout_front = 0;
+                cout = 0;
             }
         }
-    
-        cin = cinbest;
-        cout = coutbest;
-        cout_front = cout;
-        if (!objectFound) {
-            cin = cin_previous;
-            cout = cout_previous;
-        }
-    
-        iRescaledMinIntensityAll = Math.max((iScaledIntensityMin - cout) / (cin - cout), 0);
-        if (iParameters.debug) {
-            IJ.log("fbest" + iInputRegion.iLabel + "min all " + iRescaledMinIntensityAll);
-            IJ.log(" best energy and int " + energy + " t " + threshold + "region" + iInputRegion.iLabel + " cin " + cin + " cout " + cout);
-        }
-    
-        return threshold;
-    }
 
-    private void estimate_int_weighted(double[][][] mask) {
-        Tools.normalizeAndConvolveMask(temp3, mask, iPsf, temp1, temp2);
-        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn);
-        RSS.eval(temp3 /* convolved mask */);
-    
-        cout = RSS.betaMLEout;
-        cout_front = cout;
-        cin = RSS.betaMLEin;
-    
-        if (iParameters.debug) {
-            IJ.log("reg" + iInputRegion.iLabel + "rescaled min int" + iScaledIntensityMin);
-            IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
-        }
-    }
-
-    private void estimate_int_clustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
-        final double[] pixel = new double[1];
-        int cpt_vals = 0;
-        final Dataset data = new DefaultDataset();
-        for (int z = 0; z < iSizeOverZ; z++) {
-            for (int i = 0; i < iSizeOverX; i++) {
-                for (int j = 0; j < iSizeOverY; j++) {
-                    pixel[0] = aValues[z][i][j];
-                    if (iRegionMask[z][i][j] == 1) {
-                        data.add(new DenseInstance(pixel));
-                        cpt_vals++;
-                    }
-                }
-            }
-        }
-    
-        if (cpt_vals > 3) {
-            final Clusterer km = new KMeans(aNumOfClasters, 100);
-            final Dataset[] data2 = km.cluster(data);
-            int nk = data2.length;// get number of clusters really found
-            
-            final double[] levels = new double[nk];
-            for (int i = 0; i < nk; i++) {
-                final Instance inst = DatasetTools.average(data2[i]);
-                levels[i] = inst.value(0);
-            }
-    
-            Arrays.sort(levels);
-            int nk_in = 2;
-            int nk2 = Math.min(nk_in, nk - 1);
-            cin = Math.max(iScaledIntensityMin, levels[nk2]);
-            final int nkm1 = Math.max(nk2 - 1, 0);
-            cout_front = levels[nkm1];
-            cout = levels[0];
-            if (aUpdateCout) {
-                cout = cout_front;
-            }
-    
-            if (iParameters.debug) {
-                IJ.log("rescaled min int" + iScaledIntensityMin);
-                IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout, cin));
-                IJ.log("levels :");
-                for (int i = 0; i < nk; i++) {
-                    IJ.log("level r" + iInputRegion.iLabel + " " + (i + 1) + " : " + levels[i]);
-                }
-            }
+        if (objectFound) {
+            cin = cinbest;
+            cout = coutbest;
+            cout_front = cout;
         }
         else {
-            cin = 1;
-            cout_front = iParameters.defaultBetaMleOut;
-            cout = iParameters.defaultBetaMleOut;
+            cin = cin_previous;
+            cout = cout_previous;
+            cout_front = cout;
         }
+    
+        iRescaledMinIntensityAll = Math.max(0, (iNormalizedMinObjectIntensity - cout) / (cin - cout));
+        if (iParameters.debug) {
+            IJ.log("fbest" + iInputRegion.iLabel + "min all " + iRescaledMinIntensityAll);
+            IJ.log(" best energy and int " + bestEnergy + "region" + iInputRegion.iLabel + " cin " + cin + " cout " + cout);
+        }
+    }
+
+    /**
+     * Here is calculated the best threshold for the patches
+     *
+     * @param w3kbest the mask
+     * @return the best threshold based on energy calculation
+     */
+    private double findBestThreshold(double[][][] w3kbest, double aMinThreshold) {
+        double bestEenergy = Double.MAX_VALUE;
+        double bestThreshold = 0.75;
+        
+        for (double currentThr = 1; currentThr > aMinThreshold; currentThr -= 0.02) {
+            set_object(w3kbest, currentThr);
+            if (objectFound && !border_attained) {
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
+                if (tempEnergy < bestEenergy) {
+                    bestEenergy = tempEnergy;
+                    bestThreshold = currentThr;
+                }
+            }
+        }
+        
+        return bestThreshold;
     }
 
     private void set_object(double[][][] w3kbest, double aThreshold) {
@@ -433,64 +369,36 @@ class AnalysePatch {
         return mask;
     }
 
-    /**
-     * Here is calculated the best threshold for the patches
-     *
-     * @param w3kbest the mask
-     * @return the best threshold based on energy calculation
-     */
-    private double find_best_thresh(double[][][] w3kbest, double aMinThreshold) {
-        double bestEenergy = Double.MAX_VALUE;
-        double bestThreshold = 0.75;
-        
-        for (double currentThr = 1; currentThr > aMinThreshold; currentThr -= 0.02) {
-            set_object(w3kbest, currentThr);
-
-            if (objectFound && !border_attained) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
-                if (tempEnergy < bestEenergy) {
-                    bestEenergy = tempEnergy;
-                    bestThreshold = currentThr;
-                }
-            }
-        }
-        
-        return bestThreshold;
-    }
-
     // build local object list
-    private ArrayList<Region> assemble_patch() {
-        final ImageStack maska_ims = new ImageStack(iSizeOverInterX, iSizeOverInterY);
+    private ArrayList<Region> generateRegions() {
+        final ImageStack is = new ImageStack(iSizeOverInterX, iSizeOverInterY);
         for (int z = 0; z < iSizeOverInterZ; z++) {
-            final byte[] maska_bytes = new byte[iSizeOverInterX * iSizeOverInterY];
+            final byte[] pixels = new byte[iSizeOverInterX * iSizeOverInterY];
             for (int i = 0; i < iSizeOverInterX; i++) {
                 for (int j = 0; j < iSizeOverInterY; j++) {
-                    maska_bytes[j * iSizeOverInterX + i] = (result[z][i][j] >= 1) ? (byte)(result[z][i][j]) : 0;
+                    pixels[j * iSizeOverInterX + i] = (result[z][i][j] >= 1) ? (byte)(result[z][i][j]) : 0;
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(iSizeOverInterX, iSizeOverInterY, maska_bytes);
-            maska_ims.addSlice("", bp);
+            final ByteProcessor bp = new ByteProcessor(iSizeOverInterX, iSizeOverInterY, pixels);
+            is.addSlice("", bp);
         }
-        final ImagePlus maska_im = new ImagePlus("test Mask vo2", maska_ims);
+        final ImagePlus img = new ImagePlus("8-bit result", is);
 
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);
+        // find regions
+        final FindConnectedRegions fcr = new FindConnectedRegions(img);
         fcr.run(iSizeOverInterX * iSizeOverInterY * iSizeOverInterZ, 0 * iOverInterXY, /* threshold */ 0.5f, iParameters.excludeEdgesZ, iOversamplingXY, iInterpolationXY);
-
-        // add to regions refined with correct indexes
         final ArrayList<Region> foundRegions = fcr.getFoundRegions();
-        rescalePixelPositions(foundRegions);
-
-        return foundRegions;
-    }
-
-    private void rescalePixelPositions(ArrayList<Region> localList) {
-        for (final Region r : localList) {
+        
+        // rescale Pixel positions
+        for (final Region r : foundRegions) {
             for (final Pix p : r.iPixels) {
                 p.pz = p.pz + iOffsetOrigZ * iOverInterZ;
                 p.px = p.px + iOffsetOrigX * iOverInterXY;
                 p.py = p.py + iOffsetOrigY * iOverInterXY;
             }
         }
+
+        return foundRegions;
     }
 
     private double[][][] createInterpolatedObject(double[][][] aInputData, double aThreshold) {
@@ -538,5 +446,55 @@ class AnalysePatch {
         }
 
         return interpolated_object;
+    }
+
+    private void estimateIntensityRSS(double[][][] mask) {
+        Tools.normalizeAndConvolveMask(temp3, mask, iPsf, temp1, temp2);
+        RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn);
+        RSS.eval(temp3 /* convolved mask */);
+    
+        cout = RSS.betaMLEout;
+        cout_front = cout;
+        cin = RSS.betaMLEin;
+    }
+
+    private void estimateIntensityClustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
+        final Dataset data = new DefaultDataset();
+        final double[] pixel = new double[1];
+        for (int z = 0; z < iSizeOverZ; z++) {
+            for (int i = 0; i < iSizeOverX; i++) {
+                for (int j = 0; j < iSizeOverY; j++) {
+                    if (iRegionMask[z][i][j] == 1) {
+                        pixel[0] = aValues[z][i][j];
+                        data.add(new DenseInstance(pixel));
+                    }
+                }
+            }
+        }
+        
+        if (data.size() > aNumOfClasters) {
+            final Dataset[] dataSet = new KMeans(aNumOfClasters, 100).cluster(data);
+    
+            int numOfClustersFound = dataSet.length;
+            final double[] levels = new double[numOfClustersFound];
+            for (int i = 0; i < numOfClustersFound; i++) {
+                final Instance inst = DatasetTools.average(dataSet[i]);
+                levels[i] = inst.value(0);
+            }
+            Arrays.sort(levels);
+            
+            final int inIndex = Math.min(2, numOfClustersFound - 1);
+            cin = Math.max(iNormalizedMinObjectIntensity, levels[inIndex]);
+            final int outFrontIndex = Math.max(inIndex - 1, 0);
+            cout_front = levels[outFrontIndex];
+            cout = (aUpdateCout) ? cout_front : levels[0];
+    
+            logger.debug("Region: " + iInputRegion.iLabel + ", Cluster levels: " + Arrays.toString(levels));
+        }
+        else {
+            cin = 1;
+            cout_front = iParameters.defaultBetaMleOut;
+            cout = iParameters.defaultBetaMleOut;
+        }
     }
 }

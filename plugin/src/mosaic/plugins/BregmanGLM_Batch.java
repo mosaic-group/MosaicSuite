@@ -34,7 +34,7 @@ public class BregmanGLM_Batch implements Segmentation {
 
         final String dir = IJ.getDirectory("temp");
         String savedSettings = dir + "spb_settings.dat";
-        Analysis.iParameters = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.iParameters);
+        Analysis.iParameters = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, new Parameters()); //Analysis.iParameters);
 
         final String path = MosaicUtils.parseString("config", arg0);
         if (path != null) {
