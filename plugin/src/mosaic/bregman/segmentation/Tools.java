@@ -390,7 +390,6 @@ class Tools {
             mu = 0.0001;
         }
         if (aNoiseModel == NoiseModel.POISSON) {
-
             if (im != 0) {
                 res = (im * Math.log(im / mu) + mu - im);
             }
@@ -610,12 +609,11 @@ class Tools {
         fgrady2D(masky, mask, 0, ni);
 
         double energyPrior = 0;
-        double mkx, mky;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    mkx = maskx[z][i][j];
-                    mky = masky[z][i][j];
+                    double mkx = maskx[z][i][j];
+                    double mky = masky[z][i][j];
                     energyPrior += Math.sqrt(mkx * mkx + mky * mky);
                 }
             }

@@ -310,7 +310,7 @@ public class Matlab {
     /**
      * Do graph based searching for all pixels of connected component
      *
-     * @return list with all pixel indices (Matlab's style of inexing top-down
+     * @return list with all pixel indices (Matlab's style of indexing top-down
      *         then right and again)
      */
     private static List<Integer> findAllElementsOfObject(double[][] aM, int aStartXpoint, int aStartYpoint, int aWidth,
