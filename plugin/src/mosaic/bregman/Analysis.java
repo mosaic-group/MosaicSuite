@@ -267,7 +267,7 @@ public class Analysis {
                                                     iParameters.min_region_filter_intensities );
         
         //  ============== SEGMENTATION
-        logger.debug("------------------- Segmentation of channel: " + channel + ", frame: " + frame);
+        logger.debug("------------------- Segmentation of [" + currentImage + "] channel: " + channel + ", frame: " + frame);
         SquasshSegmentation rg = new SquasshSegmentation(iImage, sp, min, max);
         if (iParameters.patches_from_file == null) {
             rg.run();

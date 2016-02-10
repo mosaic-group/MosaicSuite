@@ -16,6 +16,7 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.KMeans;
@@ -71,8 +72,7 @@ class AnalysePatch {
     private final double iIntensityMax;
     final double iNormalizedMinObjectIntensity;
     private double iRescaledMinIntensityAll;
-    double cin, cout; 
-    private double cout_front;// estimated intensities
+    double cin, cout_front, cout; 
     private final double[] betaMleIntensities = new double[2];
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
@@ -104,6 +104,13 @@ class AnalysePatch {
         temp3 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
 
         double[][][] mask = generateMask(iInputRegion, false);
+        
+        if (iParameters.debug) {
+//            ImgUtils.ZXYarrayToImg(iRegionMask, "iRegionMask_" + aInputRegion.iLabel).show();
+//            ImgUtils.ZXYarrayToImg(iPatch, "iPatch_" + aInputRegion.iLabel).show();
+//            ImgUtils.ZXYarrayToImg(w3kpatch, "w3kpatch_" + aInputRegion.iLabel).show();
+//            ImgUtils.ZXYarrayToImg(mask, "mask_" + aInputRegion.iLabel).show();
+        }
         
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();

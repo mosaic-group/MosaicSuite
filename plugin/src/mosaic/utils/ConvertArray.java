@@ -41,11 +41,29 @@ public class ConvertArray {
     }
 
     /**
-     * Converts 2D array from float to double
-     * @param aArray 2D array of floats
-     * @return 2D array of doubles
+     * Converts 3D array from short to double
+     * @param aArray 3D array of short
+     * @return 3D array of doubles
      */
     public static double[][][] toDouble(short[][][] aArray) {
+        final int d = aArray.length; final int h = aArray[0].length; final int w = aArray[0][0].length;
+        final double[][][] result = new double[d][h][w];
+        for (int z = 0; z < d; ++z) {
+            for (int y = 0; y < h; ++y) {
+                for (int x = 0; x < w; ++x) {
+                    result[z][y][x] = aArray[z][y][x];
+                }
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 3D array from float to double
+     * @param aArray 3D array of floats
+     * @return 3D array of doubles
+     */
+    public static double[][][] toDouble(float[][][] aArray) {
         final int d = aArray.length; final int h = aArray[0].length; final int w = aArray[0][0].length;
         final double[][][] result = new double[d][h][w];
         for (int z = 0; z < d; ++z) {

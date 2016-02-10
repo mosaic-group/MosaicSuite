@@ -51,7 +51,7 @@ class FindConnectedRegions {
     }
 
     @SuppressWarnings("null")
-    void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aThreshold, boolean exclude_z_edges, int oversampling2ndstep, int interpolation) {
+    void run(int aMaximumPointsInRegion, int aMinimumPointsInRegion, float aMinThreshold, boolean exclude_z_edges, int oversampling2ndstep, int interpolation) {
         if (iInputImg == null) {
             IJ.error("No image to operate on.");
             return;
@@ -94,7 +94,7 @@ class FindConnectedRegions {
                 for (int y = 0; y < height; ++y) {
                     for (int x = 0; x < width; ++x) {
                         final int value = sliceDataBytes[z][y * width + x] & 0xFF;
-                        if (value > maxValueInt && value > aThreshold) {
+                        if (value > maxValueInt && value >= aMinThreshold) {
                             initial_x = x;
                             initial_y = y;
                             initial_z = z;
@@ -163,7 +163,7 @@ class FindConnectedRegions {
 
                             final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
 
-                            if (neighbourValue <= aThreshold) {
+                            if (neighbourValue < aMinThreshold) {
                                 continue;
                             }
 
@@ -197,7 +197,6 @@ class FindConnectedRegions {
                     for (int x = 0; x < width; ++x) {
                         final byte status = pointState[width * (z * height + y) + x];
                         if (status == ADDED) {
-                            iLabeledRegions[z][x][y] = (short) tag;
                             pixels.add(new Pix(z, x, y));
                         }
                         else if (status == IN_QUEUE) {
@@ -209,16 +208,24 @@ class FindConnectedRegions {
             
             Region region = new Region(tag, pixels);
 
-            // Check for z Edge and maxvesiclesize
-            // check for z processing
+            // Check for z Edge
+            boolean regionAdded = false;
             if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
                 regionCenter(region, oversampling2ndstep, interpolation);
                 if (region.getcz() >= 1.0 && region.getcz() <= depth - 2) {
                     iFoundRegions.add(region);
+                    regionAdded = true;
                 }
             }
             else {
                 iFoundRegions.add(region);
+                regionAdded = true;
+            }
+            
+            if (regionAdded) {
+                for (Pix p : region.iPixels) {
+                    iLabeledRegions[p.pz][p.px][p.py] = (short) tag;
+                }
             }
         }
 

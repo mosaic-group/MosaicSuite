@@ -8,13 +8,13 @@ import org.apache.log4j.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
+import mosaic.utils.ConvertArray;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -90,9 +90,11 @@ public class SquasshSegmentation {
 
     private void stepTwoSegmentation() {
         out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
-     
+        ImgUtils.ZXYarrayToImg(iSolver.w3kbest, "w3kbest").show();
+        
+        
         computeConnectedRegions(iSolver.w3kbest);
-        computeVoronoiRegions(iSolver.w3kbest);
+        computeVoronoiRegions();
         IJ.showStatus("Computing segmentation 55%");
         IJ.showProgress(0.55);
     
@@ -142,43 +144,31 @@ public class SquasshSegmentation {
             final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes);
             maskStack.addSlice("", bp);
         }
-        final ImagePlus maskImg = new ImagePlus("", maskStack);
+        final ImagePlus maskImg = new ImagePlus("ConnectedRegions", maskStack);
         
         final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
         fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * iParameters.minObjectIntensity), iParameters.excludeEdgesZ, 1, 1);
-        
+        maskImg.show();
         iLabeledRegions = fcr.getLabeledRegions();
         iRegionsList = fcr.getFoundRegions();
+        if (iParameters.debug) {
+            ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(iLabeledRegions), "iLabeledRegions").show();
+        }
     }
     
-    private void computeVoronoiRegions(double[][][] mask) {
-        ImagePlus maskImg = ImgUtils.ZXYarrayToImg(mask);
-        
-        // project mask on single slice (maximum values)
-        final ZProjector proj = new ZProjector(maskImg);
-        proj.setImage(maskImg);
-        proj.setStartSlice(1);
-        proj.setStopSlice(nz);
-        proj.setMethod(ZProjector.MAX_METHOD);
-        proj.doProjection();
-        maskImg = proj.getProjection();
-        IJ.showStatus("Computing segmentation 52%");
-        IJ.showProgress(0.52);
-
-        // threshold mask
-        ImageProcessor imp = maskImg.getProcessor();
+    private void computeVoronoiRegions() {
+        // project regions on one plane (Z-projection) - Voronoi is done only in 2D
         final byte[] mask_bytes = new byte[ni * nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
-                // weird conversion to have same thing than in find connected regions
-                if ( (int)(255 * imp.getPixelValue(i, j)) <= (int)(255 * iParameters.minObjectIntensity) ) {
+                for (int z = 0; z < nz; z++) if (iLabeledRegions[z][i][j] > 0) {
                     mask_bytes[j * ni + i] = (byte) 255;
                 }
             }
         }
-        final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes);
-        maskImg.setProcessor("Mask Thresholded", bp);
-
+        final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes); bp.invert();
+        ImagePlus maskImg = new ImagePlus("Mask Thresholded", bp);
+        
         // do voronoi in 2D on Z projection
         // Here we compute the Voronoi segmentation starting from the threshold mask
         final EDM filtEDM = new EDM();
@@ -201,33 +191,41 @@ public class SquasshSegmentation {
             imgStackVoronoi.addSlice("", new ByteProcessor(ni, nj, maskBytesVoronoi.clone()));
         }
         maskImg.setStack("Voronoi", imgStackVoronoi);
-
-        // Here we are elaborating the Voronoi mask to get a nice subdivision
-        final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
-        fcr.run(ni * nj * nz, 0, /* threshold > 254 = 255 */ 254f, iParameters.excludeEdgesZ, 1, 1);
-        ArrayList<Region> regionsvoronoi = fcr.getFoundRegions();
         
-        // use Ri to store voronoi regions indices
-        float[][][] Ri = new float[nz][ni][nj];
-        ArrayOps.fill(Ri, 255);
-        for (final Region r : regionsvoronoi) {
-            for (final Pix p : r.iPixels) {
-                Ri[p.pz][p.px][p.py] = regionsvoronoi.indexOf(r);
-            }
-        }
+        // Here we are elaborating the Voronoi mask to get a nice subdivision. After previous commands Vornoi regions have value 255.
+        final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
+        fcr.run(ni * nj * nz, 0, 255f, iParameters.excludeEdgesZ, 1, 1);
+        ArrayList<Region> regionsvoronoi = fcr.getFoundRegions();
+        logger.debug("NumOfRegions - connected regions / voronoi: " + iRegionsList.size() + " / " + regionsvoronoi.size());
+        setRegionsObjsVoronoi(iRegionsList, regionsvoronoi);
+        
         IJ.showStatus("Computing segmentation 54%");
         IJ.showProgress(0.54);
-        
-        setRegionsObjsVoronoi(iRegionsList, regionsvoronoi, Ri);
     }
 
-    private void setRegionsObjsVoronoi(ArrayList<Region> aRegionsList, ArrayList<Region> aRegionsVoronoi, float[][][] aRi) {
+    private void setRegionsObjsVoronoi(ArrayList<Region> aRegionsList, ArrayList<Region> aRegionsVoronoi) {
+        // use Ri to store voronoi regions indices
+        float[][][] voronoiIndexMap = new float[nz][ni][nj];
+        ArrayOps.fill(voronoiIndexMap, 255);
+        for (final Region r : aRegionsVoronoi) {
+            final int index = aRegionsVoronoi.indexOf(r);
+            for (final Pix p : r.iPixels) {
+                voronoiIndexMap[p.pz][p.px][p.py] = index;
+            }
+        }
+        
+        if (iParameters.debug) {
+            logger.debug("Found " + aRegionsVoronoi.size() + " regions (voronoi).");
+            ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(voronoiIndexMap), "Ri").show();
+        }
+        
+        // Find voronoi for each region
         for (Region r : aRegionsList) {
             final Pix pixel = r.iPixels.get(0);
             int x = pixel.px;
             int y = pixel.py;
             int z = pixel.pz;
-            r.rvoronoi = aRegionsVoronoi.get((int) aRi[z][x][y]);
+            r.rvoronoi = aRegionsVoronoi.get((int) voronoiIndexMap[z][x][y]);
         }
     }
 }

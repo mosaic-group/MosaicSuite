@@ -173,7 +173,20 @@ public class ImgUtils {
     }
     
     /**
-     * Creates ImagePlus (float) from provided array
+     * Creates ImagePlus (FloatProcessor) from provided array
+     * @param aImgArray 3D array with image data [z][x][y]
+     * @param aTitle tile of generated image
+     * @return the generated ImagePlus
+     */
+    public static ImagePlus ZXYarrayToImg(double[][][] aImgArray, String aTitle) {
+        ImagePlus img = ZXYarrayToImg(aImgArray);
+        img.setTitle(aTitle);
+        
+        return img;
+    }
+    
+    /**
+     * Creates ImagePlus (FloatProcessor) from provided array
      * @param aImgArray 3D array with image data [z][x][y]
      * @return the generated ImagePlus
      */

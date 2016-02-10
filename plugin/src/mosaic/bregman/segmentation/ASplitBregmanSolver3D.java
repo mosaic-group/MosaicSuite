@@ -16,8 +16,8 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
     final double[][][] ukz;
     
     private final double[][][] eigenPsf3D;
-    private final DoubleDCT_3D dct3d;
     private final double[][][] eigenLaplacian3D;
+    private final DoubleDCT_3D dct3d;
 
     public ASplitBregmanSolver3D(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, psf<DoubleType> aPsf) {
         super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aPsf);
