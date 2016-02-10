@@ -16,7 +16,6 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.ImgUtils;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.KMeans;

@@ -192,7 +192,7 @@ public class SquasshSegmentation {
         }
         maskImg.setStack("Voronoi", imgStackVoronoi);
         
-        // Here we are elaborating the Voronoi mask to get a nice subdivision. After previous commands Vornoi regions have value 255.
+        // Here we are elaborating the Voronoi mask to get a nice subdivision. After previous commands Voronoi regions have value 255.
         final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
         fcr.run(ni * nj * nz, 0, 255f, iParameters.excludeEdgesZ, 1, 1);
         ArrayList<Region> regionsvoronoi = fcr.getFoundRegions();
@@ -216,7 +216,7 @@ public class SquasshSegmentation {
         
         if (iParameters.debug) {
             logger.debug("Found " + aRegionsVoronoi.size() + " regions (voronoi).");
-            ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(voronoiIndexMap), "Ri").show();
+            ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(voronoiIndexMap), "voronoiIndexMap").show();
         }
         
         // Find voronoi for each region
