@@ -220,16 +220,16 @@ public class Analysis {
         double[][][] iImage = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             img.setSlice(z + 1);
-            ImageProcessor imp = img.getProcessor();
+            ImageProcessor ip = img.getProcessor();
             
             if (iParameters.removebackground) {
                 final BackgroundSubtracter bs = new BackgroundSubtracter();
-                bs.rollingBallBackground(imp, iParameters.size_rollingball, false, false, false, true, true);
+                bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
             }
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    iImage[z][i][j] = imp.getPixel(i, j);
+                    iImage[z][i][j] = ip.getPixel(i, j);
                 }
             }
         }

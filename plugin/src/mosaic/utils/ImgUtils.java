@@ -214,6 +214,30 @@ public class ImgUtils {
     }
 
     /**
+     * Creates 3D [z][x][y] array from provided ImagePlus
+     * @param aImage input image
+     * @return generated array
+     */
+    public static double[][][] ImgToZXYarray(ImagePlus aImage) {
+        int ni = aImage.getWidth();
+        int nj = aImage.getHeight();
+        int nz = aImage.getNSlices();
+        double[][][] imgArray = new double[nz][ni][nj];
+        for (int z = 0; z < nz; z++) {
+            aImage.setSlice(z + 1);
+            ImageProcessor ip = aImage.getProcessor();
+            
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    imgArray[z][i][j] = ip.getPixelValue(i, j);
+                }
+            }
+        }
+        
+        return imgArray;
+    }
+    
+    /**
      * Resizes 2D array to 2D array with different size
      * If output image array is bigger than input image then additional pixels (right column(s) and
      * bottom row(s)) are padded with neighbors values.

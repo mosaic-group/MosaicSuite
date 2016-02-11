@@ -61,7 +61,7 @@ class FindConnectedRegions {
             IJ.error("The image must be 8 bit");
             return;
         }
-
+        
         final int width = iInputImg.getWidth();
         final int height = iInputImg.getHeight();
         final int depth = iInputImg.getStackSize();
@@ -84,8 +84,8 @@ class FindConnectedRegions {
         int tag = 0;
         int queueArrayLength = 128 * 1024;
         int[] queue = new int[queueArrayLength];
-        
-        while (true) {
+        int pixelsCount = 0;
+        while (pixelsCount < width * height * depth) {
             // Find one pixel that's above the minimum, or find the maximum in the case where we're
             // not insisting that all regions are made up of the same color. These are set in all cases...
             int initial_x = -1;
@@ -185,7 +185,7 @@ class FindConnectedRegions {
                     }
                 }
             }
-
+            pixelsCount += pointsInThisRegion;
             // So now pointState should have no IN_QUEUE status points...
             if (pointsInThisRegion < aMinimumPointsInRegion || pointsInThisRegion > aMaximumPointsInRegion) {
                 continue;
@@ -224,7 +224,6 @@ class FindConnectedRegions {
                 iFoundRegions.add(region);
                 regionAdded = true;
             }
-            
             if (regionAdded) {
                 for (Pix p : region.iPixels) {
                     iLabeledRegions[p.pz][p.px][p.py] = (short) tag;

@@ -46,7 +46,9 @@ public class ConvertArray {
      * @return 3D array of doubles
      */
     public static double[][][] toDouble(short[][][] aArray) {
-        final int d = aArray.length; final int h = aArray[0].length; final int w = aArray[0][0].length;
+        final int d = aArray.length; 
+        final int h = aArray[0].length; 
+        final int w = aArray[0][0].length;
         final double[][][] result = new double[d][h][w];
         for (int z = 0; z < d; ++z) {
             for (int y = 0; y < h; ++y) {

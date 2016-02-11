@@ -206,8 +206,8 @@ class ObjectProperties implements Runnable {
 
         sz = (zmax - zmin);
         cz = zmin;
-        mosaic.utils.Debug.print(Debug.getArrayDims(iImage));
-        mosaic.utils.Debug.print(Debug.getArrayDims(iLabeledRegion));
-        mosaic.utils.Debug.print(min, max, sx, sy, sz, cx, cy, cz, osxy, osz);
+//        mosaic.utils.Debug.print(Debug.getArrayDims(iImage));
+//        mosaic.utils.Debug.print(Debug.getArrayDims(iLabeledRegion));
+//        mosaic.utils.Debug.print(min, max, sx, sy, sz, cx, cy, cz, osxy, osz);
     }
 }
