@@ -169,8 +169,10 @@ class AnalysePatch {
         }
         logger.debug("Best found threshold: " + threshold + " in region: " + iInputRegion.iLabel);
         
-        generateThresholdedObject(solver.w3kbest, threshold);
-        if (iInterpolationXY > 1) {
+        if (iInterpolationXY == 1) {
+            generateThresholdedObject(solver.w3kbest, threshold);
+        }
+        else {
             result = createInterpolatedObject(solver.w3kbest, threshold);
         }
     
@@ -272,7 +274,7 @@ class AnalysePatch {
         // Adjust patch coordinates with margin and fit it into min/max coordinates
         // old comment: check that the margin is at least 8 time bigger than the PSF
         int aMarginXY = 6;
-        int aMarginZ = 1;// was 2
+        int aMarginZ = 1;
         final int[] sz_psf = iPsf.getSuggestedImageSize();
         if (sz_psf[0] > aMarginXY) {
             aMarginXY = sz_psf[0];

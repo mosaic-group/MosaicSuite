@@ -29,6 +29,7 @@ package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import ij.IJ;
@@ -81,6 +82,9 @@ class FindConnectedRegions {
         }
 
         int tag = 0;
+        int queueArrayLength = 128 * 1024;
+        int[] queue = new int[queueArrayLength];
+        
         while (true) {
             // Find one pixel that's above the minimum, or find the maximum in the case where we're
             // not insisting that all regions are made up of the same color. These are set in all cases...
@@ -110,9 +114,8 @@ class FindConnectedRegions {
             }
 
             int pointsInQueue = 0;
-            int queueArrayLength = 1024;
-            int[] queue = new int[queueArrayLength];
-
+            Arrays.fill(queue, 0);
+            
             final byte[] pointState = new byte[depth * width * height];
             final int i = width * (initial_z * height + initial_y) + initial_x;
             pointState[i] = IN_QUEUE;
@@ -158,21 +161,21 @@ class FindConnectedRegions {
                             if ((x == x_unchecked_min || x == x_unchecked_max) && (y == y_unchecked_min || y == y_unchecked_max) && (z == z_unchecked_min || z == z_unchecked_max)) {
                                 continue;
                             }
+                            
                             final int newSliceIndex = y * width + x;
-                            final int newPointStateIndex = width * (z * height + y) + x;
 
                             final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
-
                             if (neighbourValue < aMinThreshold) {
                                 continue;
                             }
 
+                            final int newPointStateIndex = z * width * height + newSliceIndex;
                             if (0 == pointState[newPointStateIndex]) {
                                 pointState[newPointStateIndex] = IN_QUEUE;
                                 if (pointsInQueue == queueArrayLength) {
                                     final int newArrayLength = queueArrayLength * 2;
                                     final int[] newArray = new int[newArrayLength];
-                                    System.arraycopy(queue, 0, newArray, 0, pointsInQueue);
+                                    System.arraycopy(queue, 0, newArray, 0, queueArrayLength);
                                     queue = newArray;
                                     queueArrayLength = newArrayLength;
                                 }
@@ -184,7 +187,6 @@ class FindConnectedRegions {
             }
 
             // So now pointState should have no IN_QUEUE status points...
-
             if (pointsInThisRegion < aMinimumPointsInRegion || pointsInThisRegion > aMaximumPointsInRegion) {
                 continue;
             }
@@ -211,7 +213,8 @@ class FindConnectedRegions {
             // Check for z Edge
             boolean regionAdded = false;
             if (exclude_z_edges == true && depth /*aThreshold.length*/ != 1) {
-                regionCenter(region, oversampling2ndstep, interpolation);
+                int scale = oversampling2ndstep * interpolation;
+                region.calculateRegionCenter(scale, scale);
                 if (region.getcz() >= 1.0 && region.getcz() <= depth - 2) {
                     iFoundRegions.add(region);
                     regionAdded = true;
@@ -230,26 +233,6 @@ class FindConnectedRegions {
         }
 
         Collections.sort(iFoundRegions, Collections.reverseOrder());
-    }
-
-    private static void regionCenter(Region r, int oversampling2ndstep, int interpolation) {
-        double sumx = 0;
-        double sumy = 0;
-        double sumz = 0;
-        for (Pix p : r.iPixels) {
-            sumx += p.px;
-            sumy += p.py;
-            sumz += p.pz;
-        }
-        int count = r.iPixels.size();
-
-        r.cx = (float) (sumx / count);
-        r.cy = (float) (sumy / count);
-        r.cz = (float) (sumz / count);
-
-        r.cx = r.cx / (oversampling2ndstep * interpolation);
-        r.cy = r.cy / (oversampling2ndstep * interpolation);
-        r.cz = r.cz / (oversampling2ndstep * interpolation);
     }
     
     short[][][] getLabeledRegions() {

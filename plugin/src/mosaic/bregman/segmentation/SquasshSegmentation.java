@@ -89,15 +89,13 @@ public class SquasshSegmentation {
     }
 
     private void stepTwoSegmentation() {
-        out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3k);
-        ImgUtils.ZXYarrayToImg(iSolver.w3kbest, "w3kbest").show();
-        
-        
+        out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest);
         computeConnectedRegions(iSolver.w3kbest);
-        computeVoronoiRegions();
+        
         IJ.showStatus("Computing segmentation 55%");
         IJ.showProgress(0.55);
     
+        computeVoronoiRegions();
         final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
         ipatches.processPatches();
         iRegionsList = ipatches.getRegionsList();
@@ -148,7 +146,7 @@ public class SquasshSegmentation {
         
         final FindConnectedRegions fcr = new FindConnectedRegions(maskImg);
         fcr.run(-1 /* no maximum size */, iParameters.minRegionSize, (float) (255 * iParameters.minObjectIntensity), iParameters.excludeEdgesZ, 1, 1);
-        maskImg.show();
+
         iLabeledRegions = fcr.getLabeledRegions();
         iRegionsList = fcr.getFoundRegions();
         if (iParameters.debug) {
@@ -162,6 +160,7 @@ public class SquasshSegmentation {
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
+                    // Found regions have label in range 1 - ...
                     if (iLabeledRegions[z][i][j] > 0) {
                         mask_bytes[j * ni + i] = (byte) 255;
                     }

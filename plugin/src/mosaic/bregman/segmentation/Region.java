@@ -12,15 +12,15 @@ public class Region implements Comparable<Region> {
     }
 
     // Object definition
-    public final ArrayList<Pix> iPixels;
     int iLabel;
+    public final ArrayList<Pix> iPixels;
     
     // Object properties
     public double intensity; // estimated intensity
     public double length; // length of skeleton
     public double perimeter; // perimeter for 2D, surface for 3D
     public float rsize; // real size in pixels (interpolation and/or oversampling taken into account)
-    float cx, cy, cz; // region center
+    private float cx, cy, cz; // region center
     
     Region rvoronoi;
 
@@ -57,6 +57,26 @@ public class Region implements Comparable<Region> {
         Pix aMax = new Pix(zmax, xmax, ymax);
         
         return new Pix[] {aMin, aMax};
+    }
+    
+    void calculateRegionCenter(int aScaleXY, int aScaleZ) {
+        double sumx = 0;
+        double sumy = 0;
+        double sumz = 0;
+        for (Pix p : iPixels) {
+            sumx += p.px;
+            sumy += p.py;
+            sumz += p.pz;
+        }
+        int count = iPixels.size();
+
+        cx = (float) (sumx / count);
+        cy = (float) (sumy / count);
+        cz = (float) (sumz / count);
+
+        cx = cx / (aScaleXY);
+        cy = cy / (aScaleXY);
+        cz = cz / (aScaleZ);
     }
     
     @Override

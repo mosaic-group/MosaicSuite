@@ -16,7 +16,7 @@ class ObjectProperties implements Runnable {
     // Input parameters
     private final double[][][] iImage;
     private final Region iRegion;
-    private final short[][][] iSingleRegion;
+    private final short[][][] iLabeledRegion;
     private final psf<DoubleType> iPsf;
     private final double iBetaMleOut;
     private final double iBetaMleIn;
@@ -27,10 +27,10 @@ class ObjectProperties implements Runnable {
     private int cx, cy, cz;// offset of patch
     
     
-    ObjectProperties(double[][][] aImage, Region aRegion, short[][][] aSingleRegion, psf<DoubleType> aPsf, double aBetaMleOut, double aBetaMleIn, int nx, int ny,  int nz, int osxy, int osz) {
+    ObjectProperties(double[][][] aImage, Region aRegion, short[][][] aLabeledRegion, psf<DoubleType> aPsf, double aBetaMleOut, double aBetaMleIn, int nx, int ny, int nz, int osxy, int osz) {
         iImage = aImage;
         iRegion = aRegion;
-        iSingleRegion = aSingleRegion;
+        iLabeledRegion = aLabeledRegion;
         iPsf = aPsf;
         iBetaMleOut = aBetaMleOut;
         iBetaMleIn = aBetaMleIn;
@@ -54,9 +54,9 @@ class ObjectProperties implements Runnable {
         iRegion.rsize = (float) Tools.round((iRegion.iPixels.size()) / ((float) osxy * osxy * osz), 3);
 
         // Probably some stuff for saving images - recalculations etc.
-        calculateRegionCenter(iRegion);
-        iRegion.perimeter = calculatePerimeter(iRegion, iSingleRegion);
-        calculateLength(iRegion, iSingleRegion);
+        iRegion.calculateRegionCenter(osxy, osz);
+        iRegion.perimeter = calculatePerimeter(iRegion, iLabeledRegion);
+        calculateLength(iRegion, iLabeledRegion);
     }
 
     private double[][][] fillPatch(double[][][] image) {
@@ -90,22 +90,6 @@ class ObjectProperties implements Runnable {
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], aPatch, null, 10, iBetaMleOut, iBetaMleIn);
         RSS.eval(temp[2] /* convolved mask */);
         return RSS.betaMLEin;
-    }
-
-    private void calculateRegionCenter(Region aRegion) {
-        double sumx = 0;
-        double sumy = 0;
-        double sumz = 0;
-        for (Pix p : aRegion.iPixels) {
-            sumx += p.px;
-            sumy += p.py;
-            sumz += p.pz;
-        }
-        int count = aRegion.iPixels.size();
-    
-        aRegion.cx = (float) (sumx / count) / osxy;
-        aRegion.cy = (float) (sumy / count) / osxy;
-        aRegion.cz = (float) (sumz / count) / osz;
     }
 
     private double calculatePerimeter(Region aRegion, short[][][] aRegions) {
@@ -223,7 +207,7 @@ class ObjectProperties implements Runnable {
         sz = (zmax - zmin);
         cz = zmin;
         mosaic.utils.Debug.print(Debug.getArrayDims(iImage));
-        mosaic.utils.Debug.print(Debug.getArrayDims(iSingleRegion));
+        mosaic.utils.Debug.print(Debug.getArrayDims(iLabeledRegion));
         mosaic.utils.Debug.print(min, max, sx, sy, sz, cx, cy, cz, osxy, osz);
     }
 }
