@@ -159,10 +159,12 @@ public class SquasshSegmentation {
     private void computeVoronoiRegions() {
         // project regions on one plane (Z-projection) - Voronoi is done only in 2D
         final byte[] mask_bytes = new byte[ni * nj];
-        for (int i = 0; i < ni; i++) {
-            for (int j = 0; j < nj; j++) {
-                for (int z = 0; z < nz; z++) if (iLabeledRegions[z][i][j] > 0) {
-                    mask_bytes[j * ni + i] = (byte) 255;
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (iLabeledRegions[z][i][j] > 0) {
+                        mask_bytes[j * ni + i] = (byte) 255;
+                    }
                 }
             }
         }
@@ -215,7 +217,6 @@ public class SquasshSegmentation {
         }
         
         if (iParameters.debug) {
-            logger.debug("Found " + aRegionsVoronoi.size() + " regions (voronoi).");
             ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(voronoiIndexMap), "voronoiIndexMap").show();
         }
         
