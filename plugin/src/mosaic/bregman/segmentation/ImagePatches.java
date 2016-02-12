@@ -16,7 +16,6 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.Debug;
-import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
 
 

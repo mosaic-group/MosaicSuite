@@ -294,9 +294,10 @@ public class LabelImage extends BaseImage
             oldLabels.add(l);
         }
 
-        // relabel connected components (start from positive label)
+        // relabel connected components
         final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
         aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        // labels can be also negative, in such case start from 1
         int newLabel = Math.max(maxLabel + 1, 1);
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);

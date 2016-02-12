@@ -394,5 +394,23 @@ public class ImgUtils {
         
         return new MinMax<Double>(min, max);
     }
+    
+    /**
+     * @return created ImagePlus from provided image containing only specified frame and channel
+     */
+    public static ImagePlus extractImage(ImagePlus aImage, final int aFrame, final int aChannel) {
+        int ni = aImage.getWidth();
+        int nj = aImage.getHeight();
+        int nz = aImage.getNSlices();
+        
+        final ImageStack is = new ImageStack(ni, nj);
+        for (int z = 1; z <= nz; z++) {
+            aImage.setPosition(aChannel, z, aFrame);
+            ImageProcessor ip = aImage.getProcessor();
+            is.addSlice("", ip);
+        }
+        
+        return new ImagePlus(aImage.getTitle(), is);
+    }
 }
 
