@@ -275,43 +275,39 @@ public class LabelImage extends BaseImage
     }
     
     /**
-     * Makes disconnected components to have different labels. If two disconnected components had same label
-     * after calling this method they will have different labels assigned.
+     * Makes disconnected components to have different labels. All new components will have new (positive), different 
+     * label values than old one.
      */
     public void connectedComponents() {
         final HashSet<Integer> oldLabels = new HashSet<Integer>();
         final int size = getSize();
-    
+        int minLabel = Integer.MAX_VALUE;
+        int maxLabel = Integer.MIN_VALUE;
         // what are the old labels?
         for (int i = 0; i < size; ++i) {
             final int l = getLabel(i);
             if (isSpecialLabel(l)) {
                 continue;
             }
+            if (l < minLabel) minLabel = l;
+            if (l > maxLabel) maxLabel = l;
             oldLabels.add(l);
         }
-    
-        // relabel connected components
-        int newLabel = 1;
+
+        // relabel connected components (start from positive label)
+        final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
+        aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        int newLabel = Math.max(maxLabel + 1, 1);
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);
             if (oldLabels.contains(label)) {
-                // l is an old label
-                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
-                aMultiThsFunctionPtr.AddThresholdBetween(label, label);
                 final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
-    
-                // find a new label
-                while (oldLabels.contains(newLabel)) {
-                    ++newLabel;
-                }
     
                 // set region to new label
                 for (final int p : ff) {
                     setLabel(p, newLabel);
                 }
                 
-                // next new label
                 ++newLabel;
             }
         }

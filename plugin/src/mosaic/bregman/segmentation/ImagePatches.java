@@ -16,6 +16,7 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.Debug;
+import mosaic.utils.ImgUtils;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -110,7 +111,8 @@ class ImagePatches {
             IJ.showProgress(progress/100);
         }
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
-        logger.debug("number of found regions: " + iOutputRegionsList.size() + ", output label regions: " + Debug.getArrayDims(iOutputLabeledRegions));
+        logger.debug("number of found regions:                      " + iOutputRegionsList.size() + ", output label regions: " + Debug.getArrayDims(iOutputLabeledRegions));
+
         // --------------------------------------------------------------------
         // - Postprocess computed regions 
         // --------------------------------------------------------------------
@@ -150,12 +152,16 @@ class ImagePatches {
                 pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
             }
         }
-        
+        if (iOutputRegionsList.size() != newRegionList.size()) System.out.println("HAHAHA");
         iOutputRegionsList.clear();
         for (Entry<Integer, ArrayList<Pix>> e : newRegionList.entrySet()) {
-            iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
+            // Because of connectivity 
+            if (e.getValue().size() >= iParameters.minRegionSize) {
+                iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
+            }
         }
-        
+        logger.debug("number of found regions after postprocessing: " + iOutputRegionsList.size());
+
         // Now we run Object properties on this regions list, it is not needed to zeroed iRegions since
         // it overwrite all pixels of old regions with new values
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
@@ -184,8 +190,9 @@ class ImagePatches {
         if (regionsListFiltered.size() != iOutputRegionsList.size()) {
             ArrayOps.fill(iOutputLabeledRegions, (short) 0);
             generateLabeledRegions(regionsListFiltered, iOutputLabeledRegions);
+            iOutputRegionsList = regionsListFiltered;
         }
-        iOutputRegionsList = regionsListFiltered;
+        logger.debug("number of found regions after filtering:      " + iOutputRegionsList.size());
     }
 
     /**
