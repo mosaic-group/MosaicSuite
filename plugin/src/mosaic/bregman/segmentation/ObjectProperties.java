@@ -7,7 +7,6 @@ import ij.ImageStack;
 import ij.process.ByteProcessor;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.Debug;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
 
