@@ -3,8 +3,6 @@ package mosaic.bregman.segmentation;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
-import mosaic.utils.ConvertArray;
-import mosaic.utils.Debug;
 
 
 public class SquasshSegmentationTest extends CommonBase {
