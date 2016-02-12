@@ -283,9 +283,9 @@ public class Analysis {
         // =============================
         IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
         if (iParameters.dispSoftMask) {
-            if (out_soft_mask[channel] == null) {
+//            if (out_soft_mask[channel] == null) {
                 out_soft_mask[channel] = new ImagePlus();
-            }
+//            }
             rg.out_soft_mask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
             MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());

@@ -209,6 +209,9 @@ public class CommonBase extends Info {
         try {
             List<String> ref = readLines(refFile);
             List<String> test = readLines(testFile);
+            if (ref.size() != test.size()) {
+                fail("Size of compared CVS files are different!");
+            }
             for (int i = 0; i < ref.size(); ++i) {
                 if (ref.get(i).startsWith("%background:")) continue;
                 assertEquals(ref.get(i), test.get(i));

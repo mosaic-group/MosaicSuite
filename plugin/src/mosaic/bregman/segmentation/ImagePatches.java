@@ -155,13 +155,13 @@ class ImagePatches {
         if (iOutputRegionsList.size() != newRegionList.size()) System.out.println("HAHAHA");
         iOutputRegionsList.clear();
         for (Entry<Integer, ArrayList<Pix>> e : newRegionList.entrySet()) {
-            // Because of connectivity 
+            // Because of connectivity may disconnect some regions (single pixels) check for regions size.
             if (e.getValue().size() >= iParameters.minRegionSize) {
                 iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
             }
         }
         logger.debug("number of found regions after postprocessing: " + iOutputRegionsList.size());
-
+        
         // Now we run Object properties on this regions list, it is not needed to zeroed iRegions since
         // it overwrite all pixels of old regions with new values
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
