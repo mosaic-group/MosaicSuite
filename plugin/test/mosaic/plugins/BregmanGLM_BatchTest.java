@@ -37,7 +37,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
 
     @Test
-    public void testTestPsfCircleLowIntensity()  {
+    public void testPsfCircleLowIntensity()  {
         
         // Define test data
         final String tcDirName           = "Squassh/psfCircleLowIntensity/";
@@ -67,7 +67,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
     // different results (Random based algorithm and there is no way to provide random seed).
     @Test
     @org.junit.Ignore
-    public void testTestPsfCircleMediumIntensity()  {
+    public void testPsfCircleMediumIntensity()  {
         
         // Define test data
         final String tcDirName           = "Squassh/psfCircleMediumIntensity/";
@@ -301,7 +301,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
     }
     
     @Test
-    @org.junit.Ignore
+//    @org.junit.Ignore
     public void testCluster()  {
         
         // Define test data
