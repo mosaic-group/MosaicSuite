@@ -25,12 +25,12 @@ public class Region implements Comparable<Region> {
     Region rvoronoi;
 
     // Used only in regions analysis
-    public float over_int;
-    public float over_size;
-    public float overlap;
-    public double coloc_o_int;
     public boolean colocpositive = false;
+    public float overlap;
+    public float over_size;
+    public float over_int;
     public boolean singlec;
+    public double coloc_o_int;
     
 
     /**

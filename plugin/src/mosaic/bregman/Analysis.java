@@ -56,10 +56,9 @@ public class Analysis {
                                           "*_coloc.zip" };
 
     static String currentImage = "currentImage";
-    static ImagePlus imgA;
-    private static ImagePlus imgB;
-    static double[][][] imagea;
-    static double[][][] imageb;
+    static final int NumOfInputImages = 2;
+    static ImagePlus[] inputImages = new ImagePlus[NumOfInputImages];
+    static double[][][][] images = new double[NumOfInputImages][][][];
     static boolean[][][] cellMaskABinary;
     static boolean[][][] cellMaskBBinary;
     private static boolean[][][] overallCellMaskBinary;
@@ -76,11 +75,10 @@ public class Analysis {
     // and they must exist.
     private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
         private static final long serialVersionUID = 1L;
-        { add(null); add(null); }
+        { for (int i = 0; i < NumOfInputImages; i++) add(null); }
     };
-    private static short[][][][] regions = new short[2][][][];
-    
-    final static ImagePlus out_soft_mask[] = new ImagePlus[2];
+    private static short[][][][] regions = new short[NumOfInputImages][][][];
+    final static ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputImages];
     
     public static ArrayList<Region> getRegionslist(int aRegionNum) {
         return regionslist.get(aRegionNum);
@@ -100,203 +98,122 @@ public class Analysis {
 
     static void loadChannels(ImagePlus img2, int aNumOfChannels) {
         final int currentFrame = img2.getFrame();
-        final int bits = img2.getBitDepth();
-
-        setupChannel1(img2, currentFrame, bits);
-        if (aNumOfChannels > 1) setupChannel2(img2, currentFrame, bits);
+        setupChannel(img2, currentFrame, 0);
+        if (aNumOfChannels > 1) setupChannel(img2, currentFrame, 1);
     }
 
-    private static void setupChannel1(ImagePlus img2, final int currentFrame, final int bits) {
-        final ImageStack img_s = generateImgStack(img2, currentFrame, bits, 1);
-        imgA = new ImagePlus();
-        imgA.setStack(img2.getTitle(), img_s);
-        imagea = setImage(imgA);
+    private static void setupChannel(ImagePlus img2, final int currentFrame, int channel) {
+        inputImages[channel] =  ImgUtils.extractImage(img2, currentFrame, channel + 1 /* 1-based */);
+        images[channel] = ImgUtils.ImgToZXYarray(inputImages[channel]);
+        ArrayOps.normalize(images[channel]);
     }
 
-    private static void setupChannel2(ImagePlus img2, final int currentFrame, final int bits) {
-        final ImageStack img_s = generateImgStack(img2, currentFrame, bits, 2);
-        imgB = new ImagePlus();
-        imgB.setStack(img2.getTitle(), img_s);
-        imageb = setImage(imgB);
-    }
-
-    private static double[][][] setImage(ImagePlus aImage) {
-        int ni = aImage.getWidth();
-        int nj = aImage.getHeight();
-        int nz = aImage.getNSlices();
-        double[][][] image = new double[nz][ni][nj];
-
-        double max = 0;
-        double min = Double.POSITIVE_INFINITY;
-
-        for (int z = 0; z < nz; z++) {
-            aImage.setSlice(z + 1);
-            ImageProcessor imp = aImage.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    image[z][i][j] = imp.getPixelValue(i, j);
-                    if (image[z][i][j] > max) {
-                        max = image[z][i][j];
-                    }
-                    if (image[z][i][j] < min) {
-                        min = image[z][i][j];
-                    }
-                }
-            }
-        }
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    image[z][i][j] = (image[z][i][j] - min) / (max - min);
-                }
-            }
-        }
-        
-        return image;
-    }
-    
-    private static ImageStack generateImgStack(ImagePlus img2, final int currentFrame, final int bits, int channel) {
-        int ni = img2.getWidth();
-        int nj = img2.getHeight();
-        int nz = img2.getNSlices();
-        final ImageStack img_s = new ImageStack(ni, nj);
-
-        for (int z = 0; z < nz; z++) {
-            img2.setPosition(channel, z + 1, currentFrame);
-            ImageProcessor impt = (bits == 32) ? img2.getProcessor().convertToShort(false) : img2.getProcessor();
-            img_s.addSlice("", impt);
-        }
-        
-        return img_s;
-    }
-
-    static double[] pearson_corr() {
-        return new SamplePearsonCorrelationCoefficient(imgA, imgB, iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
-    }
-
-    static void segmentA() {
-        segmentImg(imgA, 0);
-    }
-    
-    static void segmentB() {
-        segmentImg(imgB, 1);
-    }
-    
-    private static void segmentImg(final ImagePlus img, final int channel) {
-        // PSF only working in two region problem
-        // 3D only working for two problem
-        
+    static void segment(int channel) {
+        final ImagePlus img = inputImages[channel];
         currentImage = img.getTitle();
-        /* Search for maximum and minimum value, normalization */
-        double min, max;
-        int ni = img.getWidth();
-        int nj = img.getHeight();
-        int nz = img.getNSlices();
-        if (Analysis.norm_max == 0) {
-            MinMax<Double> mm = ImgUtils.findMinMax(img);
-            min = mm.getMin();
-            max = mm.getMax();
-        }
-        else {
-            min = Analysis.norm_min;
-            max = Analysis.norm_max;
-        }
-        if (iParameters.usecellmaskX && channel == 0) {
-            ImagePlus maskImg = new ImagePlus();
-            maskImg.setTitle("Cell mask channel 1");
-            cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
-            if (iParameters.livedisplay) {
-                maskImg.show();
-            }
-        }
-        if (iParameters.usecellmaskY && channel == 1) {
-            ImagePlus maskImg = new ImagePlus();
-            maskImg.setTitle("Cell mask channel 2");
-            cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
-            if (iParameters.livedisplay) {
-                maskImg.show();
-            }
-        }
-
-        double[][][] iImage = new double[nz][ni][nj];
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor ip = img.getProcessor();
-            
-            if (iParameters.removebackground) {
-                final BackgroundSubtracter bs = new BackgroundSubtracter();
-                bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
-            }
-
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    iImage[z][i][j] = ip.getPixelValue(i, j);
+                /* Search for maximum and minimum value, normalization */
+                double min, max;
+                int ni = img.getWidth();
+                int nj = img.getHeight();
+                int nz = img.getNSlices();
+                if (Analysis.norm_max == 0) {
+                    MinMax<Double> mm = ImgUtils.findMinMax(img);
+                    min = mm.getMin();
+                    max = mm.getMax();
                 }
-            }
-        }
-        MinMax<Double> mm = ArrayOps.findMinMax(iImage);
-        max = mm.getMax();
-        min = mm.getMin();
+                else {
+                    min = Analysis.norm_min;
+                    max = Analysis.norm_max;
+                }
+                if (iParameters.usecellmaskX && channel == 0) {
+                    ImagePlus maskImg = new ImagePlus();
+                    maskImg.setTitle("Cell mask channel 1");
+                    cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
+                    if (iParameters.livedisplay) {
+                        maskImg.show();
+                    }
+                }
+                if (iParameters.usecellmaskY && channel == 1) {
+                    ImagePlus maskImg = new ImagePlus();
+                    maskImg.setTitle("Cell mask channel 2");
+                    cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
+                    if (iParameters.livedisplay) {
+                        maskImg.show();
+                    }
+                }
         
-        if (iParameters.livedisplay && iParameters.removebackground) {
-            final ImagePlus noBackgroundImg = img.duplicate();
-            noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
-            noBackgroundImg.changes = false;
-            noBackgroundImg.setDisplayRange(min, max);
-            noBackgroundImg.show();
-        }
-
-        /* Overload min/max after background subtraction */
-        if (Analysis.norm_max != 0) {
-            max = Analysis.norm_max;
-            // if we are removing the background we have no idea which is the minumum across 
-            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
-            min = (iParameters.removebackground) ? 0.0 : Analysis.norm_min;
-        }
-        double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+                if (iParameters.removebackground) {
+                    for (int z = 0; z < nz; z++) {
+                        img.setSlice(z + 1);
+                        ImageProcessor ip = img.getProcessor();
+                        final BackgroundSubtracter bs = new BackgroundSubtracter();
+                        bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
+                    }
+                }
         
-        SegmentationParameters sp = new SegmentationParameters(
-                                                    iParameters.nthreads,
-                                                    ((Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
-                                                    iParameters.lreg_[channel],
-                                                    minIntensity,
-                                                    iParameters.exclude_z_edges,
-                                                    IntensityMode.values()[iParameters.mode_intensity],
-                                                    NoiseModel.values()[iParameters.noise_model],
-                                                    iParameters.sigma_gaussian,
-                                                    iParameters.sigma_gaussian / iParameters.zcorrec,
-                                                    iParameters.min_region_filter_intensities );
+                double[][][] image = ImgUtils.ImgToZXYarray(img);
+                MinMax<Double> mm = ArrayOps.findMinMax(image);
+                max = mm.getMax();
+                min = mm.getMin();
+                
+                if (iParameters.livedisplay && iParameters.removebackground) {
+                    final ImagePlus noBackgroundImg = img.duplicate();
+                    noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
+                    noBackgroundImg.changes = false;
+                    noBackgroundImg.setDisplayRange(min, max);
+                    noBackgroundImg.show();
+                }
         
-        //  ============== SEGMENTATION
-        logger.debug("------------------- Segmentation of [" + currentImage + "] channel: " + channel + ", frame: " + frame);
-        SquasshSegmentation rg = new SquasshSegmentation(iImage, sp, min, max);
-        if (iParameters.patches_from_file == null) {
-            rg.run();
-        }
-        else {
-            rg.runWithProvidedMask(generateMaskFromPatches(nz, ni, nj));
-        }
-        
-        iOutputImgScale = rg.iLabeledRegions[0].length / ni;
-        regionslist.set(channel, rg.iRegionsList);
-        regions[channel] = rg.iLabeledRegions;
-        logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
-        // =============================
-        IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
-        if (iParameters.dispSoftMask) {
-//            if (out_soft_mask[channel] == null) {
-                out_soft_mask[channel] = new ImagePlus();
-//            }
-            rg.iSoftMask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
-            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.iSoftMask);
-            out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
-        }
-        ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
-        if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
-        System.out.println("END ==============");
+                /* Overload min/max after background subtraction */
+                if (Analysis.norm_max != 0) {
+                    max = Analysis.norm_max;
+                    // if we are removing the background we have no idea which is the minumum across 
+                    // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
+                    min = (iParameters.removebackground) ? 0.0 : Analysis.norm_min;
+                }
+                double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+                
+                SegmentationParameters sp = new SegmentationParameters(
+                                                            iParameters.nthreads,
+                                                            ((Analysis.iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
+                                                            iParameters.lreg_[channel],
+                                                            minIntensity,
+                                                            iParameters.exclude_z_edges,
+                                                            IntensityMode.values()[iParameters.mode_intensity],
+                                                            NoiseModel.values()[iParameters.noise_model],
+                                                            iParameters.sigma_gaussian,
+                                                            iParameters.sigma_gaussian / iParameters.zcorrec,
+                                                            iParameters.min_region_filter_intensities );
+                
+                //  ============== SEGMENTATION
+                logger.debug("------------------- Segmentation of [" + currentImage + "] channel: " + channel + ", frame: " + frame);
+                SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
+                if (iParameters.patches_from_file == null) {
+                    rg.run();
+                }
+                else {
+                    rg.runWithProvidedMask(generateMaskFromPatches(nz, ni, nj));
+                }
+                
+                iOutputImgScale = rg.iLabeledRegions[0].length / ni;
+                regionslist.set(channel, rg.iRegionsList);
+                regions[channel] = rg.iLabeledRegions;
+                logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
+                // =============================
+                IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
+                if (iParameters.dispSoftMask) {
+        //            if (out_soft_mask[channel] == null) {
+                        out_soft_mask[channel] = new ImagePlus();
+        //            }
+                    rg.iSoftMask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
+                    MosaicUtils.MergeFrames(out_soft_mask[channel], rg.iSoftMask);
+                    out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
+                }
+                ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
+                if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
+                System.out.println("END ==============");
     }
-
+    
     public static ImagePlus generateMaskImg(List<float[][][]> aAllMasks) {
         if (aAllMasks.size() == 0) return null;
         
@@ -373,12 +290,19 @@ public class Analysis {
         }
     }
     
+    
+    // ============================================ Colocation analysis ==================================
+
+    static double[] pearson_corr() {
+        return new SamplePearsonCorrelationCoefficient(inputImages[0], inputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
+    }
+    
     static double colocsegA() {
-        return coloc(regionslist.get(0), imageb);
+        return coloc(regionslist.get(0), images[1]);
     }
 
     static double colocsegB() {
-        return coloc(regionslist.get(1), imagea);
+        return coloc(regionslist.get(1), images[0]);
     }
     
     private static double coloc(final ArrayList<Region> currentRegion, double[][][] image) {
@@ -474,16 +398,17 @@ public class Analysis {
         }
         final double colocthreshold = 0.5;
         r.colocpositive = ((double) countcoloc) / count > colocthreshold;
-        r.overlap = (float) Analysis.round(((double) countcoloc) / count, 3);
-        r.over_size = (float) Analysis.round((sizeColoc) / countcoloc, 3);
-        if (nz == 1) {
-            r.over_size = (float) Analysis.round(r.over_size / (osxy * osxy), 3);
+        r.overlap = ((float) countcoloc) / count;
+        if (countcoloc != 0) {
+        r.over_size = (nz == 1) ? (float) (sizeColoc / countcoloc) / (osxy * osxy)
+                                : (float) (sizeColoc / countcoloc) / (osxy * osxy * osxy);
+
+        r.over_int = (float) (intColoc) / countcoloc;
         }
         else {
-            r.over_size = (float) Analysis.round(r.over_size / (osxy * osxy * osxy), 3);
+            r.over_size = 0;
+            r.over_int = 0;
         }
-
-        r.over_int = (float) Analysis.round((intColoc) / countcoloc, 3);
         r.singlec = oneColoc;
 
         return r.colocpositive;
@@ -619,14 +544,14 @@ public class Analysis {
         }
     }
     
-    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aImage, int aChannel, ImagePlus aOutputImage) {
-        int ni = aImage.getWidth();
-        int nj = aImage.getHeight();
-        int nz = aImage.getNSlices();
+    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aInputImage, int aChannel, ImagePlus aOutputImage) {
+        int ni = aInputImage.getWidth();
+        int nj = aInputImage.getHeight();
+        int nz = aInputImage.getNSlices();
         final ImageStack maskStack = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
-            aImage.setSlice(z + 1);
-            ImageProcessor ip = aImage.getProcessor();
+            aInputImage.setSlice(z + 1);
+            ImageProcessor ip = aInputImage.getProcessor();
             final byte[] mask = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -661,14 +586,5 @@ public class Analysis {
         }
         
         return cellmask;
-    }
-    
-    // Round y to z-places after comma
-    static double round(double y, final int z) {
-        final double factor = Math.pow(10,  z);
-        y *= factor;
-        y = (int) y;
-        y /= factor;
-        return y;
     }
 }

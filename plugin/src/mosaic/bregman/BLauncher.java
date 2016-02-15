@@ -184,9 +184,9 @@ public class BLauncher {
         int fz = (nz > 1) ? factor : 1;
 
         if (Analysis.iParameters.dispoutline) {
-                displayoutline(Analysis.getRegions(0), Analysis.imagea, nz * fz, ni * factor, nj * factor, 1, sep);
+                displayoutline(Analysis.getRegions(0), Analysis.images[0], nz * fz, ni * factor, nj * factor, 1, sep);
             if (Analysis.iParameters.nchannels == 2) {
-                displayoutline(Analysis.getRegions(1), Analysis.imageb, nz * fz, ni * factor, nj * factor, 2, sep);
+                displayoutline(Analysis.getRegions(1), Analysis.images[1], nz * fz, ni * factor, nj * factor, 2, sep);
             }
         }
         if (Analysis.iParameters.dispint) {
@@ -336,7 +336,7 @@ public class BLauncher {
             out.flush();
             
             out.print("%Parameters:" + " " + "background removal " + " " + Analysis.iParameters.removebackground + " " + "window size " + Analysis.iParameters.size_rollingball + " " + "stddev PSF xy " + " "
-                    + Analysis.round(Analysis.iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + Analysis.round(Analysis.iParameters.sigma_gaussian / Analysis.iParameters.zcorrec, 5) + " "
+                    + round(Analysis.iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + round(Analysis.iParameters.sigma_gaussian / Analysis.iParameters.zcorrec, 5) + " "
                     + "Regularization " + Analysis.iParameters.lreg_[0] + " " + Analysis.iParameters.lreg_[1] + " " + "Min intensity ch1 " + Analysis.iParameters.min_intensity + " " + "Min intensity ch2 "
                     + Analysis.iParameters.min_intensityY + " " + "subpixel " + Analysis.iParameters.subpixel + " " + "Cell mask ch1 " + Analysis.iParameters.usecellmaskX + " " + "mask threshold ch1 "
                     + Analysis.iParameters.thresholdcellmask + " " + "Cell mask ch2 " + Analysis.iParameters.usecellmaskY + " " + "mask threshold ch2 " + Analysis.iParameters.thresholdcellmasky + " " + "Intensity estimation "
@@ -354,14 +354,14 @@ public class BLauncher {
             final double meanSB = Analysis.meansurface(Analysis.getRegionslist(1));
             final double meanLB = Analysis.meanlength(Analysis.getRegionslist(1));
 
-            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + Analysis.round(meanSA, 4) + ";"
-                    + Analysis.round(meanLA, 4) + ";" + +Analysis.getRegionslist(1).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(1)), 4) + ";" + Analysis.round(meanSB, 4) + ";"
-                    + Analysis.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
-                    + colocB + ";" + Analysis.round(corr, 4) + ";" + Analysis.round(corr_mask, 4));
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + round(meanSA, 4) + ";"
+                    + round(meanLA, 4) + ";" + +Analysis.getRegionslist(1).size() + ";" + round(Analysis.meansize(Analysis.getRegionslist(1)), 4) + ";" + round(meanSB, 4) + ";"
+                    + round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
+                    + colocB + ";" + round(corr, 4) + ";" + round(corr_mask, 4));
         }
         else {
-            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + Analysis.round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + Analysis.round(meanSA, 4) + ";"
-                    + Analysis.round(meanLA, 4));
+            out.print(filename + ";" + hcount + ";" + Analysis.getRegionslist(0).size() + ";" + round(Analysis.meansize(Analysis.getRegionslist(0)), 4) + ";" + round(meanSA, 4) + ";"
+                    + round(meanLA, 4));
         }
         out.println();
         out.flush();
@@ -415,13 +415,13 @@ public class BLauncher {
 
         Analysis.loadChannels(img2, Analysis.iParameters.nchannels);
         
-        ni = Analysis.imgA.getWidth();
-        nj = Analysis.imgA.getHeight();
-        nz = Analysis.imgA.getNSlices();
+        ni = Analysis.inputImages[0].getWidth();
+        nj = Analysis.inputImages[0].getHeight();
+        nz = Analysis.inputImages[0].getNSlices();
 
-        Analysis.segmentA();
+        Analysis.segment(0);
         if (Analysis.iParameters.nchannels == 2) {
-            Analysis.segmentB();
+            Analysis.segment(1);
         }
 
         String savepath = MosaicUtils.ValidFolderFromImage(aImp);
@@ -461,14 +461,14 @@ public class BLauncher {
                 IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle()) + "_coloc.zip");
                 
                 // Calculate colocalization quantities
-                colocAB = Analysis.round(Analysis.colocsegAB(), 4);
-                colocBA = Analysis.round(Analysis.colocsegBA(), 4);
-                colocABnumber = Analysis.round(Analysis.colocsegABnumber(), 4);
-                colocABsize = Analysis.round(Analysis.colocsegABsize(), 4);
-                colocBAnumber = Analysis.round(Analysis.colocsegBAnumber(), 4);
-                colocBAsize = Analysis.round(Analysis.colocsegBAsize(), 4);
-                colocA = Analysis.round(Analysis.colocsegA(), 4);
-                colocB = Analysis.round(Analysis.colocsegB(), 4);
+                colocAB = round(Analysis.colocsegAB(), 4);
+                colocBA = round(Analysis.colocsegBA(), 4);
+                colocABnumber = round(Analysis.colocsegABnumber(), 4);
+                colocABsize = round(Analysis.colocsegABsize(), 4);
+                colocBAnumber = round(Analysis.colocsegBAnumber(), 4);
+                colocBAsize = round(Analysis.colocsegBAsize(), 4);
+                colocA = round(Analysis.colocsegA(), 4);
+                colocB = round(Analysis.colocsegB(), 4);
 
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
@@ -787,5 +787,14 @@ public class BLauncher {
             ipd[channel - 1].setStack(ipd[channel - 1].getStack());
             ipd[channel - 1].show();
         }
+    }
+    
+    // Round y to z-places after comma
+    private double round(double y, final int z) {
+        final double factor = Math.pow(10,  z);
+        y *= factor;
+        y = (int) y;
+        y /= factor;
+        return y;
     }
 }
