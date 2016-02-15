@@ -16,7 +16,7 @@ public class SegmentationParameters {
     }
     
     // Constant segmentation parameters 
-    final boolean debug = true;
+    final boolean debug = false;
     final double ldata = 1;
     final double gamma = 1;
     final int energyEvaluationModulo = 5;

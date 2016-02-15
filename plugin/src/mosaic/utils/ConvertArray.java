@@ -13,7 +13,7 @@ public class ConvertArray {
      * @param aArray 2D array of doubles
      * @return 2D array of floats
      */
-    static float[][] toFloat(double[][] aArray) {
+    public static float[][] toFloat(double[][] aArray) {
         final int h = aArray.length; final int w = aArray[0].length;
         final float [][] result = new float[h][w];
         for (int y = 0; y < h; ++y) {
@@ -72,6 +72,24 @@ public class ConvertArray {
             for (int y = 0; y < h; ++y) {
                 for (int x = 0; x < w; ++x) {
                     result[z][y][x] = aArray[z][y][x];
+                }
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 3D array from double to float
+     * @param aArray 3D array of floats
+     * @return 3D array of doubles
+     */
+    public static float[][][] toFloat(double[][][] aArray) {
+        final int d = aArray.length; final int h = aArray[0].length; final int w = aArray[0][0].length;
+        final float[][][] result = new float[d][h][w];
+        for (int z = 0; z < d; ++z) {
+            for (int y = 0; y < h; ++y) {
+                for (int x = 0; x < w; ++x) {
+                    result[z][y][x] = (float)aArray[z][y][x];
                 }
             }
         }

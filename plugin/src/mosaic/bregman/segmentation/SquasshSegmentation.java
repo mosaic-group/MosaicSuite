@@ -2,6 +2,7 @@ package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -39,8 +40,8 @@ public class SquasshSegmentation {
     // TODO: Make it accessible via getters
     public short[][][] iLabeledRegions;
     public ArrayList<Region> iRegionsList;
-    public ImagePlus out_soft_mask;
-    
+    public ImagePlus iSoftMask;
+    public List<float[][][]> iAllMasks = new ArrayList<float[][][]>();
     
     public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
         logger.debug(aParameters);
@@ -79,9 +80,20 @@ public class SquasshSegmentation {
     }
 
     private void stepOneFromImage() {
-        IJ.showStatus("Computing segmentation 0%");
-        IJ.showProgress(0.0);
-        iSolver.first_run();
+        setProgress(0);
+        
+        final int numOfIterations = 151;
+        final boolean isFirstPhase = true;
+        
+        boolean isDone = false;
+        int iteration = 0;
+        while (iteration < numOfIterations && !isDone) {
+            isDone = iSolver.performIteration(isFirstPhase, numOfIterations);
+            if (iParameters.debug) iAllMasks.add(ConvertArray.toFloat(iSolver.w3k));
+            setProgress((50 * iteration)/(numOfIterations - 1));
+            iteration++;
+        }
+        iSolver.postprocess(isFirstPhase);
     }
 
     private void stepOneFromPatches(double[][][] aInputMask) {
@@ -89,11 +101,10 @@ public class SquasshSegmentation {
     }
 
     private void stepTwoSegmentation() {
-        out_soft_mask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest);
+        iSoftMask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest);
         computeConnectedRegions(iSolver.w3kbest);
         
-        IJ.showStatus("Computing segmentation 55%");
-        IJ.showProgress(0.55);
+        setProgress(55);
     
         computeVoronoiRegions();
         final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
@@ -176,8 +187,7 @@ public class SquasshSegmentation {
         filtEDM.setup("voronoi", maskImg);
         filtEDM.run(maskImg.getProcessor());
         maskImg.getProcessor().invert();
-        IJ.showStatus("Computing segmentation 53%");
-        IJ.showProgress(0.53);
+        setProgress(53);
 
         // expand Voronoi in 3D
         ImageProcessor impVoronoi = maskImg.getProcessor();
@@ -200,10 +210,14 @@ public class SquasshSegmentation {
         logger.debug("NumOfRegions - connected regions / voronoi: " + iRegionsList.size() + " / " + regionsvoronoi.size());
         setRegionsObjsVoronoi(iRegionsList, regionsvoronoi);
         
-        IJ.showStatus("Computing segmentation 54%");
-        IJ.showProgress(0.54);
+        setProgress(54);
     }
 
+    private void setProgress(int aPercent) {
+        IJ.showStatus("Computing segmentation " + 54 + "%");
+        IJ.showProgress(aPercent / 100.0);
+    }
+    
     private void setRegionsObjsVoronoi(ArrayList<Region> aRegionsList, ArrayList<Region> aRegionsVoronoi) {
         // use Ri to store voronoi regions indices
         float[][][] voronoiIndexMap = new float[nz][ni][nj];

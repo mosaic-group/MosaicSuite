@@ -210,13 +210,7 @@ public class ImgUtils {
         final ImageStack stack = new ImageStack(iWidth, iHeigth);
     
         for (int z = 0; z < iDepth; z++) {
-            final float[][] pixels = new float[iWidth][iHeigth];
-            for (int i = 0; i < iWidth; i++) {
-                for (int j = 0; j < iHeigth; j++) {
-                    pixels[i][j] = (float) aImgArray[z][i][j];
-                }
-            }
-            stack.addSlice("", new FloatProcessor(pixels));
+            stack.addSlice("", new FloatProcessor(ConvertArray.toFloat(aImgArray[z])));
         }
     
         final ImagePlus img = new ImagePlus();

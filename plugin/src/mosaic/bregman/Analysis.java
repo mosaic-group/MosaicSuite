@@ -2,6 +2,7 @@ package mosaic.bregman;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -11,13 +12,14 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter;
 import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
-import mosaic.bregman.segmentation.SquasshSegmentation;
 import mosaic.bregman.segmentation.SegmentationParameters;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
+import mosaic.bregman.segmentation.SquasshSegmentation;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
@@ -286,13 +288,37 @@ public class Analysis {
 //            if (out_soft_mask[channel] == null) {
                 out_soft_mask[channel] = new ImagePlus();
 //            }
-            rg.out_soft_mask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
-            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.out_soft_mask);
+            rg.iSoftMask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
+            MosaicUtils.MergeFrames(out_soft_mask[channel], rg.iSoftMask);
             out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
         }
+        ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
+        if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
         System.out.println("END ==============");
     }
 
+    public static ImagePlus generateMaskImg(List<float[][][]> aAllMasks) {
+        if (aAllMasks.size() == 0) return null;
+        
+        final float[][][] firstImg = aAllMasks.get(0);
+        int iWidth = firstImg[0].length;
+        int iHeigth = firstImg[0][0].length;
+        int iDepth = firstImg.length;
+        
+        final ImageStack stack = new ImageStack(iWidth, iHeigth);
+        
+        for (float[][][] img : aAllMasks)
+        for (int z = 0; z < iDepth; z++) {
+            stack.addSlice("", new FloatProcessor(img[z]));
+        }
+      
+        final ImagePlus img = new ImagePlus();
+        img.setStack(stack);
+        img.changes = false;
+        img.setDimensions(1, iDepth, aAllMasks.size());
+        return img;
+    }
+    
     private static double[][][] generateMaskFromPatches(int nz, int ni, int nj) {
         final CSV<Particle> csv = new CSV<Particle>(Particle.class);
         csv.setCSVPreferenceFromFile(iParameters.patches_from_file);
@@ -306,6 +332,7 @@ public class Analysis {
         
         return mask;
     }
+    
     /**
      * Get the particles related to one frame
      *

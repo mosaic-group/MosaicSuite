@@ -94,20 +94,6 @@ abstract class ASplitBregmanSolver {
         return betaMle[1];
     }
 
-    final void first_run() {
-        final int numOfIterations = 151;
-        final boolean isFirstPhase = true;
-        boolean isDone = false;
-        int iteration = 0;
-        while (iteration < numOfIterations && !isDone) {
-            isDone = performIteration(isFirstPhase, numOfIterations);
-            IJ.showStatus("Computing segmentation  " + Tools.round((50 * iteration)/(numOfIterations - 1), 2) + "%");
-            IJ.showProgress(0.5 * (iteration) / (numOfIterations - 1));
-            iteration++;
-        }
-        postprocess(isFirstPhase);
-    }
-    
     final void second_run() {
         final int numOfIterations = 101;
         final boolean isFirstPhase = false;
@@ -125,7 +111,7 @@ abstract class ASplitBregmanSolver {
     private double iBestEnergy = Double.MAX_VALUE;
     private double iLastEnergy = 0;
     
-    private final boolean performIteration(boolean aFirstPhase, int aNumOfIterations) {
+    final boolean performIteration(boolean aFirstPhase, int aNumOfIterations) {
         final boolean lastIteration = (iIterNum == aNumOfIterations - 1);
         final boolean energyEvaluation = (iIterNum % iParameters.energyEvaluationModulo == 0 || lastIteration);
         boolean stopFlag = false;
@@ -156,8 +142,10 @@ abstract class ASplitBregmanSolver {
             }
             iLastEnergy = currentEnergy;
             
-            if (iParameters.debug && aFirstPhase) {
-                logger.debug("Energy at step " + iIterNum + ": " + currentEnergy + " stopFlag: " + stopFlag);
+            if (aFirstPhase) {
+                if (iParameters.debug) {
+                    logger.debug("Energy at step " + iIterNum + ": " + currentEnergy + " stopFlag: " + stopFlag);
+                }
             }
         }
 
@@ -168,7 +156,7 @@ abstract class ASplitBregmanSolver {
                 betaMle[1] = Math.max(0.75 * iAnalysePatch.iNormalizedMinObjectIntensity, iAnalysePatch.cin);
                 init();
                 if (iParameters.debug) {
-                    IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
+                    logger.debug("Region " + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
                 }
             }
         }
@@ -178,7 +166,7 @@ abstract class ASplitBregmanSolver {
         return stopFlag;
     }
 
-    private void postprocess(boolean aFirstPhase) {
+    void postprocess(boolean aFirstPhase) {
         if (iBestIterationNum < 50) { // use what iteration threshold ?
             Tools.copytab(w3kbest, w3k);
             iBestIterationNum = iIterNum - 1;
