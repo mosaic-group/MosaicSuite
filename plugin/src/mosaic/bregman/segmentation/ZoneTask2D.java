@@ -27,11 +27,10 @@ class ZoneTask2D implements Runnable {
     private final int iStart, iEnd, jStart, jEnd, nt;
     private final Tools LocalTools;
     private final boolean iEvaluateEnergy;
-    private final boolean iLastIteration;
     
     ZoneTask2D(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Dct, CountDownLatch Sync5, CountDownLatch Sync6,
             CountDownLatch Sync7, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, int iStart, int iEnd, int jStart, int jEnd, int num,
-            ASplitBregmanSolver2D AS, Tools tTools, boolean aEvaluateEnergy, boolean aLastIteration) {
+            ASplitBregmanSolver2D AS, Tools tTools, boolean aEvaluateEnergy) {
         this.LocalTools = tTools;
         this.ZoneDoneSignal = ZoneDoneSignal;
         this.Sync1 = Sync1;
@@ -55,7 +54,6 @@ class ZoneTask2D implements Runnable {
         this.iEnd = iEnd;
         this.jEnd = jEnd;
         iEvaluateEnergy = aEvaluateEnergy;
-        iLastIteration = aLastIteration;
     }
 
     @Override
@@ -196,7 +194,7 @@ class ZoneTask2D implements Runnable {
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp
-        if (iEvaluateEnergy || iLastIteration) {
+        if (iEvaluateEnergy) {
             AS.iEnergies[nt] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, AS.iNoiseModel);
         }

@@ -81,7 +81,7 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
     }
 
     @Override
-    protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException {
+    protected void step(boolean aEvaluateEnergy) throws InterruptedException {
 
         final CountDownLatch ZoneDoneSignal = new CountDownLatch(iParameters.numOfThreads);// subprob 1 and 3
         final CountDownLatch Sync1 = new CountDownLatch(iParameters.numOfThreads);
@@ -109,13 +109,13 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
         for (int nt = 0; nt < iParameters.numOfThreads - 1; nt++) {
             // Check if we can create threads
             final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
-                    jStart + jchunk, nt, this, iLocalTools, aEvaluateEnergy, aLastIteration);
+                    jStart + jchunk, nt, this, iLocalTools, aEvaluateEnergy);
             executor.execute(task);
             iStart += ichunk;
             jStart += jchunk;
         }
         final ZoneTask3D task = new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
-                jStart, jStart + jlastchunk, iParameters.numOfThreads - 1, this, iLocalTools, aEvaluateEnergy, aLastIteration);
+                jStart, jStart + jlastchunk, iParameters.numOfThreads - 1, this, iLocalTools, aEvaluateEnergy);
         executor.execute(task);
         Sync4.await();
 

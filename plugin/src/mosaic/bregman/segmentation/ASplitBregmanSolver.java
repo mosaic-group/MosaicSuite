@@ -5,6 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
@@ -13,6 +15,8 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 
 abstract class ASplitBregmanSolver {
+    private static final Logger logger = Logger.getLogger(ASplitBregmanSolver.class);
+    
     // Input parameters
     protected final SegmentationParameters iParameters;
     protected final double[][][] iImage;
@@ -91,107 +95,111 @@ abstract class ASplitBregmanSolver {
     }
 
     final void first_run() {
-        final int firstStepNumOfIterations = 151;
-        try {
-            run(true, firstStepNumOfIterations);
+        final int numOfIterations = 151;
+        final boolean isFirstPhase = true;
+        boolean isDone = false;
+        int iteration = 0;
+        while (iteration < numOfIterations && !isDone) {
+            isDone = performIteration(isFirstPhase, numOfIterations);
+            IJ.showStatus("Computing segmentation  " + Tools.round((50 * iteration)/(numOfIterations - 1), 2) + "%");
+            IJ.showProgress(0.5 * (iteration) / (numOfIterations - 1));
+            iteration++;
         }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        postprocess(isFirstPhase);
     }
     
     final void second_run() {
-        final int secondStepNumOfIterations = 101;
+        final int numOfIterations = 101;
+        final boolean isFirstPhase = false;
+        boolean isDone = false;
+        int iteration = 0;
+        while (iteration < numOfIterations && !isDone) {
+            isDone = performIteration(isFirstPhase, numOfIterations);
+            iteration++;
+        }
+        postprocess(isFirstPhase);
+    }
+
+    private int iIterNum = 0;
+    private int iBestIterationNum = 0;
+    private double iBestEnergy = Double.MAX_VALUE;
+    private double iLastEnergy = 0;
+    
+    private final boolean performIteration(boolean aFirstPhase, int aNumOfIterations) {
+        final boolean lastIteration = (iIterNum == aNumOfIterations - 1);
+        final boolean energyEvaluation = (iIterNum % iParameters.energyEvaluationModulo == 0 || lastIteration);
+        boolean stopFlag = false;
+
         try {
-            run(false, secondStepNumOfIterations);
+            step(energyEvaluation);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (energyEvaluation) {
+            double currentEnergy = 0;
+            for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
+                currentEnergy += iEnergies[nt];
+            }
+            
+            if (currentEnergy < iBestEnergy) {
+                Tools.copytab(w3kbest, w3k);
+                iBestIterationNum = iIterNum;
+                iBestEnergy = currentEnergy;
+            }
+            
+            if (iIterNum != 0) {
+                if (Math.abs((currentEnergy - iLastEnergy) / iLastEnergy) < iParameters.energySearchThreshold) {
+                    stopFlag = true;
+                }
+            }
+            iLastEnergy = currentEnergy;
+            
+            if (iParameters.debug && aFirstPhase) {
+                logger.debug("Energy at step " + iIterNum + ": " + currentEnergy + " stopFlag: " + stopFlag);
+            }
+        }
+
+        if (!aFirstPhase) {
+            if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (iIterNum == 40 || iIterNum == 70)) {
+                iAnalysePatch.estimateIntensity(w3k);
+                betaMle[0] = Math.max(0, iAnalysePatch.cout);
+                betaMle[1] = Math.max(0.75 * iAnalysePatch.iNormalizedMinObjectIntensity, iAnalysePatch.cin);
+                init();
+                if (iParameters.debug) {
+                    IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
+                }
+            }
+        }
+        
+        iIterNum++;
+
+        return stopFlag;
+    }
+
+    private void postprocess(boolean aFirstPhase) {
+        if (iBestIterationNum < 50) { // use what iteration threshold ?
+            Tools.copytab(w3kbest, w3k);
+            iBestIterationNum = iIterNum - 1;
+            iBestEnergy = iLastEnergy;
+            
+            logger.debug("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iBestIterationNum);
+        }
+        if (aFirstPhase) { 
+            if (iParameters.debug) {
+                IJ.log("Best energy : " + Tools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);
+            }
+        }
+        try {
+            executor.shutdown();
+            executor.awaitTermination(1, TimeUnit.DAYS);
         }
         catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-    
-    private final void run(boolean aFirstPhase, int aNumOfIterations) throws InterruptedException {
-        int stepk = 0;
-        final int modulo = 10;
-        int bestIteration = 0;
-        boolean stopFlag = false;
-        double bestEnergy = Double.MAX_VALUE;
-        double lastenergy = 0;
-        double energy = 0;
-        
-        while (stepk < aNumOfIterations && !stopFlag) {
-            final boolean lastIteration = (stepk == aNumOfIterations - 1);
-            final boolean energyEvaluation = (stepk % iParameters.energyEvaluationModulo == 0);
-            final boolean moduloStep = (stepk % modulo == 0 || lastIteration);
 
-            step(energyEvaluation, lastIteration);
-
-            if (energyEvaluation) {
-                energy = 0;
-                for (int nt = 0; nt < iParameters.numOfThreads; nt++) {
-                    energy += iEnergies[nt];
-                }
-            }
-            
-            if (energy < bestEnergy) {
-                Tools.copytab(w3kbest, w3k);
-                bestIteration = stepk;
-                bestEnergy = energy;
-            }
-            
-            if (moduloStep && stepk != 0) {
-                if (Math.abs((energy - lastenergy) / lastenergy) < iParameters.energySearchThreshold) {
-                    stopFlag = true;
-                }
-            }
-            lastenergy = energy;
-
-            if (aFirstPhase) {
-                if (moduloStep) {
-                    if (iParameters.debug) {
-                        IJ.log(String.format("Energy at step %d: %7.6e", stepk, energy));
-                        if (stopFlag) IJ.log("energy stop");
-                    }
-                    IJ.showStatus("Computing segmentation  " + Tools.round((50 * stepk)/(aNumOfIterations - 1), 2) + "%");
-                }
-                IJ.showProgress(0.5 * (stepk) / (aNumOfIterations - 1));
-            }
-            else {
-                if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (stepk == 40 || stepk == 70)) {
-                    iAnalysePatch.estimateIntensity(w3k);
-                    betaMle[0] = Math.max(0, iAnalysePatch.cout);
-                    betaMle[1] = Math.max(0.75 * iAnalysePatch.iNormalizedMinObjectIntensity, iAnalysePatch.cin);
-                    init();
-                    if (iParameters.debug) {
-                        IJ.log("region" + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
-                    }
-                }
-            }
-
-            stepk++;
-        }
-
-        if (bestIteration < 50) { // use what iteration threshold ?
-            Tools.copytab(w3kbest, w3k);
-            bestIteration = stepk - 1;
-            bestEnergy = energy;
-            
-            if (aFirstPhase) {
-                if (iParameters.debug) {
-                    IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + bestIteration);
-                }
-            }
-        }
-        if (aFirstPhase) { 
-            if (iParameters.debug) {
-                IJ.log("Best energy : " + Tools.round(bestEnergy, 3) + ", found at step " + bestIteration);
-            }
-        }
-        
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.DAYS);
-    }
-
-    abstract protected void step(boolean aEvaluateEnergy, boolean aLastIteration) throws InterruptedException;
+    abstract protected void step(boolean aEvaluateEnergy) throws InterruptedException;
     abstract protected void init();
 }
