@@ -65,8 +65,8 @@ public class SquasshSegmentation {
         iPsf = generatePsf();
         
         iSolver = (nz > 1) 
-                ? new ASplitBregmanSolver3D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf)
-                : new ASplitBregmanSolver2D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.regularization, iPsf);
+                ? new ASplitBregmanSolver3D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.lambdaRegularization, iPsf)
+                : new ASplitBregmanSolver2D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.lambdaRegularization, iPsf);
     }
 
     public void run() {        
@@ -107,7 +107,7 @@ public class SquasshSegmentation {
         setProgress(55);
     
         computeVoronoiRegions();
-        final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.regularization, iParameters.minObjectIntensity, iPsf);
+        final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.lambdaRegularization, iParameters.minObjectIntensity, iPsf);
         ipatches.processPatches();
         iRegionsList = ipatches.getRegionsList();
         iLabeledRegions = ipatches.getLabeledRegions();

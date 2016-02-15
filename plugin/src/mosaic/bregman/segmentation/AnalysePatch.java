@@ -188,7 +188,7 @@ class AnalysePatch {
         for (double thr = 0.95; thr > iRescaledMinIntensityAll * 0.96; thr -= 0.02) {
             if (generateThresholdedObject(w3kbest, thr)) {
                 estimateIntensityRSS(result);
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout, cin, iPatch, iParameters.noiseModel);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.lambdaData, iRegulariztionPatch, iPsf, cout, cin, iPatch, iParameters.noiseModel);
                 if (tempEnergy < bestEnergy) {
                     bestEnergy = tempEnergy;
                     cinbest = cin;
@@ -220,7 +220,7 @@ class AnalysePatch {
         
         for (double currentThr = 1; currentThr > aMinThreshold; currentThr -= 0.02) {
             if (generateThresholdedObject(w3kbest, currentThr)) {
-                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.ldata, iRegulariztionPatch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
+                double tempEnergy = iLocalTools.computeEnergyPSF_weighted(temp1, result, temp2, temp3, iRegionMask, iParameters.lambdaData, iRegulariztionPatch, iPsf, cout_front, cin, iPatch, iParameters.noiseModel);
                 if (tempEnergy < bestEenergy) {
                     bestEenergy = tempEnergy;
                     bestThreshold = currentThr;

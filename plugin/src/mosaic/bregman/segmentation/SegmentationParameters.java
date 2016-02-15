@@ -17,7 +17,7 @@ public class SegmentationParameters {
     
     // Constant segmentation parameters 
     final boolean debug = false;
-    final double ldata = 1;
+    final double lambdaData = 1;
     final double gamma = 1;
     final int energyEvaluationModulo = 5;
     final double energySearchThreshold = 1e-7;
@@ -30,7 +30,7 @@ public class SegmentationParameters {
     final int interpolation;
     
     // Segmentation parameters (from segmentation GUI)
-    final double regularization;
+    final double lambdaRegularization;
     final double minObjectIntensity;
     final boolean excludeEdgesZ;
     final IntensityMode intensityMode;
@@ -53,7 +53,7 @@ public class SegmentationParameters {
         numOfThreads = aNumOfThreads;
         interpolation = aInterpolation;
         
-        regularization = aRegularization;
+        lambdaRegularization = aRegularization;
         minObjectIntensity = aMinObjectIntensity;
         excludeEdgesZ = aExcludeZedges;
         intensityMode = aIntensityMode;

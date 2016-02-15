@@ -74,7 +74,7 @@ class ZoneTask2D implements Runnable {
         Tools.synchronizedWait(Sync1);
 
         
-        LocalTools.mydivergence(AS.temp3, AS.temp1, AS.temp2, AS.temp4, Sync2, iStart, iEnd, jStart, jEnd);// , temp3[l]);
+        LocalTools.mydivergence(AS.temp3, AS.temp1, AS.temp2, AS.temp4, Sync2, iStart, iEnd, jStart, jEnd);
 
         Tools.synchronizedWait(Sync12);
 
@@ -92,11 +92,9 @@ class ZoneTask2D implements Runnable {
 
         Tools.synchronizedWait(Sync11);
 
-        for (int z = 0; z < AS.nz; z++) {
-            for (int i = iStart; i < iEnd; i++) {
-                for (int j = 0; j < AS.nj; j++) {
-                    AS.temp1[z][i][j] = -AS.temp3[z][i][j] + AS.w3k[z][i][j] - AS.b3k[z][i][j] + (AS.iBetaMleIn - AS.iBetaMleOut) * AS.temp4[z][i][j];
-                }
+        for (int i = iStart; i < iEnd; i++) {
+            for (int j = 0; j < AS.nj; j++) {
+                AS.temp1[0][i][j] = -AS.temp3[0][i][j] + AS.w3k[0][i][j] - AS.b3k[0][i][j] + (AS.iBetaMleIn - AS.iBetaMleOut) * AS.temp4[0][i][j];
             }
         }
 
@@ -124,15 +122,15 @@ class ZoneTask2D implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.temp3[0][i][j] = Math.pow(((AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma - AS.b1k[0][i][j] - AS.temp2[0][i][j]), 2) + 
-                                         4 * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j];
+                        AS.temp3[0][i][j] = Math.pow(((AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma - AS.b1k[0][i][j] - AS.temp2[0][i][j]), 2) + 
+                                         4 * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j];
                     }
                 }
             }
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[0][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma + Math.sqrt(AS.temp3[z][i][j]));
+                        AS.w1k[0][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma + Math.sqrt(AS.temp3[z][i][j]));
                     }
                 }
             }
@@ -143,8 +141,8 @@ class ZoneTask2D implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j])
-                                / (1 + 2 * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma);
+                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j])
+                                / (1 + 2 * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma);
                     }
                 }
             }
@@ -195,7 +193,7 @@ class ZoneTask2D implements Runnable {
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp
         if (iEvaluateEnergy) {
-            AS.iEnergies[nt] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
+            AS.iEnergies[nt] = LocalTools.computeEnergyPSF(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.lambdaData, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, AS.iNoiseModel);
         }
     }

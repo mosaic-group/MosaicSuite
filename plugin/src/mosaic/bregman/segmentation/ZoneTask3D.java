@@ -124,15 +124,15 @@ class ZoneTask3D implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.temp3[z][i][j] = Math.pow(((AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma - AS.b1k[z][i][j] - AS.temp2[z][i][j]), 2) + 4
-                                * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[z][i][j];
+                        AS.temp3[z][i][j] = Math.pow(((AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma - AS.b1k[z][i][j] - AS.temp2[z][i][j]), 2) + 4
+                                * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[z][i][j];
                     }
                 }
             }
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[z][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma + Math.sqrt(AS.temp3[z][i][j]));
+                        AS.w1k[z][i][j] = 0.5 * (AS.b1k[z][i][j] + AS.temp2[z][i][j] - (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma + Math.sqrt(AS.temp3[z][i][j]));
                     }
                 }
             }
@@ -143,8 +143,8 @@ class ZoneTask3D implements Runnable {
             for (int z = 0; z < AS.nz; z++) {
                 for (int i = iStart; i < iEnd; i++) {
                     for (int j = 0; j < AS.nj; j++) {
-                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j])
-                                / (1 + 2 * (AS.iParameters.ldata / AS.iRegularization) * AS.iParameters.gamma);
+                        AS.w1k[0][i][j] = (AS.b1k[z][i][j] + AS.temp2[z][i][j] + 2 * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma * AS.iImage[0][i][j])
+                                / (1 + 2 * (AS.iParameters.lambdaData / AS.iRegularization) * AS.iParameters.gamma);
                     }
                 }
             }
@@ -195,7 +195,7 @@ class ZoneTask3D implements Runnable {
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp
         if (iEvaluateEnergy) {
-            AS.iEnergies[nt] = LocalTools.computeEnergyPSF3D(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.ldata, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
+            AS.iEnergies[nt] = LocalTools.computeEnergyPSF3D(AS.temp1, AS.w3k, AS.temp3, AS.temp4, AS.iParameters.lambdaData, AS.iRegularization, AS.iPsf, AS.iBetaMleOut, AS.iBetaMleIn, AS.iImage, iStart,
                     iEnd, jStart, jEnd, Sync8, Sync9, Sync13, AS.iNoiseModel);
         }
     }

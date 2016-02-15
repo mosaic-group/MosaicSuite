@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import ij.IJ;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
 import mosaic.core.psf.psf;
@@ -176,7 +175,7 @@ abstract class ASplitBregmanSolver {
         }
         if (aFirstPhase) { 
             if (iParameters.debug) {
-                IJ.log("Best energy : " + Tools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);
+                logger.debug("Best energy : " + Tools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);
             }
         }
         try {
