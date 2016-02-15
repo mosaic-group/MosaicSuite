@@ -101,7 +101,7 @@ public class SquasshSegmentation {
     }
 
     private void stepTwoSegmentation() {
-        iSoftMask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest);
+        iSoftMask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest, "w3kbest");
         computeConnectedRegions(iSolver.w3kbest);
         
         setProgress(55);

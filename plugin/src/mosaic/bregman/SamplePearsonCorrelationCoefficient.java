@@ -30,12 +30,12 @@ class SamplePearsonCorrelationCoefficient {
         iImageA = new double[iDepth][iWidth][iHeight];
         double maxA = initImageAndGetMax(aImgA, iImageA);
         double tx = aMaskImgA ? aMaskThresholdA * maxA : -1; 
-        iMaskA = Analysis.createBinaryCellMask(tx, aImgA, 0, iDepth, iWidth, iHeight, null);
+        iMaskA = Analysis.createBinaryCellMask(tx, aImgA, 0, null);
         
         iImageB = new double[iDepth][iWidth][iHeight];
         double maxB = initImageAndGetMax(aImgB, iImageB);
         double ty = aMaskImgB ? aMaskThresholdB * maxB : -1;
-        iMaskB = Analysis.createBinaryCellMask(ty, aImgB, 1, iDepth, iWidth, iHeight, null);
+        iMaskB = Analysis.createBinaryCellMask(ty, aImgB, 1, null);
     }
 
     /**

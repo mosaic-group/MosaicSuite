@@ -73,7 +73,7 @@ public class Analysis {
     public static double norm_min = 0.0;
 
     // Create empty elements - they are later access by index - not nice but later elements are accessed by get() 
-    // and they must exist. TODO: This should be refactored.
+    // and they must exist.
     private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
         private static final long serialVersionUID = 1L;
         { add(null); add(null); }
@@ -134,7 +134,7 @@ public class Analysis {
             ImageProcessor imp = aImage.getProcessor();
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    image[z][i][j] = imp.getPixel(i, j);
+                    image[z][i][j] = imp.getPixelValue(i, j);
                     if (image[z][i][j] > max) {
                         max = image[z][i][j];
                     }
@@ -205,7 +205,7 @@ public class Analysis {
         if (iParameters.usecellmaskX && channel == 0) {
             ImagePlus maskImg = new ImagePlus();
             maskImg.setTitle("Cell mask channel 1");
-            cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
@@ -213,7 +213,7 @@ public class Analysis {
         if (iParameters.usecellmaskY && channel == 1) {
             ImagePlus maskImg = new ImagePlus();
             maskImg.setTitle("Cell mask channel 2");
-            cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, nz, ni, nj, maskImg);
+            cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
             if (iParameters.livedisplay) {
                 maskImg.show();
             }
@@ -231,7 +231,7 @@ public class Analysis {
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    iImage[z][i][j] = ip.getPixel(i, j);
+                    iImage[z][i][j] = ip.getPixelValue(i, j);
                 }
             }
         }
@@ -619,23 +619,26 @@ public class Analysis {
         }
     }
     
-    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus img, int aChannel, int aDepth, int aWidth, int aHeight, ImagePlus aOutputImage) {
-        final ImageStack maskStack = new ImageStack(aWidth, aHeight);
-        for (int z = 0; z < aDepth; z++) {
-            img.setSlice(z + 1);
-            ImageProcessor ip = img.getProcessor();
-            final byte[] mask = new byte[aWidth * aHeight];
-            for (int i = 0; i < aWidth; i++) {
-                for (int j = 0; j < aHeight; j++) {
+    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aImage, int aChannel, ImagePlus aOutputImage) {
+        int ni = aImage.getWidth();
+        int nj = aImage.getHeight();
+        int nz = aImage.getNSlices();
+        final ImageStack maskStack = new ImageStack(ni, nj);
+        for (int z = 0; z < nz; z++) {
+            aImage.setSlice(z + 1);
+            ImageProcessor ip = aImage.getProcessor();
+            final byte[] mask = new byte[ni * nj];
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     if (ip.getPixelValue(i, j) > aThreshold) {
-                        mask[j * aWidth + i] = (byte) 255;
+                        mask[j * ni + i] = (byte) 255;
                     }
                     else {
-                        mask[j * aWidth + i] = 0;
+                        mask[j * ni + i] = 0;
                     }
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(aWidth, aHeight);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(mask);
             maskStack.addSlice("", bp);
         }
@@ -646,12 +649,12 @@ public class Analysis {
         IJ.run(maskImg, "Open", "stack");
         IJ.run(maskImg, "Invert", "stack");
 
-        final boolean[][][] cellmask = new boolean[aDepth][aWidth][aHeight];
-        for (int z = 0; z < aDepth; z++) {
+        final boolean[][][] cellmask = new boolean[nz][ni][nj];
+        for (int z = 0; z < nz; z++) {
             maskImg.setSlice(z + 1);
             ImageProcessor ip = maskImg.getProcessor();
-            for (int i = 0; i < aWidth; i++) {
-                for (int j = 0; j < aHeight; j++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
                     cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
                 }
             }
