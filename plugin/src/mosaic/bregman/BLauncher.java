@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -58,6 +57,7 @@ import net.imglib2.type.numeric.integer.ShortType;
 
 public class BLauncher {
     private static final Logger logger = Logger.getLogger(BLauncher.class);
+    
     // This is the output for cluster
     public final static String out[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
                                         "*_mask_c1.zip", "*_mask_c2.zip", 
@@ -79,37 +79,30 @@ public class BLauncher {
                                           "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
                                           "*_coloc.zip" };
 
-
-    
-    
-
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
     // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
-    
-    
     public static Parameters iParameters = new Parameters();
-    ColocResult resAB;
-    ColocResult resBA;
+    
+    private ColocResult resAB;
+    private ColocResult resBA;
     private int sth_hcount = 0; // WTF this var is what for?
-    private ImagePlus aImp;
-
+//    private ImagePlus aImp;
     private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private final String choice2[] = { "Poisson", "Gauss" };
-
     private final Vector<String> pf = new Vector<String>();
 
-    int ni, nj, nz;
+    private int ni, nj, nz;
     
-    public int frame;
-    String currentImage = "currentImage";
-    public int iOutputImgScale = 1;
+    private int currentFrame;
+    private String currentImageTitle = "currentImage";
+    private int iOutputImgScale = 1;
     
-    final int NumOfInputImages = 2;
-    ImagePlus[] inputImages = new ImagePlus[NumOfInputImages];
-    double[][][][] images = new double[NumOfInputImages][][][];
-    boolean[][][][] cellMasks = new boolean[NumOfInputImages][][][];
+    private final static int NumOfInputImages = 2;
+    private ImagePlus[] inputImages = new ImagePlus[NumOfInputImages];
+    private double[][][][] images = new double[NumOfInputImages][][][];
+    private boolean[][][][] cellMasks = new boolean[NumOfInputImages][][][];
     private boolean[][][] overallCellMaskBinary;
     // Create empty elements - they are later access by index - not nice but later elements are accessed by get() and they must exist.
     private ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
@@ -117,46 +110,41 @@ public class BLauncher {
         { for (int i = 0; i < NumOfInputImages; i++) add(null); }
     };
     private short[][][][] regions = new short[NumOfInputImages][][][];
-    final ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputImages];
+    private final ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputImages];
+    
+    private final ImagePlus out_over[] = new ImagePlus[NumOfInputImages];
+    private final ImagePlus out_disp[] = new ImagePlus[NumOfInputImages];
+    private final ImagePlus out_label[] = new ImagePlus[NumOfInputImages];
+    private final ImagePlus out_label_gray[] = new ImagePlus[NumOfInputImages];
+    private ImagePlus label = null;
     
     public Vector<String> getProcessedFiles() {
         return pf;
     }
-
+    
     /**
-     * Launch the Segmentation + Analysis from path
-     *
-     * @param path
+     * Launch the Segmentation
+     * @param aPath path to image file or directory with image files
      */
-    public BLauncher(String path) {
-        final boolean processdirectory = (new File(path)).isDirectory();
+    public BLauncher(String aPath) {
+        final boolean processdirectory = (new File(aPath)).isDirectory();
         if (processdirectory) {
+            // Get all files
+            final File files[] = new File(aPath).listFiles();
+            Arrays.sort(files);
 
             PrintWriter out = null;
-
-            // Get all files
-            final File dir = new File(path);
-            final File fl[] = dir.listFiles();
-
-            // Order the file by name
-            Arrays.sort(fl);
-
-            // Check if we have more than one frame
-            for (final File f : fl) {
-                if (f.isDirectory() == true) {
-                    continue;
-                }
-
-                // If it is the Rscript/hidden/csv file then continue
-                if (f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
+            for (final File f : files) {
+                // If it is the directory/Rscript/hidden/csv file then skip it
+                if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                     continue;
                 }
 
                 // Attempt to open a file
-                aImp = MosaicUtils.openImg(f.getAbsolutePath());
+                ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
                 pf.add(MosaicUtils.removeExtension(f.getName()));
                 
-                Headless_file();
+                Headless_file(aImp);
 
                 displayResult(true);
                 // Write a file info output
@@ -164,7 +152,7 @@ public class BLauncher {
                     saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 
                     String outFilename= "stitch";
-                    if (fl.length == 1) {
+                    if (files.length == 1) {
                         outFilename = aImp.getTitle();
                     }
 
@@ -178,12 +166,11 @@ public class BLauncher {
             }
             if (out != null) {
                 out.close();
-                out = null;
             }
 
             // Try to run the R script
             try {
-                ShellCommand.exeCmdNoPrint("Rscript " + dir.getAbsolutePath() + File.separator + "R_analysis.R");
+                ShellCommand.exeCmdNoPrint("Rscript " + new File(aPath).getAbsolutePath() + File.separator + "R_analysis.R");
             }
             catch (final IOException e) {
                 e.printStackTrace();
@@ -193,26 +180,24 @@ public class BLauncher {
             }
         }
         else {
-            // Open the image and process
-            aImp = MosaicUtils.openImg(path);
+            ImagePlus aImp = MosaicUtils.openImg(aPath);
             start(aImp);
         }
     }
 
     public BLauncher(ImagePlus aImp_) {
-        // start processing
         start(aImp_);
     }
 
     private void start(ImagePlus aImp_) {
-        aImp = aImp_;
+        ImagePlus aImp = aImp_;
         PrintWriter out = null;
 
         // Check if we have more than one frame
         for (int f = 1; f <= aImp.getNFrames(); f++) {
-            frame = f;
+            currentFrame = f;
             aImp.setPosition(aImp.getChannel(), aImp.getSlice(), f);
-            Headless_file();
+            Headless_file(aImp);
 
             try {
                 out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(), f - 1);
@@ -284,7 +269,7 @@ public class BLauncher {
      * @return the outline name
      */
     private String getOutlineName(int i) {
-        return currentImage.substring(0, currentImage.length() - 4) + "_outline_overlay_c" + (i + 1);
+        return currentImageTitle.substring(0, currentImageTitle.length() - 4) + "_outline_overlay_c" + (i + 1);
     }
 
     /**
@@ -293,7 +278,7 @@ public class BLauncher {
      * @return the outline filename
      */
     private String getIntensitiesName(int i) {
-        return currentImage.substring(0, currentImage.length() - 4) + "_intensities" + "_c" + (i + 1);
+        return currentImageTitle.substring(0, currentImageTitle.length() - 4) + "_intensities" + "_c" + (i + 1);
     }
 
     /**
@@ -302,7 +287,7 @@ public class BLauncher {
      * @return the intensities filename
      */
     private String getSegmentationName(int i) {
-        return currentImage.substring(0, currentImage.length() - 4) + "_seg_c" + (i + 1);
+        return currentImageTitle.substring(0, currentImageTitle.length() - 4) + "_seg_c" + (i + 1);
     }
 
     /**
@@ -312,16 +297,15 @@ public class BLauncher {
      * @return the mask filename
      */
     private String getMaskName(int i) {
-        return currentImage.substring(0, currentImage.length() - 4) + "_mask_c" + (i + 1);
+        return currentImageTitle.substring(0, currentImageTitle.length() - 4) + "_mask_c" + (i + 1);
     }
 
     private String getSoftMask(int i) {
-        return currentImage.substring(0, currentImage.length() - 4) + "_soft_mask_c" + (i + 1);
+        return currentImageTitle.substring(0, currentImageTitle.length() - 4) + "_soft_mask_c" + (i + 1);
     }
 
     /**
      * Save all images
-     *
      * @param path where to save
      */
     private void saveAllImages(String path) {
@@ -407,7 +391,7 @@ public class BLauncher {
         }
 
         final double meanSA = meansurface(regionslist.get(0));
-        final double meanLA = meanlength(regionslist.get(0));
+        final double meanLA = meanLength(regionslist.get(0));
         if (iParameters.nchannels == 2) {
             // ================= Colocalization analysis ===============================================
             double colocAB = round(resAB.colocsegABsignal, 4);
@@ -424,15 +408,15 @@ public class BLauncher {
             double corr_mask = temp[1];
             
             final double meanSB = meansurface(regionslist.get(1));
-            final double meanLB = meanlength(regionslist.get(1));
+            final double meanLB = meanLength(regionslist.get(1));
 
-            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meansize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
-                    + round(meanLA, 4) + ";" + +regionslist.get(1).size() + ";" + round(meansize(regionslist.get(1)), 4) + ";" + round(meanSB, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
+                    + round(meanLA, 4) + ";" + +regionslist.get(1).size() + ";" + round(meanSize(regionslist.get(1)), 4) + ";" + round(meanSB, 4) + ";"
                     + round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
                     + colocB + ";" + round(corr, 4) + ";" + round(corr_mask, 4));
         }
         else {
-            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meansize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
                     + round(meanLA, 4));
         }
         out.println();
@@ -441,7 +425,7 @@ public class BLauncher {
         return out;
     }
 
-    private void Headless_file() {
+    private void Headless_file(ImagePlus aImp) {
         try {
             if (aImp == null) {
                 IJ.error("No image to process");
@@ -478,9 +462,6 @@ public class BLauncher {
      * @param img2 Image to segment and analyse
      */
     private void bcolocheadless(ImagePlus img2) {
-        double Ttime = 0;
-        final long lStartTime = new Date().getTime(); // start time
-
         boolean tempBlackbackground = ij.Prefs.blackBackground;
         ij.Prefs.blackBackground = false;
         iParameters.nchannels = img2.getNChannels();
@@ -496,7 +477,7 @@ public class BLauncher {
             segment(1);
         }
 
-        String savepath = MosaicUtils.ValidFolderFromImage(aImp);
+        String savepath = MosaicUtils.ValidFolderFromImage(img2);
         final String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
         
         // Choose the Rscript coloc format
@@ -565,11 +546,6 @@ public class BLauncher {
         }
 
         ij.Prefs.blackBackground = tempBlackbackground;
-
-        final long lEndTime = new Date().getTime(); // start time
-        final long difference = lEndTime - lStartTime; // check different
-        Ttime += difference;
-        IJ.log("Done. Total Time: " + Ttime / 1000 + "s");
     }
 
     private ImagePlus generateColocImg(ArrayList<Region> aRegionsListA, ArrayList<Region> aRegionsListB, int iWidth, int iHeigth, int iDepth) {
@@ -611,8 +587,6 @@ public class BLauncher {
         
         return iColocImg;
     }
-    
-    private final ImagePlus out_over[] = new ImagePlus[2];
 
     /**
      * Display outline overlay segmentation
@@ -633,16 +607,12 @@ public class BLauncher {
             final byte[] mask_bytes = new byte[di * dj];
             for (int i = 0; i < di; i++) {
                 for (int j = 0; j < dj; j++) {
-                    if (regions[z][i][j] > 0) {
-                        mask_bytes[j * di + i] = 0;
-                    }
-                    else {
+                    if (regions[z][i][j] == 0) {
                         mask_bytes[j * di + i] = (byte) 255;
                     }
                 }
             }
-            final ByteProcessor bp = new ByteProcessor(di, dj);
-            bp.setPixels(mask_bytes);
+            final ByteProcessor bp = new ByteProcessor(di, dj, mask_bytes);
             objS.addSlice("", bp);
         }
         final ImagePlus objcts = new ImagePlus("Objects", objS);
@@ -656,14 +626,12 @@ public class BLauncher {
                 }
             }
 
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(mask_bytes);
+            final ByteProcessor bp = new ByteProcessor(ni, nj, mask_bytes);
             imgS.addSlice("", bp);
         }
         ImagePlus img = new ImagePlus("Image", imgS);
 
-        final Resizer re = new Resizer();
-        img = re.zScale(img, dz, ImageProcessor.NONE);
+        img = new Resizer().zScale(img, dz, ImageProcessor.NONE);
         final ImageStack imgS2 = new ImageStack(di, dj);
         for (int z = 0; z < dz; z++) {
             img.setSliceWithoutUpdate(z + 1);
@@ -691,8 +659,6 @@ public class BLauncher {
             over.setTitle(getOutlineName(channel - 1));
         }
     }
-
-    private final ImagePlus out_disp[] = new ImagePlus[2];
 
     /**
      * Display intensity result
@@ -742,10 +708,7 @@ public class BLauncher {
         }
     }
 
-    private final ImagePlus out_label[] = new ImagePlus[2];
-    private ImagePlus label = null;
-
-    private static IndexColorModel backgroundAndSpectrum(int maximum) {
+    private IndexColorModel backgroundAndSpectrum(int maximum) {
         if (maximum > 255) {
             maximum = 255;
         }
@@ -769,8 +732,6 @@ public class BLauncher {
         }
         return new IndexColorModel(8, 256, reds, greens, blues);
     }
-
-    private final String chan_s[] = { "X", "Y" };
 
     /**
      * Display regions colors
@@ -796,14 +757,13 @@ public class BLauncher {
                     mask_short[j * width + i] = regions[z][i][j];
                 }
             }
-            final ShortProcessor sp = new ShortProcessor(width, height);
-            sp.setPixels(mask_short);
+            final ShortProcessor sp = new ShortProcessor(width, height, mask_short, null);
             sp.setMinAndMax(min, max);
             labS.addSlice("", sp);
         }
 
         labS.setColorModel(backgroundAndSpectrum(Math.min(max_r, 255)));
-        
+        final String chan_s[] = { "X", "Y" };
         label = new ImagePlus("Regions " + chan_s[channel - 1], labS);
 
         if (sep == false) {
@@ -815,8 +775,6 @@ public class BLauncher {
             label.setTitle(getSegmentationName(channel - 1));
         }
     }
-
-    private final ImagePlus out_label_gray[] = new ImagePlus[2];
 
     /**
      * Display regions labels
@@ -872,7 +830,7 @@ public class BLauncher {
         return y;
     }
     
-    void loadChannels(ImagePlus img2, int aNumOfChannels) {
+    private void loadChannels(ImagePlus img2, int aNumOfChannels) {
         final int currentFrame = img2.getFrame();
         setupChannel(img2, currentFrame, 0);
         if (aNumOfChannels > 1) setupChannel(img2, currentFrame, 1);
@@ -885,14 +843,11 @@ public class BLauncher {
     }
     
 
-    void segment(int channel) {
+    private void segment(int channel) {
         final ImagePlus img = inputImages[channel];
-        currentImage = img.getTitle();
+        currentImageTitle = img.getTitle();
                 /* Search for maximum and minimum value, normalization */
                 double min, max;
-                int ni = img.getWidth();
-                int nj = img.getHeight();
-                int nz = img.getNSlices();
                 if (norm_max == 0) {
                     MinMax<Double> mm = ImgUtils.findMinMax(img);
                     min = mm.getMin();
@@ -963,7 +918,7 @@ public class BLauncher {
                                                             iParameters.min_region_filter_intensities );
                 
                 //  ============== SEGMENTATION
-                logger.debug("------------------- Segmentation of [" + currentImage + "] channel: " + channel + ", frame: " + frame);
+                logger.debug("------------------- Segmentation of [" + currentImageTitle + "] channel: " + channel + ", frame: " + currentFrame);
                 SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
                 if (iParameters.patches_from_file == null) {
                     rg.run();
@@ -992,7 +947,7 @@ public class BLauncher {
     
     // ============================================ MASKS and tools ==============================
     
-    void computeOverallMask(int nz, int ni, int nj) {
+    private void computeOverallMask(int nz, int ni, int nj) {
         final boolean mask[][][] = new boolean[nz][ni][nj];
 
         for (int z = 0; z < nz; z++) {
@@ -1017,7 +972,7 @@ public class BLauncher {
         overallCellMaskBinary = mask;
     }
     
-    ArrayList<Region> removeExternalObjects(ArrayList<Region> aRegionsList) {
+    private ArrayList<Region> removeExternalObjects(ArrayList<Region> aRegionsList) {
         final ArrayList<Region> newregionlist = new ArrayList<Region>();
         for (Region r : aRegionsList) {
             if (isInside(r)) {
@@ -1043,7 +998,7 @@ public class BLauncher {
         return ((inside / size) > 0.1);
     }
     
-    public static ImagePlus generateMaskImg(List<float[][][]> aAllMasks) {
+    private ImagePlus generateMaskImg(List<float[][][]> aAllMasks) {
         if (aAllMasks.size() == 0) return null;
         
         final float[][][] firstImg = aAllMasks.get(0);
@@ -1071,7 +1026,7 @@ public class BLauncher {
         Vector<Particle> pt = csv.Read(iParameters.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
    
         // Get the particle related inly to one frames
-        final Vector<Particle> pt_f = getPart(pt, frame - 1);
+        final Vector<Particle> pt_f = getPart(pt, currentFrame - 1);
         double[][][] mask = new double[nz][ni][nj];
         // create a mask Image
         drawParticles(mask, pt_f, (int) 3.0);
@@ -1121,46 +1076,34 @@ public class BLauncher {
     
     // ============================================ Colocation analysis ==================================
 
-    double meansurface(ArrayList<Region> aRegionsList) {
-        final int objects = aRegionsList.size();
-        double totalsize = 0;
+    private double meansurface(ArrayList<Region> aRegionsList) {
+        double totalPerimeter = 0;
         for (Region r : aRegionsList) {
-            totalsize += r.perimeter;
+            totalPerimeter += r.perimeter;
         }
 
-        return (totalsize / objects);
+        return (totalPerimeter / aRegionsList.size());
     }
 
-    double meansize(ArrayList<Region> aRegionsList) {
-        final int objects = aRegionsList.size();
-        double totalsize = totalsize(aRegionsList);
+    private double meanSize(ArrayList<Region> aRegionsList) {
+        double totalSize = 0;
+        for (Region r : aRegionsList) {
+            totalSize += r.iPixels.size();
+        }
 
-        if (iParameters.subpixel) {
-            return (totalsize / objects) / (Math.pow(iOutputImgScale, 2));
-        }
-        else {
-            return (totalsize / objects);
-        }
+        return (totalSize / aRegionsList.size()) / (Math.pow(iOutputImgScale, 2));
     }
     
-    double meanlength(ArrayList<Region> aRegionsList) {
-        final int objects = aRegionsList.size();
-        double totalsize = 0;
+    private double meanLength(ArrayList<Region> aRegionsList) {
+        double totalLength = 0;
         for (Region r : aRegionsList) {
-            totalsize += r.length;
+            totalLength += r.length;
         }
         
-        return (totalsize / objects);
+        return (totalLength / aRegionsList.size());
     }
 
-    private double totalsize(ArrayList<Region> aRegionsList) {
-        double totalsize = 0;
-        for (Region r : aRegionsList) {
-            totalsize += r.iPixels.size();
-        }
-        
-        return totalsize;
-    }
+    // ======================================
     
     static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aInputImage, int aChannel, ImagePlus aOutputImage) {
         int ni = aInputImage.getWidth();
