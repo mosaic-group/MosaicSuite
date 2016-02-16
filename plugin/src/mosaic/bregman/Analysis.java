@@ -24,7 +24,6 @@ import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.masks.BallMask;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.ImgUtils;
@@ -56,13 +55,22 @@ public class Analysis {
                                           "*_coloc.zip" };
 
     static String currentImage = "currentImage";
+    public static int iOutputImgScale = 1;
+    
     static final int NumOfInputImages = 2;
     static ImagePlus[] inputImages = new ImagePlus[NumOfInputImages];
     static double[][][][] images = new double[NumOfInputImages][][][];
-    static boolean[][][] cellMaskABinary;
-    static boolean[][][] cellMaskBBinary;
+    static boolean[][][][] cellMasks = new boolean[NumOfInputImages][][][];
     private static boolean[][][] overallCellMaskBinary;
-    public static int iOutputImgScale = 1;
+    // Create empty elements - they are later access by index - not nice but later elements are accessed by get() and they must exist.
+    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
+        private static final long serialVersionUID = 1L;
+        { for (int i = 0; i < NumOfInputImages; i++) add(null); }
+    };
+    private static short[][][][] regions = new short[NumOfInputImages][][][];
+    final static ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputImages];
+    
+    
     public static Parameters iParameters = new Parameters();
     static public int frame;
 
@@ -71,14 +79,6 @@ public class Analysis {
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
 
-    // Create empty elements - they are later access by index - not nice but later elements are accessed by get() 
-    // and they must exist.
-    private static ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
-        private static final long serialVersionUID = 1L;
-        { for (int i = 0; i < NumOfInputImages; i++) add(null); }
-    };
-    private static short[][][][] regions = new short[NumOfInputImages][][][];
-    final static ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputImages];
     
     public static ArrayList<Region> getRegionslist(int aRegionNum) {
         return regionslist.get(aRegionNum);
@@ -128,7 +128,7 @@ public class Analysis {
                 if (iParameters.usecellmaskX && channel == 0) {
                     ImagePlus maskImg = new ImagePlus();
                     maskImg.setTitle("Cell mask channel 1");
-                    cellMaskABinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
+                    cellMasks[0] = createBinaryCellMask(Analysis.iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
                     if (iParameters.livedisplay) {
                         maskImg.show();
                     }
@@ -136,7 +136,7 @@ public class Analysis {
                 if (iParameters.usecellmaskY && channel == 1) {
                     ImagePlus maskImg = new ImagePlus();
                     maskImg.setTitle("Cell mask channel 2");
-                    cellMaskBBinary = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
+                    cellMasks[1] = createBinaryCellMask(Analysis.iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
                     if (iParameters.livedisplay) {
                         maskImg.show();
                     }
@@ -197,17 +197,16 @@ public class Analysis {
                 
                 iOutputImgScale = rg.iLabeledRegions[0].length / ni;
                 regionslist.set(channel, rg.iRegionsList);
+                int num = 0;
+                for (Region r  : rg.iRegionsList) {
+                    System.out.println("=======> " + (num++) + " label: " + r.iLabel);
+                }
                 regions[channel] = rg.iLabeledRegions;
                 logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
                 // =============================
                 IJ.log(rg.iRegionsList.size() + " objects found in " + ((channel == 0) ? "X" : "Y") + ".");
                 if (iParameters.dispSoftMask) {
-        //            if (out_soft_mask[channel] == null) {
-                        out_soft_mask[channel] = new ImagePlus();
-        //            }
-                    rg.iSoftMask.setTitle("Mask" + ((channel == 0) ? "X" : "Y"));
-                    MosaicUtils.MergeFrames(out_soft_mask[channel], rg.iSoftMask);
-                    out_soft_mask[channel].setStack(out_soft_mask[channel].getStack());
+                    out_soft_mask[channel] = ImgUtils.ZXYarrayToImg(rg.iSoftMask, "Mask" + ((channel == 0) ? "X" : "Y"));
                 }
                 ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
                 if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
@@ -290,144 +289,60 @@ public class Analysis {
         }
     }
     
+    // ============================================ MASKS and tools ==============================
+    
+    static void computeOverallMask(int nz, int ni, int nj) {
+        final boolean mask[][][] = new boolean[nz][ni][nj];
+
+        for (int z = 0; z < nz; z++) {
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
+                        mask[z][i][j] = cellMasks[0][z][i][j] && cellMasks[1][z][i][j];
+                    }
+                    else if (iParameters.usecellmaskX) {
+                        mask[z][i][j] = cellMasks[0][z][i][j];
+                    }
+                    else if (iParameters.usecellmaskY) {
+                        mask[z][i][j] = cellMasks[1][z][i][j];
+                    }
+                    else {
+                        mask[z][i][j] = true;
+                    }
+
+                }
+            }
+        }
+        overallCellMaskBinary = mask;
+    }
+    
+    static ArrayList<Region> removeExternalObjects(ArrayList<Region> aRegionsList) {
+        final ArrayList<Region> newregionlist = new ArrayList<Region>();
+        for (Region r : aRegionsList) {
+            if (isInside(r)) {
+                newregionlist.add(r);
+            }
+        }
+
+        return newregionlist;
+    }
+
+    private static boolean isInside(Region r) {
+        final int factor2 = iOutputImgScale;
+        int fz2 = (overallCellMaskBinary.length > 1) ? factor2 : 1;
+
+        double size = 0;
+        int inside = 0;
+        for (Pix px : r.iPixels) {
+            if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
+                inside++;
+            }
+            size++;
+        }
+        return ((inside / size) > 0.1);
+    }
     
     // ============================================ Colocation analysis ==================================
-
-    static double[] pearson_corr() {
-        return new SamplePearsonCorrelationCoefficient(inputImages[0], inputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
-    }
-    
-    static double colocsegA() {
-        return coloc(regionslist.get(0), images[1]);
-    }
-
-    static double colocsegB() {
-        return coloc(regionslist.get(1), images[0]);
-    }
-    
-    private static double coloc(final ArrayList<Region> currentRegion, double[][][] image) {
-        int objects = currentRegion.size();
-        double sum = 0;
-        for (Region r : currentRegion) {
-            sum += regionsum(r, image);
-        }
-        return sum / objects;
-    }
-
-    static double colocsegABnumber() {
-        return colocNumber(regionslist.get(0));
-    }
-
-    static double colocsegBAnumber() {
-        return colocNumber(regionslist.get(1));
-    }
-
-    private static double colocNumber(final ArrayList<Region> currentRegion) {
-        int objects = currentRegion.size();
-        int objectscoloc = 0;
-        for (Region r : currentRegion) {
-            if (r.colocpositive) {
-                objectscoloc++;
-            }
-        }
-
-        return ((double) objectscoloc) / objects;
-    }
-    
-    static double colocsegAB() {
-        return colocRegions(regionslist.get(0), regionslist.get(1), regions[1]);
-    }
-
-    static double colocsegBA() {
-        return colocRegions(regionslist.get(1), regionslist.get(0), regions[0]);
-    }
-
-    private static double colocRegions(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {
-        double totalsignal = 0;
-        double colocsignal = 0;
-        for (Region r : currentRegionList) {
-            regioncoloc(r, secondRegionList, region);
-            totalsignal += r.rsize * r.intensity;
-            colocsignal += r.rsize * r.intensity * r.overlap;
-        }
-
-        return (colocsignal / totalsignal);
-    }
-
-    static double colocsegABsize() {
-        return colocRegionsSize(regionslist.get(0), regionslist.get(1), regions[1]);
-    }
-
-    static double colocsegBAsize() {
-        return colocRegionsSize(regionslist.get(1), regionslist.get(0), regions[0]);
-    }
-
-    private static double colocRegionsSize(final ArrayList<Region> currentRegionList, final ArrayList<Region> secondRegionList, final short[][][] region) {
-        double totalsize = 0;
-        double colocsize = 0;
-        for (Region r : currentRegionList) {
-            regioncoloc(r, secondRegionList, region);
-            totalsize += r.rsize;
-            colocsize += r.rsize * r.overlap;
-        }
-
-        return (colocsize / totalsize);
-    }
-
-    private static boolean regioncoloc(Region r, ArrayList<Region> regionlist, short[][][] regions) {
-        int count = 0;
-        int countcoloc = 0;
-        int previousvalcoloc = 0;
-        boolean oneColoc = true;
-        double intColoc = 0;
-        double sizeColoc = 0;
-        int nz = regions.length;
-        final int osxy = iOutputImgScale;
-        for (Pix p : r.iPixels) {
-            int valcoloc = regions[p.pz][p.px][p.py];
-            if (valcoloc > 0) {
-                countcoloc++;
-                if (previousvalcoloc != 0 && valcoloc != previousvalcoloc) {
-                    oneColoc = false;
-                }
-                intColoc += regionlist.get(valcoloc - 1).intensity;
-                sizeColoc += regionlist.get(valcoloc - 1).iPixels.size();
-                previousvalcoloc = valcoloc;
-            }
-            count++;
-        }
-        final double colocthreshold = 0.5;
-        r.colocpositive = ((double) countcoloc) / count > colocthreshold;
-        r.overlap = ((float) countcoloc) / count;
-        if (countcoloc != 0) {
-        r.over_size = (nz == 1) ? (float) (sizeColoc / countcoloc) / (osxy * osxy)
-                                : (float) (sizeColoc / countcoloc) / (osxy * osxy * osxy);
-
-        r.over_int = (float) (intColoc) / countcoloc;
-        }
-        else {
-            r.over_size = 0;
-            r.over_int = 0;
-        }
-        r.singlec = oneColoc;
-
-        return r.colocpositive;
-    }
-
-    private static double regionsum(Region r, double[][][] image) {
-        final int factor2 = iOutputImgScale;
-        int fz2 = (image.length > 1) ? factor2 : 1;
-
-        int count = 0;
-        double sum = 0;
-        for (Pix p : r.iPixels) {
-            sum += image[p.pz / fz2][p.px / factor2][p.py / factor2];
-            count++;
-        }
-
-        r.coloc_o_int = (sum / count);
-        return (sum / count);
-    }
 
     static double meansurface(ArrayList<Region> aRegionsList) {
         final int objects = aRegionsList.size();
@@ -469,80 +384,6 @@ public class Analysis {
         
         return totalsize;
     }
-
-    static ArrayList<Region> removeExternalObjects(ArrayList<Region> aRegionsList) {
-        final ArrayList<Region> newregionlist = new ArrayList<Region>();
-        for (Region r : aRegionsList) {
-            if (isInside(r)) {
-                newregionlist.add(r);
-            }
-        }
-
-        return newregionlist;
-    }
-
-    private static boolean isInside(Region r) {
-        final int factor2 = iOutputImgScale;
-        int fz2 = (overallCellMaskBinary.length > 1) ? factor2 : 1;
-
-        double size = 0;
-        int inside = 0;
-        for (Pix px : r.iPixels) {
-            if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
-                inside++;
-            }
-            size++;
-        }
-        return ((inside / size) > 0.1);
-    }
-
-    static void computeOverallMask(int nz, int ni, int nj) {
-        final boolean mask[][][] = new boolean[nz][ni][nj];
-
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
-                        mask[z][i][j] = cellMaskABinary[z][i][j] && cellMaskBBinary[z][i][j];
-                    }
-                    else if (iParameters.usecellmaskX) {
-                        mask[z][i][j] = cellMaskABinary[z][i][j];
-                    }
-                    else if (iParameters.usecellmaskY) {
-                        mask[z][i][j] = cellMaskBBinary[z][i][j];
-                    }
-                    else {
-                        mask[z][i][j] = true;
-                    }
-
-                }
-            }
-        }
-        overallCellMaskBinary = mask;
-    }
-
-    static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions, int nz, int ni, int nj) {
-        final int factor2 = iOutputImgScale;
-        int fz2 = (nz > 1) ? factor2 : 1;
-        for (int z = 0; z < nz * fz2; z++) {
-            for (int i = 0; i < ni * factor2; i++) {
-                for (int j = 0; j < nj * factor2; j++) {
-                    regions[z][i][j] = 0;
-                }
-            }
-        }
-
-        short index = 1;
-        for (Region r : regionslist) {
-            setRegionLabel(r, regions, index++);
-        }
-    }
-
-    private static void setRegionLabel(Region r, short[][][] regions, short label) {
-        for (Pix px : r.iPixels) {
-            regions[px.pz][px.px][px.py] = label;
-        }
-    }
     
     static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aInputImage, int aChannel, ImagePlus aOutputImage) {
         int ni = aInputImage.getWidth();
@@ -557,9 +398,6 @@ public class Analysis {
                 for (int j = 0; j < nj; j++) {
                     if (ip.getPixelValue(i, j) > aThreshold) {
                         mask[j * ni + i] = (byte) 255;
-                    }
-                    else {
-                        mask[j * ni + i] = 0;
                     }
                 }
             }

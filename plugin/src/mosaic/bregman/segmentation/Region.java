@@ -12,25 +12,25 @@ public class Region implements Comparable<Region> {
     }
 
     // Object definition
-    int iLabel;
+    public int iLabel;
     public final ArrayList<Pix> iPixels;
     
     // Object properties
     public double intensity; // estimated intensity
     public double length; // length of skeleton
     public double perimeter; // perimeter for 2D, surface for 3D
-    public float rsize; // real size in pixels (interpolation and/or oversampling taken into account)
+    public float realSize; // real size in pixels (interpolation and/or oversampling taken into account)
     private float cx, cy, cz; // region center
     
     Region rvoronoi;
 
     // Used only in regions analysis
-    public boolean colocpositive = false;
-    public float overlap;
-    public float over_size;
-    public float over_int;
-    public boolean singlec;
-    public double coloc_o_int;
+    public static final float ColocThreshold = 0.5f;
+    public float overlapFactor = 0.0f;
+    public float colocObjectsAverageArea = 0.0f;
+    public float colocObjectsAverageIntensity = 0.0f;
+    public boolean singleRegionColoc = false;
+    public double colocObjectIntensity = 0.0;
     
 
     /**
@@ -101,7 +101,7 @@ public class Region implements Comparable<Region> {
     }
 
     public double getrsize() {
-        return rsize;
+        return realSize;
     }
 
     public double getperimeter() {
@@ -113,22 +113,22 @@ public class Region implements Comparable<Region> {
     }
 
     public double getoverlap_with_ch() {
-        return overlap;
+        return overlapFactor;
     }
 
     public double getcoloc_object_size() {
-        return over_size;
+        return colocObjectsAverageArea;
     }
 
     public double getcoloc_object_intensity() {
-        return over_int;
+        return colocObjectsAverageIntensity;
     }
 
     public boolean getsingle_coloc() {
-        return singlec;
+        return singleRegionColoc;
     }
 
     public double getcoloc_image_intensity() {
-        return coloc_o_int;
+        return colocObjectIntensity;
     }
 }

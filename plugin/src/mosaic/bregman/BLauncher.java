@@ -22,6 +22,7 @@ import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.bregman.segmentation.Pix;
@@ -39,15 +40,8 @@ import net.imglib2.type.numeric.integer.ShortType;
 
 
 public class BLauncher {
-    private double colocAB;
-    private double colocABnumber;
-    private double colocABsize;
-    private double colocBA;
-    private double colocBAnumber;
-    private double colocBAsize;
-    private double colocA;
-    private double colocB;
-
+    ColocResult resAB;
+    ColocResult resBA;
     private int sth_hcount = 0; // WTF this var is what for?
     private ImagePlus aImp;
 
@@ -96,7 +90,6 @@ public class BLauncher {
                 pf.add(MosaicUtils.removeExtension(f.getName()));
                 
                 Headless_file();
-                displayResult(true);
 
                 // Write a file info output
                 if (Analysis.iParameters.save_images) {
@@ -114,6 +107,7 @@ public class BLauncher {
                         e.printStackTrace();
                     }
                 }
+                displayResult(true);
             }
             if (out != null) {
                 out.close();
@@ -348,9 +342,20 @@ public class BLauncher {
         final double meanSA = Analysis.meansurface(Analysis.getRegionslist(0));
         final double meanLA = Analysis.meanlength(Analysis.getRegionslist(0));
         if (Analysis.iParameters.nchannels == 2) {
-            double[] temp = Analysis.pearson_corr();
+            // ================= Colocalization analysis ===============================================
+            double colocAB = round(resAB.colocsegABsignal, 4);
+            double colocABnumber = round(resAB.colocsegABnumber, 4);
+            double colocABsize = round(resAB.colocsegABsize, 4);
+            double colocA = round(resAB.colocsegA, 4);
+            double colocBA = round(resBA.colocsegABsignal, 4);
+            double colocBAnumber = round(resBA.colocsegABnumber, 4);
+            double colocBAsize = round(resBA.colocsegABsize, 4);
+            double colocB = round(resBA.colocsegA, 4);
+
+            double[] temp = new SamplePearsonCorrelationCoefficient(Analysis.inputImages[0], Analysis.inputImages[1], Analysis.iParameters.usecellmaskX, Analysis.iParameters.thresholdcellmask, Analysis.iParameters.usecellmaskY, Analysis.iParameters.thresholdcellmasky).run();
             double corr = temp[0];
             double corr_mask = temp[1];
+            
             final double meanSB = Analysis.meansurface(Analysis.getRegionslist(1));
             final double meanLB = Analysis.meanlength(Analysis.getRegionslist(1));
 
@@ -445,10 +450,10 @@ public class BLauncher {
             Analysis.computeOverallMask(nz, ni, nj);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(0)), 0);
             Analysis.setRegionslist(Analysis.removeExternalObjects(Analysis.getRegionslist(1)), 1);
-
+            
+            // ========= new analysis
+            
             mosaic.utils.Debug.print("SIZES: ", Debug.getArrayDims(Analysis.getRegions(0)), nz, ni, nj);
-            Analysis.setRegionsLabels(Analysis.getRegionslist(0), Analysis.getRegions(0), nz, ni, nj);
-            Analysis.setRegionsLabels(Analysis.getRegionslist(1), Analysis.getRegions(1), nz, ni, nj);
             final int factor2 = Analysis.iOutputImgScale;
             int fz2 = (nz > 1) ? factor2 : 1;
 
@@ -460,16 +465,18 @@ public class BLauncher {
                 IJ.run(colocImg, "RGB Color", "");
                 IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle()) + "_coloc.zip");
                 
-                // Calculate colocalization quantities
-                colocAB = round(Analysis.colocsegAB(), 4);
-                colocBA = round(Analysis.colocsegBA(), 4);
-                colocABnumber = round(Analysis.colocsegABnumber(), 4);
-                colocABsize = round(Analysis.colocsegABsize(), 4);
-                colocBAnumber = round(Analysis.colocsegBAnumber(), 4);
-                colocBAsize = round(Analysis.colocsegBAsize(), 4);
-                colocA = round(Analysis.colocsegA(), 4);
-                colocB = round(Analysis.colocsegB(), 4);
-
+                // ================= Colocalization analysis ===============================================
+                // TODO: It must be currently done here since it updates data for all regions 
+                //       which are saved below to CSV files. It must be refactored...
+                ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
+                ca.addRegion(Analysis.getRegionslist(0), Analysis.images[0]);
+                ca.addRegion(Analysis.getRegionslist(1), Analysis.images[1]);
+                resAB = ca.calculate(0, 1);
+                resBA = ca.calculate(1, 0);
+                Analysis.setRegions(ca.getLabeledRegion(0), 0);
+                Analysis.setRegions(ca.getLabeledRegion(1), 1);
+                
+                // =================================
                 final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
                 final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
                 boolean append = (new File(output1).exists()) ? true : false;

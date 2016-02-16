@@ -40,7 +40,7 @@ public class SquasshSegmentation {
     // TODO: Make it accessible via getters
     public short[][][] iLabeledRegions;
     public ArrayList<Region> iRegionsList;
-    public ImagePlus iSoftMask;
+    public double[][][] iSoftMask;
     public List<float[][][]> iAllMasks = new ArrayList<float[][][]>();
     
     public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
@@ -101,7 +101,7 @@ public class SquasshSegmentation {
     }
 
     private void stepTwoSegmentation() {
-        iSoftMask = ImgUtils.ZXYarrayToImg(iSolver.w3kbest, "w3kbest");
+        iSoftMask = iSolver.w3kbest.clone();
         computeConnectedRegions(iSolver.w3kbest);
         
         setProgress(55);
