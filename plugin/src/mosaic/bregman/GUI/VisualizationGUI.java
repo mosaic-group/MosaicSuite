@@ -8,7 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import ij.gui.GenericDialog;
-import mosaic.bregman.Analysis;
+import mosaic.bregman.BLauncher;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.SquasshOutputChoose;
 
@@ -23,7 +23,7 @@ class VisualizationGUI {
         gd.addMessage("Visualization and output", bf);
 
         final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
-        final boolean bgroup2[] = { Analysis.iParameters.livedisplay, Analysis.iParameters.dispcolors, Analysis.iParameters.dispint, Analysis.iParameters.displabels, Analysis.iParameters.dispoutline, Analysis.iParameters.dispSoftMask, Analysis.iParameters.save_images };
+        final boolean bgroup2[] = { BLauncher.iParameters.livedisplay, BLauncher.iParameters.dispcolors, BLauncher.iParameters.dispint, BLauncher.iParameters.displabels, BLauncher.iParameters.dispoutline, BLauncher.iParameters.dispSoftMask, BLauncher.iParameters.save_images };
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
 
         final Button b = new Button("Output options");
@@ -37,7 +37,7 @@ class VisualizationGUI {
         gd.add(b);
         
         gd.addMessage("    R script data analysis settings", bf);
-        gd.addNumericField("Number of conditions", Analysis.iParameters.nbconditions, 0);
+        gd.addNumericField("Number of conditions", BLauncher.iParameters.nbconditions, 0);
 
         final Panel p = new Panel();
         final Button rscript = new Button("Set condition names and number of images per condition");
@@ -54,16 +54,16 @@ class VisualizationGUI {
                 return -1;
             }
 
-            Analysis.iParameters.livedisplay = gd.getNextBoolean();
-            Analysis.iParameters.dispcolors = gd.getNextBoolean();
-            Analysis.iParameters.dispint = gd.getNextBoolean();
-            Analysis.iParameters.displabels = gd.getNextBoolean();
-            Analysis.iParameters.dispoutline = gd.getNextBoolean();
-            Analysis.iParameters.dispSoftMask = gd.getNextBoolean();
-            Analysis.iParameters.save_images = gd.getNextBoolean();
+            BLauncher.iParameters.livedisplay = gd.getNextBoolean();
+            BLauncher.iParameters.dispcolors = gd.getNextBoolean();
+            BLauncher.iParameters.dispint = gd.getNextBoolean();
+            BLauncher.iParameters.displabels = gd.getNextBoolean();
+            BLauncher.iParameters.dispoutline = gd.getNextBoolean();
+            BLauncher.iParameters.dispSoftMask = gd.getNextBoolean();
+            BLauncher.iParameters.save_images = gd.getNextBoolean();
         }
 
-        Analysis.iParameters.nbconditions = (int) gd.getNextNumber();
+        BLauncher.iParameters.nbconditions = (int) gd.getNextNumber();
 
         return 0;
     }

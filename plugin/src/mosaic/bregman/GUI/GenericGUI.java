@@ -29,7 +29,6 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-import mosaic.bregman.Analysis;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
@@ -78,13 +77,13 @@ public class GenericGUI {
     private run_mode drawBatchWindow() {
         // No visualization is active by default
         if (GenericGUI.bypass_GUI == false) {
-            Analysis.iParameters.livedisplay = false;
-            Analysis.iParameters.dispcolors = false;
-            Analysis.iParameters.dispint = false;
-            Analysis.iParameters.displabels = false;
-            Analysis.iParameters.dispoutline = false;
-            Analysis.iParameters.dispSoftMask = false;
-            Analysis.iParameters.save_images = true;
+            BLauncher.iParameters.livedisplay = false;
+            BLauncher.iParameters.dispcolors = false;
+            BLauncher.iParameters.dispint = false;
+            BLauncher.iParameters.displabels = false;
+            BLauncher.iParameters.dispoutline = false;
+            BLauncher.iParameters.dispSoftMask = false;
+            BLauncher.iParameters.save_images = true;
         }
 
         System.out.println("Batch window");
@@ -99,8 +98,8 @@ public class GenericGUI {
                 return run_mode.STOP;
             }
             
-            Analysis.iParameters.wd = gd.getNextText();
-            logger.debug("wd = [" + Analysis.iParameters.wd + "]");
+            BLauncher.iParameters.wd = gd.getNextText();
+            logger.debug("wd = [" + BLauncher.iParameters.wd + "]");
         }
 
         if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
@@ -120,11 +119,11 @@ public class GenericGUI {
      * @param gd
      */
     private void addTextArea(GenericDialog gd) {
-        if (Analysis.iParameters.wd == null) {
+        if (BLauncher.iParameters.wd == null) {
             gd.addTextAreas("Input Image: \n" + "insert Path to file or folder, " + "or press Button below.", null, 2, 50);
         }
         else {
-            gd.addTextAreas(Analysis.iParameters.wd, null, 2, 50);
+            gd.addTextAreas(BLauncher.iParameters.wd, null, 2, 50);
         }
     }
 
@@ -248,10 +247,10 @@ public class GenericGUI {
             return run_mode.STOP;
         }
 
-        Analysis.iParameters.wd = gd.getNextText();
+        BLauncher.iParameters.wd = gd.getNextText();
 
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
-        Analysis.iParameters.nthreads = availableProcessors;
+        BLauncher.iParameters.nthreads = availableProcessors;
         run_mode rm = run_mode.LOCAL;
         if (gd.getNextBoolean() == true) {
             rm = run_mode.USE_CLUSTER;
@@ -307,12 +306,12 @@ public class GenericGUI {
                 return;
             }
 
-            Analysis.iParameters.nthreads = (int) gd.getNextNumber();
-            Analysis.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class, Analysis.iParameters);
-            Analysis.iParameters.wd = gd.getNextString();
+            BLauncher.iParameters.nthreads = (int) gd.getNextNumber();
+            BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class, BLauncher.iParameters);
+            BLauncher.iParameters.wd = gd.getNextString();
         }
 
-        System.out.println("Parameters: " + Analysis.iParameters);
+        System.out.println("Parameters: " + BLauncher.iParameters);
 
         logger.debug("use_cluster = " + use_cluster);
         // Two different way to run the Segmentation and colocalization
@@ -322,7 +321,7 @@ public class GenericGUI {
 
             hd = null;
 
-            if (Analysis.iParameters.wd == null || Analysis.iParameters.wd.startsWith("Input Image:") || Analysis.iParameters.wd.isEmpty()) {
+            if (BLauncher.iParameters.wd == null || BLauncher.iParameters.wd.startsWith("Input Image:") || BLauncher.iParameters.wd.isEmpty()) {
                 savepath = MosaicUtils.ValidFolderFromImage(aImp);
                 if (aImp == null) {
                     IJ.error("No image to process");
@@ -330,81 +329,81 @@ public class GenericGUI {
                 }
                 hd = new BLauncher(aImp);
 
-                MosaicUtils.reorganize(Analysis.out_w, aImp.getShortTitle(), savepath, aImp.getNFrames());
+                MosaicUtils.reorganize(BLauncher.out_w, aImp.getShortTitle(), savepath, aImp.getNFrames());
 
                 // if it is a video Stitch all the csv
                 if (aImp.getNFrames() > 1) {
-                    MosaicUtils.StitchCSV(savepath, Analysis.out, savepath + File.separator + aImp.getTitle());
+                    MosaicUtils.StitchCSV(savepath, BLauncher.out, savepath + File.separator + aImp.getTitle());
 
                     file1 = savepath + File.separator + "stitch_ObjectsData_c1" + ".csv";
                     file2 = savepath + File.separator + "stitch_ObjectsData_c2" + ".csv";
                     file3 = savepath + File.separator + "stitch_ImagesData" + ".csv";
                 }
                 else {
-                    file1 = savepath + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1" + ".csv";
-                    file2 = savepath + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2" + ".csv";
-                    file3 = savepath + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData" + ".csv";
+                    file1 = savepath + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1" + ".csv";
+                    file2 = savepath + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2" + ".csv";
+                    file3 = savepath + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData" + ".csv";
                 }
             }
             else {
-                hd = new BLauncher(Analysis.iParameters.wd);
+                hd = new BLauncher(BLauncher.iParameters.wd);
 
                 final Vector<String> pf = hd.getProcessedFiles();
-                final File fl = new File(Analysis.iParameters.wd);
+                final File fl = new File(BLauncher.iParameters.wd);
                 if (fl.isDirectory() == true) {
-                    savepath = Analysis.iParameters.wd;
+                    savepath = BLauncher.iParameters.wd;
                 }
                 else {
                     savepath = fl.getParent();
                 }
 
                 if (fl.isDirectory() == true) {
-                    MosaicUtils.reorganize(Analysis.out_w, pf, Analysis.iParameters.wd);
-                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), Analysis.out, null);
+                    MosaicUtils.reorganize(BLauncher.out_w, pf, BLauncher.iParameters.wd);
+                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.out, null);
 
-                    file1 = Analysis.iParameters.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
-                    file2 = Analysis.iParameters.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
-                    file3 = Analysis.iParameters.wd + File.separator + "stitch_ImagesData" + ".csv";
+                    file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
+                    file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
+                    file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData" + ".csv";
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
-                    file2 = fl.getParent() + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2" + ".csv";
-                    file3 = fl.getParent() + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData" + ".csv";
+                    file1 = fl.getParent() + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
+                    file2 = fl.getParent() + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2" + ".csv";
+                    file3 = fl.getParent() + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData" + ".csv";
 
-                    MosaicUtils.reorganize(Analysis.out_w, pf, new File(Analysis.iParameters.wd).getParent());
+                    MosaicUtils.reorganize(BLauncher.out_w, pf, new File(BLauncher.iParameters.wd).getParent());
                 }
             }
 
-            if (Analysis.iParameters.nchannels == 2) {
-                if (Analysis.iParameters.save_images) {
-                    new RScript(savepath, file1, file2, file3, Analysis.iParameters.nbconditions, Analysis.iParameters.nbimages, Analysis.iParameters.groupnames, Analysis.iParameters.ch1, Analysis.iParameters.ch2);
+            if (BLauncher.iParameters.nchannels == 2) {
+                if (BLauncher.iParameters.save_images) {
+                    new RScript(savepath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
                 }
             }
         }
         else {
             // We run on cluster
-            saveParamitersForCluster(Analysis.iParameters);
+            saveParamitersForCluster(BLauncher.iParameters);
 
             ClusterSession.setPreferredSlotPerProcess(4);
             String Background = null;
 
             if (aImp == null) {
-                File fl = new File(Analysis.iParameters.wd);
+                File fl = new File(BLauncher.iParameters.wd);
                 if (fl.isDirectory() == true) {
                     // we have a directory
 
                     File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, "Squassh", "", Analysis.out);
+                    ClusterSession.processFiles(fileslist, "Squassh", "", BLauncher.out);
                 }
                 else if (fl.isFile()) {
                     // we process an image
 
-                    ClusterSession.processFile(fl, "Squassh", "", Analysis.out);
+                    ClusterSession.processFile(fl, "Squassh", "", BLauncher.out);
                     Background = fl.getAbsolutePath();
                 }
                 else {
                     // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(Analysis.out, "Squassh");
+                    ClusterSession.getFinishedJob(BLauncher.out, "Squassh");
 
                     // Ask for a directory
                     fl = new File(IJ.getDirectory("Select output directory"));
@@ -412,7 +411,7 @@ public class GenericGUI {
             }
             else {
                 // It is a file
-                ClusterSession.processImage(aImp, "Squassh", "", Analysis.out);
+                ClusterSession.processImage(aImp, "Squassh", "", BLauncher.out);
                 Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
             }
 
@@ -426,10 +425,10 @@ public class GenericGUI {
 
             // if background is != null it mean that is a video or is an image so try to stitch
             if (Background != null) {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Analysis.out, Background);
+                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.out, Background);
             }
             else {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Analysis.out, null);
+                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.out, null);
             }
         }
     }

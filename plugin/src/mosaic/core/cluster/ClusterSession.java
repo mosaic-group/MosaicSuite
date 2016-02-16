@@ -1,14 +1,6 @@
 package mosaic.core.cluster;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.io.DirectoryChooser;
-import ij.io.Opener;
-import ij.process.StackStatistics;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -17,13 +9,20 @@ import java.io.PrintWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mosaic.bregman.Analysis;
+import org.apache.log4j.Logger;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.io.DirectoryChooser;
+import ij.io.Opener;
+import ij.process.StackStatistics;
+import mosaic.bregman.BLauncher;
 import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-
-import org.apache.log4j.Logger;
 
 
 /**
@@ -941,7 +940,7 @@ public class ClusterSession {
             processFile(fl, command, options, out, cg, mm.max, mm.min);
         }
 
-        ss.runPluginsOnFrames(null, command, options, Analysis.out, cg.getEstimatedTime());
+        ss.runPluginsOnFrames(null, command, options, BLauncher.out, cg.getEstimatedTime());
         return ss;
     }
 

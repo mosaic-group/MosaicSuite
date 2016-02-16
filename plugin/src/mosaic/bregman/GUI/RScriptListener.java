@@ -1,13 +1,12 @@
 package mosaic.bregman.GUI;
 
 
-import ij.gui.GenericDialog;
-
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import mosaic.bregman.Analysis;
+import ij.gui.GenericDialog;
+import mosaic.bregman.BLauncher;
 
 
 class RScriptListener implements ActionListener {
@@ -26,17 +25,17 @@ class RScriptListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         int nbgroups = new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
         if (nbgroups > 5) {
-            Analysis.iParameters.nbimages = new int[nbgroups];
+            BLauncher.iParameters.nbimages = new int[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
-                Analysis.iParameters.nbimages[i] = 1;
+                BLauncher.iParameters.nbimages[i] = 1;
             }
             
-            Analysis.iParameters.groupnames = new String[nbgroups];
+            BLauncher.iParameters.groupnames = new String[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
-                Analysis.iParameters.groupnames[i] = "Condition " + (i + 1) + " name";
+                BLauncher.iParameters.groupnames[i] = "Condition " + (i + 1) + " name";
             }
             
-            Analysis.iParameters.nbconditions = nbgroups;
+            BLauncher.iParameters.nbconditions = nbgroups;
         }
 
         new RScriptWindow(nbgroups, posx, posy).run();

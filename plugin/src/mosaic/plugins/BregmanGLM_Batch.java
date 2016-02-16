@@ -9,7 +9,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.process.ImageProcessor;
-import mosaic.bregman.Analysis;
+import mosaic.bregman.BLauncher;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
@@ -34,23 +34,23 @@ public class BregmanGLM_Batch implements Segmentation {
 
         final String dir = IJ.getDirectory("temp");
         String savedSettings = dir + "spb_settings.dat";
-        Analysis.iParameters = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, new Parameters()); //Analysis.iParameters);
+        BLauncher.iParameters = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, new Parameters()); //BLauncher.iParameters);
 
         final String path = MosaicUtils.parseString("config", arg0);
         if (path != null) {
-            Analysis.iParameters = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.iParameters);
+            BLauncher.iParameters = getConfigHandler().LoadFromFile(path, Parameters.class, BLauncher.iParameters);
         }
 
         String normmin = MosaicUtils.parseString("min", arg0);
         if (normmin != null) {
-            Analysis.norm_min = Double.parseDouble(normmin);
-            System.out.println("min norm " + Analysis.norm_min);
+            BLauncher.norm_min = Double.parseDouble(normmin);
+            System.out.println("min norm " + BLauncher.norm_min);
         }
 
         String normmax = MosaicUtils.parseString("max", arg0);
         if (normmax != null) {
-            Analysis.norm_max = Double.parseDouble(normmax);
-            System.out.println("max norm " + Analysis.norm_max);
+            BLauncher.norm_max = Double.parseDouble(normmax);
+            System.out.println("max norm " + BLauncher.norm_max);
         }
 
         // Initialize CSV format
@@ -71,7 +71,7 @@ public class BregmanGLM_Batch implements Segmentation {
         window.setUseCluster(gui_use_cluster);
         window.run(active_img);
 
-        saveConfig(savedSettings, Analysis.iParameters);
+        saveConfig(savedSettings, BLauncher.iParameters);
 
         // Re-set the arguments
         Macro.setOptions(arg0);
@@ -139,10 +139,10 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getMask(ImagePlus aImp) {
         final String[] gM = new String[2];
-        gM[0] = new String(Analysis.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
-                + Analysis.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Analysis.out[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
-                + Analysis.out[outputF.MASK.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(BLauncher.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
+                + BLauncher.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[1] = new String(BLauncher.out[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
+                + BLauncher.out[outputF.MASK.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
         return gM;
     }
 
@@ -155,12 +155,12 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         final String[] gM = new String[4];
-        gM[0] = new String(Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[1] = new String(BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
 
         // This is produced if there is a stitch operation
-        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_"));
-        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
+        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", "_"));
+        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
 
         return gM;
     }
