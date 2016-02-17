@@ -554,16 +554,16 @@ public class BLauncher {
         // set green pixels
         for (final Region r : aRegionsListA) {
             for (final Pix p : r.iPixels) {
-                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
-                imagecolor[t + p.py * 3 + 1] = (byte) 255;
+                final int t = 3 * (p.pz * iWidth * iHeigth + p.px * iHeigth + p.py);
+                imagecolor[t + 1] = (byte) 255;
             }
         }
 
         // set red pixels
         for (final Region r : aRegionsListB) {
             for (final Pix p : r.iPixels) {
-                final int t = p.pz * iWidth * iHeigth * 3 + p.px * iHeigth * 3;
-                imagecolor[t + p.py * 3 + 0] = (byte) 255;
+                final int t = 3 * (p.pz * iWidth * iHeigth + p.px * iHeigth + p.py);
+                imagecolor[t + 0] = (byte) 255;
             }
         }
 
@@ -573,11 +573,11 @@ public class BLauncher {
         for (int z = 0; z < iDepth; z++) {
             final ColorProcessor colorProc = new ColorProcessor(iWidth, iHeigth);
             for (int i = 0; i < iWidth; i++) {
-                final int t = z * iWidth * iHeigth * 3 + i * iHeigth * 3;
                 for (int j = 0; j < iHeigth; j++) {
-                    tabt[0] = imagecolor[t + j * 3 + 0] & 0xFF;
-                    tabt[1] = imagecolor[t + j * 3 + 1] & 0xFF;
-                    tabt[2] = imagecolor[t + j * 3 + 2] & 0xFF;
+                    final int t = 3 * (z * iWidth * iHeigth + i * iHeigth + j);
+                    tabt[0] = imagecolor[t + 0] & 0xFF;
+                    tabt[1] = imagecolor[t + 1] & 0xFF;
+                    tabt[2] = imagecolor[t + 2] & 0xFF;
                     colorProc.putPixel(i, j, tabt);
                 }
             }
