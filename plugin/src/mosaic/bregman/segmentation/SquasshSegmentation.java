@@ -188,7 +188,7 @@ public class SquasshSegmentation {
         filtEDM.run(maskImg.getProcessor());
         maskImg.getProcessor().invert();
         setProgress(53);
-
+        
         // expand Voronoi in 3D
         ImageProcessor impVoronoi = maskImg.getProcessor();
         final byte[] maskBytesVoronoi = new byte[ni * nj];

@@ -132,7 +132,7 @@ public class BLauncher {
                 ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
                 pf.add(MosaicUtils.removeExtension(f.getName()));
                 
-                bcolocheadless(aImp);
+                segmentAndColocalize(aImp);
 
                 displayResult(aImp.getTitle(), true);
                 // Write a file info output
@@ -173,14 +173,14 @@ public class BLauncher {
         start(aImp_);
     }
 
-    private void start(ImagePlus aImp_) {
-        ImagePlus aImp = aImp_;
+    private void start(ImagePlus aImp) {
         PrintWriter out = null;
 
         // Check if we have more than one frame
         for (int f = 1; f <= aImp.getNFrames(); f++) {
-            aImp.setPosition(aImp.getChannel(), aImp.getSlice(), f);
-            bcolocheadless(aImp);
+            aImp.setPosition(aImp.getChannel(), aImp.getSlice(), f);      
+            
+            segmentAndColocalize(aImp);
 
             displayResult(aImp.getTitle(), false);
             try {
@@ -221,11 +221,11 @@ public class BLauncher {
             }
             if (iParameters.displabels || iParameters.dispcolors) {
                 ImagePlus img = generateRegionImg(regions[channel], regionslist.get(channel).size(), "");
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_seg_c"), iParameters.dispcolors, out_label);
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_seg_c"), iParameters.displabels, out_label);
             }
             if (iParameters.dispcolors) {
-                final ImagePlus img = generateLabelsGray(channel + 1);
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_mask_c"), iParameters.displabels, out_label_gray);
+                final ImagePlus img = generateLabelsGray(channel);
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_mask_c"), iParameters.dispcolors, out_label_gray);
             }
             if (iParameters.dispSoftMask) {
                 out_soft_mask[channel].setTitle(createTitle(aTitle, channel + 1, "_soft_mask_c"));
@@ -275,10 +275,7 @@ public class BLauncher {
      */
     private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) throws FileNotFoundException {
         if (out == null) {
-            // Remove extension from filename
-            final String ffo = MosaicUtils.removeExtension(outfilename);
-
-            out = new PrintWriter(path + File.separator + ffo + "_ImagesData" + ".csv");
+            out = new PrintWriter(path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData" + ".csv");
 
             // write the header
             if (iParameters.nchannels == 2) {
@@ -330,8 +327,7 @@ public class BLauncher {
                     + colocB + ";" + round(corr, 4) + ";" + round(corr_mask, 4));
         }
         else {
-            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
-                    + round(meanLA, 4));
+            out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
         }
         out.println();
         out.flush();
@@ -341,27 +337,19 @@ public class BLauncher {
 
     private Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
         final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist.get(channel));
-
-        // Set frame
         for (int i = 0; i < v.size(); i++) {
             v.get(i).setFrame(f);
         }
 
-        // Convert it back to original type.
         return v;
     }
     
-    /*
-     * It segment the image and give co-localization analysis result
-     * for a 2 channels image
-     * @param img2 Image to segment and analyse
-     */
-    private void bcolocheadless(ImagePlus img2) {
-        if (img2 == null) {
+    private void segmentAndColocalize(ImagePlus aImage) {
+        if (aImage == null) {
             IJ.error("No image to process");
             return;
         }
-        if (img2.getType() == ImagePlus.COLOR_RGB) {
+        if (aImage.getType() == ImagePlus.COLOR_RGB) {
             IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
             return;
         }
@@ -370,25 +358,25 @@ public class BLauncher {
         ij.Prefs.blackBackground = false;
         
         // Image info
-        ni = img2.getWidth();
-        nj = img2.getHeight();
-        nz = img2.getNSlices();
-        final int currentFrame = img2.getFrame();
-        iParameters.nchannels = img2.getNChannels();
-        final String title = img2.getTitle();
+        ni = aImage.getWidth();
+        nj = aImage.getHeight();
+        nz = aImage.getNSlices();
+        final int currentFrame = aImage.getFrame();
+        iParameters.nchannels = aImage.getNChannels();
+        final String title = aImage.getTitle();
         
         // Segmentation
         for (int channel = 0; channel < iParameters.nchannels; channel++) {
-            inputImages[channel] =  ImgUtils.extractImage(img2, currentFrame, channel + 1 /* 1-based */);
+            inputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
             images[channel] = ImgUtils.ImgToZXYarray(inputImages[channel]);
             ArrayOps.normalize(images[channel]);
             logger.debug("------------------- Segmentation of [" + title + "] channel: " + channel + ", frame: " + currentFrame);
             segment(channel, currentFrame);
             logger.debug("------------------- End of Segmentation ---------------------------");
         }
-
+       
         // Postprocessing 
-        String savepath = MosaicUtils.ValidFolderFromImage(img2);
+        String savepath = MosaicUtils.ValidFolderFromImage(aImage);
         final String filename_without_ext = MosaicUtils.removeExtension(title); 
         
         // Choose the Rscript coloc format
@@ -415,7 +403,7 @@ public class BLauncher {
             colocImg.show();
             
             if (iParameters.save_images) {
-                IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(img2) + title) + "_coloc.zip");
+                IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(aImage) + title) + "_coloc.zip");
                 
                 // ================= Colocalization analysis ===============================================
                 // TODO: It must be currently done here since it updates data for all regions 
@@ -459,12 +447,11 @@ public class BLauncher {
         final int di = regions[0].length;
         final int dj = regions[0][0].length;
         final ImagePlus scaledImg = scaleImage(image, dz, di, dj);
-        final ImagePlus img = RGBStackMerge.mergeChannels(new ImagePlus[] {regionsOutlines, scaledImg}, false);
-        return img;
+        return RGBStackMerge.mergeChannels(new ImagePlus[] {regionsOutlines, scaledImg}, false);
     }
 
     private ImagePlus generateLabelsGray(int channel) {
-        final ImagePlus img = out_label[channel-1].duplicate();
+        final ImagePlus img = out_label[channel].duplicate();
         IJ.run(img, "Grays", "");
         return img;
     }
@@ -472,9 +459,22 @@ public class BLauncher {
     private String createTitle(String aTitle, int channel, final String outName) {
         return aTitle.substring(0, aTitle.length() - 4) + outName + (channel - 1 + 1);
     }
+    
     private void showUpdatedImgs(int channel, boolean sep, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
         if (sep == false) {
-            updateImages(imgs, img, title, show, channel);
+            if (imgs[channel] != null) {
+                MosaicUtils.MergeFrames(imgs[channel], img);
+            }
+            else {
+                imgs[channel] = img;
+                imgs[channel].setTitle(title);
+            }
+            
+            if (show) {
+                // this force the update of the image
+                imgs[channel].setStack(imgs[channel].getStack());
+                imgs[channel].show();
+            }
         }
         else {
             imgs[channel] = img;
@@ -483,53 +483,22 @@ public class BLauncher {
         }
     }
 
-    /**
-     * Update the images array, merging frames and display it
-     */
-    private void updateImages(ImagePlus ipd[], ImagePlus ips, String title, boolean disp, int channel) {
-        if (ipd[channel] != null) {
-            MosaicUtils.MergeFrames(ipd[channel], ips);
-        }
-        else {
-            ipd[channel] = ips;
-            ipd[channel].setTitle(title);
-        }
-
-        if (disp) {
-            // this force the update of the image
-            ipd[channel].setStack(ipd[channel].getStack());
-            ipd[channel].show();
-        }
-    }
-    
     private void segment(int channel, int frame) {
         final ImagePlus img = inputImages[channel];
+        
         /* Search for maximum and minimum value, normalization */
-        double min, max;
+        double minNorm = norm_min;
+        double maxNorm = norm_max;
         if (norm_max == 0) {
             MinMax<Double> mm = ImgUtils.findMinMax(img);
-            min = mm.getMin();
-            max = mm.getMax();
-        }
-        else {
-            min = norm_min;
-            max = norm_max;
+            minNorm = mm.getMin();
+            maxNorm = mm.getMax();
         }
         if (iParameters.usecellmaskX && channel == 0) {
-            ImagePlus maskImg = new ImagePlus();
-            maskImg.setTitle("Cell mask channel 1");
-            cellMasks[0] = createBinaryCellMask(iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
-            if (iParameters.livedisplay) {
-                maskImg.show();
-            }
+            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
         }
         if (iParameters.usecellmaskY && channel == 1) {
-            ImagePlus maskImg = new ImagePlus();
-            maskImg.setTitle("Cell mask channel 2");
-            cellMasks[1] = createBinaryCellMask(iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
-            if (iParameters.livedisplay) {
-                maskImg.show();
-            }
+            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
         }
 
         if (iParameters.removebackground) {
@@ -540,12 +509,11 @@ public class BLauncher {
                 bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
             }
         }
-
+        
         double[][][] image = ImgUtils.ImgToZXYarray(img);
         MinMax<Double> mm = ArrayOps.findMinMax(image);
-        max = mm.getMax();
-        min = mm.getMin();
-
+        double max = mm.getMax();
+        double min = mm.getMin();
         if (iParameters.livedisplay && iParameters.removebackground) {
             final ImagePlus noBackgroundImg = img.duplicate();
             noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
@@ -553,7 +521,6 @@ public class BLauncher {
             noBackgroundImg.setDisplayRange(min, max);
             noBackgroundImg.show();
         }
-
         /* Overload min/max after background subtraction */
         if (norm_max != 0) {
             max = norm_max;
@@ -561,6 +528,7 @@ public class BLauncher {
             // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
             min = (iParameters.removebackground) ? 0.0 : norm_min;
         }
+        
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
 
         SegmentationParameters sp = new SegmentationParameters(
@@ -586,10 +554,6 @@ public class BLauncher {
 
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
         regionslist.set(channel, rg.iRegionsList);
-        int num = 0;
-        for (Region r  : rg.iRegionsList) {
-            System.out.println("=======> " + (num++) + " label: " + r.iLabel);
-        }
         regions[channel] = rg.iLabeledRegions;
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
@@ -598,6 +562,15 @@ public class BLauncher {
         }
         ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
         if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
+    }
+
+    private void generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
+        ImagePlus maskImg = new ImagePlus();
+        maskImg.setTitle("Cell mask channel " + (channel + 1));
+        cellMasks[channel] = createBinaryCellMask(maskThreshold * (max - min) + min, img, channel, maskImg);
+        if (iParameters.livedisplay) {
+            maskImg.show();
+        }
     }
     
     // ============================================ MASKS and tools ==============================
