@@ -43,7 +43,6 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
-import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
@@ -213,19 +212,23 @@ public class BLauncher {
 
         for (int channel = 0; channel < iParameters.nchannels; ++channel) {
             if (iParameters.dispoutline) {
-                displayoutline(aTitle, regions[channel], images[channel], channel + 1, sep);
+                final ImagePlus img = generateOutlineOverlay(regions[channel], images[channel]);
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_outline_overlay_c"), iParameters.dispoutline, out_over);
             }
             if (iParameters.dispint) {
-                displayintensities(aTitle, regionslist.get(channel), nz * fz, ni * factor, nj * factor, channel + 1, sep);
+                ImagePlus img = generateIntensitiesImg(regionslist.get(channel), nz * fz, ni * factor, nj * factor);
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_intensities_c"), iParameters.dispint, out_disp);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
-                displayRegionsCol(aTitle, regions[channel], channel + 1, regionslist.get(channel).size(), sep);
+                ImagePlus img = generateRegionImg(regions[channel], regionslist.get(channel).size(), "");
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_seg_c"), iParameters.dispcolors, out_label);
             }
             if (iParameters.dispcolors) {
-                displayRegionsLab(aTitle, channel + 1, sep);
+                final ImagePlus img = generateLabelsGray(channel + 1);
+                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_mask_c"), iParameters.displabels, out_label_gray);
             }
             if (iParameters.dispSoftMask) {
-                out_soft_mask[channel].setTitle(aTitle.substring(0, aTitle.length() - 4) + "_soft_mask_c" + (channel + 1));
+                out_soft_mask[channel].setTitle(createTitle(aTitle, channel + 1, "_soft_mask_c"));
                 out_soft_mask[channel].show();
             }
         }
@@ -426,20 +429,20 @@ public class BLauncher {
                 regions[1] = ca.getLabeledRegion(1);
                 
                 // =================================
-                final String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");
-                final String output2 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv");
-                boolean append = (new File(output1).exists()) ? true : false;
 
                 // Write channel 1
                 Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
+                final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
+                boolean append = (new File(output1).exists()) ? true : false;
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
                 
                 // Write channel 2
                 obl = getObjectsList(sth_hcount, 1);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
+                final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
                 CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
             }
 
@@ -449,103 +452,34 @@ public class BLauncher {
         ij.Prefs.blackBackground = tempBlackbackground;
     }
 
-    /**
-     * Display outline overlay segmentation
-     *
-     * @param regions mask with intensities
-     * @param image image
-     * @param dz z size
-     * @param di x size
-     * @param dj y size
-     * @param channel
-     * @param sep true = doea not fuse with the separate outline
-     */
-    private void displayoutline(String aTitle, short[][][] regions, double[][][] image, int channel, boolean sep) {
+    private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
         final ImagePlus regionsOutlines = generateRegionOutlinesImg(regions);
-        final ImagePlus img = generateImage(image);
+        final ImagePlus image = generateImage(aImage);
         final int dz = regions.length;
         final int di = regions[0].length;
         final int dj = regions[0][0].length;
-        final ImagePlus scaledImg = scaleImage(img, dz, di, dj);
-
-        final ImagePlus over = RGBStackMerge.mergeChannels(new ImagePlus[] {regionsOutlines, scaledImg}, false);
-
-        final String title = aTitle.substring(0, aTitle.length() - 4) + "_outline_overlay_c" + (channel - 1 + 1);
-        if (sep == false) {
-            updateImages(out_over, over, title, iParameters.dispoutline, channel);
-        }
-        else {
-            out_over[channel - 1] = over;
-            over.show();
-            over.setTitle(title);
-        }
+        final ImagePlus scaledImg = scaleImage(image, dz, di, dj);
+        final ImagePlus img = RGBStackMerge.mergeChannels(new ImagePlus[] {regionsOutlines, scaledImg}, false);
+        return img;
     }
 
-    /**
-     * Display intensity result
-     *
-     * @param regionslist Regions
-     * @param dz image size z
-     * @param di image size x
-     * @param dj image size y
-     * @param channel
-     * @param imagecolor
-     * @param sep = true if you want to separate
-     */
-    private void displayintensities(String aTitle, ArrayList<Region> regionslist, int dz, int di, int dj, int channel, boolean sep) {
-        ImagePlus intensitiesImg = generateIntensitiesImg(regionslist, dz, di, dj);
-
-        final String title = aTitle.substring(0, aTitle.length() - 4) + "_intensities" + "_c" + (channel - 1 + 1);
-        if (sep == false) {
-            updateImages(out_disp, intensitiesImg, title, iParameters.dispint, channel);
-        }
-        else {
-            out_disp[channel - 1] = intensitiesImg;
-            intensitiesImg.show();
-            intensitiesImg.setTitle(title);
-        }
+    private ImagePlus generateLabelsGray(int channel) {
+        final ImagePlus img = out_label[channel-1].duplicate();
+        IJ.run(img, "Grays", "");
+        return img;
     }
 
-    /**
-     * Display regions colors
-     *
-     * @param regions label image
-     * @param channel number of the channel
-     * @param max_r max number of region
-     * @param sep = true to separate
-     */
-    private void displayRegionsCol(String aTitle, short[][][] regions, int channel, int max_r, boolean sep) {
-        ImagePlus label = generateRegionImg(regions, max_r, "");
-        final String title = aTitle.substring(0, aTitle.length() - 4) + "_seg_c" + (channel - 1 + 1);
-        if (sep == false) {
-            updateImages(out_label, label, title, iParameters.dispcolors, channel);
-        }
-        else {
-            out_label[channel - 1] = label;
-            label.show();
-            label.setTitle(title);
-        }
+    private String createTitle(String aTitle, int channel, final String outName) {
+        return aTitle.substring(0, aTitle.length() - 4) + outName + (channel - 1 + 1);
     }
-
-    /**
-     * Display regions labels
-     *
-     * @param channel
-     * @param sep = true if you want to separate
-     */
-    private void displayRegionsLab(String aTitle, int channel, boolean sep) {
-        final ImagePlus label_ = out_label[channel-1].duplicate();
-
-        IJ.run(label_, "Grays", "");
-
-        final String title = aTitle.substring(0, aTitle.length() - 4) + "_mask_c" + (channel - 1 + 1);
+    private void showUpdatedImgs(int channel, boolean sep, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
         if (sep == false) {
-            updateImages(out_label_gray, label_, title, iParameters.displabels, channel);
+            updateImages(imgs, img, title, show, channel);
         }
         else {
-            out_label_gray[channel - 1] = label_;
-            label_.show();
-            label_.setTitle(title);
+            imgs[channel] = img;
+            img.show();
+            img.setTitle(title);
         }
     }
 
@@ -553,117 +487,117 @@ public class BLauncher {
      * Update the images array, merging frames and display it
      */
     private void updateImages(ImagePlus ipd[], ImagePlus ips, String title, boolean disp, int channel) {
-        if (ipd[channel - 1] != null) {
-            MosaicUtils.MergeFrames(ipd[channel - 1], ips);
+        if (ipd[channel] != null) {
+            MosaicUtils.MergeFrames(ipd[channel], ips);
         }
         else {
-            ipd[channel - 1] = ips;
-            ipd[channel - 1].setTitle(title);
+            ipd[channel] = ips;
+            ipd[channel].setTitle(title);
         }
 
         if (disp) {
             // this force the update of the image
-            ipd[channel - 1].setStack(ipd[channel - 1].getStack());
-            ipd[channel - 1].show();
+            ipd[channel].setStack(ipd[channel].getStack());
+            ipd[channel].show();
         }
     }
     
     private void segment(int channel, int frame) {
         final ImagePlus img = inputImages[channel];
-                /* Search for maximum and minimum value, normalization */
-                double min, max;
-                if (norm_max == 0) {
-                    MinMax<Double> mm = ImgUtils.findMinMax(img);
-                    min = mm.getMin();
-                    max = mm.getMax();
-                }
-                else {
-                    min = norm_min;
-                    max = norm_max;
-                }
-                if (iParameters.usecellmaskX && channel == 0) {
-                    ImagePlus maskImg = new ImagePlus();
-                    maskImg.setTitle("Cell mask channel 1");
-                    cellMasks[0] = createBinaryCellMask(iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
-                    if (iParameters.livedisplay) {
-                        maskImg.show();
-                    }
-                }
-                if (iParameters.usecellmaskY && channel == 1) {
-                    ImagePlus maskImg = new ImagePlus();
-                    maskImg.setTitle("Cell mask channel 2");
-                    cellMasks[1] = createBinaryCellMask(iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
-                    if (iParameters.livedisplay) {
-                        maskImg.show();
-                    }
-                }
-        
-                if (iParameters.removebackground) {
-                    for (int z = 0; z < nz; z++) {
-                        img.setSlice(z + 1);
-                        ImageProcessor ip = img.getProcessor();
-                        final BackgroundSubtracter bs = new BackgroundSubtracter();
-                        bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
-                    }
-                }
-        
-                double[][][] image = ImgUtils.ImgToZXYarray(img);
-                MinMax<Double> mm = ArrayOps.findMinMax(image);
-                max = mm.getMax();
-                min = mm.getMin();
-                
-                if (iParameters.livedisplay && iParameters.removebackground) {
-                    final ImagePlus noBackgroundImg = img.duplicate();
-                    noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
-                    noBackgroundImg.changes = false;
-                    noBackgroundImg.setDisplayRange(min, max);
-                    noBackgroundImg.show();
-                }
-        
-                /* Overload min/max after background subtraction */
-                if (norm_max != 0) {
-                    max = norm_max;
-                    // if we are removing the background we have no idea which is the minumum across 
-                    // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
-                    min = (iParameters.removebackground) ? 0.0 : norm_min;
-                }
-                double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-                
-                SegmentationParameters sp = new SegmentationParameters(
-                                                            iParameters.nthreads,
-                                                            ((iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
-                                                            iParameters.lreg_[channel],
-                                                            minIntensity,
-                                                            iParameters.exclude_z_edges,
-                                                            IntensityMode.values()[iParameters.mode_intensity],
-                                                            NoiseModel.values()[iParameters.noise_model],
-                                                            iParameters.sigma_gaussian,
-                                                            iParameters.sigma_gaussian / iParameters.zcorrec,
-                                                            iParameters.min_region_filter_intensities );
-                
-                //  ============== SEGMENTATION
-                SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
-                if (iParameters.patches_from_file == null) {
-                    rg.run();
-                }
-                else {
-                    rg.runWithProvidedMask(generateMaskFromPatches(iParameters.patches_from_file, nz, ni, nj, frame));
-                }
-                
-                iOutputImgScale = rg.iLabeledRegions[0].length / ni;
-                regionslist.set(channel, rg.iRegionsList);
-                int num = 0;
-                for (Region r  : rg.iRegionsList) {
-                    System.out.println("=======> " + (num++) + " label: " + r.iLabel);
-                }
-                regions[channel] = rg.iLabeledRegions;
-                logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
-                // =============================
-                if (iParameters.dispSoftMask) {
-                    out_soft_mask[channel] = ImgUtils.ZXYarrayToImg(rg.iSoftMask, "Mask" + ((channel == 0) ? "X" : "Y"));
-                }
-                ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
-                if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
+        /* Search for maximum and minimum value, normalization */
+        double min, max;
+        if (norm_max == 0) {
+            MinMax<Double> mm = ImgUtils.findMinMax(img);
+            min = mm.getMin();
+            max = mm.getMax();
+        }
+        else {
+            min = norm_min;
+            max = norm_max;
+        }
+        if (iParameters.usecellmaskX && channel == 0) {
+            ImagePlus maskImg = new ImagePlus();
+            maskImg.setTitle("Cell mask channel 1");
+            cellMasks[0] = createBinaryCellMask(iParameters.thresholdcellmask * (max - min) + min, img, channel, maskImg);
+            if (iParameters.livedisplay) {
+                maskImg.show();
+            }
+        }
+        if (iParameters.usecellmaskY && channel == 1) {
+            ImagePlus maskImg = new ImagePlus();
+            maskImg.setTitle("Cell mask channel 2");
+            cellMasks[1] = createBinaryCellMask(iParameters.thresholdcellmasky * (max - min) + min, img, channel, maskImg);
+            if (iParameters.livedisplay) {
+                maskImg.show();
+            }
+        }
+
+        if (iParameters.removebackground) {
+            for (int z = 0; z < nz; z++) {
+                img.setSlice(z + 1);
+                ImageProcessor ip = img.getProcessor();
+                final BackgroundSubtracter bs = new BackgroundSubtracter();
+                bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
+            }
+        }
+
+        double[][][] image = ImgUtils.ImgToZXYarray(img);
+        MinMax<Double> mm = ArrayOps.findMinMax(image);
+        max = mm.getMax();
+        min = mm.getMin();
+
+        if (iParameters.livedisplay && iParameters.removebackground) {
+            final ImagePlus noBackgroundImg = img.duplicate();
+            noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
+            noBackgroundImg.changes = false;
+            noBackgroundImg.setDisplayRange(min, max);
+            noBackgroundImg.show();
+        }
+
+        /* Overload min/max after background subtraction */
+        if (norm_max != 0) {
+            max = norm_max;
+            // if we are removing the background we have no idea which is the minumum across 
+            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
+            min = (iParameters.removebackground) ? 0.0 : norm_min;
+        }
+        double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+
+        SegmentationParameters sp = new SegmentationParameters(
+                iParameters.nthreads,
+                ((iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
+                iParameters.lreg_[channel],
+                minIntensity,
+                iParameters.exclude_z_edges,
+                IntensityMode.values()[iParameters.mode_intensity],
+                NoiseModel.values()[iParameters.noise_model],
+                iParameters.sigma_gaussian,
+                iParameters.sigma_gaussian / iParameters.zcorrec,
+                iParameters.min_region_filter_intensities );
+
+        //  ============== SEGMENTATION
+        SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
+        if (iParameters.patches_from_file == null) {
+            rg.run();
+        }
+        else {
+            rg.runWithProvidedMask(generateMaskFromPatches(iParameters.patches_from_file, nz, ni, nj, frame));
+        }
+
+        iOutputImgScale = rg.iLabeledRegions[0].length / ni;
+        regionslist.set(channel, rg.iRegionsList);
+        int num = 0;
+        for (Region r  : rg.iRegionsList) {
+            System.out.println("=======> " + (num++) + " label: " + r.iLabel);
+        }
+        regions[channel] = rg.iLabeledRegions;
+        logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
+        // =============================
+        if (iParameters.dispSoftMask) {
+            out_soft_mask[channel] = ImgUtils.ZXYarrayToImg(rg.iSoftMask, "Mask" + ((channel == 0) ? "X" : "Y"));
+        }
+        ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
+        if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
     }
     
     // ============================================ MASKS and tools ==============================
@@ -856,7 +790,6 @@ public class BLauncher {
         
         return cellmask;
     }
-    
     
     // ==================================== Image generation ==========================
     
