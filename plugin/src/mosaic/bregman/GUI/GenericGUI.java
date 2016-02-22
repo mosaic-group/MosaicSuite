@@ -335,14 +335,14 @@ public class GenericGUI {
                 if (aImp.getNFrames() > 1) {
                     MosaicUtils.StitchCSV(savepath, BLauncher.out, savepath + File.separator + aImp.getTitle());
 
-                    file1 = savepath + File.separator + "stitch_ObjectsData_c1" + ".csv";
-                    file2 = savepath + File.separator + "stitch_ObjectsData_c2" + ".csv";
-                    file3 = savepath + File.separator + "stitch_ImagesData" + ".csv";
+                    file1 = savepath + File.separator + "stitch_ObjectsData_c1.csv";
+                    file2 = savepath + File.separator + "stitch_ObjectsData_c2.csv";
+                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
                 }
                 else {
-                    file1 = savepath + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1" + ".csv";
-                    file2 = savepath + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2" + ".csv";
-                    file3 = savepath + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData" + ".csv";
+                    file1 = savepath + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                    file2 = savepath + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                    file3 = savepath + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
                 }
             }
             else {

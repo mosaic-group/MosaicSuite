@@ -100,11 +100,11 @@ public class BLauncher {
     };
     private short[][][][] regions = new short[NumOfInputChannels][][][];
     
-    private final ImagePlus out_soft_mask[] = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus out_over[] = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus out_disp[] = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus out_label[] = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus out_label_gray[] = new ImagePlus[NumOfInputChannels];
+    private final ImagePlus[] out_soft_mask = new ImagePlus[NumOfInputChannels];
+    private final ImagePlus[] out_over = new ImagePlus[NumOfInputChannels];
+    private final ImagePlus[] out_disp = new ImagePlus[NumOfInputChannels];
+    private final ImagePlus[] out_label = new ImagePlus[NumOfInputChannels];
+    private final ImagePlus[] out_label_gray = new ImagePlus[NumOfInputChannels];
     
     public Vector<String> getProcessedFiles() {
         return pf;
@@ -115,97 +115,78 @@ public class BLauncher {
      * @param aPath path to image file or directory with image files
      */
     public BLauncher(String aPath) {
-        final boolean processdirectory = (new File(aPath)).isDirectory();
-        if (processdirectory) {
-            // Get all files
-            final File files[] = new File(aPath).listFiles();
-            Arrays.sort(files);
-
-            PrintWriter out = null;
-            for (final File f : files) {
-                // If it is the directory/Rscript/hidden/csv file then skip it
-                if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
-                    continue;
-                }
-
-                // Attempt to open a file
-                ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
-                pf.add(MosaicUtils.removeExtension(f.getName()));
-                
-                segmentAndColocalize(aImp);
-
-                displayResult(aImp.getTitle(), true);
-                // Write a file info output
-                if (iParameters.save_images) {
-                    saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
-
-                    String outFilename= (files.length == 1) ? aImp.getTitle() : "stitch";
-                    try {
-                        out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, sth_hcount - 1);
-                    }
-                    catch (final FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            if (out != null) {
-                out.close();
-            }
-
-            // Try to run the R script
-            try {
-                ShellCommand.exeCmdNoPrint("Rscript " + new File(aPath).getAbsolutePath() + File.separator + "R_analysis.R");
-            }
-            catch (final IOException e) {
-                e.printStackTrace();
-            }
-            catch (final InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            ImagePlus aImp = MosaicUtils.openImg(aPath);
-            start(aImp);
-        }
-    }
-
-    public BLauncher(ImagePlus aImp_) {
-        start(aImp_);
-    }
-
-    private void start(ImagePlus aImp) {
+        final File inputFile = new File(aPath);
+        File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
+        Arrays.sort(files);
+        
         PrintWriter out = null;
+        for (final File f : files) {
+            // If it is the directory/Rscript/hidden/csv file then skip it
+            if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
+                continue;
+            }
+            pf.add(MosaicUtils.removeExtension(f.getName()));
 
-        // Check if we have more than one frame
-        for (int f = 1; f <= aImp.getNFrames(); f++) {
-            aImp.setPosition(aImp.getChannel(), aImp.getSlice(), f);      
-            
+            ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
+            String outFilename= (files.length == 1) ? aImp.getTitle() : "stitch";
+            out = segmentOneFile(out, aImp, outFilename);
+        }
+        if (out != null) {
+            out.close();
+        }
+
+        // Try to run the R script
+        try {
+            ShellCommand.exeCmdNoPrint("Rscript " + new File(aPath).getAbsolutePath() + File.separator + "R_analysis.R");
+        }
+        catch (final IOException e) {
+            e.printStackTrace();
+        }
+        catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public BLauncher(ImagePlus aImage) {
+        PrintWriter out = segmentOneFile(null, aImage, aImage.getTitle());
+        if (out != null) {
+            out.close();
+        }
+    }
+
+    private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImp, String outFilename) {
+        for (int i = 0; i < NumOfInputChannels; i++){
+            out_soft_mask[i] = null;
+            out_over[i] = null;
+            out_disp[i] = null;
+            out_label[i] = null;
+            out_label_gray[i] = null;
+        }
+        
+        for (int frame = 1; frame <= aImp.getNFrames(); frame++) {
+            aImp.setPosition(aImp.getChannel(), aImp.getSlice(), frame);      
+
             segmentAndColocalize(aImp);
-
-            displayResult(aImp.getTitle(), false);
+            displayResult(aImp.getTitle());
             try {
-                out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(), f - 1);
+                out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, frame - 1);
             }
             catch (final FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
-
         // Write a file info output
         if (iParameters.save_images) {
             saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
         }
-
-        if (out != null) {
-            out.close();
-        }
+        return out;
     }
 
     /**
      * Display results
      * @param separate true if you do not want separate the images
      */
-    private void displayResult(String aTitle, boolean sep) {
+    private void displayResult(String aTitle) {
         
         final int factor = iOutputImgScale;
         int fz = (nz > 1) ? factor : 1;
@@ -213,19 +194,19 @@ public class BLauncher {
         for (int channel = 0; channel < iParameters.nchannels; ++channel) {
             if (iParameters.dispoutline) {
                 final ImagePlus img = generateOutlineOverlay(regions[channel], images[channel]);
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_outline_overlay_c"), iParameters.dispoutline, out_over);
+                showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_outline_overlay_c"), iParameters.dispoutline, out_over);
             }
             if (iParameters.dispint) {
                 ImagePlus img = generateIntensitiesImg(regionslist.get(channel), nz * fz, ni * factor, nj * factor);
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_intensities_c"), iParameters.dispint, out_disp);
+                showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_intensities_c"), iParameters.dispint, out_disp);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
                 ImagePlus img = generateRegionImg(regions[channel], regionslist.get(channel).size(), "");
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_seg_c"), iParameters.displabels, out_label);
+                showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_seg_c"), iParameters.displabels, out_label);
             }
             if (iParameters.dispcolors) {
                 final ImagePlus img = generateLabelsGray(channel);
-                showUpdatedImgs(channel, sep, img, createTitle(aTitle, channel + 1, "_mask_c"), iParameters.dispcolors, out_label_gray);
+                showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_mask_c"), iParameters.dispcolors, out_label_gray);
             }
             if (iParameters.dispSoftMask) {
                 out_soft_mask[channel].setTitle(createTitle(aTitle, channel + 1, "_soft_mask_c"));
@@ -335,15 +316,6 @@ public class BLauncher {
         return out;
     }
 
-    private Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
-        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist.get(channel));
-        for (int i = 0; i < v.size(); i++) {
-            v.get(i).setFrame(f);
-        }
-
-        return v;
-    }
-    
     private void segmentAndColocalize(ImagePlus aImage) {
         if (aImage == null) {
             IJ.error("No image to process");
@@ -381,12 +353,10 @@ public class BLauncher {
         
         if (iParameters.nchannels == 1) {
             if (iParameters.save_images) {
-                final Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
+                final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), sth_hcount);
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
             }
-            
-            sth_hcount++;
         }
         if (iParameters.nchannels == 2) {
             computeOverallMask(nz, ni, nj);
@@ -415,7 +385,7 @@ public class BLauncher {
                 // =================================
 
                 // Write channel 1
-                Vector<? extends Outdata<Region>> obl = getObjectsList(sth_hcount, 0);
+                Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), sth_hcount);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
@@ -423,15 +393,14 @@ public class BLauncher {
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
                 
                 // Write channel 2
-                obl = getObjectsList(sth_hcount, 1);
+                obl = CSVOutput.getObjectsList(regionslist.get(1), sth_hcount);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
                 CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
             }
-
-            sth_hcount++;
         }
+        sth_hcount++;
     }
 
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
@@ -454,26 +423,19 @@ public class BLauncher {
         return aTitle.substring(0, aTitle.length() - 4) + outName + (channel - 1 + 1);
     }
     
-    private void showUpdatedImgs(int channel, boolean sep, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
-        if (sep == false) {
-            if (imgs[channel] != null) {
-                MosaicUtils.MergeFrames(imgs[channel], img);
-            }
-            else {
-                imgs[channel] = img;
-                imgs[channel].setTitle(title);
-            }
-            
-            if (show) {
-                // this force the update of the image
-                imgs[channel].setStack(imgs[channel].getStack());
-                imgs[channel].show();
-            }
+    private void showUpdatedImgs(int channel, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
+        if (imgs[channel] != null) {
+            MosaicUtils.MergeFrames(imgs[channel], img);
         }
         else {
             imgs[channel] = img;
-            img.show();
-            img.setTitle(title);
+            imgs[channel].setTitle(title);
+        }
+
+        if (show) {
+            // this force the update of the image
+            imgs[channel].setStack(imgs[channel].getStack());
+            imgs[channel].show();
         }
     }
 

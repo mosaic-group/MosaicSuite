@@ -88,6 +88,15 @@ public class CSVOutput {
         return CSVOutput.occ.converter.getVector(v);
     }
 
+    public static Vector<? extends Outdata<Region>> getObjectsList(ArrayList<Region> vec, int frame) {
+        final Vector<? extends Outdata<Region>> v = getVector(vec);
+        for (int i = 0; i < v.size(); i++) {
+            v.get(i).setFrame(frame);
+        }
+
+        return v;
+    }
+    
     /**
      * Get an CSV object with the selected format
      * @return CSV
