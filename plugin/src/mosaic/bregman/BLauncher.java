@@ -71,7 +71,6 @@ public class BLauncher {
                                           "*_seg_c1.zip", "*_seg_c2.zip", 
                                           "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
                                           "*_coloc.zip" };
-
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
     // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
@@ -155,7 +154,7 @@ public class BLauncher {
     }
 
     private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImp, String outFilename) {
-        for (int i = 0; i < NumOfInputChannels; i++){
+        for (int i = 0; i < NumOfInputChannels; i++) {
             out_soft_mask[i] = null;
             out_over[i] = null;
             out_disp[i] = null;
@@ -168,17 +167,14 @@ public class BLauncher {
 
             segmentAndColocalize(aImp);
             displayResult(aImp.getTitle());
-            try {
-                out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, frame - 1);
-            }
-            catch (final FileNotFoundException e) {
-                e.printStackTrace();
-            }
+            
+            out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, frame - 1);
         }
-        // Write a file info output
+
         if (iParameters.save_images) {
             saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
         }
+        
         return out;
     }
 
@@ -254,9 +250,15 @@ public class BLauncher {
      * @return true if success, false otherwise
      * @throws FileNotFoundException
      */
-    private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) throws FileNotFoundException {
+    private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) {
         if (out == null) {
-            out = new PrintWriter(path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData" + ".csv");
+            try {
+                out = new PrintWriter(path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData" + ".csv");
+            }
+            catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return null;
+            }
 
             // write the header
             if (iParameters.nchannels == 2) {
@@ -440,46 +442,26 @@ public class BLauncher {
 
     private void segment(int channel, int frame) {
         final ImagePlus img = inputImages[channel];
-        /* Search for maximum and minimum value, normalization */
-        double minNorm = norm_min;
-        double maxNorm = norm_max;
-        if (norm_max == 0) {
-            MinMax<Double> mm = ImgUtils.findMinMax(img);
-            minNorm = mm.getMin();
-            maxNorm = mm.getMax();
-        }
-        if (iParameters.usecellmaskX && channel == 0) {
-            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
-        }
-        if (iParameters.usecellmaskY && channel == 1) {
-            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
-        }
+        generateMasks(channel, img);
 
         if (iParameters.removebackground) {
             for (int z = 0; z < nz; z++) {
                 img.setSlice(z + 1);
-                ImageProcessor ip = img.getProcessor();
                 final BackgroundSubtracter bs = new BackgroundSubtracter();
-                bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
+                bs.rollingBallBackground(img.getProcessor(), iParameters.size_rollingball, false, false, false, true, true);
             }
         }
+        
         double[][][] image = ImgUtils.ImgToZXYarray(img);
-        MinMax<Double> mm = ArrayOps.findMinMax(image);
-        double max = mm.getMax();
-        double min = mm.getMin();
-        if (iParameters.livedisplay && iParameters.removebackground) {
-            final ImagePlus noBackgroundImg = img.duplicate();
-            noBackgroundImg.setTitle("Background reduction channel " + (channel + 1));
-            noBackgroundImg.changes = false;
-            noBackgroundImg.setDisplayRange(min, max);
-            noBackgroundImg.show();
-        }
-        /* Overload min/max after background subtraction */
-        if (norm_max != 0) {
-            max = norm_max;
-            // if we are removing the background we have no idea which is the minumum across 
-            // all the movie so let be conservative and put min = 0.0 for sure cannot be < 0
-            min = (iParameters.removebackground) ? 0.0 : norm_min;
+        
+        // Calculate min/max. If we are removing the background we have no idea which is the minimum across 
+        // all the frames so let be conservative and put min = 0.0 (for sure cannot be < 0).
+        double min = (iParameters.removebackground) ? 0.0 : norm_min;
+        double max = norm_max;
+        if (norm_max == 0) {
+            MinMax<Double> mm = ImgUtils.findMinMax(img);
+            min = mm.getMin();
+            max = mm.getMax();
         }
         
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
@@ -515,7 +497,25 @@ public class BLauncher {
         ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
         if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
     }
-
+    
+    // ============================================ MASKS and tools ==============================
+    
+    private void generateMasks(int channel, final ImagePlus img) {
+        double minNorm = norm_min;
+        double maxNorm = norm_max;
+        if (norm_max == 0) {
+            MinMax<Double> mm = ImgUtils.findMinMax(img);
+            minNorm = mm.getMin();
+            maxNorm = mm.getMax();
+        }
+        if (iParameters.usecellmaskX && channel == 0) {
+            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
+        }
+        if (iParameters.usecellmaskY && channel == 1) {
+            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
+        }
+    }
+    
     private void generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
         ImagePlus maskImg = new ImagePlus();
         maskImg.setTitle("Cell mask channel " + (channel + 1));
@@ -524,8 +524,6 @@ public class BLauncher {
             maskImg.show();
         }
     }
-    
-    // ============================================ MASKS and tools ==============================
     
     private void computeOverallMask(int nz, int ni, int nj) {
         final boolean mask[][][] = new boolean[nz][ni][nj];
@@ -568,13 +566,12 @@ public class BLauncher {
         final int factor2 = iOutputImgScale;
         int fz2 = (overallCellMaskBinary.length > 1) ? factor2 : 1;
 
-        double size = 0;
+        double size = r.iPixels.size();
         int inside = 0;
         for (Pix px : r.iPixels) {
             if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
                 inside++;
             }
-            size++;
         }
         return ((inside / size) > 0.1);
     }
