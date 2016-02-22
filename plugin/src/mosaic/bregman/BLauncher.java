@@ -125,7 +125,7 @@ public class BLauncher {
             if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                 continue;
             }
-            pf.add(MosaicUtils.removeExtension(f.getName()));
+            if (inputFile.isDirectory()) pf.add(MosaicUtils.removeExtension(f.getName()));
 
             ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
             String outFilename= (files.length == 1) ? aImp.getTitle() : "stitch";
