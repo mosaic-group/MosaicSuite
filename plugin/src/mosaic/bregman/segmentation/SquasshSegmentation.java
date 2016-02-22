@@ -183,10 +183,18 @@ public class SquasshSegmentation {
         
         // do voronoi in 2D on Z projection
         // Here we compute the Voronoi segmentation starting from the threshold mask
+        
+        // EDM is using Prefs.blackBackground global setting. We need false here.
+        boolean tempBlackBackground = ij.Prefs.blackBackground;
+        ij.Prefs.blackBackground = false;
         final EDM filtEDM = new EDM();
         filtEDM.setup("voronoi", maskImg);
         filtEDM.run(maskImg.getProcessor());
+        ij.Prefs.blackBackground = tempBlackBackground;
+
         maskImg.getProcessor().invert();
+        
+        
         setProgress(53);
         
         // expand Voronoi in 3D

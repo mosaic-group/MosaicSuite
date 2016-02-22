@@ -353,10 +353,7 @@ public class BLauncher {
             IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
             return;
         }
-        
-        boolean tempBlackbackground = ij.Prefs.blackBackground;
-        ij.Prefs.blackBackground = false;
-        
+
         // Image info
         ni = aImage.getWidth();
         nj = aImage.getHeight();
@@ -364,7 +361,7 @@ public class BLauncher {
         final int currentFrame = aImage.getFrame();
         iParameters.nchannels = aImage.getNChannels();
         final String title = aImage.getTitle();
-        
+
         // Segmentation
         for (int channel = 0; channel < iParameters.nchannels; channel++) {
             inputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
@@ -374,7 +371,6 @@ public class BLauncher {
             segment(channel, currentFrame);
             logger.debug("------------------- End of Segmentation ---------------------------");
         }
-       
         // Postprocessing 
         String savepath = MosaicUtils.ValidFolderFromImage(aImage);
         final String filename_without_ext = MosaicUtils.removeExtension(title); 
@@ -436,8 +432,6 @@ public class BLauncher {
 
             sth_hcount++;
         }
-
-        ij.Prefs.blackBackground = tempBlackbackground;
     }
 
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
@@ -485,7 +479,6 @@ public class BLauncher {
 
     private void segment(int channel, int frame) {
         final ImagePlus img = inputImages[channel];
-        
         /* Search for maximum and minimum value, normalization */
         double minNorm = norm_min;
         double maxNorm = norm_max;
@@ -509,7 +502,6 @@ public class BLauncher {
                 bs.rollingBallBackground(ip, iParameters.size_rollingball, false, false, false, true, true);
             }
         }
-        
         double[][][] image = ImgUtils.ImgToZXYarray(img);
         MinMax<Double> mm = ArrayOps.findMinMax(image);
         double max = mm.getMax();
@@ -542,7 +534,6 @@ public class BLauncher {
                 iParameters.sigma_gaussian,
                 iParameters.sigma_gaussian / iParameters.zcorrec,
                 iParameters.min_region_filter_intensities );
-
         //  ============== SEGMENTATION
         SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
         if (iParameters.patches_from_file == null) {
@@ -746,10 +737,16 @@ public class BLauncher {
         final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
         maskImg.setStack(maskStack);
         IJ.run(maskImg, "Invert", "stack");
+        
+        // "Fill Holes" is using Prefs.blackBackground global setting. We need false here.
+        boolean tempBlackbackground = ij.Prefs.blackBackground;
+        ij.Prefs.blackBackground = false;
         IJ.run(maskImg, "Fill Holes", "stack");
+        ij.Prefs.blackBackground = tempBlackbackground;
+        
         IJ.run(maskImg, "Open", "stack");
         IJ.run(maskImg, "Invert", "stack");
-
+        
         final boolean[][][] cellmask = new boolean[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             maskImg.setSlice(z + 1);
