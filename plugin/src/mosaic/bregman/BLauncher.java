@@ -287,7 +287,6 @@ public class BLauncher {
         final double meanSA = meansurface(regionslist.get(0));
         final double meanLA = meanLength(regionslist.get(0));
         if (iParameters.nchannels == 2) {
-            // ================= Colocalization analysis ===============================================
             double colocAB = round(resAB.colocsegABsignal, 4);
             double colocABnumber = round(resAB.colocsegABnumber, 4);
             double colocABsize = round(resAB.colocsegABsize, 4);
@@ -298,16 +297,13 @@ public class BLauncher {
             double colocB = round(resBA.colocsegA, 4);
 
             double[] temp = new SamplePearsonCorrelationCoefficient(inputImages[0], inputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
-            double corr = temp[0];
-            double corr_mask = temp[1];
-            
             final double meanSB = meansurface(regionslist.get(1));
             final double meanLB = meanLength(regionslist.get(1));
 
             out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
                     + round(meanLA, 4) + ";" + +regionslist.get(1).size() + ";" + round(meanSize(regionslist.get(1)), 4) + ";" + round(meanSB, 4) + ";"
                     + round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
-                    + colocB + ";" + round(corr, 4) + ";" + round(corr_mask, 4));
+                    + colocB + ";" + round(temp[0], 4) + ";" + round(temp[1], 4));
         }
         else {
             out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
@@ -361,6 +357,7 @@ public class BLauncher {
             }
         }
         if (iParameters.nchannels == 2) {
+            for (int i = 0; i < iParameters.nchannels; i++) generateMasks(i, inputImages[i]);
             computeOverallMask(nz, ni, nj);
             applyMask();
             
@@ -442,7 +439,6 @@ public class BLauncher {
 
     private void segment(int channel, int frame) {
         final ImagePlus img = inputImages[channel];
-        generateMasks(channel, img);
 
         if (iParameters.removebackground) {
             for (int z = 0; z < nz; z++) {
