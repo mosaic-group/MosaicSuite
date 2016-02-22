@@ -80,10 +80,9 @@ public class BLauncher {
     
     private ColocResult resAB;
     private ColocResult resBA;
-    private int sth_hcount = 0; // WTF this var is what for?
     private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private final String choice2[] = { "Poisson", "Gauss" };
-    private final Vector<String> pf = new Vector<String>();
+    private final Vector<String> filesToReorganize = new Vector<String>();
 
     private int ni, nj, nz;
     private int iOutputImgScale = 1;
@@ -107,7 +106,7 @@ public class BLauncher {
     private final ImagePlus[] out_label_gray = new ImagePlus[NumOfInputChannels];
     
     public Vector<String> getProcessedFiles() {
-        return pf;
+        return filesToReorganize;
     }
     
     /**
@@ -125,7 +124,8 @@ public class BLauncher {
             if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                 continue;
             }
-            if (inputFile.isDirectory()) pf.add(MosaicUtils.removeExtension(f.getName()));
+            
+            if (inputFile.isDirectory()) filesToReorganize.add(MosaicUtils.removeExtension(f.getName()));
 
             ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
             String outFilename= (files.length == 1) ? aImp.getTitle() : "stitch";
@@ -137,7 +137,7 @@ public class BLauncher {
 
         // Try to run the R script
         try {
-            ShellCommand.exeCmdNoPrint("Rscript " + new File(aPath).getAbsolutePath() + File.separator + "R_analysis.R");
+            ShellCommand.exeCmdNoPrint("Rscript " + inputFile.getAbsolutePath() + File.separator + "R_analysis.R");
         }
         catch (final IOException e) {
             e.printStackTrace();
@@ -353,9 +353,9 @@ public class BLauncher {
         
         if (iParameters.nchannels == 1) {
             if (iParameters.save_images) {
-                final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), sth_hcount);
+                final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame - 1);
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
-                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (sth_hcount != 0));
+                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame - 1 != 0));
             }
         }
         if (iParameters.nchannels == 2) {
@@ -385,7 +385,7 @@ public class BLauncher {
                 // =================================
 
                 // Write channel 1
-                Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), sth_hcount);
+                Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame - 1);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
@@ -393,14 +393,13 @@ public class BLauncher {
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
                 
                 // Write channel 2
-                obl = CSVOutput.getObjectsList(regionslist.get(1), sth_hcount);
+                obl = CSVOutput.getObjectsList(regionslist.get(1), currentFrame - 1);
                 IpCSV.clearMetaInformation();
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
                 CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
             }
         }
-        sth_hcount++;
     }
 
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
