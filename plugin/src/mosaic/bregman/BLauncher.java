@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -102,7 +103,6 @@ public class BLauncher {
         File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
         Arrays.sort(files);
         
-        PrintWriter out = null;
         for (final File f : files) {
             // If it is the directory/Rscript/hidden/csv file then skip it
             if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
@@ -110,13 +110,7 @@ public class BLauncher {
             }
             
             iProcessedFiles.add(f.getName());
-
-            ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
-            String outFilename= aImp.getTitle(); //(files.length == 1) ? aImp.getTitle() : "stitch";
-            out = segmentOneFile(null, aImp, outFilename);
-        }
-        if (out != null) {
-            out.close();
+            segmentOneFile(MosaicUtils.openImg(f.getAbsolutePath()), MosaicUtils.openImg(f.getAbsolutePath()).getTitle());
         }
     }
 
@@ -125,24 +119,21 @@ public class BLauncher {
      * @param aImage image to be segmented
      */
     public BLauncher(ImagePlus aImage) {
-        PrintWriter out = segmentOneFile(null, aImage, aImage.getTitle());
-        if (out != null) {
-            out.close();
-        }
+        segmentOneFile(aImage, aImage.getTitle());
     }
     
     public Vector<String> getProcessedFiles() {
         return iProcessedFiles;
     }
 
-    private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImage, String outFilename) {
+    private void segmentOneFile(ImagePlus aImage, String outFilename) {
         if (aImage == null) {
             IJ.error("No image to process");
-            return null;
+            return;
         }
         if (aImage.getType() == ImagePlus.COLOR_RGB) {
             IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
-            return null;
+            return;
         }
         
         // Image info
@@ -176,17 +167,15 @@ public class BLauncher {
             ColocResult[] colocResults = runColocalizationAnalysis(aImage, title);
             
             displayResult(title);
-            saveObjectDataCsv(aImage, frame - 1, title);
             if (iParameters.save_images) {
-                out = writeImageDataCsv(out, outDir, title, outFilename, frame - 1, colocResults[0], colocResults[1]);
+                saveObjectDataCsv(aImage, frame - 1, title);
+                writeImageDataCsv(outDir, title, outFilename, frame - 1, colocResults[0], colocResults[1]);
             }
         }
 
         if (iParameters.save_images) {
             saveAllImages(outDir);
         }
-        
-        return out;
     }
 
     /**
@@ -274,17 +263,20 @@ public class BLauncher {
     /**
      * Write the CSV ImageData file information
      */
-    private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
-        if (out == null) {
-            try {
-                out = new PrintWriter(path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv");
-            }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return null;
-            }
+    private void writeImageDataCsv(String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
+        String fileName = path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv";
+        boolean shouldAppend = hcount != 0; //(new File(fileName).exists()) ? true : false;
+        PrintWriter out = null;
+        try {
+            out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
 
-            // write the header
+        // write the header
+        if (!shouldAppend) {
             if (iNumOfChannels == 2) {
                 out.print("File;Image ID;" 
                         + "Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1;" 
@@ -297,8 +289,7 @@ public class BLauncher {
                 out.print("File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1");
             }
             out.println();
-            out.flush();
-            
+
             final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
             final String choice2[] = { "Poisson", "Gauss" };
             out.print("%Parameters:" + " " + "background removal " + " " + iParameters.removebackground + " " + "window size " + iParameters.size_rollingball + " " + "stddev PSF xy " + " "
@@ -308,7 +299,6 @@ public class BLauncher {
                     + iParameters.thresholdcellmask + " " + "Cell mask ch2 " + iParameters.usecellmaskY + " " + "mask threshold ch2 " + iParameters.thresholdcellmasky + " " + "Intensity estimation "
                     + choice1[iParameters.mode_intensity] + " " + "Noise model " + choice2[iParameters.noise_model] + ";");
             out.println();
-            out.flush();
         }
 
         final double meanSA = meanSurface(iRegionsList.get(0));
@@ -337,8 +327,7 @@ public class BLauncher {
         }
         out.println();
         out.flush();
-        
-        return out;
+        out.close();
     }
 
     private void runSegmentation(ImagePlus aImage, int currentFrame, String title) {
