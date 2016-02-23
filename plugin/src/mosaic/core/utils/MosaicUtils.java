@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -1028,6 +1029,7 @@ public class MosaicUtils {
                     currentFilesAbsPaths[i] = currentFiles[i].getAbsolutePath();
                 }
             }
+            Arrays.sort(currentFilesAbsPaths);
             mosaic.utils.Debug.print(currentDir, currentFiles);
             // Set metainformation for csv
             csv.clearMetaInformation();
