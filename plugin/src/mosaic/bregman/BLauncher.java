@@ -74,19 +74,15 @@ public class BLauncher {
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
     public static Parameters iParameters = new Parameters();
-    
-    private ColocResult resAB;
-    private ColocResult resBA;
-    private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
-    private final String choice2[] = { "Poisson", "Gauss" };
-    private final Vector<String> iProcessedFiles = new Vector<String>();
 
     private int ni, nj, nz;
     private int iOutputImgScale = 1;
     
-    private int NumOfInputChannels = -1;
-    private ImagePlus[] inputImages;
-    private double[][][][] images;
+    private final Vector<String> iProcessedFiles = new Vector<String>();
+    
+    private int iNumOfChannels = -1;
+    private ImagePlus[] iInputImages;
+    private double[][][][] iImages;
     private boolean[][][][] cellMasks;
     private boolean[][][] overallCellMaskBinary;
     private ArrayList<ArrayList<Region>> regionslist;
@@ -96,7 +92,6 @@ public class BLauncher {
     private ImagePlus[] out_disp;
     private ImagePlus[] out_label;
     private ImagePlus[] out_label_gray;
-    
     
     /**
      * Launch the Segmentation
@@ -141,7 +136,6 @@ public class BLauncher {
     }
 
     private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImage, String outFilename) {
-        
         if (aImage == null) {
             IJ.error("No image to process");
             return null;
@@ -161,26 +155,31 @@ public class BLauncher {
         logger.debug("Segmenting Image: [" + title + "] Dims(x/y/z): "+ ni + "/" + nj + "/" + nz + " NumOfFrames: " + numOfFrames + " NumOfChannels: " + numOfChannels);
         
         // Initiate structures
-        NumOfInputChannels = numOfChannels;
-        inputImages = new ImagePlus[NumOfInputChannels];
-        images = new double[NumOfInputChannels][][][];
-        cellMasks = new boolean[NumOfInputChannels][][][];
-        regionslist = new ArrayList<ArrayList<Region>>();
-        regions = new short[NumOfInputChannels][][][];
-        out_soft_mask = new ImagePlus[NumOfInputChannels];
-        out_over = new ImagePlus[NumOfInputChannels];
-        out_disp = new ImagePlus[NumOfInputChannels];
-        out_label = new ImagePlus[NumOfInputChannels];
-        out_label_gray = new ImagePlus[NumOfInputChannels];
+        iNumOfChannels = numOfChannels;
+        iInputImages = new ImagePlus[iNumOfChannels];
+        iImages = new double[iNumOfChannels][][][];
+        cellMasks = new boolean[iNumOfChannels][][][];
+        regionslist = new ArrayList<ArrayList<Region>>(iNumOfChannels);
+        for (int i = 0; i < iNumOfChannels; i++) regionslist.add(null);
+        regions = new short[iNumOfChannels][][][];
+        out_soft_mask = new ImagePlus[iNumOfChannels];
+        out_over = new ImagePlus[iNumOfChannels];
+        out_disp = new ImagePlus[iNumOfChannels];
+        out_label = new ImagePlus[iNumOfChannels];
+        out_label_gray = new ImagePlus[iNumOfChannels];
         
         String outDir = MosaicUtils.ValidFolderFromImage(aImage);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
-            segmentAndColocalize(aImage, frame, title);
+            runSegmentation(aImage, frame, title);
+            ColocResult[] colocResults = runColocalizationAnalysis(aImage, title);
+            
             displayResult(title);
-            out = writeImageDataCsv(out, outDir, title, outFilename, frame - 1);
-            regionslist.clear();
+            if (iParameters.save_images) {
+                saveObjectDataCsv(aImage, frame - 1, title);
+                out = writeImageDataCsv(out, outDir, title, outFilename, frame - 1, colocResults[0], colocResults[1]);
+            }
         }
 
         if (iParameters.save_images) {
@@ -199,9 +198,9 @@ public class BLauncher {
         final int factor = iOutputImgScale;
         int fz = (nz > 1) ? factor : 1;
 
-        for (int channel = 0; channel < NumOfInputChannels; ++channel) {
+        for (int channel = 0; channel < iNumOfChannels; ++channel) {
             if (iParameters.dispoutline) {
-                final ImagePlus img = generateOutlineOverlay(regions[channel], images[channel]);
+                final ImagePlus img = generateOutlineOverlay(regions[channel], iImages[channel]);
                 showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_outline_overlay_c"), iParameters.dispoutline, out_over);
             }
             if (iParameters.dispint) {
@@ -229,7 +228,7 @@ public class BLauncher {
      */
     private void saveAllImages(String aOutputPath) {
         final String savePath = aOutputPath + File.separator;
-        for (int i = 0; i < NumOfInputChannels; i++) {
+        for (int i = 0; i < iNumOfChannels; i++) {
             if (out_over[i] != null) {
                 IJ.saveAs(out_over[i], "ZIP", savePath + out_over[i].getTitle() + ".zip");
             }
@@ -248,6 +247,41 @@ public class BLauncher {
         }
     }
 
+    private void saveObjectDataCsv(ImagePlus aImage, int currentFrame, String title) {
+        String savepath = MosaicUtils.ValidFolderFromImage(aImage);
+        final String filename_without_ext = MosaicUtils.removeExtension(title); 
+    
+        // Choose the Rscript coloc format
+        if (iNumOfChannels == 2) CSVOutput.occ = CSVOutput.oc[2];
+        final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
+    
+        if (iNumOfChannels == 1) {
+            final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame);
+            IpCSV.setMetaInformation("background", savepath + File.separator + title);
+            CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame - 1 != 0));
+        }
+        if (iNumOfChannels == 2) {
+            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
+            computeOverallMask(nz, ni, nj);
+            applyMask();
+    
+            // Write channel 1
+            Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame);
+            IpCSV.clearMetaInformation();
+            IpCSV.setMetaInformation("background", savepath + File.separator + title);
+            final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
+            boolean append = (new File(output1).exists()) ? true : false;
+            CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
+    
+            // Write channel 2
+            obl = CSVOutput.getObjectsList(regionslist.get(1), currentFrame);
+            IpCSV.clearMetaInformation();
+            IpCSV.setMetaInformation("background", savepath + File.separator + title);
+            final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
+            CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
+        }
+    }
+
     /**
      * Write the CSV ImageData file information
      *
@@ -258,7 +292,7 @@ public class BLauncher {
      * @return true if success, false otherwise
      * @throws FileNotFoundException
      */
-    private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) {
+    private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
         if (out == null) {
             try {
                 out = new PrintWriter(path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData" + ".csv");
@@ -269,7 +303,7 @@ public class BLauncher {
             }
 
             // write the header
-            if (NumOfInputChannels == 2) {
+            if (iNumOfChannels == 2) {
                 out.print("File" + ";" + "Image ID" + ";" + "Objects ch1" + ";" + "Mean size in ch1" + ";" + "Mean surface in ch1" + ";" + "Mean length in ch1" + ";" + "Objects ch2" + ";"
                         + "Mean size in ch2" + ";" + "Mean surface in ch2" + ";" + "Mean length in ch2" + ";" + "Colocalization ch1 in ch2 (signal based)" + ";"
                         + "Colocalization ch2 in ch1 (signal based)" + ";" + "Colocalization ch1 in ch2 (size based)" + ";" + "Colocalization ch2 in ch1 (size based)" + ";"
@@ -282,6 +316,8 @@ public class BLauncher {
             out.println();
             out.flush();
             
+            final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
+            final String choice2[] = { "Poisson", "Gauss" };
             out.print("%Parameters:" + " " + "background removal " + " " + iParameters.removebackground + " " + "window size " + iParameters.size_rollingball + " " + "stddev PSF xy " + " "
                     + round(iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + round(iParameters.sigma_gaussian / iParameters.zcorrec, 5) + " "
                     + "Regularization " + iParameters.lreg_[0] + " " + iParameters.lreg_[1] + " " + "Min intensity ch1 " + iParameters.min_intensity + " " + "Min intensity ch2 "
@@ -294,7 +330,7 @@ public class BLauncher {
 
         final double meanSA = meansurface(regionslist.get(0));
         final double meanLA = meanLength(regionslist.get(0));
-        if (NumOfInputChannels == 2) {
+        if (iNumOfChannels == 2) {
             double colocAB = round(resAB.colocsegABsignal, 4);
             double colocABnumber = round(resAB.colocsegABnumber, 4);
             double colocABsize = round(resAB.colocsegABsize, 4);
@@ -304,7 +340,7 @@ public class BLauncher {
             double colocBAsize = round(resBA.colocsegABsize, 4);
             double colocB = round(resBA.colocsegA, 4);
 
-            double[] temp = new SamplePearsonCorrelationCoefficient(inputImages[0], inputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
+            double[] temp = new SamplePearsonCorrelationCoefficient(iInputImages[0], iInputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
             final double meanSB = meansurface(regionslist.get(1));
             final double meanLB = meanLength(regionslist.get(1));
 
@@ -322,74 +358,39 @@ public class BLauncher {
         return out;
     }
 
-    private void segmentAndColocalize(ImagePlus aImage, int currentFrame, String title) {
-        // Segmentation
-        for (int channel = 0; channel < NumOfInputChannels; channel++) {
-            inputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
-            images[channel] = ImgUtils.ImgToZXYarray(inputImages[channel]);
-            ArrayOps.normalize(images[channel]);
+    private void runSegmentation(ImagePlus aImage, int currentFrame, String title) {
+        for (int channel = 0; channel < iNumOfChannels; channel++) {
             logger.debug("------------------- Segmentation of [" + title + "] channel: " + channel + ", frame: " + currentFrame);
+            iInputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
+            iImages[channel] = ImgUtils.ImgToZXYarray(iInputImages[channel]);
+            ArrayOps.normalize(iImages[channel]);
             segment(channel, currentFrame);
             logger.debug("------------------- End of Segmentation ---------------------------");
         }
-        // Postprocessing 
-        String savepath = MosaicUtils.ValidFolderFromImage(aImage);
-        final String filename_without_ext = MosaicUtils.removeExtension(title); 
-        
-        // Choose the Rscript coloc format
-        if (NumOfInputChannels == 2) CSVOutput.occ = CSVOutput.oc[2];
-        final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
-        
-        if (NumOfInputChannels == 1) {
-            if (iParameters.save_images) {
-                final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame - 1);
-                IpCSV.setMetaInformation("background", savepath + File.separator + title);
-                CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame - 1 != 0));
-            }
-        }
-        if (NumOfInputChannels == 2) {
-            for (int i = 0; i < NumOfInputChannels; i++) generateMasks(i, inputImages[i]);
-            computeOverallMask(nz, ni, nj);
-            applyMask();
-            
+    }
+
+    private ColocResult[] runColocalizationAnalysis(ImagePlus aImage, String title) {
+        ColocResult resAB = null;
+        ColocResult resBA = null;
+        if (iNumOfChannels == 2) {
             final int factor2 = iOutputImgScale;
             int fz2 = (nz > 1) ? factor2 : 1;
-
-            ImagePlus colocImg = generateColocImg(regionslist.get(0), regionslist.get(1), ni * factor2, nj * factor2, nz * fz2);
-            colocImg.show();
+            
+            ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
+            ca.addRegion(regionslist.get(0), iImages[0]);
+            ca.addRegion(regionslist.get(1), iImages[1]);
+            resAB = ca.calculate(0, 1);
+            resBA = ca.calculate(1, 0);
+            regions[0] = ca.getLabeledRegion(0);
+            regions[1] = ca.getLabeledRegion(1);
             
             if (iParameters.save_images) {
+                ImagePlus colocImg = generateColocImg(regionslist.get(0), regionslist.get(1), ni * factor2, nj * factor2, nz * fz2);
+                colocImg.show();
                 IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(aImage) + title) + "_coloc.zip");
-                
-                // ================= Colocalization analysis ===============================================
-                // TODO: It must be currently done here since it updates data for all regions 
-                //       which are saved below to CSV files. It must be refactored...
-                ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
-                ca.addRegion(regionslist.get(0), images[0]);
-                ca.addRegion(regionslist.get(1), images[1]);
-                resAB = ca.calculate(0, 1);
-                resBA = ca.calculate(1, 0);
-                regions[0] = ca.getLabeledRegion(0);
-                regions[1] = ca.getLabeledRegion(1);
-                
-                // =================================
-
-                // Write channel 1
-                Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame - 1);
-                IpCSV.clearMetaInformation();
-                IpCSV.setMetaInformation("background", savepath + File.separator + title);
-                final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
-                boolean append = (new File(output1).exists()) ? true : false;
-                CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
-                
-                // Write channel 2
-                obl = CSVOutput.getObjectsList(regionslist.get(1), currentFrame - 1);
-                IpCSV.clearMetaInformation();
-                IpCSV.setMetaInformation("background", savepath + File.separator + title);
-                final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
-                CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
             }
         }
+        return new ColocResult[] {resAB, resBA};
     }
 
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
@@ -429,7 +430,7 @@ public class BLauncher {
     }
 
     private void segment(int channel, int frame) {
-        final ImagePlus img = inputImages[channel];
+        final ImagePlus img = iInputImages[channel];
 
         if (iParameters.removebackground) {
             for (int z = 0; z < nz; z++) {
@@ -474,7 +475,7 @@ public class BLauncher {
         }
 
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
-        regionslist.add(rg.iRegionsList);
+        regionslist.set(channel, rg.iRegionsList);
         regions[channel] = rg.iLabeledRegions;
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
@@ -496,49 +497,48 @@ public class BLauncher {
             maxNorm = mm.getMax();
         }
         if (iParameters.usecellmaskX && channel == 0) {
-            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
+            cellMasks[channel] = generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
         }
         if (iParameters.usecellmaskY && channel == 1) {
-            generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
+            cellMasks[channel] = generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
         }
     }
     
-    private void generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
+    private boolean[][][] generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
         ImagePlus maskImg = new ImagePlus();
         maskImg.setTitle("Cell mask channel " + (channel + 1));
-        cellMasks[channel] = createBinaryCellMask(maskThreshold * (max - min) + min, img, channel, maskImg);
         if (iParameters.livedisplay) {
             maskImg.show();
         }
+        return createBinaryCellMask(maskThreshold * (max - min) + min, img, channel, maskImg);
     }
     
     private void computeOverallMask(int nz, int ni, int nj) {
-        final boolean mask[][][] = new boolean[nz][ni][nj];
+        overallCellMaskBinary = new boolean[nz][ni][nj];
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
-                        mask[z][i][j] = cellMasks[0][z][i][j] && cellMasks[1][z][i][j];
+                        overallCellMaskBinary[z][i][j] = cellMasks[0][z][i][j] && cellMasks[1][z][i][j];
                     }
                     else if (iParameters.usecellmaskX) {
-                        mask[z][i][j] = cellMasks[0][z][i][j];
+                        overallCellMaskBinary[z][i][j] = cellMasks[0][z][i][j];
                     }
                     else if (iParameters.usecellmaskY) {
-                        mask[z][i][j] = cellMasks[1][z][i][j];
+                        overallCellMaskBinary[z][i][j] = cellMasks[1][z][i][j];
                     }
                     else {
-                        mask[z][i][j] = true;
+                        overallCellMaskBinary[z][i][j] = true;
                     }
 
                 }
             }
         }
-        overallCellMaskBinary = mask;
     }
     
     private void applyMask() {
-        for (int channel = 0; channel < NumOfInputChannels; channel++) {
+        for (int channel = 0; channel < iNumOfChannels; channel++) {
             final ArrayList<Region> maskedRegion = new ArrayList<Region>();
             for (Region r : regionslist.get(channel)) {
                 if (isInside(r)) {
