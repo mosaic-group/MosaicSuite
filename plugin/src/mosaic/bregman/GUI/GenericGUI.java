@@ -352,7 +352,7 @@ public class GenericGUI {
 
                 final File fl = new File(BLauncher.iParameters.wd);
                 // TODO: Files should be processed only if input was a directory. Strange behaviour but this comes
-                // from old code. Shoudl be refactored.
+                // from old code. Should be refactored.
                 final Vector<String> pf = fl.isDirectory() ? hd.getProcessedFiles() : new Vector<String>();
                 savepath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
 
@@ -380,8 +380,8 @@ public class GenericGUI {
                     try {
                         logger.debug("================ RSCRIPT BEGIN ====================");
                         //                ShellCommand.exeCmdNoPrint("Rscript " + fl.getAbsolutePath() + File.separator + "R_analysis.R");
-                        logger.debug("CMD: " + "Rscript " + savepath + File.separator + "R_analysis.R");
-                        ShellCommand.exeCmdString("Rscript " + savepath + File.separator + "R_analysis.R");
+                        logger.debug("CMD: " + "cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
+                        ShellCommand.exeCmdString("cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
                         logger.debug("================ RSCRIPT END ====================");
                     }
                     catch (final IOException e) {

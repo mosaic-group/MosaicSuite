@@ -676,8 +676,9 @@ public class MosaicUtils {
             final String tmp = new String(output[j]);
 
             for (int k = 0; k < bases.size(); k++) {
-                final String src = sv + File.separator + tmp.replace("*", bases.get(k));
-                final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
+                String currentFile = MosaicUtils.removeExtension(bases.get(k));
+                final String src = sv + File.separator + tmp.replace("*", currentFile);
+                final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + currentFile + tmp.replace("*", "");
                 SystemOperations.moveFile(src, dest, true /* quiet */);
             }
         }
