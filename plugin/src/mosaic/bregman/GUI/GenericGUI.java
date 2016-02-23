@@ -15,7 +15,6 @@ import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -36,7 +35,6 @@ import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 
 
@@ -377,20 +375,19 @@ public class GenericGUI {
                 if (BLauncher.iParameters.save_images) {
                     new RScript(savepath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
                     // Try to run the R script
-                    // TODO: Output seems to be completely wrong. Must be investigated.
-                    try {
-                        logger.debug("================ RSCRIPT BEGIN ====================");
-                        //                ShellCommand.exeCmdNoPrint("Rscript " + fl.getAbsolutePath() + File.separator + "R_analysis.R");
-                        logger.debug("CMD: " + "cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
-                        ShellCommand.exeCmdString("cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
-                        logger.debug("================ RSCRIPT END ====================");
-                    }
-                    catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                    catch (final InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
+//                    try {
+//                        logger.debug("================ RSCRIPT BEGIN ====================");
+//                        logger.debug("CMD: " + "cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
+//                        ShellCommand.exeCmdString("cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
+//                        logger.debug("================ RSCRIPT END ====================");
+//                    }
+//                    catch (final IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    catch (final InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }
         }

@@ -247,50 +247,32 @@ public class BLauncher {
         }
     }
 
-    private void saveObjectDataCsv(ImagePlus aImage, int currentFrame, String title) {
-        String savepath = MosaicUtils.ValidFolderFromImage(aImage);
-        final String filename_without_ext = MosaicUtils.removeExtension(title); 
-    
-        // Choose the Rscript coloc format
-        if (iNumOfChannels == 2) CSVOutput.occ = CSVOutput.oc[2];
-        final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
-    
-        if (iNumOfChannels == 1) {
-            final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame);
-            IpCSV.setMetaInformation("background", savepath + File.separator + title);
-            CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame != 0));
-        }
-        if (iNumOfChannels == 2) {
+    private void saveObjectDataCsv(ImagePlus aImage, int aCurrentFrame, String aTitle) {
+        if (iNumOfChannels >  1) {
+            // Choose the Rscript coloc format
+            CSVOutput.occ = CSVOutput.oc[2];
+            
             for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
             computeOverallMask(nz, ni, nj);
             applyMask();
-    
-            // Write channel 1
-            Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame);
-            IpCSV.clearMetaInformation();
-            IpCSV.setMetaInformation("background", savepath + File.separator + title);
-            final String output1 = savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv";
-            boolean append = (new File(output1).exists()) ? true : false;
-            CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
-    
-            // Write channel 2
-            obl = CSVOutput.getObjectsList(regionslist.get(1), currentFrame);
-            IpCSV.clearMetaInformation();
-            IpCSV.setMetaInformation("background", savepath + File.separator + title);
-            final String output2 = savepath + File.separator + filename_without_ext + "_ObjectsData_c2" + ".csv";
-            CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
+        }
+
+        final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
+        String savepath = MosaicUtils.ValidFolderFromImage(aImage) + File.separator;
+        final String filename_without_ext = MosaicUtils.removeExtension(aTitle); 
+
+        for (int ch = 0; ch < iNumOfChannels; ch++) {
+            String outFileName = savepath + filename_without_ext + "_ObjectsData_c" + (ch + 1) + ".csv";
+            boolean shouldAppend = (new File(outFileName).exists()) ? true : false;
+            Vector<? extends Outdata<Region>> regionsData = CSVOutput.getObjectsList(regionslist.get(ch), aCurrentFrame);
+            csvWriter.clearMetaInformation();
+            csvWriter.setMetaInformation("background", savepath + aTitle);
+            CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
         }
     }
 
     /**
      * Write the CSV ImageData file information
-     *
-     * @param path directory where to save
-     * @param filename name of the file processed
-     * @param outfilename output file (extension is removed)
-     * @param hcount frame output
-     * @return true if success, false otherwise
-     * @throws FileNotFoundException
      */
     private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
         if (out == null) {
@@ -328,7 +310,7 @@ public class BLauncher {
             out.flush();
         }
 
-        final double meanSA = meansurface(regionslist.get(0));
+        final double meanSA = meanSurface(regionslist.get(0));
         final double meanLA = meanLength(regionslist.get(0));
         if (iNumOfChannels == 2) {
             double colocAB = round(resAB.colocsegABsignal, 4);
@@ -341,7 +323,7 @@ public class BLauncher {
             double colocB = round(resBA.colocsegA, 4);
 
             double[] temp = new SamplePearsonCorrelationCoefficient(iInputImages[0], iInputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
-            final double meanSB = meansurface(regionslist.get(1));
+            final double meanSB = meanSurface(regionslist.get(1));
             final double meanLB = meanLength(regionslist.get(1));
 
             out.print(filename + ";" + hcount + ";" + regionslist.get(0).size() + ";" + round(meanSize(regionslist.get(0)), 4) + ";" + round(meanSA, 4) + ";"
@@ -453,7 +435,8 @@ public class BLauncher {
         }
         
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
-
+        int tempChannel = channel;
+        if (channel > 1) channel = 1;
         SegmentationParameters sp = new SegmentationParameters(
                 iParameters.nthreads,
                 ((iParameters.subpixel) ? ((nz > 1) ? 2 : 4) : 1),
@@ -473,7 +456,7 @@ public class BLauncher {
         else {
             rg.runWithProvidedMask(generateMaskFromPatches(iParameters.patches_from_file, nz, ni, nj, frame));
         }
-
+        channel = tempChannel;
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
         regionslist.set(channel, rg.iRegionsList);
         regions[channel] = rg.iLabeledRegions;
@@ -621,7 +604,7 @@ public class BLauncher {
     
     // ============================================ Regions analysis ==================================
 
-    private double meansurface(ArrayList<Region> aRegionsList) {
+    private double meanSurface(ArrayList<Region> aRegionsList) {
         double totalPerimeter = 0;
         for (Region r : aRegionsList) {
             totalPerimeter += r.perimeter;
