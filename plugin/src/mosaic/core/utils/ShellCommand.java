@@ -63,10 +63,15 @@ public class ShellCommand {
         final Process tProcess = Runtime.getRuntime().exec(cmd_);
 
         final BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
+        final BufferedReader stdError = new BufferedReader(new InputStreamReader(tProcess.getErrorStream()));
 
         String out = new String();
         String s = null;
         while ((s = stdInput.readLine()) != null) {
+            System.out.println(s);
+            out += s;
+        }
+        while ((s = stdError.readLine()) != null) {
             System.out.println(s);
             out += s;
         }

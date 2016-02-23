@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +39,6 @@ import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.ShellCommand;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.ImgUtils;
@@ -81,7 +79,7 @@ public class BLauncher {
     private ColocResult resBA;
     private final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private final String choice2[] = { "Poisson", "Gauss" };
-    private final Vector<String> filesToReorganize = new Vector<String>();
+    private final Vector<String> iProcessedFiles = new Vector<String>();
 
     private int ni, nj, nz;
     private int iOutputImgScale = 1;
@@ -104,9 +102,6 @@ public class BLauncher {
     private final ImagePlus[] out_label = new ImagePlus[NumOfInputChannels];
     private final ImagePlus[] out_label_gray = new ImagePlus[NumOfInputChannels];
     
-    public Vector<String> getProcessedFiles() {
-        return filesToReorganize;
-    }
     
     /**
      * Launch the Segmentation
@@ -124,7 +119,7 @@ public class BLauncher {
                 continue;
             }
             
-            if (inputFile.isDirectory()) filesToReorganize.add(MosaicUtils.removeExtension(f.getName()));
+            iProcessedFiles.add(f.getName());
 
             ImagePlus aImp = MosaicUtils.openImg(f.getAbsolutePath());
             String outFilename= (files.length == 1) ? aImp.getTitle() : "stitch";
@@ -133,24 +128,21 @@ public class BLauncher {
         if (out != null) {
             out.close();
         }
-
-        // Try to run the R script
-        try {
-            ShellCommand.exeCmdNoPrint("Rscript " + inputFile.getAbsolutePath() + File.separator + "R_analysis.R");
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
-        catch (final InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
+    /**
+     * Launch the Segmentation
+     * @param aImage image to be segmented
+     */
     public BLauncher(ImagePlus aImage) {
         PrintWriter out = segmentOneFile(null, aImage, aImage.getTitle());
         if (out != null) {
             out.close();
         }
+    }
+    
+    public Vector<String> getProcessedFiles() {
+        return iProcessedFiles;
     }
 
     private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImp, String outFilename) {
@@ -213,29 +205,25 @@ public class BLauncher {
 
     /**
      * Save all images
-     * @param path where to save
+     * @param aOutputPath where to save
      */
-    private void saveAllImages(String path) {
+    private void saveAllImages(String aOutputPath) {
+        final String savePath = aOutputPath + File.separator;
         for (int i = 0; i < iParameters.nchannels; i++) {
             if (out_over[i] != null) {
-                final String savepath = path + File.separator + out_over[i].getTitle() + ".zip";
-                IJ.saveAs(out_over[i], "ZIP", savepath);
+                IJ.saveAs(out_over[i], "ZIP", savePath + out_over[i].getTitle() + ".zip");
             }
             if (out_disp[i] != null) {
-                final String savepath = path + File.separator + out_disp[i].getTitle() + ".zip";
-                IJ.saveAs(out_disp[i], "ZIP", savepath);
+                IJ.saveAs(out_disp[i], "ZIP", savePath + out_disp[i].getTitle() + ".zip");
             }
             if (out_label[i] != null) {
-                final String savepath = path + File.separator + out_label[i].getTitle() + ".zip";
-                IJ.saveAs(out_label[i], "ZIP", savepath);
+                IJ.saveAs(out_label[i], "ZIP", savePath + out_label[i].getTitle() + ".zip");
             }
             if (out_label_gray[i] != null) {
-                final String savepath = path + File.separator + out_label_gray[i].getTitle() + ".zip";
-                IJ.saveAs(out_label_gray[i], "ZIP", savepath);
+                IJ.saveAs(out_label_gray[i], "ZIP", savePath + out_label_gray[i].getTitle() + ".zip");
             }
             if (out_soft_mask[i] != null) {
-                final String savepath = path + File.separator + out_soft_mask[i].getTitle() + ".tiff";
-                IJ.saveAsTiff(out_soft_mask[i], savepath);
+                IJ.saveAsTiff(out_soft_mask[i], savePath + out_soft_mask[i].getTitle() + ".tiff");
             }
         }
     }

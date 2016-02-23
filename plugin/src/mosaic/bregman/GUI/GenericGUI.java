@@ -15,6 +15,7 @@ import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -35,6 +36,7 @@ import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 
 
@@ -348,22 +350,19 @@ public class GenericGUI {
             else {
                 hd = new BLauncher(BLauncher.iParameters.wd);
 
-                final Vector<String> pf = hd.getProcessedFiles();
                 final File fl = new File(BLauncher.iParameters.wd);
-                if (fl.isDirectory() == true) {
-                    savepath = BLauncher.iParameters.wd;
-                }
-                else {
-                    savepath = fl.getParent();
-                }
+                // TODO: Files should be processed only if input was a directory. Strange behaviour but this comes
+                // from old code. Shoudl be refactored.
+                final Vector<String> pf = fl.isDirectory() ? hd.getProcessedFiles() : new Vector<String>();
+                savepath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
 
                 if (fl.isDirectory() == true) {
-                    MosaicUtils.reorganize(BLauncher.out_w, pf, BLauncher.iParameters.wd);
-                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.out, null);
-
                     file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
                     file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
                     file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData" + ".csv";
+
+                    MosaicUtils.reorganize(BLauncher.out_w, pf, BLauncher.iParameters.wd);
+                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.out, null);
                 }
                 else {
                     file1 = fl.getParent() + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
@@ -373,10 +372,24 @@ public class GenericGUI {
                     MosaicUtils.reorganize(BLauncher.out_w, pf, new File(BLauncher.iParameters.wd).getParent());
                 }
             }
-
+            
             if (BLauncher.iParameters.nchannels == 2) {
                 if (BLauncher.iParameters.save_images) {
                     new RScript(savepath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
+                    // Try to run the R script
+                    try {
+                        logger.debug("================ RSCRIPT BEGIN ====================");
+                        //                ShellCommand.exeCmdNoPrint("Rscript " + fl.getAbsolutePath() + File.separator + "R_analysis.R");
+                        logger.debug("CMD: " + "Rscript " + savepath + File.separator + "R_analysis.R");
+                        ShellCommand.exeCmdString("Rscript " + savepath + File.separator + "R_analysis.R");
+                        logger.debug("================ RSCRIPT END ====================");
+                    }
+                    catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                    catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
