@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -79,8 +78,6 @@ public class BLauncher {
     private int ni, nj, nz;
     private int iOutputImgScale = 1;
     
-    private final Vector<String> iProcessedFiles = new Vector<String>();
-    
     private int iNumOfChannels = -1;
     private ImagePlus[] iInputImages;
     private double[][][][] iNormalizedImages;
@@ -96,37 +93,9 @@ public class BLauncher {
     
     /**
      * Launch the Segmentation
-     * @param aPath path to image file or directory with image files
-     */
-    public BLauncher(String aPath) {
-        final File inputFile = new File(aPath);
-        File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
-        Arrays.sort(files);
-        
-        for (final File f : files) {
-            // If it is the directory/Rscript/hidden/csv file then skip it
-            if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
-                continue;
-            }
-            
-            iProcessedFiles.add(f.getName());
-            segmentOneFile(MosaicUtils.openImg(f.getAbsolutePath()), MosaicUtils.openImg(f.getAbsolutePath()).getTitle());
-        }
-    }
-
-    /**
-     * Launch the Segmentation
      * @param aImage image to be segmented
      */
     public BLauncher(ImagePlus aImage) {
-        segmentOneFile(aImage, aImage.getTitle());
-    }
-    
-    public Vector<String> getProcessedFiles() {
-        return iProcessedFiles;
-    }
-
-    private void segmentOneFile(ImagePlus aImage, String outFilename) {
         if (aImage == null) {
             IJ.error("No image to process");
             return;
@@ -169,7 +138,7 @@ public class BLauncher {
             displayResult(title);
             if (iParameters.save_images) {
                 saveObjectDataCsv(aImage, frame - 1, title);
-                writeImageDataCsv(outDir, title, outFilename, frame - 1, colocResults[0], colocResults[1]);
+                writeImageDataCsv(outDir, title, aImage.getTitle(), frame - 1, colocResults[0], colocResults[1]);
             }
         }
 
@@ -177,7 +146,7 @@ public class BLauncher {
             saveAllImages(outDir);
         }
     }
-
+    
     /**
      * Display results
      * @param separate true if you do not want separate the images
@@ -264,10 +233,10 @@ public class BLauncher {
      * Write the CSV ImageData file information
      */
     private void writeImageDataCsv(String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
-        String fileName = path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv";
-        boolean shouldAppend = hcount != 0; //(new File(fileName).exists()) ? true : false;
+        boolean shouldAppend = (hcount != 0);
         PrintWriter out = null;
         try {
+            String fileName = path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv";
             out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
         }
         catch (FileNotFoundException e) {

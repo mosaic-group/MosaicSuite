@@ -1028,7 +1028,7 @@ public class MosaicUtils {
                     currentFilesAbsPaths[i] = currentFiles[i].getAbsolutePath();
                 }
             }
-
+            mosaic.utils.Debug.print(currentDir, currentFiles);
             // Set metainformation for csv
             csv.clearMetaInformation();
             if (aMetaInfo != null) {

@@ -15,6 +15,7 @@ import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -346,12 +347,26 @@ public class GenericGUI {
                 }
             }
             else {
-                hd = new BLauncher(BLauncher.iParameters.wd);
-
+//                hd = new BLauncher(BLauncher.iParameters.wd);
+                final Vector<String> iProcessedFiles = new Vector<String>();
+                final File inputFile = new File(BLauncher.iParameters.wd);
+                File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
+                Arrays.sort(files);
+                
+                for (final File f : files) {
+                    // If it is the directory/Rscript/hidden/csv file then skip it
+                    if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
+                        continue;
+                    }
+                    
+                    iProcessedFiles.add(f.getName());
+                    new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
+                }
+                
                 final File fl = new File(BLauncher.iParameters.wd);
                 // TODO: Files should be processed only if input was a directory. Strange behaviour but this comes
                 // from old code. Should be refactored.
-                final Vector<String> pf = fl.isDirectory() ? hd.getProcessedFiles() : new Vector<String>();
+                final Vector<String> pf = fl.isDirectory() ? iProcessedFiles : new Vector<String>();
                 savepath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
 
                 if (fl.isDirectory() == true) {
