@@ -235,8 +235,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__outline_overlay_c1.zip/4 OA1_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/4 OA3_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/4 OA4_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"stitch_ImagesData.csv", "R_analysis.R"};
-        final String[] referenceFiles    = {"stitch_ImagesData.csv", "R_analysis.R"};
+        final String[] expectedFiles     = {"stitch__ImagesData.csv", "R_analysis.R"};
+        final String[] referenceFiles    = {"stitch__ImagesData.csv", "R_analysis.R"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();

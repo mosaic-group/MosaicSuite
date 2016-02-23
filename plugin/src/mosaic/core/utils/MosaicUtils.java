@@ -997,7 +997,7 @@ public class MosaicUtils {
         for (int i = 0; i < outcsv.size(); i++) {
             outS[i] = outcsv.get(i);
         }
-
+        mosaic.utils.Debug.print(outcsv);
         return outS;
     }
 
@@ -1030,19 +1030,25 @@ public class MosaicUtils {
             }
 
             // Set metainformation for csv
+            csv.clearMetaInformation();
             if (aMetaInfo != null) {
                 for (CsvMetaInfo cmi : aMetaInfo) {
                     csv.setMetaInformation(cmi);
                 }
             }
-
+            
             // if it is the first time set the file preference from the first file
             if (firstFile == true) {
                 firstFile = false;
                 csv.setCSVPreferenceFromFile(currentFilesAbsPaths[0]);
             }
 
-            csv.Stitch(currentFilesAbsPaths, aOutputCsvFile + currentDir);
+            try {
+                csv.StitchAny(currentFilesAbsPaths,  aOutputCsvFile + currentDir);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -5,7 +5,7 @@ import mosaic.bregman.segmentation.Region;
 
 
 public class Region3DColocRScript implements Outdata<Region> {
-
+    private String fileName;
     private int Image_ID;
     private int Object_ID;
     private double Size;
@@ -82,6 +82,7 @@ public class Region3DColocRScript implements Outdata<Region> {
 
     @Override
     public void setData(Region r) {
+        fileName = "";
         Image_ID = 0;
         Object_ID = 0;
         Intensity = r.getintensity();
@@ -99,6 +100,7 @@ public class Region3DColocRScript implements Outdata<Region> {
     }
 
     public void setData(Region3DColocRScript r) {
+        fileName = r.fileName;
         Image_ID = r.Image_ID;
         Object_ID = r.Object_ID;
         Size = r.Size;
@@ -294,10 +296,11 @@ public class Region3DColocRScript implements Outdata<Region> {
         return Coloc_image_intensity;
     }
 
-    public void setFile(@SuppressWarnings("unused") String dummy) {
+    public void setFile(String aFileName) {
+        fileName = aFileName;
     }
 
     public String getFile() {
-        return null;
+        return fileName;
     }
 }

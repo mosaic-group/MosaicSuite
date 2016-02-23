@@ -8,8 +8,13 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.comment.CommentMatcher;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.io.CsvListWriter;
+import org.supercsv.io.ICsvListReader;
+import org.supercsv.io.ICsvListWriter;
 import org.supercsv.io.dozer.CsvDozerBeanReader;
 import org.supercsv.io.dozer.CsvDozerBeanWriter;
 import org.supercsv.io.dozer.ICsvDozerBeanReader;
@@ -95,6 +100,7 @@ public class CSV<E> {
      */
     public void clearMetaInformation() {
         iMetaInfos.clear();
+        iMetaInfosRead.clear();
     }
 
     /**
@@ -252,6 +258,73 @@ public class CSV<E> {
     }
 
     /**
+     * Stitch CSV files in one with an unknown (but equal between files) format. Can handle any header(s) and value(s) since 
+     * they are not interpreted (so provided type class does not matter here). There is also no verification that all files are 
+     * same (in terms of header/columns).
+     * @param aInputFileNames - files to stitch
+     * @param aOutputFileName - output stitched file
+     */
+    public boolean StitchAny(String[] aInputFileNames, String aOutputFileName) {
+        if (aInputFileNames.length == 0) {
+            return false;
+        }
+        
+        try {
+            CellProcessor[] processors = null;
+            String[] map = null;
+            
+            // First step - read all files. 
+            List<List<Object>> allValues = new ArrayList<List<Object>>();
+            for (int i = 0; i < aInputFileNames.length; i++) {
+                ICsvListReader listReader = null;
+                try {
+                    listReader = new CsvListReader(new FileReader(aInputFileNames[i]), iCsvPreference);
+                    map = listReader.getHeader(true);
+                    processors = new CellProcessor[map.length];
+                    for (int p = 0; p < processors.length; p++) processors[p] = new NotNull();
+
+                    List<Object> value;
+                    while( (value = listReader.read(processors)) != null ) allValues.add(value);
+                }
+                finally {
+                    if( listReader != null ) {
+                        listReader.close();
+                    }
+                }
+            }
+
+            // Second step - save all readed stuff.
+            ICsvListWriter listWriter = null;
+            try {
+                listWriter = new CsvListWriter(new FileWriter(aOutputFileName), iCsvPreference);
+
+                listWriter.writeHeader(map);
+
+                // write read meta information if specified
+                for (final CsvMetaInfo mi : iMetaInfos) {
+                    listWriter.writeComment("%" + mi.parameter + ":" + mi.value);
+                }
+                for (final CsvMetaInfo mi : iMetaInfosRead) {
+                    listWriter.writeComment("%" + mi.parameter + ":" + mi.value);
+                }
+
+                for (List<Object> l : allValues) listWriter.write(l, processors);
+            }
+            finally {
+                if (listWriter != null ) {
+                    listWriter.close();
+                }
+            }
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
      * Read a CSV file
      *
      * @param aCsvFilename - CSV filename
@@ -385,7 +458,6 @@ public class CSV<E> {
             } catch (final NoSuchMethodException e) {
                 // getProcessor from above get(MethodName) is not existing
                 logger.info("Method not found: [" + "get" + aHeaderKeywords[i] + "], setting to default (ignore) setup. Class: " + iClazz.getName());
-                c[i] = null;
                 aHeaderKeywords[i] = null;
                 continue;
             } catch (final IllegalArgumentException e) {

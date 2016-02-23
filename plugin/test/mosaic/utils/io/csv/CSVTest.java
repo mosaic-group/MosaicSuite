@@ -312,6 +312,43 @@ public class CSVTest extends CommonBase {
     }
 
     @Test
+    public void testStitchAny() {
+        final String fullFileName1 = fullFileName("testStitch1.csv");
+        final String fullFileName2 = fullFileName("testStitch2.csv");
+
+        {   // Generate first file
+
+            csv.setMetaInformation("name1", "valueForName1");
+            csv.Write(fullFileName1, Arrays.asList(new TestThing(5, 1.23)) , oc , false);
+        }
+        {   // Generate second file
+
+            // Generate new CSV just to refresh state
+            csv = new CSV<TestThing>(TestThing.class);
+            csv.setMetaInformation("name2", "valueForName2");
+            csv.Write(fullFileName2, Arrays.asList(new TestThing(3, 3.14)) , oc , false);
+        }
+
+        // Add additional meta information before joining files together
+        final String fullFileName = fullFileName("testStitchEd.csv");
+        // Generate new CSV just to refresh state
+        CSV<Object> csvOut = new CSV<Object>(Object.class);
+        csvOut.setMetaInformation("name3", "valueForName3");
+
+        // Tested method
+        assertTrue(csvOut.StitchAny(new String[] {fullFileName1, fullFileName2}, fullFileName));
+
+        // Verify
+        final String expectedContent = "ID,CalculatedValue\n" +
+                                        "%name3:valueForName3\n" +
+                                        "%name1:valueForName1\n" +
+                                        "%name2:valueForName2\n" +
+                                        "5,1.23\n" +
+                                        "3,3.14\n";
+        verifyFileContent(fullFileName, expectedContent);
+    }
+    
+    @Test
     public void testWriteChangedDelimieter() {
         final String fullFileName = fullFileName("testWriteChangedDelimieter.csv");
 
