@@ -176,8 +176,8 @@ public class BLauncher {
             ColocResult[] colocResults = runColocalizationAnalysis(aImage, title);
             
             displayResult(title);
+            saveObjectDataCsv(aImage, frame - 1, title);
             if (iParameters.save_images) {
-                saveObjectDataCsv(aImage, frame - 1, title);
                 out = writeImageDataCsv(out, outDir, title, outFilename, frame - 1, colocResults[0], colocResults[1]);
             }
         }
@@ -258,7 +258,7 @@ public class BLauncher {
         if (iNumOfChannels == 1) {
             final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame);
             IpCSV.setMetaInformation("background", savepath + File.separator + title);
-            CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame - 1 != 0));
+            CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame != 0));
         }
         if (iNumOfChannels == 2) {
             for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
