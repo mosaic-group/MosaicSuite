@@ -84,23 +84,18 @@ public class BLauncher {
     private int ni, nj, nz;
     private int iOutputImgScale = 1;
     
-    private final static int NumOfInputChannels = 2;
-    private ImagePlus[] inputImages = new ImagePlus[NumOfInputChannels];
-    private double[][][][] images = new double[NumOfInputChannels][][][];
-    private boolean[][][][] cellMasks = new boolean[NumOfInputChannels][][][];
+    private int NumOfInputChannels = -1;
+    private ImagePlus[] inputImages;
+    private double[][][][] images;
+    private boolean[][][][] cellMasks;
     private boolean[][][] overallCellMaskBinary;
-    // Create empty elements - they are later access by index - not nice but later elements are accessed by get() and they must exist.
-    private ArrayList<ArrayList<Region>> regionslist = new ArrayList<ArrayList<Region>>() {
-        private static final long serialVersionUID = 1L;
-        { for (int i = 0; i < NumOfInputChannels; i++) add(null); }
-    };
-    private short[][][][] regions = new short[NumOfInputChannels][][][];
-    
-    private final ImagePlus[] out_soft_mask = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus[] out_over = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus[] out_disp = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus[] out_label = new ImagePlus[NumOfInputChannels];
-    private final ImagePlus[] out_label_gray = new ImagePlus[NumOfInputChannels];
+    private ArrayList<ArrayList<Region>> regionslist;
+    private short[][][][] regions;
+    private ImagePlus[] out_soft_mask;
+    private ImagePlus[] out_over;
+    private ImagePlus[] out_disp;
+    private ImagePlus[] out_label;
+    private ImagePlus[] out_label_gray;
     
     
     /**
@@ -145,26 +140,51 @@ public class BLauncher {
         return iProcessedFiles;
     }
 
-    private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImp, String outFilename) {
-        for (int i = 0; i < NumOfInputChannels; i++) {
-            out_soft_mask[i] = null;
-            out_over[i] = null;
-            out_disp[i] = null;
-            out_label[i] = null;
-            out_label_gray[i] = null;
+    private PrintWriter segmentOneFile(PrintWriter out, ImagePlus aImage, String outFilename) {
+        
+        if (aImage == null) {
+            IJ.error("No image to process");
+            return null;
+        }
+        if (aImage.getType() == ImagePlus.COLOR_RGB) {
+            IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
+            return null;
         }
         
-        for (int frame = 1; frame <= aImp.getNFrames(); frame++) {
-            aImp.setPosition(aImp.getChannel(), aImp.getSlice(), frame);      
+        // Image info
+        final String title = aImage.getTitle();
+        ni = aImage.getWidth();
+        nj = aImage.getHeight();
+        nz = aImage.getNSlices();
+        final int numOfFrames = aImage.getNFrames();
+        final int numOfChannels = aImage.getNChannels();
+        logger.debug("Segmenting Image: [" + title + "] Dims(x/y/z): "+ ni + "/" + nj + "/" + nz + " NumOfFrames: " + numOfFrames + " NumOfChannels: " + numOfChannels);
+        
+        // Initiate structures
+        NumOfInputChannels = numOfChannels;
+        inputImages = new ImagePlus[NumOfInputChannels];
+        images = new double[NumOfInputChannels][][][];
+        cellMasks = new boolean[NumOfInputChannels][][][];
+        regionslist = new ArrayList<ArrayList<Region>>();
+        regions = new short[NumOfInputChannels][][][];
+        out_soft_mask = new ImagePlus[NumOfInputChannels];
+        out_over = new ImagePlus[NumOfInputChannels];
+        out_disp = new ImagePlus[NumOfInputChannels];
+        out_label = new ImagePlus[NumOfInputChannels];
+        out_label_gray = new ImagePlus[NumOfInputChannels];
+        
+        String outDir = MosaicUtils.ValidFolderFromImage(aImage);
+        for (int frame = 1; frame <= numOfFrames; frame++) {
+            aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
-            segmentAndColocalize(aImp);
-            displayResult(aImp.getTitle());
-            
-            out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, frame - 1);
+            segmentAndColocalize(aImage, frame, title);
+            displayResult(title);
+            out = writeImageDataCsv(out, outDir, title, outFilename, frame - 1);
+            regionslist.clear();
         }
 
         if (iParameters.save_images) {
-            saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
+            saveAllImages(outDir);
         }
         
         return out;
@@ -179,7 +199,7 @@ public class BLauncher {
         final int factor = iOutputImgScale;
         int fz = (nz > 1) ? factor : 1;
 
-        for (int channel = 0; channel < iParameters.nchannels; ++channel) {
+        for (int channel = 0; channel < NumOfInputChannels; ++channel) {
             if (iParameters.dispoutline) {
                 final ImagePlus img = generateOutlineOverlay(regions[channel], images[channel]);
                 showUpdatedImgs(channel, img, createTitle(aTitle, channel + 1, "_outline_overlay_c"), iParameters.dispoutline, out_over);
@@ -209,7 +229,7 @@ public class BLauncher {
      */
     private void saveAllImages(String aOutputPath) {
         final String savePath = aOutputPath + File.separator;
-        for (int i = 0; i < iParameters.nchannels; i++) {
+        for (int i = 0; i < NumOfInputChannels; i++) {
             if (out_over[i] != null) {
                 IJ.saveAs(out_over[i], "ZIP", savePath + out_over[i].getTitle() + ".zip");
             }
@@ -249,7 +269,7 @@ public class BLauncher {
             }
 
             // write the header
-            if (iParameters.nchannels == 2) {
+            if (NumOfInputChannels == 2) {
                 out.print("File" + ";" + "Image ID" + ";" + "Objects ch1" + ";" + "Mean size in ch1" + ";" + "Mean surface in ch1" + ";" + "Mean length in ch1" + ";" + "Objects ch2" + ";"
                         + "Mean size in ch2" + ";" + "Mean surface in ch2" + ";" + "Mean length in ch2" + ";" + "Colocalization ch1 in ch2 (signal based)" + ";"
                         + "Colocalization ch2 in ch1 (signal based)" + ";" + "Colocalization ch1 in ch2 (size based)" + ";" + "Colocalization ch2 in ch1 (size based)" + ";"
@@ -274,7 +294,7 @@ public class BLauncher {
 
         final double meanSA = meansurface(regionslist.get(0));
         final double meanLA = meanLength(regionslist.get(0));
-        if (iParameters.nchannels == 2) {
+        if (NumOfInputChannels == 2) {
             double colocAB = round(resAB.colocsegABsignal, 4);
             double colocABnumber = round(resAB.colocsegABnumber, 4);
             double colocABsize = round(resAB.colocsegABsize, 4);
@@ -302,26 +322,9 @@ public class BLauncher {
         return out;
     }
 
-    private void segmentAndColocalize(ImagePlus aImage) {
-        if (aImage == null) {
-            IJ.error("No image to process");
-            return;
-        }
-        if (aImage.getType() == ImagePlus.COLOR_RGB) {
-            IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float");
-            return;
-        }
-
-        // Image info
-        ni = aImage.getWidth();
-        nj = aImage.getHeight();
-        nz = aImage.getNSlices();
-        final int currentFrame = aImage.getFrame();
-        iParameters.nchannels = aImage.getNChannels();
-        final String title = aImage.getTitle();
-
+    private void segmentAndColocalize(ImagePlus aImage, int currentFrame, String title) {
         // Segmentation
-        for (int channel = 0; channel < iParameters.nchannels; channel++) {
+        for (int channel = 0; channel < NumOfInputChannels; channel++) {
             inputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
             images[channel] = ImgUtils.ImgToZXYarray(inputImages[channel]);
             ArrayOps.normalize(images[channel]);
@@ -334,18 +337,18 @@ public class BLauncher {
         final String filename_without_ext = MosaicUtils.removeExtension(title); 
         
         // Choose the Rscript coloc format
-        if (iParameters.nchannels == 2) CSVOutput.occ = CSVOutput.oc[2];
+        if (NumOfInputChannels == 2) CSVOutput.occ = CSVOutput.oc[2];
         final CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
         
-        if (iParameters.nchannels == 1) {
+        if (NumOfInputChannels == 1) {
             if (iParameters.save_images) {
                 final Vector<? extends Outdata<Region>> obl = CSVOutput.getObjectsList(regionslist.get(0), currentFrame - 1);
                 IpCSV.setMetaInformation("background", savepath + File.separator + title);
                 CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, (currentFrame - 1 != 0));
             }
         }
-        if (iParameters.nchannels == 2) {
-            for (int i = 0; i < iParameters.nchannels; i++) generateMasks(i, inputImages[i]);
+        if (NumOfInputChannels == 2) {
+            for (int i = 0; i < NumOfInputChannels; i++) generateMasks(i, inputImages[i]);
             computeOverallMask(nz, ni, nj);
             applyMask();
             
@@ -471,7 +474,7 @@ public class BLauncher {
         }
 
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
-        regionslist.set(channel, rg.iRegionsList);
+        regionslist.add(rg.iRegionsList);
         regions[channel] = rg.iLabeledRegions;
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
@@ -535,7 +538,7 @@ public class BLauncher {
     }
     
     private void applyMask() {
-        for (int channel = 0; channel < iParameters.nchannels; channel++) {
+        for (int channel = 0; channel < NumOfInputChannels; channel++) {
             final ArrayList<Region> maskedRegion = new ArrayList<Region>();
             for (Region r : regionslist.get(channel)) {
                 if (isInside(r)) {

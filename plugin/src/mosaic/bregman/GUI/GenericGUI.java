@@ -373,10 +373,11 @@ public class GenericGUI {
                 }
             }
             
-            if (BLauncher.iParameters.nchannels == 2) {
+            if (new File(file1).exists() && new File(file2).exists()) {
                 if (BLauncher.iParameters.save_images) {
                     new RScript(savepath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
                     // Try to run the R script
+                    // TODO: Output seems to be completely wrong. Must be investigated.
                     try {
                         logger.debug("================ RSCRIPT BEGIN ====================");
                         //                ShellCommand.exeCmdNoPrint("Rscript " + fl.getAbsolutePath() + File.separator + "R_analysis.R");

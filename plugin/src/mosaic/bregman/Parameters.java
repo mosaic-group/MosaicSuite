@@ -52,14 +52,11 @@ public class Parameters implements Serializable {
     @SuppressWarnings("unused") final private int oversampling2ndstep = -3; // not used and set in segmentaiton
     @SuppressWarnings("unused") final private int interpolation = 3;// 4
     @SuppressWarnings("unused") final private double colocthreshold = 0.5;
-    
-    // ================================ const segmentation parameters 
-    // might be useful if beter names are given (config file for test update!).
+    @SuppressWarnings("unused") final private int nchannels = 2;
     
     // ================================ General parameters
     public String wd = null;
     public int nthreads = 4;
-    public int nchannels = 2;
     
     // ================================ parameters changed in GUI
     // Segmentation options

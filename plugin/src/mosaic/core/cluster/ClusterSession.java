@@ -186,8 +186,12 @@ public class ClusterSession {
 
         // Download a working version of Fiji
         // and copy the plugins
-        if (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false) {
+        boolean hasFiji = ss.checkDirectory(cp.getRunningDir() + "Fiji.app");
+        boolean hasLinuxExe = ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64");
+        boolean hasMosaicPluginForCluster = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar");
+        boolean hasMosaicPlugin = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite.jar");
+        
+        if (!hasFiji || !hasLinuxExe || !(hasMosaicPluginForCluster || hasMosaicPlugin)) {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
 
             // Remove previously Fiji
@@ -212,8 +216,8 @@ public class ClusterSession {
                 }
 
                 System.out.println("Checking Fiji installation");
-            } while (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                    || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false);
+            } while (hasFiji || hasLinuxExe
+                    || hasMosaicPlugin);
         }
 
         wp.SetStatusMessage("Interfacing with batch system...");
