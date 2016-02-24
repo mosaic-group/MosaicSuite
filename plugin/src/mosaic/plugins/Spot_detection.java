@@ -15,6 +15,7 @@ import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
@@ -60,7 +61,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
         }
 
         // Get results directory
-        String dir = MosaicUtils.ValidFolderFromImage(iOriginalImp);
+        String dir = ImgUtils.getImageDirectory(iOriginalImp);
         if (dir == null) {
             dir = IJ.getDirectory("Choose output directory for CSV file");
         }

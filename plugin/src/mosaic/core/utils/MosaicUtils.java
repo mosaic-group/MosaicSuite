@@ -28,6 +28,7 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.utils.ConvertArray;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.SystemOperations;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvMetaInfo;
@@ -189,7 +190,7 @@ public class MosaicUtils {
      * @param Image
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
-        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final String Folder = ImgUtils.getImageDirectory(aImp);
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         // Get infos from possible segmentation
@@ -240,7 +241,7 @@ public class MosaicUtils {
      * @param Image
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
-        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final String Folder = ImgUtils.getImageDirectory(aImp);
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         final Vector<File> PossibleFile = new Vector<File>();
@@ -372,31 +373,6 @@ public class MosaicUtils {
         }
 
         return output.split(" ");
-    }
-
-    /**
-     * Return the folder where the image is stored, if it is not saved it return
-     * the folder of the original image
-     *
-     * @param img Image
-     * @return folder of the image
-     */
-    public static String ValidFolderFromImage(ImagePlus img) {
-        if (img == null) {
-            return null;
-        }
-
-        if (img.getFileInfo().directory == "") {
-            if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "") {
-                return null;
-            }
-            else {
-                return img.getOriginalFileInfo().directory;
-            }
-        }
-        else {
-            return img.getFileInfo().directory;
-        }
     }
 
     public static ImageProcessor cropImageStack2D(ImageProcessor ip, int cropsize) {
@@ -965,7 +941,7 @@ public class MosaicUtils {
     public static String getAbsolutFileName(ImagePlus aImagePlus, boolean aRemoveExtension) {
         if (aImagePlus == null) return null;
         
-        final String folder = MosaicUtils.ValidFolderFromImage(aImagePlus);
+        final String folder = ImgUtils.getImageDirectory(aImagePlus);
         String fileName = aImagePlus.getTitle();
         
         if (folder == null || fileName == null || fileName.equals("")) return null;

@@ -37,6 +37,7 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.utils.ImgUtils;
 
 
 public class GenericGUI {
@@ -318,7 +319,7 @@ public class GenericGUI {
             String savepath = null;
 
             if (BLauncher.iParameters.wd == null || BLauncher.iParameters.wd.startsWith("Input Image:") || BLauncher.iParameters.wd.isEmpty()) {
-                savepath = MosaicUtils.ValidFolderFromImage(aImp);
+                savepath = ImgUtils.getImageDirectory(aImp);
                 if (aImp == null) {
                     IJ.error("No image to process");
                     return;
@@ -433,11 +434,11 @@ public class GenericGUI {
             else {
                 // It is a file
                 ClusterSession.processImage(aImp, "Squassh", "", BLauncher.outSuffixesCluster);
-                Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
+                Background = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
             }
 
             // Get output format and Stitch the output in the output selected
-            String path = MosaicUtils.ValidFolderFromImage(aImp);
+            String path = ImgUtils.getImageDirectory(aImp);
             if (BregmanGLM_Batch.test_mode == true) {
                 // TODO: Artifact from "old test system". Must be refactored!!!
                 path = BregmanGLM_Batch.test_path;

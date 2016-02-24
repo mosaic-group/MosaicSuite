@@ -395,5 +395,27 @@ public class ImgUtils {
         
         return new ImagePlus(aImage.getTitle(), is);
     }
+
+    /**
+     * @param aImage input image
+     * @return the folder where the image is stored, if it is not saved it return the folder of the original image (or null if impossible to detect).
+     */
+    public static String getImageDirectory(ImagePlus aImage) {
+        if (aImage == null) {
+            return null;
+        }
+    
+        if (aImage.getFileInfo().directory == "") {
+            if (aImage.getOriginalFileInfo() == null || aImage.getOriginalFileInfo().directory == "") {
+                return null;
+            }
+            return aImage.getOriginalFileInfo().directory;
+        }
+        
+        return aImage.getFileInfo().directory;
+    }
+    
+
+
 }
 

@@ -133,7 +133,7 @@ public class BLauncher {
         iOutLabeledRegionsColor = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
         
-        String outDir = MosaicUtils.ValidFolderFromImage(aImage);
+        String outDir = ImgUtils.getImageDirectory(aImage);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
@@ -236,7 +236,7 @@ public class BLauncher {
         }
 
         final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
-        String savepath = MosaicUtils.ValidFolderFromImage(aImage) + File.separator;
+        String savepath = ImgUtils.getImageDirectory(aImage) + File.separator;
         final String filename_without_ext = MosaicUtils.removeExtension(aTitle); 
 
         for (int ch = 0; ch < iNumOfChannels; ch++) {
@@ -347,7 +347,7 @@ public class BLauncher {
             if (iParameters.save_images) {
                 ImagePlus colocImg = generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
                 colocImg.show();
-                String fileName = MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(aImage) + title) + "_coloc.zip";
+                String fileName = MosaicUtils.removeExtension(ImgUtils.getImageDirectory(aImage) + title) + "_coloc.zip";
                 IJ.saveAs(colocImg, "ZIP", fileName);
                 addSavedFile(fileName);
             }

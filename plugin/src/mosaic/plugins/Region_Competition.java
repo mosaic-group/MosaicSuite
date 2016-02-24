@@ -37,6 +37,7 @@ import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.utils.Debug;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
@@ -190,7 +191,7 @@ public class Region_Competition implements PlugInFilter {
     
             final boolean headless_check = GraphicsEnvironment.isHeadless();
             if (headless_check == false) {
-                final String directory = MosaicUtils.ValidFolderFromImage(inputImageChosenByUser);
+                final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
                 final String fileNameNoExt = MosaicUtils.removeExtension(inputImageChosenByUser.getTitle());
                 MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
             }

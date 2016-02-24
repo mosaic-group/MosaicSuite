@@ -13,6 +13,7 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
+import mosaic.utils.ImgUtils;
 
 /**
  * Moved here from Region_Competition. 
@@ -94,10 +95,10 @@ public class ClusterModeRC {
         }
 
         // Get output format and Stitch the output in the output selected
-        final File f = ClusterSession.processJobsData(MosaicUtils.ValidFolderFromImage(aImp));
+        final File f = ClusterSession.processJobsData(ImgUtils.getImageDirectory(aImp));
 
         if (aImp != null) {
-            MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp), out, MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());
+            MosaicUtils.StitchCSV(ImgUtils.getImageDirectory(aImp), out, ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle());
         }
         else {
             MosaicUtils.StitchCSV(f.getParent(), out, null);
