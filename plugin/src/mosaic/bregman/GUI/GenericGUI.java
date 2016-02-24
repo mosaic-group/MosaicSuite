@@ -31,6 +31,7 @@ import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.BLauncher;
+import mosaic.bregman.Files;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
@@ -326,7 +327,7 @@ public class GenericGUI {
                 }
                 new BLauncher(aImp);
                 logger.debug("WD NULL");
-                MosaicUtils.reorganize(BLauncher.outSuffixesLocal, aImp.getShortTitle(), savepath, aImp.getNFrames());
+                MosaicUtils.reorganize(Files.outSuffixesLocal, aImp.getShortTitle(), savepath, aImp.getNFrames());
 
                 // if it is a video Stitch all the csv
 //                if (aImp.getNFrames() > 1) {
@@ -337,9 +338,9 @@ public class GenericGUI {
 //                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
 //                }
 //                else {
-                    file1 = savepath + File.separator + BLauncher.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                    file2 = savepath + File.separator + BLauncher.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                    file3 = savepath + File.separator + BLauncher.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
+                    file1 = savepath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                    file2 = savepath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                    file3 = savepath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
 //                }
             }
             else {
@@ -370,15 +371,15 @@ public class GenericGUI {
                     file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2.csv";
                     file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData.csv";
 
-                    MosaicUtils.reorganize(BLauncher.outSuffixesLocal, pf, BLauncher.iParameters.wd);
-                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.outSuffixesCluster, null);
+                    MosaicUtils.reorganize(Files.outSuffixesLocal, pf, BLauncher.iParameters.wd);
+                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), Files.outSuffixesCluster, null);
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
-                    file2 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
-                    file3 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData.csv";
+                    file1 = fl.getParent() + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
+                    file2 = fl.getParent() + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
+                    file3 = fl.getParent() + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData.csv";
 
-                    MosaicUtils.reorganize(BLauncher.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
+                    MosaicUtils.reorganize(Files.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
                 }
             }
             
@@ -412,15 +413,15 @@ public class GenericGUI {
                 File fl = new File(BLauncher.iParameters.wd);
                 if (fl.isDirectory() == true) {
                     File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, "Squassh", "", BLauncher.outSuffixesCluster);
+                    ClusterSession.processFiles(fileslist, "Squassh", "", Files.outSuffixesCluster);
                 }
                 else if (fl.isFile()) {
-                    ClusterSession.processFile(fl, "Squassh", "", BLauncher.outSuffixesCluster);
+                    ClusterSession.processFile(fl, "Squassh", "", Files.outSuffixesCluster);
                     backgroundImageFile = fl.getAbsolutePath();
                 }
                 else {
                     // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(BLauncher.outSuffixesCluster, "Squassh");
+                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, "Squassh");
 
                     // Ask for a directory
                     fl = new File(IJ.getDirectory("Select output directory"));
@@ -428,7 +429,7 @@ public class GenericGUI {
             }
             else {
                 // It is a file
-                ClusterSession.processImage(aImp, "Squassh", "", BLauncher.outSuffixesCluster);
+                ClusterSession.processImage(aImp, "Squassh", "", Files.outSuffixesCluster);
                 backgroundImageFile = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
             }
 
@@ -439,7 +440,7 @@ public class GenericGUI {
                 path = BregmanGLM_Batch.test_path;
             }
             final File dir = ClusterSession.processJobsData(path);
-            MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, backgroundImageFile);
+            MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
         }
     }
 

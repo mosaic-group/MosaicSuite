@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -28,6 +28,8 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
+import mosaic.bregman.Files.FileInfo;
+import mosaic.bregman.Files.Type;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.bregman.segmentation.Pix;
@@ -44,6 +46,7 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.ImgUtils;
+import mosaic.utils.SysOps;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
@@ -51,26 +54,6 @@ import mosaic.utils.io.csv.CsvColumnConfig;
 public class BLauncher {
     private static final Logger logger = Logger.getLogger(BLauncher.class);
     
-    // This is the output for cluster
-    public final static String outSuffixesCluster[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
-                                        "*_mask_c1.zip", "*_mask_c2.zip", 
-                                        "*_ImagesData.csv", 
-                                        "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
-                                        "*_intensities_c1.zip", "*_intensities_c2.zip", 
-                                        "*_seg_c1.zip", "*_seg_c2.zip", 
-                                        "*_coloc.zip", 
-                                        "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
-                                        "*.tif" };
-
-    // This is the output local
-    public final static String outSuffixesLocal[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
-                                          "*_mask_c1.zip", "*_mask_c2.zip", 
-                                          "*_ImagesData.csv", 
-                                          "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
-                                          "*_intensities_c1.zip", "*_intensities_c2.zip", 
-                                          "*_seg_c1.zip", "*_seg_c2.zip", 
-                                          "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
-                                          "*_coloc.zip" };
     // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
     // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
@@ -93,9 +76,11 @@ public class BLauncher {
     private ImagePlus[] iOutLabeledRegionsColor;
     private ImagePlus[] iOutLabeledRegionsGray;
     
-    private Set<String> iSavedFiles = new HashSet<String>();
-    private void addSavedFile(String aFileName) {iSavedFiles.add(aFileName.replaceAll("/+", "/"));}
-        
+    private Set<Files.FileInfo> iSavedFilesInfo = new LinkedHashSet<Files.FileInfo>();
+    private void addSavedFile(Files.Type aFI, String aFileName) {
+        iSavedFilesInfo.add(new Files.FileInfo(aFI, aFileName.replaceAll("/+", "/")));
+    }
+    
     /**
      * Launch the Segmentation
      * @param aImage image to be segmented
@@ -134,16 +119,18 @@ public class BLauncher {
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
         
         String outDir = ImgUtils.getImageDirectory(aImage);
+        String outFileName = SysOps.removeExtension(title);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
             runSegmentation(aImage, frame, title);
-            ColocResult[] colocResults = runColocalizationAnalysis(aImage, title);
+            ColocResult[] colocResults = runColocalizationAnalysis();
             
-            displayResult(title);
+            displayResult(outFileName);
             if (iParameters.save_images) {
-                saveObjectDataCsv(aImage, frame - 1, title);
-                writeImageDataCsv(outDir, title, aImage.getTitle(), frame - 1, colocResults[0], colocResults[1]);
+                saveColocImage(outDir, outFileName);
+                saveObjectDataCsv(aImage, frame - 1, title, outFileName);
+                writeImageDataCsv(outDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
             }
         }
 
@@ -152,7 +139,7 @@ public class BLauncher {
         }
         
         logger.debug("Saved files:");
-        for (String f : iSavedFiles) {
+        for (FileInfo f : iSavedFilesInfo) {
             logger.debug("            " + f);
         }
     }
@@ -169,22 +156,22 @@ public class BLauncher {
         for (int channel = 0; channel < iNumOfChannels; ++channel) {
             if (iParameters.dispoutline) {
                 final ImagePlus img = generateOutlineOverlay(iLabeledRegions[channel], iNormalizedImages[channel]);
-                showUpdatedImgs(channel, img, createTitle(aTitle, "_outline_overlay_c", channel + 1), iParameters.dispoutline, iOutOutlines);
+                updateImages(channel, img, Files.createTitleWithExt(Type.Outline, aTitle, channel + 1), iParameters.dispoutline, iOutOutlines);
             }
             if (iParameters.dispint) {
                 ImagePlus img = generateIntensitiesImg(iRegionsList.get(channel), nz * fz, ni * factor, nj * factor);
-                showUpdatedImgs(channel, img, createTitle(aTitle, "_intensities_c", channel + 1), iParameters.dispint, iOutIntensities);
+                updateImages(channel, img, Files.createTitleWithExt(Type.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
                 ImagePlus img = generateRegionImg(iLabeledRegions[channel], iRegionsList.get(channel).size(), "");
-                showUpdatedImgs(channel, img, createTitle(aTitle, "_seg_c", channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
+                updateImages(channel, img, Files.createTitleWithExt(Type.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
             }
             if (iParameters.dispcolors) {
                 final ImagePlus img = generateLabelsGray(channel);
-                showUpdatedImgs(channel, img, createTitle(aTitle, "_mask_c", channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
+                updateImages(channel, img, Files.createTitleWithExt(Type.Mask, aTitle, channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
             }
             if (iParameters.dispSoftMask) {
-                iOutSoftMasks[channel].setTitle(createTitle(aTitle, "_soft_mask_c", channel + 1));
+                iOutSoftMasks[channel].setTitle(Files.createTitleWithExt(Type.SoftMask, aTitle, channel + 1));
                 iOutSoftMasks[channel].show();
             }
         }
@@ -198,34 +185,34 @@ public class BLauncher {
         final String savePath = aOutputPath + File.separator;
         for (int i = 0; i < iNumOfChannels; i++) {
             if (iOutOutlines[i] != null) {
-                String fileName = savePath + iOutOutlines[i].getTitle() + ".zip";
-                IJ.saveAs(iOutOutlines[i], "ZIP", fileName);
-                addSavedFile(fileName);
+                String fileName = savePath + iOutOutlines[i].getTitle();
+                IJ.save(iOutOutlines[i], fileName);
+                addSavedFile(Type.Outline, fileName);
             }
             if (iOutIntensities[i] != null) {
-                String fileName = savePath + iOutIntensities[i].getTitle() + ".zip";
-                IJ.saveAs(iOutIntensities[i], "ZIP", fileName);
-                addSavedFile(fileName);
+                String fileName = savePath + iOutIntensities[i].getTitle();
+                IJ.save(iOutIntensities[i], fileName);
+                addSavedFile(Type.Intensity, fileName);
             }
             if (iOutLabeledRegionsColor[i] != null) {
-                String fileName = savePath + iOutLabeledRegionsColor[i].getTitle() + ".zip";
-                IJ.saveAs(iOutLabeledRegionsColor[i], "ZIP", fileName);
-                addSavedFile(fileName);
+                String fileName = savePath + iOutLabeledRegionsColor[i].getTitle();
+                IJ.save(iOutLabeledRegionsColor[i], fileName);
+                addSavedFile(Type.Segmentation, fileName);
             }
             if (iOutLabeledRegionsGray[i] != null) {
-                String fileName = savePath + iOutLabeledRegionsGray[i].getTitle() + ".zip";
-                IJ.saveAs(iOutLabeledRegionsGray[i], "ZIP", fileName);
-                addSavedFile(fileName);
+                String fileName = savePath + iOutLabeledRegionsGray[i].getTitle();
+                IJ.save(iOutLabeledRegionsGray[i], fileName);
+                addSavedFile(Type.Mask, fileName);
             }
             if (iOutSoftMasks[i] != null) {
-                String fileName = savePath + iOutSoftMasks[i].getTitle() + ".tiff";
-                IJ.saveAsTiff(iOutSoftMasks[i], fileName);
-                addSavedFile(fileName);
+                String fileName = savePath + iOutSoftMasks[i].getTitle();
+                IJ.save(iOutSoftMasks[i], fileName);
+                addSavedFile(Type.SoftMask, fileName);
             }
         }
     }
 
-    private void saveObjectDataCsv(ImagePlus aImage, int aCurrentFrame, String aTitle) {
+    private void saveObjectDataCsv(ImagePlus aImage, int aCurrentFrame, String aTitle, String aOutFileName) {
         if (iNumOfChannels >  1) {
             // Choose the Rscript coloc format
             CSVOutput.occ = CSVOutput.oc[2];
@@ -237,16 +224,15 @@ public class BLauncher {
 
         final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
         String savepath = ImgUtils.getImageDirectory(aImage) + File.separator;
-        final String filename_without_ext = MosaicUtils.removeExtension(aTitle); 
 
         for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = savepath + filename_without_ext + "_ObjectsData_c" + (ch + 1) + ".csv";
+            String outFileName = savepath + Files.createTitleWithExt(Type.ObjectsData, aOutFileName, ch + 1);
             boolean shouldAppend = (new File(outFileName).exists()) ? true : false;
             Vector<? extends Outdata<Region>> regionsData = CSVOutput.getObjectsList(iRegionsList.get(ch), aCurrentFrame);
             csvWriter.clearMetaInformation();
             csvWriter.setMetaInformation("background", savepath + aTitle);
             CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
-            addSavedFile(outFileName);
+            addSavedFile(Type.ObjectsData, outFileName);
         }
     }
 
@@ -254,9 +240,9 @@ public class BLauncher {
         boolean shouldAppend = (hcount != 0);
         PrintWriter out = null;
         try {
-            String fileName = path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv";
+            String fileName = path + File.separator + Files.createTitleWithExt(Type.ImagesData, outfilename);
             out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
-            addSavedFile(fileName);
+            addSavedFile(Type.ImagesData, fileName);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -318,23 +304,22 @@ public class BLauncher {
         out.close();
     }
 
-    private void runSegmentation(ImagePlus aImage, int currentFrame, String title) {
+    private void runSegmentation(ImagePlus aImage, int aCurrentFrame, String aTitle) {
         for (int channel = 0; channel < iNumOfChannels; channel++) {
-            logger.debug("------------------- Segmentation of [" + title + "] channel: " + channel + ", frame: " + currentFrame);
-            iInputImages[channel] =  ImgUtils.extractImage(aImage, currentFrame, channel + 1 /* 1-based */);
+            logger.debug("------------------- Segmentation of [" + aTitle + "] channel: " + channel + ", frame: " + aCurrentFrame);
+            iInputImages[channel] =  ImgUtils.extractImage(aImage, aCurrentFrame, channel + 1 /* 1-based */);
             iNormalizedImages[channel] = ImgUtils.ImgToZXYarray(iInputImages[channel]);
             ArrayOps.normalize(iNormalizedImages[channel]);
-            segment(channel, currentFrame);
+            segment(channel, aCurrentFrame);
             logger.debug("------------------- End of Segmentation ---------------------------");
         }
     }
 
-    private ColocResult[] runColocalizationAnalysis(ImagePlus aImage, String title) {
+    private ColocResult[] runColocalizationAnalysis() {
         ColocResult resAB = null;
         ColocResult resBA = null;
         if (iNumOfChannels == 2) {
             final int factor2 = iOutputImgScale;
-            int fz2 = (nz > 1) ? factor2 : 1;
             
             ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
             ca.addRegion(iRegionsList.get(0), iNormalizedImages[0]);
@@ -343,18 +328,25 @@ public class BLauncher {
             resBA = ca.calculate(1, 0);
             iLabeledRegions[0] = ca.getLabeledRegion(0);
             iLabeledRegions[1] = ca.getLabeledRegion(1);
-            
-            if (iParameters.save_images) {
-                ImagePlus colocImg = generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
-                colocImg.show();
-                String fileName = MosaicUtils.removeExtension(ImgUtils.getImageDirectory(aImage) + title) + "_coloc.zip";
-                IJ.saveAs(colocImg, "ZIP", fileName);
-                addSavedFile(fileName);
-            }
         }
         return new ColocResult[] {resAB, resBA};
     }
 
+    private void saveColocImage(String aDir, String title) {
+        if (iNumOfChannels == 2) {
+            // TODO: Coloc image should be udpated like other images (it will be overwrite in case of
+            //       processing multiframe images.
+            final int factor2 = iOutputImgScale;
+            int fz2 = (nz > 1) ? factor2 : 1;
+
+            ImagePlus colocImg = generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
+            colocImg.show();
+            String fileName = aDir + Files.createTitleWithExt(Type.Colocalization, title);
+            IJ.save(colocImg, fileName);
+            addSavedFile(Type.Colocalization, fileName);
+        }
+    }
+    
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
         final ImagePlus regionsOutlines = generateRegionOutlinesImg(regions);
         final ImagePlus image = generateImage(aImage);
@@ -370,12 +362,8 @@ public class BLauncher {
         IJ.run(img, "Grays", "");
         return img;
     }
-
-    private String createTitle(String aTitle, final String outName, int channel) {
-        return aTitle.substring(0, aTitle.length() - 4) + outName + (channel - 1 + 1);
-    }
     
-    private void showUpdatedImgs(int channel, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
+    private void updateImages(int channel, final ImagePlus img, final String title, final boolean show, final ImagePlus[] imgs) {
         if (imgs[channel] != null) {
             MosaicUtils.MergeFrames(imgs[channel], img);
         }
@@ -475,7 +463,7 @@ public class BLauncher {
             mask.show();
         }
         
-        return createBinaryCellMask(mask);
+        return ImgUtils.imgToZXYbinaryArray(mask);
     }
     
     private void computeOverallMask(int nz, int ni, int nj) {
@@ -622,25 +610,6 @@ public class BLauncher {
         y = (int) y;
         y /= factor;
         return y;
-    }
-    
-    static boolean[][][] createBinaryCellMask(ImagePlus aInputImage) {
-        int ni = aInputImage.getWidth();
-        int nj = aInputImage.getHeight();
-        int nz = aInputImage.getNSlices();
-        
-        final boolean[][][] cellmask = new boolean[nz][ni][nj];
-        for (int z = 0; z < nz; z++) {
-            aInputImage.setSlice(z + 1);
-            ImageProcessor ip = aInputImage.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
-                }
-            }
-        }
-        
-        return cellmask;
     }
     
     public static ImagePlus createBinaryCellMask(ImagePlus aInputImage, String aTitle, double aThreshold) {

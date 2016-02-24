@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import ij.IJ;
 
@@ -11,7 +12,7 @@ import ij.IJ;
  * This class contains util's methods to operate on file system.
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class SystemOperations {
+public class SysOps {
     public static final String SEPARATOR = File.separator;
 
     /**
@@ -147,4 +148,12 @@ public class SystemOperations {
         return IJ.getDirectory("temp");
     }
 
+    /**
+     * Remove the file extension
+     * @param aFileName String from where to remove the extension
+     * @return the String
+     */
+    public static String removeExtension(String aFileName) {
+        return FilenameUtils.removeExtension(aFileName);
+    }
 }

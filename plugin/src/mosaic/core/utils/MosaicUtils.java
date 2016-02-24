@@ -29,7 +29,7 @@ import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.utils.ConvertArray;
 import mosaic.utils.ImgUtils;
-import mosaic.utils.SystemOperations;
+import mosaic.utils.SysOps;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvMetaInfo;
 import net.imglib2.Cursor;
@@ -645,7 +645,7 @@ public class MosaicUtils {
         for (int j = 0; j < output.length; j++) {
             final String tmp = new String(output[j]);
             final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
+            SysOps.createDir(dirName);
         }
 
         // Copy all existing files
@@ -656,7 +656,7 @@ public class MosaicUtils {
                 String currentFile = MosaicUtils.removeExtension(bases.get(k));
                 final String src = sv + File.separator + tmp.replace("*", currentFile);
                 final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + currentFile + tmp.replace("*", "");
-                SystemOperations.moveFile(src, dest, true /* quiet */);
+                SysOps.moveFile(src, dest, true /* quiet */);
             }
         }
 
@@ -666,7 +666,7 @@ public class MosaicUtils {
             final String dirStr = sv + "/" + tmp.replace("*", "_");
             final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
+                SysOps.removeDir(dir);
             }
         }
     }
@@ -690,7 +690,7 @@ public class MosaicUtils {
         for (int j = 0; j < output.length; j++) {
             final String tmp = new String(output[j]);
             final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
+            SysOps.createDir(dirName);
         }
 
         // Copy all existing files
@@ -709,7 +709,7 @@ public class MosaicUtils {
                     dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k + 1) + tmp.replace("*", "");
                 }
 
-                SystemOperations.moveFile(src, dest, true /* quiet */);
+                SysOps.moveFile(src, dest, true /* quiet */);
             }
         }
 
@@ -719,7 +719,7 @@ public class MosaicUtils {
             final String dirStr = sv + "/" + tmp.replace("*", "_");
             final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
+                SysOps.removeDir(dir);
             }
         }
 
@@ -746,7 +746,7 @@ public class MosaicUtils {
         for (int j = 0; j < output.length; j++) {
             final String tmp = new String(output[j]);
             final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
+            SysOps.createDir(dirName);
         }
 
         for (int j = 0; j < output.length; j++) {
@@ -769,7 +769,7 @@ public class MosaicUtils {
                     }
                 }
 
-                SystemOperations.moveFile(src, dest, true /* quiet */);
+                SysOps.moveFile(src, dest, true /* quiet */);
             }
         }
 
@@ -779,7 +779,7 @@ public class MosaicUtils {
             final String dirStr = sv + "/" + tmp.replace("*", "_");
             final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
+                SysOps.removeDir(dir);
             }
         }
     }

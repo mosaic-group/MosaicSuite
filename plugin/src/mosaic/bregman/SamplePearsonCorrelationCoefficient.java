@@ -4,6 +4,7 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
+import mosaic.utils.ImgUtils;
 
 /** 
  * Calculates sample Pearson correlation coefficient from provided images.
@@ -30,12 +31,12 @@ class SamplePearsonCorrelationCoefficient {
         iImageA = new double[iDepth][iWidth][iHeight];
         double maxA = initImageAndGetMax(aImgA, iImageA);
         double tx = aMaskImgA ? aMaskThresholdA * maxA : -1; 
-        iMaskA = BLauncher.createBinaryCellMask(BLauncher.createBinaryCellMask(aImgA, "Channel1", tx));
+        iMaskA = ImgUtils.imgToZXYbinaryArray(BLauncher.createBinaryCellMask(aImgA, "Channel1", tx));
         
         iImageB = new double[iDepth][iWidth][iHeight];
         double maxB = initImageAndGetMax(aImgB, iImageB);
         double ty = aMaskImgB ? aMaskThresholdB * maxB : -1;
-        iMaskB = BLauncher.createBinaryCellMask(BLauncher.createBinaryCellMask(aImgB, "Channel2", ty));
+        iMaskB = ImgUtils.imgToZXYbinaryArray(BLauncher.createBinaryCellMask(aImgB, "Channel2", ty));
     }
 
     /**

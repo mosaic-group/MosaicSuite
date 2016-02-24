@@ -32,7 +32,7 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import mosaic.utils.SystemOperations;
+import mosaic.utils.SysOps;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -246,10 +246,10 @@ public class CommonBase extends Info {
             final File in = new File(aInputPath + aInputFileOrDirectory);
             final File out = new File(aDestinationPath);
             if (in.isDirectory()) {
-                SystemOperations.copyDirectoryToDirectory(in, out);
+                SysOps.copyDirectoryToDirectory(in, out);
             }
             else {
-                SystemOperations.copyFileToDirectory(in, out);
+                SysOps.copyFileToDirectory(in, out);
             }
         }
     }
@@ -459,7 +459,7 @@ public class CommonBase extends Info {
             throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
         }
 
-        return path + SystemOperations.SEPARATOR;
+        return path + SysOps.SEPARATOR;
     }
     
     /**
@@ -468,7 +468,7 @@ public class CommonBase extends Info {
      */
     public static String getTestTmpPath() {
         final String TEST_TMP_DIR = "test";
-        return SystemOperations.getTmpPath() + TEST_TMP_DIR + SystemOperations.SEPARATOR;
+        return SysOps.getTmpPath() + TEST_TMP_DIR + SysOps.SEPARATOR;
     }
 
     /**
@@ -489,7 +489,7 @@ public class CommonBase extends Info {
      * will throw and break an execution of test.
      */
     public static void removeTestTmpDir() {
-        SystemOperations.removeDir(getTestTmpPath());
+        SysOps.removeDir(getTestTmpPath());
 
     }
 
@@ -498,7 +498,7 @@ public class CommonBase extends Info {
      * will throw and break an execution of test.
      */
     private static void createTestTmpDir() {
-        SystemOperations.createDir(getTestTmpPath());
+        SysOps.createDir(getTestTmpPath());
     }
     
     protected File findJobFile(String aName, File aDir) {

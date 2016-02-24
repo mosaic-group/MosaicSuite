@@ -134,6 +134,30 @@ public class ImgUtils {
     }
 
     /**
+     * Creates 3D [z][x][y] binary (boolean) array from provided ImagePlus
+     * @param aImage input image
+     * @return generated array with false for values == 0 and true otherwise
+     */
+    public static boolean[][][] imgToZXYbinaryArray(ImagePlus aInputImage) {
+        int ni = aInputImage.getWidth();
+        int nj = aInputImage.getHeight();
+        int nz = aInputImage.getNSlices();
+        
+        final boolean[][][] cellmask = new boolean[nz][ni][nj];
+        for (int z = 0; z < nz; z++) {
+            aInputImage.setSlice(z + 1);
+            ImageProcessor ip = aInputImage.getProcessor();
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
+                }
+            }
+        }
+        
+        return cellmask;
+    }
+    
+    /**
      * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
      * normalization value (if this step is not needed 1.0 should be provided)
      * If output image is smaller than pixel array then it is truncated.

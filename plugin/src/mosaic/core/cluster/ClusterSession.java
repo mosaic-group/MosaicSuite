@@ -18,7 +18,7 @@ import ij.gui.GenericDialog;
 import ij.io.DirectoryChooser;
 import ij.io.Opener;
 import ij.process.StackStatistics;
-import mosaic.bregman.BLauncher;
+import mosaic.bregman.Files;
 import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.MosaicUtils;
@@ -944,7 +944,7 @@ public class ClusterSession {
             processFile(fl, command, options, out, cg, mm.max, mm.min);
         }
 
-        ss.runPluginsOnFrames(null, command, options, BLauncher.outSuffixesCluster, cg.getEstimatedTime());
+        ss.runPluginsOnFrames(null, command, options, Files.outSuffixesCluster, cg.getEstimatedTime());
         return ss;
     }
 
