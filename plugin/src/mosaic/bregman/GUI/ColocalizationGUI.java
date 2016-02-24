@@ -16,11 +16,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.GenericDialog;
-import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.BLauncher;
 import mosaic.utils.ArrayOps.MinMax;
@@ -447,52 +444,16 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     // compute and display cell mask
     private void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel) {
-
-        final int ns = img.getSlice();
-        double threshold;
-
-        ImageProcessor imp;
-
-        if (channel == 1) {
-            threshold = threshold_i * (max - min) + min;
-        }
-        else {
-            threshold = threshold_i * (max2 - min2) + min2;
-        }
-
-        final ImageStack maska_ims = new ImageStack(ni, nj);
-
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            final byte[] maska_bytes = new byte[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > threshold) {
-                        maska_bytes[j * ni + i] = (byte) 255;
-                    }
-                    else {
-                        maska_bytes[j * ni + i] = 0;
-                    }
-
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(maska_bytes);
-            maska_ims.addSlice("", bp);
-        }
-
-        maska_im.setStack("Cell mask channel " + channel, maska_ims);
-
-        IJ.run(maska_im, "Invert", "stack");
-        IJ.run(maska_im, "Fill Holes", "stack");
-        IJ.run(maska_im, "Open", "stack");
-        IJ.run(maska_im, "Invert", "stack");
-
+        int currentSlice = img.getSlice();
+        
+        double threshold = threshold_i * ((channel == 1) ? (max - min) + min : (max2 - min2) + min2);
+        ImagePlus mask = BLauncher.createBinaryCellMask(img, "Cell mask channel " + channel, threshold);
+        maska_im.setStack(mask.getStack());
+        maska_im.setTitle(mask.getTitle());
         maska_im.updateAndDraw();
-        maska_im.changes = false;
-
         maska_im.show();
-        img.setSlice(ns);
+        
+        // revert set slice
+        img.setSlice(currentSlice);
     }
 }

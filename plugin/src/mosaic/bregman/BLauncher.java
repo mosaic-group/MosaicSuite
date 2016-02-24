@@ -470,12 +470,12 @@ public class BLauncher {
     }
     
     private boolean[][][] generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
-        ImagePlus maskImg = new ImagePlus();
-        maskImg.setTitle("Cell mask channel " + (channel + 1));
+        ImagePlus mask = createBinaryCellMask(img, "Cell mask channel " + (channel + 1), maskThreshold * (max - min) + min);
         if (iParameters.livedisplay) {
-            maskImg.show();
+            mask.show();
         }
-        return createBinaryCellMask(maskThreshold * (max - min) + min, img, channel, maskImg);
+        
+        return createBinaryCellMask(mask);
     }
     
     private void computeOverallMask(int nz, int ni, int nj) {
@@ -624,7 +624,26 @@ public class BLauncher {
         return y;
     }
     
-    static boolean[][][] createBinaryCellMask(double aThreshold, ImagePlus aInputImage, int aChannel, ImagePlus aOutputImage) {
+    static boolean[][][] createBinaryCellMask(ImagePlus aInputImage) {
+        int ni = aInputImage.getWidth();
+        int nj = aInputImage.getHeight();
+        int nz = aInputImage.getNSlices();
+        
+        final boolean[][][] cellmask = new boolean[nz][ni][nj];
+        for (int z = 0; z < nz; z++) {
+            aInputImage.setSlice(z + 1);
+            ImageProcessor ip = aInputImage.getProcessor();
+            for (int i = 0; i < ni; i++) {
+                for (int j = 0; j < nj; j++) {
+                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
+                }
+            }
+        }
+        
+        return cellmask;
+    }
+    
+    public static ImagePlus createBinaryCellMask(ImagePlus aInputImage, String aTitle, double aThreshold) {
         int ni = aInputImage.getWidth();
         int nj = aInputImage.getHeight();
         int nz = aInputImage.getNSlices();
@@ -644,8 +663,7 @@ public class BLauncher {
             bp.setPixels(mask);
             maskStack.addSlice("", bp);
         }
-        final ImagePlus maskImg = (aOutputImage == null) ? new ImagePlus("Cell mask channel " + (aChannel + 1)) : aOutputImage;
-        maskImg.setStack(maskStack);
+        final ImagePlus maskImg = new ImagePlus(aTitle, maskStack);
         IJ.run(maskImg, "Invert", "stack");
         
         // "Fill Holes" is using Prefs.blackBackground global setting. We need false here.
@@ -656,21 +674,10 @@ public class BLauncher {
         
         IJ.run(maskImg, "Open", "stack");
         IJ.run(maskImg, "Invert", "stack");
+        maskImg.changes = false;
         
-        final boolean[][][] cellmask = new boolean[nz][ni][nj];
-        for (int z = 0; z < nz; z++) {
-            maskImg.setSlice(z + 1);
-            ImageProcessor ip = maskImg.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    cellmask[z][i][j] = ip.getPixelValue(i, j) != 0;
-                }
-            }
-        }
-        
-        return cellmask;
+        return maskImg;
     }
-    
     // ==================================== Image generation ==========================
     
     /**

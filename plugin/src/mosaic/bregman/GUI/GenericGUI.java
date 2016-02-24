@@ -329,18 +329,18 @@ public class GenericGUI {
                 MosaicUtils.reorganize(BLauncher.outSuffixesLocal, aImp.getShortTitle(), savepath, aImp.getNFrames());
 
                 // if it is a video Stitch all the csv
-                if (aImp.getNFrames() > 1) {
+//                if (aImp.getNFrames() > 1) {
 //                    MosaicUtils.StitchCSV(savepath, BLauncher.outSuffixesCluster, savepath + File.separator + aImp.getTitle());
-
-                    file1 = savepath + File.separator + "stitch_ObjectsData_c1.csv";
-                    file2 = savepath + File.separator + "stitch_ObjectsData_c2.csv";
-                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
-                }
-                else {
+//
+//                    file1 = savepath + File.separator + "stitch_ObjectsData_c1.csv";
+//                    file2 = savepath + File.separator + "stitch_ObjectsData_c2.csv";
+//                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
+//                }
+//                else {
                     file1 = savepath + File.separator + BLauncher.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
                     file2 = savepath + File.separator + BLauncher.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
                     file3 = savepath + File.separator + BLauncher.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
-                }
+//                }
             }
             else {
                 logger.debug("WD with PATH: " + BLauncher.iParameters.wd);
@@ -405,23 +405,18 @@ public class GenericGUI {
         else {
             // We run on cluster
             saveParamitersForCluster(BLauncher.iParameters);
-
             ClusterSession.setPreferredSlotPerProcess(4);
-            String Background = null;
+            String backgroundImageFile = null;
 
             if (aImp == null) {
                 File fl = new File(BLauncher.iParameters.wd);
                 if (fl.isDirectory() == true) {
-                    // we have a directory
-
                     File[] fileslist = fl.listFiles();
                     ClusterSession.processFiles(fileslist, "Squassh", "", BLauncher.outSuffixesCluster);
                 }
                 else if (fl.isFile()) {
-                    // we process an image
-
                     ClusterSession.processFile(fl, "Squassh", "", BLauncher.outSuffixesCluster);
-                    Background = fl.getAbsolutePath();
+                    backgroundImageFile = fl.getAbsolutePath();
                 }
                 else {
                     // Nothing to do just get the result
@@ -434,7 +429,7 @@ public class GenericGUI {
             else {
                 // It is a file
                 ClusterSession.processImage(aImp, "Squassh", "", BLauncher.outSuffixesCluster);
-                Background = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
+                backgroundImageFile = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
             }
 
             // Get output format and Stitch the output in the output selected
@@ -444,14 +439,7 @@ public class GenericGUI {
                 path = BregmanGLM_Batch.test_path;
             }
             final File dir = ClusterSession.processJobsData(path);
-
-            // if background is != null it mean that is a video or is an image so try to stitch
-            if (Background != null) {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, Background);
-            }
-            else {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, null);
-            }
+            MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, backgroundImageFile);
         }
     }
 
