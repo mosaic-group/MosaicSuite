@@ -16,6 +16,7 @@ import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
+import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.SerializedDataFile;
 
@@ -141,9 +142,9 @@ public class BregmanGLM_Batch implements Segmentation {
     public String[] getMask(ImagePlus aImp) {
         final String[] gM = new String[2];
         gM[0] = new String(Files.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
-                + Files.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+                + Files.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", SysOps.removeExtension(aImp.getTitle())));
         gM[1] = new String(Files.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
-                + Files.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+                + Files.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", SysOps.removeExtension(aImp.getTitle())));
         return gM;
     }
 
@@ -156,12 +157,12 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         final String[] gM = new String[4];
-        gM[0] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", SysOps.removeExtension(aImp.getTitle())));
+        gM[1] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", SysOps.removeExtension(aImp.getTitle())));
 
         // This is produced if there is a stitch operation
-        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_"));
-        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
+        gM[2] = new String(SysOps.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_"));
+        gM[3] = new String(SysOps.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
 
         return gM;
     }

@@ -39,6 +39,7 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.utils.ImgUtils;
+import mosaic.utils.SysOps;
 
 
 public class GenericGUI {
@@ -338,9 +339,9 @@ public class GenericGUI {
 //                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
 //                }
 //                else {
-                    file1 = savepath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                    file2 = savepath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                    file3 = savepath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
+                    file1 = savepath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                    file2 = savepath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                    file3 = savepath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
 //                }
             }
             else {
@@ -375,9 +376,9 @@ public class GenericGUI {
                     MosaicUtils.StitchCSV(fl.getAbsolutePath(), Files.outSuffixesCluster, null);
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
-                    file2 = fl.getParent() + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
-                    file3 = fl.getParent() + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData.csv";
+                    file1 = fl.getParent() + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
+                    file2 = fl.getParent() + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
+                    file3 = fl.getParent() + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ImagesData.csv";
 
                     MosaicUtils.reorganize(Files.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
                 }

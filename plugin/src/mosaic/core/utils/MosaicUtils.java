@@ -653,7 +653,7 @@ public class MosaicUtils {
             final String tmp = new String(output[j]);
 
             for (int k = 0; k < bases.size(); k++) {
-                String currentFile = MosaicUtils.removeExtension(bases.get(k));
+                String currentFile = SysOps.removeExtension(bases.get(k));
                 final String src = sv + File.separator + tmp.replace("*", currentFile);
                 final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + currentFile + tmp.replace("*", "");
                 SysOps.moveFile(src, dest, true /* quiet */);
@@ -917,21 +917,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Remove the file extension
-     * @param str String from where to remove the extension
-     * @return the String
-     */
-    public static String removeExtension(String str) {
-        final int idp = str.lastIndexOf(".");
-        if (idp < 0) {
-            return str;
-        }
-        else {
-            return str.substring(0, idp);
-        }
-    }
-    
-    /**
      * Return absolut path with fileName or null if info not available.
      */
     public static String getAbsolutFileName(ImagePlus aImagePlus) {
@@ -947,7 +932,7 @@ public class MosaicUtils {
         if (folder == null || fileName == null || fileName.equals("")) return null;
             
         if (aRemoveExtension) {
-            fileName = MosaicUtils.removeExtension(fileName);
+            fileName = SysOps.removeExtension(fileName);
         }
         
         return folder + File.separator + fileName;
