@@ -328,7 +328,7 @@ public class CSV<E> {
      * Read a CSV file
      *
      * @param aCsvFilename - CSV filename
-     * @param out output - container for output data (in case of any error it will be empty)
+     * @param outSuffixesCluster output - container for output data (in case of any error it will be empty)
      * @param aOutputChoose - chosen output (if null, it will be generated from header)
      */
     private CsvColumnConfig readData(String aCsvFilename, Vector<E> aOutput, CsvColumnConfig aOutputChoose, boolean aSkipHeader) {

@@ -52,7 +52,6 @@ public class GenericGUI {
     protected ImagePlus imgch2;
 
     protected int posx, posy;
-    private BLauncher hd;
     private boolean gui_use_cluster = false;
 
     public GenericGUI(boolean mode, ImagePlus img_p) {
@@ -116,8 +115,6 @@ public class GenericGUI {
 
     /**
      * Add text are for file path
-     *
-     * @param gd
      */
     private void addTextArea(GenericDialog gd) {
         if (BLauncher.iParameters.wd == null) {
@@ -320,34 +317,32 @@ public class GenericGUI {
             // We run locally
             String savepath = null;
 
-            hd = null;
-
             if (BLauncher.iParameters.wd == null || BLauncher.iParameters.wd.startsWith("Input Image:") || BLauncher.iParameters.wd.isEmpty()) {
                 savepath = MosaicUtils.ValidFolderFromImage(aImp);
                 if (aImp == null) {
                     IJ.error("No image to process");
                     return;
                 }
-                hd = new BLauncher(aImp);
-
-                MosaicUtils.reorganize(BLauncher.out_w, aImp.getShortTitle(), savepath, aImp.getNFrames());
+                new BLauncher(aImp);
+                logger.debug("WD NULL");
+                MosaicUtils.reorganize(BLauncher.outSuffixesLocal, aImp.getShortTitle(), savepath, aImp.getNFrames());
 
                 // if it is a video Stitch all the csv
                 if (aImp.getNFrames() > 1) {
-                    MosaicUtils.StitchCSV(savepath, BLauncher.out, savepath + File.separator + aImp.getTitle());
+//                    MosaicUtils.StitchCSV(savepath, BLauncher.outSuffixesCluster, savepath + File.separator + aImp.getTitle());
 
                     file1 = savepath + File.separator + "stitch_ObjectsData_c1.csv";
                     file2 = savepath + File.separator + "stitch_ObjectsData_c2.csv";
                     file3 = savepath + File.separator + "stitch_ImagesData.csv";
                 }
                 else {
-                    file1 = savepath + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                    file2 = savepath + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                    file3 = savepath + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
+                    file1 = savepath + File.separator + BLauncher.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                    file2 = savepath + File.separator + BLauncher.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                    file3 = savepath + File.separator + BLauncher.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
                 }
             }
             else {
-//                hd = new BLauncher(BLauncher.iParameters.wd);
+                logger.debug("WD with PATH: " + BLauncher.iParameters.wd);
                 final Vector<String> iProcessedFiles = new Vector<String>();
                 final File inputFile = new File(BLauncher.iParameters.wd);
                 File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
@@ -370,19 +365,19 @@ public class GenericGUI {
                 savepath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
 
                 if (fl.isDirectory() == true) {
-                    file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
-                    file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
-                    file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData" + ".csv";
+                    file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1.csv";
+                    file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2.csv";
+                    file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData.csv";
 
-                    MosaicUtils.reorganize(BLauncher.out_w, pf, BLauncher.iParameters.wd);
-                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.out, null);
+                    MosaicUtils.reorganize(BLauncher.outSuffixesLocal, pf, BLauncher.iParameters.wd);
+                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), BLauncher.outSuffixesCluster, null);
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + BLauncher.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
-                    file2 = fl.getParent() + File.separator + BLauncher.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2" + ".csv";
-                    file3 = fl.getParent() + File.separator + BLauncher.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData" + ".csv";
+                    file1 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
+                    file2 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
+                    file3 = fl.getParent() + File.separator + BLauncher.outSuffixesLocal[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData.csv";
 
-                    MosaicUtils.reorganize(BLauncher.out_w, pf, new File(BLauncher.iParameters.wd).getParent());
+                    MosaicUtils.reorganize(BLauncher.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
                 }
             }
             
@@ -419,17 +414,17 @@ public class GenericGUI {
                     // we have a directory
 
                     File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, "Squassh", "", BLauncher.out);
+                    ClusterSession.processFiles(fileslist, "Squassh", "", BLauncher.outSuffixesCluster);
                 }
                 else if (fl.isFile()) {
                     // we process an image
 
-                    ClusterSession.processFile(fl, "Squassh", "", BLauncher.out);
+                    ClusterSession.processFile(fl, "Squassh", "", BLauncher.outSuffixesCluster);
                     Background = fl.getAbsolutePath();
                 }
                 else {
                     // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(BLauncher.out, "Squassh");
+                    ClusterSession.getFinishedJob(BLauncher.outSuffixesCluster, "Squassh");
 
                     // Ask for a directory
                     fl = new File(IJ.getDirectory("Select output directory"));
@@ -437,7 +432,7 @@ public class GenericGUI {
             }
             else {
                 // It is a file
-                ClusterSession.processImage(aImp, "Squassh", "", BLauncher.out);
+                ClusterSession.processImage(aImp, "Squassh", "", BLauncher.outSuffixesCluster);
                 Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
             }
 
@@ -451,10 +446,10 @@ public class GenericGUI {
 
             // if background is != null it mean that is a video or is an image so try to stitch
             if (Background != null) {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.out, Background);
+                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, Background);
             }
             else {
-                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.out, null);
+                MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), BLauncher.outSuffixesCluster, null);
             }
         }
     }
@@ -501,16 +496,13 @@ public class GenericGUI {
                 return;
             }
             String path = selFile.getAbsolutePath();
-
-            final boolean processdirectory = (new File(path)).isDirectory();
-            if (!processdirectory) {
+            final boolean isFile = selFile.isFile();
+            if (isFile) {
+                // should be checked with isSymbolicLink also (only in 1.7). Since  link to directory is considered as a file.
                 final ImagePlus img2 = IJ.openImage(path);
                 img2.show();
             }
-
-            if (path != null) {
-                ta.setText(path);
-            }
+            ta.setText(path);
         }
     }
 

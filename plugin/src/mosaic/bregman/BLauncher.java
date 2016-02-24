@@ -8,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -50,7 +52,7 @@ public class BLauncher {
     private static final Logger logger = Logger.getLogger(BLauncher.class);
     
     // This is the output for cluster
-    public final static String out[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
+    public final static String outSuffixesCluster[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
                                         "*_mask_c1.zip", "*_mask_c2.zip", 
                                         "*_ImagesData.csv", 
                                         "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
@@ -61,7 +63,7 @@ public class BLauncher {
                                         "*.tif" };
 
     // This is the output local
-    public final static String out_w[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
+    public final static String outSuffixesLocal[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
                                           "*_mask_c1.zip", "*_mask_c2.zip", 
                                           "*_ImagesData.csv", 
                                           "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
@@ -91,6 +93,9 @@ public class BLauncher {
     private ImagePlus[] iOutLabeledRegionsColor;
     private ImagePlus[] iOutLabeledRegionsGray;
     
+    private Set<String> iSavedFiles = new HashSet<String>();
+    private void addSavedFile(String aFileName) {iSavedFiles.add(aFileName.replaceAll("/+", "/"));}
+        
     /**
      * Launch the Segmentation
      * @param aImage image to be segmented
@@ -145,6 +150,11 @@ public class BLauncher {
         if (iParameters.save_images) {
             saveAllImages(outDir);
         }
+        
+        logger.debug("Saved files:");
+        for (String f : iSavedFiles) {
+            logger.debug("            " + f);
+        }
     }
     
     /**
@@ -188,19 +198,29 @@ public class BLauncher {
         final String savePath = aOutputPath + File.separator;
         for (int i = 0; i < iNumOfChannels; i++) {
             if (iOutOutlines[i] != null) {
-                IJ.saveAs(iOutOutlines[i], "ZIP", savePath + iOutOutlines[i].getTitle() + ".zip");
+                String fileName = savePath + iOutOutlines[i].getTitle() + ".zip";
+                IJ.saveAs(iOutOutlines[i], "ZIP", fileName);
+                addSavedFile(fileName);
             }
             if (iOutIntensities[i] != null) {
-                IJ.saveAs(iOutIntensities[i], "ZIP", savePath + iOutIntensities[i].getTitle() + ".zip");
+                String fileName = savePath + iOutIntensities[i].getTitle() + ".zip";
+                IJ.saveAs(iOutIntensities[i], "ZIP", fileName);
+                addSavedFile(fileName);
             }
             if (iOutLabeledRegionsColor[i] != null) {
-                IJ.saveAs(iOutLabeledRegionsColor[i], "ZIP", savePath + iOutLabeledRegionsColor[i].getTitle() + ".zip");
+                String fileName = savePath + iOutLabeledRegionsColor[i].getTitle() + ".zip";
+                IJ.saveAs(iOutLabeledRegionsColor[i], "ZIP", fileName);
+                addSavedFile(fileName);
             }
             if (iOutLabeledRegionsGray[i] != null) {
-                IJ.saveAs(iOutLabeledRegionsGray[i], "ZIP", savePath + iOutLabeledRegionsGray[i].getTitle() + ".zip");
+                String fileName = savePath + iOutLabeledRegionsGray[i].getTitle() + ".zip";
+                IJ.saveAs(iOutLabeledRegionsGray[i], "ZIP", fileName);
+                addSavedFile(fileName);
             }
             if (iOutSoftMasks[i] != null) {
-                IJ.saveAsTiff(iOutSoftMasks[i], savePath + iOutSoftMasks[i].getTitle() + ".tiff");
+                String fileName = savePath + iOutSoftMasks[i].getTitle() + ".tiff";
+                IJ.saveAsTiff(iOutSoftMasks[i], fileName);
+                addSavedFile(fileName);
             }
         }
     }
@@ -226,18 +246,17 @@ public class BLauncher {
             csvWriter.clearMetaInformation();
             csvWriter.setMetaInformation("background", savepath + aTitle);
             CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
+            addSavedFile(outFileName);
         }
     }
 
-    /**
-     * Write the CSV ImageData file information
-     */
     private void writeImageDataCsv(String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
         boolean shouldAppend = (hcount != 0);
         PrintWriter out = null;
         try {
             String fileName = path + File.separator + MosaicUtils.removeExtension(outfilename) + "_ImagesData.csv";
             out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
+            addSavedFile(fileName);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -328,7 +347,9 @@ public class BLauncher {
             if (iParameters.save_images) {
                 ImagePlus colocImg = generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
                 colocImg.show();
-                IJ.saveAs(colocImg, "ZIP", MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(aImage) + title) + "_coloc.zip");
+                String fileName = MosaicUtils.removeExtension(MosaicUtils.ValidFolderFromImage(aImage) + title) + "_coloc.zip";
+                IJ.saveAs(colocImg, "ZIP", fileName);
+                addSavedFile(fileName);
             }
         }
         return new ColocResult[] {resAB, resBA};
@@ -394,6 +415,8 @@ public class BLauncher {
         }
         
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;
+        // TODO: Temporary solution. When GUI/Paramters will work with more than two channels it must be removed. 
+        //       Currently for channels > 1, settings for channel 1 are chosen.
         int tempChannel = channel;
         if (channel > 1) channel = 1;
         SegmentationParameters sp = new SegmentationParameters(

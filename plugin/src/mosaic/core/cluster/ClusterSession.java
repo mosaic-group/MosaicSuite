@@ -944,7 +944,7 @@ public class ClusterSession {
             processFile(fl, command, options, out, cg, mm.max, mm.min);
         }
 
-        ss.runPluginsOnFrames(null, command, options, BLauncher.out, cg.getEstimatedTime());
+        ss.runPluginsOnFrames(null, command, options, BLauncher.outSuffixesCluster, cg.getEstimatedTime());
         return ss;
     }
 

@@ -139,10 +139,10 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getMask(ImagePlus aImp) {
         final String[] gM = new String[2];
-        gM[0] = new String(BLauncher.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
-                + BLauncher.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(BLauncher.out[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
-                + BLauncher.out[outputF.MASK.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(BLauncher.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
+                + BLauncher.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[1] = new String(BLauncher.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
+                + BLauncher.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
         return gM;
     }
 
@@ -155,12 +155,12 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         final String[] gM = new String[4];
-        gM[0] = new String(BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[1] = new String(BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
 
         // This is produced if there is a stitch operation
-        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.out[outputF.OBJECT.getNumVal()].replace("*", "_"));
-        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
+        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_"));
+        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + BLauncher.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
 
         return gM;
     }
