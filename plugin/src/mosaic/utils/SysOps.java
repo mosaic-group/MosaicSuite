@@ -20,6 +20,15 @@ public class SysOps {
      * @param aSrcFile
      * @param aDestDir
      */
+    public static void copyFileToDirectory(String aSrcFile, String aDestDir) {
+        copyFileToDirectory(new File(aSrcFile), new File(aDestDir));
+    }
+    
+    /**
+     * Copies file to directory
+     * @param aSrcFile
+     * @param aDestDir
+     */
     public static void copyFileToDirectory(File aSrcFile, File aDestDir) {
         try {
             FileUtils.copyFileToDirectory(aSrcFile, aDestDir);
@@ -65,11 +74,20 @@ public class SysOps {
      * @param aDirName - absolute path dir name
      */
     public static void createDir(String aDirName) {
+        createDir(new File(aDirName));
+    }
+    
+    /**
+     * Creates with specified absolute path.
+     * @param aDirName - absolute path dir name
+     */
+    public static void createDir(File aDir) {
+        System.out.println("CREATING: " + aDir);
         try {
-            FileUtils.forceMkdir(new File(aDirName));
+            FileUtils.forceMkdir(aDir);
         } catch (final IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Creating directory: [" + aDirName + "] failed! [" + e.getMessage() + "]");
+            throw new RuntimeException("Creating directory: [" + aDir.getAbsolutePath() + "] failed! [" + e.getMessage() + "]");
         }
     }
 
@@ -96,6 +114,26 @@ public class SysOps {
         moveFile(src, dest, aQuiteModeActive);
     }
 
+    /**
+     * Moves file to directory.
+     * @param aSrcFile - source file
+     * @param aDestDir - destination dir
+     * @param aQuiteModeActive - if set to true, problems iwth execution will not be visible
+     * @param aCreateDestDir - should dest dir be crated
+     */
+    public static void moveFileToDir(File aSrcFile, File aDestDir, boolean aQuiteModeActive, boolean aCreateDestDir) {
+        try {
+            if (!aSrcFile.exists() && aQuiteModeActive) {
+                // Return quietly - just to comply to current behavior.
+                return;
+            }
+            FileUtils.moveFileToDirectory(aSrcFile, aDestDir, aCreateDestDir);
+        } catch (final IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cannot move file [" + aSrcFile + "] to [" + aDestDir + "] [" + e.getMessage() + "]");
+        }
+    }
+    
     /**
      * Moves file to file.
      * @param aSrcFile - source file

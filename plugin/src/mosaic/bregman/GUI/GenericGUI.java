@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -32,6 +33,7 @@ import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
+import mosaic.bregman.Files.FileInfo;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
@@ -318,31 +320,19 @@ public class GenericGUI {
         // Two different way to run the Segmentation and colocalization
         if (clustermode || use_cluster == false) {
             // We run locally
-            String savepath = null;
+            String savePath = null;
 
             if (BLauncher.iParameters.wd == null || BLauncher.iParameters.wd.startsWith("Input Image:") || BLauncher.iParameters.wd.isEmpty()) {
-                savepath = ImgUtils.getImageDirectory(aImp);
-                if (aImp == null) {
-                    IJ.error("No image to process");
-                    return;
-                }
-                new BLauncher(aImp);
-                logger.debug("WD NULL");
-                MosaicUtils.reorganize(Files.outSuffixesLocal, aImp.getShortTitle(), savepath, aImp.getNFrames());
-
-                // if it is a video Stitch all the csv
-//                if (aImp.getNFrames() > 1) {
-//                    MosaicUtils.StitchCSV(savepath, BLauncher.outSuffixesCluster, savepath + File.separator + aImp.getTitle());
-//
-//                    file1 = savepath + File.separator + "stitch_ObjectsData_c1.csv";
-//                    file2 = savepath + File.separator + "stitch_ObjectsData_c2.csv";
-//                    file3 = savepath + File.separator + "stitch_ImagesData.csv";
-//                }
-//                else {
-                    file1 = savepath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                    file2 = savepath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                    file3 = savepath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
-//                }
+                savePath = ImgUtils.getImageDirectory(aImp);
+                BLauncher bl = new BLauncher(aImp);
+                Set<FileInfo> savedFiles = bl.getSavedFiles();
+                if (savedFiles.size() == 0) return;
+                
+                Files.moveFilesToOutputDirs(savedFiles, savePath);
+                
+                file1 = savePath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                file2 = savePath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                file3 = savePath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
             }
             else {
                 logger.debug("WD with PATH: " + BLauncher.iParameters.wd);
@@ -365,7 +355,7 @@ public class GenericGUI {
                 // TODO: Files should be processed only if input was a directory. Strange behaviour but this comes
                 // from old code. Should be refactored.
                 final Vector<String> pf = fl.isDirectory() ? iProcessedFiles : new Vector<String>();
-                savepath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
+                savePath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
 
                 if (fl.isDirectory() == true) {
                     file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1.csv";
@@ -386,7 +376,7 @@ public class GenericGUI {
             
             if (new File(file1).exists() && new File(file2).exists()) {
                 if (BLauncher.iParameters.save_images) {
-                    new RScript(savepath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
+                    new RScript(savePath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
                     // Try to run the R script
                     // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
 //                    try {

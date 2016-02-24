@@ -76,10 +76,11 @@ public class BLauncher {
     private ImagePlus[] iOutLabeledRegionsColor;
     private ImagePlus[] iOutLabeledRegionsGray;
     
-    private Set<Files.FileInfo> iSavedFilesInfo = new LinkedHashSet<Files.FileInfo>();
-    private void addSavedFile(Files.Type aFI, String aFileName) {
-        iSavedFilesInfo.add(new Files.FileInfo(aFI, aFileName.replaceAll("/+", "/")));
+    private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
+    private void addSavedFile(Type aFI, String aFileName) {
+        iSavedFilesInfo.add(new FileInfo(aFI, aFileName.replaceAll("/+", "/")));
     }
+    public Set<FileInfo> getSavedFiles() { return iSavedFilesInfo; }
     
     /**
      * Launch the Segmentation
