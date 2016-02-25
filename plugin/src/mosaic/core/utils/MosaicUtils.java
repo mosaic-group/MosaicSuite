@@ -22,7 +22,6 @@ import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -626,49 +625,6 @@ public class MosaicUtils {
 
         final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
         return ip;
-    }
-
-    /**
-     * Reorganize the data in the directories inside sv, following the file
-     * patterns specified Give output[] = {data*file1, data*file2} and bases =
-     * {"A","B","C" ..... , "Z"} it create two folder data_file1 and data_file2
-     * (* is replaced with _) and inside put all the file with pattern
-     * dataAfile1 ..... dataZfile1 in the first and dataAfile2 ..... dataZfile2
-     * in the second. If the folder is empty the folder is deleted
-     *
-     * @param output List of output patterns
-     * @param bases String of the image/data to substitute
-     * @param sv base dir where the data are located
-     */
-    public static void reorganize(String output[], Vector<String> bases, String sv) {
-        // Crate directories
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-            final String dirName = sv + "/" + tmp.replace("*", "_");
-            SysOps.createDir(dirName);
-        }
-
-        // Copy all existing files
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-
-            for (int k = 0; k < bases.size(); k++) {
-                String currentFile = SysOps.removeExtension(bases.get(k));
-                final String src = sv + File.separator + tmp.replace("*", currentFile);
-                final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + currentFile + tmp.replace("*", "");
-                SysOps.moveFile(src, dest, true /* quiet */);
-            }
-        }
-
-        // check for all the folder created if empty delete it
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-            final String dirStr = sv + "/" + tmp.replace("*", "_");
-            final File dir = new File(dirStr);
-            if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SysOps.removeDir(dir);
-            }
-        }
     }
 
     /**

@@ -1,9 +1,18 @@
 package mosaic.bregman;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import mosaic.utils.SysOps;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvMetaInfo;
 
 public class Files {
 
@@ -101,13 +110,71 @@ public class Files {
         return Files.getTypeDir(aType) + Files.createTitleWithExt(aType, aTitle);
     }
     
-    public static void moveFilesToOutputDirs(Set<FileInfo> aSavedFiles, String aOutputDir) {
+    /**
+     * @return full type name like "_ObjectsData_c1.csv" consisting from baseName, channel info (if exists) and extension
+     */
+    public static String getFullTypeName(FileInfo aFileInfo) {
+        return aFileInfo.name.substring(aFileInfo.name.lastIndexOf(aFileInfo.type.baseName()));
+    }
+    
+    /**
+     * Input file:
+     * /tmp/test/test2d_ObjectsData_c1.csv
+     * with category: 
+     * __ObjectsData_c1.csv
+     * is being moved to directory:
+     * /tmp/test/__ObjectsData_c1.csv/
+     * to finally be at:
+     * /tmp/test/__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv 
+     */
+    public static Set<FileInfo> moveFilesToOutputDirs(Set<FileInfo> aSavedFiles, String aOutputDir) {
+        Set<FileInfo> result = new LinkedHashSet<FileInfo>();
         for (FileInfo fi : aSavedFiles) {
             // TODO: currently stick to old directory naming but should be changed to sth better
-            String name = "_" + fi.name.substring(fi.name.indexOf(fi.type.baseName()));
-            final File dirName = new File(aOutputDir + File.separator + name);
-            SysOps.moveFileToDir(new File(fi.name), dirName, true, true);
+            final File dirName = new File(aOutputDir + File.separator + "_" + getFullTypeName(fi));
+            File fileToMove = new File(fi.name);
+            SysOps.moveFileToDir(fileToMove, dirName, true, true);
+            result.add(new FileInfo(fi.type, dirName + File.separator + fileToMove.getName()));
         }
+        return result;
     }
 
+    public static void stitchCsvFiles(Set<FileInfo> aSavedFiles, String aOutputDir, String aBackgroundValue) {
+        // Find all files of "csv" type and categorize them
+        Map<String, List<String>> m = new HashMap<String, List<String>>();
+        for (FileInfo fi : aSavedFiles) {
+            if (fi.type.ext().equals("csv")) {
+                String typeName = getFullTypeName(fi);
+                List<String> fileList = m.get(typeName);
+                if (fileList == null) {
+                    fileList = new ArrayList<String>();
+                    m.put(typeName, fileList);
+                }
+                fileList.add(fi.name);
+            }
+        }
+        
+        // Go through each category of files and stitch them into one file.
+        CsvMetaInfo metaInfo = (aBackgroundValue != null) ? new CsvMetaInfo("background", aBackgroundValue) : null;
+        boolean firstFile = true;
+        for (Entry<String, List<String>> e : m.entrySet()) {
+            String[] currentFilesAbsPaths = e.getValue().toArray(new String[0]);
+            Arrays.sort(currentFilesAbsPaths);
+            
+            // Set metainformation for csv
+            final CSV<Object> csv = new CSV<Object>(Object.class);
+            if (metaInfo != null) {
+                csv.setMetaInformation(metaInfo);
+            }
+            
+            // if it is the first time set the file preference from the first file
+            if (firstFile == true) {
+                firstFile = false;
+                csv.setCSVPreferenceFromFile(currentFilesAbsPaths[0]);
+            }
+
+            csv.StitchAny(currentFilesAbsPaths,  aOutputDir + "stitch_" + e.getKey());
+        }
+    }
+    
 }

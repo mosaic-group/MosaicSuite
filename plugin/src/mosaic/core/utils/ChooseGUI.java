@@ -1,4 +1,4 @@
-package mosaic.bregman.GUI;
+package mosaic.core.utils;
 
 
 import java.io.File;

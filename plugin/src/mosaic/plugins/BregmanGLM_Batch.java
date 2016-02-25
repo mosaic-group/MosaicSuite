@@ -1,7 +1,6 @@
 package mosaic.plugins;
 
 import java.awt.GraphicsEnvironment;
-import java.io.File;
 
 import org.apache.log4j.Logger;
 
@@ -11,8 +10,8 @@ import ij.Macro;
 import ij.process.ImageProcessor;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
-import mosaic.bregman.Parameters;
 import mosaic.bregman.Files.Type;
+import mosaic.bregman.Parameters;
 import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.utils.MosaicUtils;

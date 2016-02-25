@@ -361,13 +361,12 @@ public class GenericGUI {
                 savePath += File.separator;
                 
                 if (fl.isDirectory() == true) {
-                    Files.moveFilesToOutputDirs(allFiles, savePath);
+                    Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, savePath);
                     
                     file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1);
                     file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2);
                     file3 = savePath + Files.createTitleWithExt(Type.ImagesData, "stitch_");
-
-                    MosaicUtils.StitchCSV(fl.getAbsolutePath(), Files.outSuffixesCluster, null);
+                    Files.stitchCsvFiles(movedFilesNames, savePath, null);
                 }
                 else {
                     // TODO: It would be nice to be consistent and also move files to subdirs.

@@ -18,9 +18,8 @@ import ij.gui.GenericDialog;
 import ij.io.DirectoryChooser;
 import ij.io.Opener;
 import ij.process.StackStatistics;
-import mosaic.bregman.Files;
-import mosaic.bregman.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
+import mosaic.core.utils.ChooseGUI;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
