@@ -15,9 +15,10 @@ import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -34,11 +35,13 @@ import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
 import mosaic.bregman.Files.FileInfo;
+import mosaic.bregman.Files.Type;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
@@ -323,54 +326,57 @@ public class GenericGUI {
             String savePath = null;
 
             if (BLauncher.iParameters.wd == null || BLauncher.iParameters.wd.startsWith("Input Image:") || BLauncher.iParameters.wd.isEmpty()) {
-                savePath = ImgUtils.getImageDirectory(aImp);
+                savePath = ImgUtils.getImageDirectory(aImp) + File.separator;
                 BLauncher bl = new BLauncher(aImp);
                 Set<FileInfo> savedFiles = bl.getSavedFiles();
                 if (savedFiles.size() == 0) return;
                 
                 Files.moveFilesToOutputDirs(savedFiles, savePath);
                 
-                file1 = savePath + File.separator + Files.outSuffixesCluster[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                file2 = savePath + File.separator + Files.outSuffixesCluster[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                file3 = savePath + File.separator + Files.outSuffixesCluster[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
+                String titleNoExt = SysOps.removeExtension(aImp.getTitle());
+                file1 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
+                file2 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
+                file3 = savePath + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
             }
             else {
                 logger.debug("WD with PATH: " + BLauncher.iParameters.wd);
-                final Vector<String> iProcessedFiles = new Vector<String>();
                 final File inputFile = new File(BLauncher.iParameters.wd);
                 File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
                 Arrays.sort(files);
                 
+                Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
                 for (final File f : files) {
                     // If it is the directory/Rscript/hidden/csv file then skip it
                     if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                         continue;
                     }
                     
-                    iProcessedFiles.add(f.getName());
-                    new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
+                    BLauncher bl = new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
+                    allFiles.addAll(bl.getSavedFiles());
                 }
+                if (allFiles.size() == 0) return;
                 
                 final File fl = new File(BLauncher.iParameters.wd);
-                // TODO: Files should be processed only if input was a directory. Strange behaviour but this comes
-                // from old code. Should be refactored.
-                final Vector<String> pf = fl.isDirectory() ? iProcessedFiles : new Vector<String>();
                 savePath = fl.isDirectory() ? BLauncher.iParameters.wd : fl.getParent();
-
+                savePath += File.separator;
+                
                 if (fl.isDirectory() == true) {
-                    file1 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c1.csv";
-                    file2 = BLauncher.iParameters.wd + File.separator + "stitch__ObjectsData_c2.csv";
-                    file3 = BLauncher.iParameters.wd + File.separator + "stitch_ImagesData.csv";
+                    Files.moveFilesToOutputDirs(allFiles, savePath);
+                    
+                    file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1);
+                    file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2);
+                    file3 = savePath + Files.createTitleWithExt(Type.ImagesData, "stitch_");
 
-                    MosaicUtils.reorganize(Files.outSuffixesLocal, pf, BLauncher.iParameters.wd);
                     MosaicUtils.StitchCSV(fl.getAbsolutePath(), Files.outSuffixesCluster, null);
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + Files.outSuffixesCluster[0].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
-                    file2 = fl.getParent() + File.separator + Files.outSuffixesCluster[1].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
-                    file3 = fl.getParent() + File.separator + Files.outSuffixesCluster[4].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ImagesData.csv";
-
-                    MosaicUtils.reorganize(Files.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
+                    // TODO: It would be nice to be consistent and also move files to subdirs.
+//                    Files.moveFilesToOutputDirs(allFiles, savePath);
+                    
+                    String titleNoExt = SysOps.removeExtension(fl.getName());
+                    file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 1);
+                    file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 2);
+                    file3 = savePath + Files.createTitleWithExt(Type.ImagesData, titleNoExt);
                 }
             }
             
@@ -379,18 +385,18 @@ public class GenericGUI {
                     new RScript(savePath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
                     // Try to run the R script
                     // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
-//                    try {
-//                        logger.debug("================ RSCRIPT BEGIN ====================");
-//                        logger.debug("CMD: " + "cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
-//                        ShellCommand.exeCmdString("cd " + savepath + "; Rscript " + savepath + File.separator + "R_analysis.R");
-//                        logger.debug("================ RSCRIPT END ====================");
-//                    }
-//                    catch (final IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    catch (final InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
+                    try {
+                        logger.debug("================ RSCRIPT BEGIN ====================");
+                        logger.debug("CMD: " + "cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
+                        ShellCommand.exeCmdString("cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
+                        logger.debug("================ RSCRIPT END ====================");
+                    }
+                    catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                    catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

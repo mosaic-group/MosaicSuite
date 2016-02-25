@@ -9,15 +9,6 @@ public class Files {
 
     // =============== OLD files definitions, will be kept as long as necessary =============================
     
-    // This is the output local
-    public final static String outSuffixesLocal[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
-                                          "*_mask_c1.zip", "*_mask_c2.zip", 
-                                          "*_ImagesData.csv", 
-                                          "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
-                                          "*_intensities_c1.zip", "*_intensities_c2.zip", 
-                                          "*_seg_c1.zip", "*_seg_c2.zip", 
-                                          "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
-                                          "*_coloc.zip" };
     // This is the output for cluster
     public final static String outSuffixesCluster[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
                                         "*_mask_c1.zip", "*_mask_c2.zip", 
@@ -78,7 +69,7 @@ public class Files {
     }
 
     public static String createTitle(Type aType, String aTitle, int aChannel) {
-        if (!aType.hasChannelInfo()) throw new RuntimeException("Channel provided but this type does not require it! [" + aTitle + " " + aType +"] + " + aChannel + "]");
+        if (!aType.hasChannelInfo()) throw new RuntimeException("Channel provided but this type does not require it! [" + aTitle + " " + aType +"], " + aChannel + "]");
         return aTitle + aType.baseName() + "_c" + aChannel;
     }
     
@@ -92,6 +83,22 @@ public class Files {
     
     private static String addExt(Type aType, String aTitle) {
         return aTitle + "." + aType.ext();
+    }
+    
+    public static String getTypeDir(Type aType) {
+        return createTitleWithExt(aType, "_") + File.separator;
+    }
+    
+    public static String getTypeDir(Type aType, int aChannel) {
+        return createTitleWithExt(aType, "_", aChannel) + File.separator;
+    }
+    
+    public static String getMovedFilePath(Type aType, String aTitle, int aChannel) {
+        return Files.getTypeDir(aType, aChannel) + Files.createTitleWithExt(aType, aTitle, aChannel);
+    }
+    
+    public static String getMovedFilePath(Type aType, String aTitle) {
+        return Files.getTypeDir(aType) + Files.createTitleWithExt(aType, aTitle);
     }
     
     public static void moveFilesToOutputDirs(Set<FileInfo> aSavedFiles, String aOutputDir) {

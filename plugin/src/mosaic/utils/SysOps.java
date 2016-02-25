@@ -82,7 +82,6 @@ public class SysOps {
      * @param aDirName - absolute path dir name
      */
     public static void createDir(File aDir) {
-        System.out.println("CREATING: " + aDir);
         try {
             FileUtils.forceMkdir(aDir);
         } catch (final IOException e) {

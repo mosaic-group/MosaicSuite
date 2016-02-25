@@ -364,7 +364,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
             assertTrue("Reference file [" + dataDir + referenceImgFiles[i] + "] not found!", refJobFile != null);
             String refFile = refJobFile.getAbsoluteFile().toString();
             final File testJobFile = findJobFile(expectedImgFiles[i], testDir);
-            assertTrue("Test file [" + testDir + expectedImgFiles[i] + "] not found!", testJobFile != null);
+            assertTrue("Test file [" + testDir + "/" + expectedImgFiles[i] + "] not found!", testJobFile != null);
             String testFile = testJobFile.getAbsoluteFile().toString();
             testFile = "./" + testFile.substring(tmpPath.length(), testFile.length());
             compareImageFromIJ(refFile, testFile);
