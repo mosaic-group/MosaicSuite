@@ -12,6 +12,7 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
 import mosaic.bregman.Parameters;
+import mosaic.bregman.Files.Type;
 import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.utils.MosaicUtils;
@@ -117,58 +118,35 @@ public class BregmanGLM_Batch implements Segmentation {
     }
 
     // =================== Implementation of Segmentation interface
-
-    private enum outputF {
-        MASK(2), OBJECT(0);
-
-        private final int numVal;
-
-        outputF(int numVal) {
-            this.numVal = numVal;
-        }
-
-        public int getNumVal() {
-            return numVal;
-        }
-    }
-    
     /**
      * Get Mask images name output
-     *
      * @param aImp image
      * @return set of possible output
      */
     @Override
     public String[] getMask(ImagePlus aImp) {
-        final String[] gM = new String[2];
-        gM[0] = new String(Files.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
-                + Files.outSuffixesCluster[outputF.MASK.getNumVal()].replace("*", SysOps.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Files.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
-                + Files.outSuffixesCluster[outputF.MASK.getNumVal() + 1].replace("*", SysOps.removeExtension(aImp.getTitle())));
-        return gM;
+        String titleNoExt = SysOps.removeExtension(aImp.getTitle());
+        return new String[] { Files.getMovedFilePath(Type.Mask, titleNoExt, 1),
+                              Files.getMovedFilePath(Type.Mask, titleNoExt, 2) };
     }
-
+    
     /**
      * Get CSV regions list name output
-     *
      * @param aImp image
      * @return set of possible output
      */
     @Override
     public String[] getRegionList(ImagePlus aImp) {
-        final String[] gM = new String[4];
-        gM[0] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", SysOps.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", SysOps.removeExtension(aImp.getTitle())));
-
-        // This is produced if there is a stitch operation
-        gM[2] = new String(SysOps.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal()].replace("*", "_"));
-        gM[3] = new String(SysOps.removeExtension(aImp.getTitle()) + Files.outSuffixesCluster[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
-
-        return gM;
+        String titleNoExt = SysOps.removeExtension(aImp.getTitle());
+        return new String[] { Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1),
+                              Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2), 
+                              // This is produced if there is a stitch operation
+                              Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1), 
+                              Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2) };
     }
-
+    
     /**
-     * Get name of the plugins
+     * Get name of the plugin
      */
     @Override
     public String getName() {

@@ -932,7 +932,6 @@ public class ClusterSession {
         final ClusterSession ss = cg.getClusterSession();
 
         final MM mm = new MM();
-
         mm.min = new Float(Float.MAX_VALUE);
         mm.max = new Float(0.0);
 
@@ -944,7 +943,7 @@ public class ClusterSession {
             processFile(fl, command, options, out, cg, mm.max, mm.min);
         }
 
-        ss.runPluginsOnFrames(null, command, options, Files.outSuffixesCluster, cg.getEstimatedTime());
+        ss.runPluginsOnFrames(null, command, options, out, cg.getEstimatedTime());
         return ss;
     }
 
