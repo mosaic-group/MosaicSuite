@@ -330,9 +330,9 @@ public class GenericGUI {
                 
                 Files.moveFilesToOutputDirs(savedFiles, savePath);
                 
-                file1 = savePath + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
-                file2 = savePath + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
-                file3 = savePath + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
+                file1 = savePath + File.separator + Files.outSuffixesCluster[0].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c1.csv";
+                file2 = savePath + File.separator + Files.outSuffixesCluster[1].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ObjectsData_c2.csv";
+                file3 = savePath + File.separator + Files.outSuffixesCluster[4].replace("*", "_") + File.separator + SysOps.removeExtension(aImp.getTitle()) + "_ImagesData.csv";
             }
             else {
                 logger.debug("WD with PATH: " + BLauncher.iParameters.wd);
@@ -366,9 +366,9 @@ public class GenericGUI {
                     MosaicUtils.StitchCSV(fl.getAbsolutePath(), Files.outSuffixesCluster, null);
                 }
                 else {
-                    file1 = fl.getParent() + File.separator + Files.outSuffixesLocal[0].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
-                    file2 = fl.getParent() + File.separator + Files.outSuffixesLocal[1].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
-                    file3 = fl.getParent() + File.separator + Files.outSuffixesLocal[4].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ImagesData.csv";
+                    file1 = fl.getParent() + File.separator + Files.outSuffixesCluster[0].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c1.csv";
+                    file2 = fl.getParent() + File.separator + Files.outSuffixesCluster[1].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ObjectsData_c2.csv";
+                    file3 = fl.getParent() + File.separator + Files.outSuffixesCluster[4].replace("*", "_") + File.separator + SysOps.removeExtension(fl.getName()) + "_ImagesData.csv";
 
                     MosaicUtils.reorganize(Files.outSuffixesLocal, pf, new File(BLauncher.iParameters.wd).getParent());
                 }

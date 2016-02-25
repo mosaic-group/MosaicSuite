@@ -369,8 +369,8 @@ class LSFBatch implements BatchInterface {
     public void clean(SecureShellSession ss) {
         final String[] commands = new String[1];
         commands[0] = new String("rm -rf " + lDir);
-
-        ss.runCommands(commands);
+        System.out.println("=================> [" + commands[0] + "]");
+        //ss.runCommands(commands);
     }
 
     /**
