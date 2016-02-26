@@ -50,21 +50,24 @@ import mosaic.utils.SysOps;
 public class GenericGUI {
     private static final Logger logger = Logger.getLogger(GenericGUI.class);
     
-    private enum run_mode {
-        USE_CLUSTER, LOCAL, STOP
+    private enum RunMode {
+        CLUSTER, LOCAL, STOP
     }
-
-    public static boolean bypass_GUI = false;
-    private final boolean clustermode;
+    
+    // Input params
     protected ImagePlus imgch1;
-    protected ImagePlus imgch2;
+    private final boolean iUseClusterMode;
 
+    private boolean iUseClusterGui = false;
+    public static boolean iBypassGui = false;
+    
+    protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     protected int posx, posy;
-    private boolean gui_use_cluster = false;
 
-    public GenericGUI(boolean mode, ImagePlus img_p) {
-        imgch1 = img_p;
-        clustermode = mode;
+    
+    public GenericGUI(boolean mode, ImagePlus aInputImg) {
+        imgch1 = aInputImg;
+        iUseClusterMode = mode;
     }
 
     /**
@@ -73,7 +76,7 @@ public class GenericGUI {
      * @param bl true to use the cluster option
      */
     public void setUseCluster(boolean bl) {
-        gui_use_cluster = bl;
+        iUseClusterGui = bl;
     }
 
     /**
@@ -82,9 +85,9 @@ public class GenericGUI {
      *
      * @param gd Generic dialog where to draw
      */
-    private run_mode drawBatchWindow() {
+    private RunMode drawBatchWindow() {
         // No visualization is active by default
-        if (GenericGUI.bypass_GUI == false) {
+        if (GenericGUI.iBypassGui == false) {
             BLauncher.iParameters.livedisplay = false;
             BLauncher.iParameters.dispcolors = false;
             BLauncher.iParameters.dispint = false;
@@ -100,10 +103,10 @@ public class GenericGUI {
 
         addTextArea(gd);
 
-        if (GenericGUI.bypass_GUI == false) {
+        if (GenericGUI.iBypassGui == false) {
             gd.showDialog();
             if (gd.wasCanceled()) {
-                return run_mode.STOP;
+                return RunMode.STOP;
             }
             
             BLauncher.iParameters.wd = gd.getNextText();
@@ -111,14 +114,14 @@ public class GenericGUI {
         }
 
         if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
-            return run_mode.STOP;
+            return RunMode.STOP;
         }
 
-        if (gui_use_cluster == true) {
-            return run_mode.USE_CLUSTER;
+        if (iUseClusterGui == true) {
+            return RunMode.CLUSTER;
         }
 
-        return run_mode.LOCAL;
+        return RunMode.LOCAL;
     }
 
     /**
@@ -136,15 +139,14 @@ public class GenericGUI {
     /**
      * Draw the standard squassh main window
      *
-     * @param gd Generic dialog where to draw
      * @param Active imagePlus
      * @param It output if we have to use the cluster
      * @return run mode, -1 when cancelled
      */
-    private run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp) {
+    private RunMode drawStandardWindow(ImagePlus aImp) {
         // font for reference
         final Font bf = new Font(null, Font.BOLD, 12);
-
+        final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
         gd.setInsets(-10, 0, 3);
 
         addTextArea(gd);
@@ -230,7 +232,7 @@ public class GenericGUI {
         });
         gd.addPanel(p);
 
-        gd.addCheckbox("Process on computer cluster", gui_use_cluster);
+        gd.addCheckbox("Process on computer cluster", iUseClusterGui);
 
         gd.centerDialog(false);
         posx = 100;
@@ -250,58 +252,53 @@ public class GenericGUI {
 
         gd.showDialog();
         if (gd.wasCanceled()) {
-            return run_mode.STOP;
+            return RunMode.STOP;
         }
 
         BLauncher.iParameters.wd = gd.getNextText();
 
         final int availableProcessors = Runtime.getRuntime().availableProcessors();
         BLauncher.iParameters.nthreads = availableProcessors;
-        run_mode rm = run_mode.LOCAL;
+        RunMode rm = RunMode.LOCAL;
         if (gd.getNextBoolean() == true) {
-            rm = run_mode.USE_CLUSTER;
+            rm = RunMode.CLUSTER;
         }
 
         return rm;
     }
 
     public void run(ImagePlus aImp) {
-        String file1;
-        String file2;
-        String file3;
         Boolean use_cluster = false;
 
-        logger.debug("clustermode = " + clustermode);
+        logger.info("run(...) clustermode = " + iUseClusterMode);
         
-        if (!clustermode) {
-            run_mode rm = null;
+        if (!iUseClusterMode) {
+            RunMode rm = null;
             // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
             // it does not work -> unit test fails. Should be investigated why...
             // It seems that we go then always in first 'if' instead of 'else' on most tests since batchMode = true is default
             // for unit testing...
             if (IJ.isMacro() == true || BregmanGLM_Batch.test_mode) {// || Interpreter.batchMode == true) {
-                logger.debug("Macro setting for mode");
-                new GenericDialog("Squassh");
+                logger.info("Macro setting for mode");
                 // Draw a batch system window
-
                 rm = drawBatchWindow();
-                if (rm == run_mode.STOP) {
+                if (rm == RunMode.STOP) {
                     Macro.abort();
                 }
             }
             else {
-                logger.debug("Non-Macro setting for mode");
-                final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
-                rm = drawStandardWindow(gd, aImp);
+                logger.info("Non-Macro setting for mode");
+                rm = drawStandardWindow(aImp);
             }
             logger.debug("runmode = " + rm);
-            use_cluster = (rm == run_mode.USE_CLUSTER);
+            use_cluster = (rm == RunMode.CLUSTER);
 
-            if (rm == run_mode.STOP) {
+            if (rm == RunMode.STOP) {
                 return;
             }
         }
         else {
+            logger.info("iUseClusterMode is false");
             final GenericDialog gd = new GenericDialog("Squassh");
 
             gd.addStringField("config", "path", 10);
@@ -319,9 +316,14 @@ public class GenericGUI {
 
         System.out.println("Parameters: " + BLauncher.iParameters);
 
-        logger.debug("use_cluster = " + use_cluster);
+        logger.info("use_cluster = " + use_cluster);
+        
         // Two different way to run the Segmentation and colocalization
-        if (clustermode || use_cluster == false) {
+        String file1;
+        String file2;
+        String file3;
+        
+        if (iUseClusterMode || use_cluster == false) {
             // We run locally
             String savePath = null;
 
@@ -343,14 +345,13 @@ public class GenericGUI {
                 final File inputFile = new File(BLauncher.iParameters.wd);
                 File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
                 Arrays.sort(files);
-                
                 Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
                 for (final File f : files) {
                     // If it is the directory/Rscript/hidden/csv file then skip it
                     if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                         continue;
                     }
-                    
+                    System.out.println("BLAUNCHER FILE: [" + f.getAbsolutePath() + "]");
                     BLauncher bl = new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
                     allFiles.addAll(bl.getSavedFiles());
                 }
@@ -369,8 +370,9 @@ public class GenericGUI {
                     Files.stitchCsvFiles(movedFilesNames, savePath, null);
                 }
                 else {
-                    // TODO: It would be nice to be consistent and also move files to subdirs.
-//                    Files.moveFilesToOutputDirs(allFiles, savePath);
+                    // TODO: It would be nice to be consistent and also move files to subdirs. But it is
+                    //       currently violated by cluster mode.
+                    //Files.moveFilesToOutputDirs(allFiles, savePath);
                     
                     String titleNoExt = SysOps.removeExtension(fl.getName());
                     file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 1);
@@ -400,44 +402,48 @@ public class GenericGUI {
             }
         }
         else {
-            // We run on cluster
-            saveParamitersForCluster(BLauncher.iParameters);
-            ClusterSession.setPreferredSlotPerProcess(4);
-            String backgroundImageFile = null;
+            runOnCluster(aImp);
+        }
+    }
 
-            if (aImp == null) {
-                File fl = new File(BLauncher.iParameters.wd);
-                if (fl.isDirectory() == true) {
-                    File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, "Squassh", "", Files.outSuffixesCluster);
-                }
-                else if (fl.isFile()) {
-                    ClusterSession.processFile(fl, "Squassh", "", Files.outSuffixesCluster);
-                    backgroundImageFile = fl.getAbsolutePath();
-                }
-                else {
-                    // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, "Squassh");
+    private void runOnCluster(ImagePlus aImp) {
+        // We run on cluster
+        saveParamitersForCluster(BLauncher.iParameters);
+        ClusterSession.setPreferredSlotPerProcess(4);
+        String backgroundImageFile = null;
 
-                    // Ask for a directory
-                    fl = new File(IJ.getDirectory("Select output directory"));
-                }
+        if (aImp == null) {
+            File fl = new File(BLauncher.iParameters.wd);
+            if (fl.isDirectory() == true) {
+                File[] fileslist = fl.listFiles();
+                ClusterSession.processFiles(fileslist, "Squassh", "", Files.outSuffixesCluster);
+            }
+            else if (fl.isFile()) {
+                ClusterSession.processFile(fl, "Squassh", "", Files.outSuffixesCluster);
+                backgroundImageFile = fl.getAbsolutePath();
             }
             else {
-                // It is a file
-                ClusterSession.processImage(aImp, "Squassh", "", Files.outSuffixesCluster);
-                backgroundImageFile = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
-            }
+                // Nothing to do just get the result
+                ClusterSession.getFinishedJob(Files.outSuffixesCluster, "Squassh");
 
-            // Get output format and Stitch the output in the output selected
-            String path = ImgUtils.getImageDirectory(aImp);
-            if (BregmanGLM_Batch.test_mode == true) {
-                // TODO: Artifact from "old test system". Must be refactored!!!
-                path = BregmanGLM_Batch.test_path;
+                // Ask for a directory
+                fl = new File(IJ.getDirectory("Select output directory"));
             }
-            final File dir = ClusterSession.processJobsData(path);
-            MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
         }
+        else {
+            // It is a file
+            ClusterSession.processImage(aImp, "Squassh", "", Files.outSuffixesCluster);
+            backgroundImageFile = ImgUtils.getImageDirectory(aImp) + File.separator + aImp.getTitle();
+        }
+
+        // Get output format and Stitch the output in the output selected
+        String path = ImgUtils.getImageDirectory(aImp);
+        if (BregmanGLM_Batch.test_mode == true) {
+            // TODO: Artifact from "old test system". Must be refactored!!!
+            path = BregmanGLM_Batch.test_path;
+        }
+        final File dir = ClusterSession.processJobsData(path);
+        MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
     }
 
     private void saveParamitersForCluster(final Parameters aParameters) {

@@ -82,7 +82,7 @@ class SegmentationGUI {
 
         gd.centerDialog(false);
 
-        if (GenericGUI.bypass_GUI == false) {
+        if (GenericGUI.iBypassGui == false) {
             gd.showDialog();
             if (gd.wasCanceled()) {
                 return -1;

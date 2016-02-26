@@ -35,7 +35,7 @@ class BackgroundSubGUI {
         gd.addCheckbox("Remove_background", BLauncher.iParameters.removebackground);
         gd.addNumericField("rolling_ball_window_size_(in_pixels)", BLauncher.iParameters.size_rollingball, 0);
 
-        if (GenericGUI.bypass_GUI == false) {
+        if (GenericGUI.iBypassGui == false) {
             gd.showDialog();
             if (gd.wasCanceled()) {
                 return -1;

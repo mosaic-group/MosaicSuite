@@ -185,25 +185,21 @@ public class ClusterSession {
 
         // Download a working version of Fiji
         // and copy the plugins
-        boolean hasFiji = ss.checkDirectory(cp.getRunningDir() + "Fiji.app");
-        boolean hasLinuxExe = ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64");
-        boolean hasMosaicPluginForCluster = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar");
-        boolean hasMosaicPlugin = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite.jar");
+        boolean hasAllThingsInstalled = isAllSoftwareInstalled(ss);
         
-        if (!hasFiji || !hasLinuxExe || !(hasMosaicPluginForCluster || hasMosaicPlugin)) {
+        if (!hasAllThingsInstalled) {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
 
-            // Remove previously Fiji
-            final String[] commands = new String[1];
-            commands[0] = new String("rm -rf Fiji.app");
+            ss.runCommands(new String[] {"rm -rf Fiji.app"});
 
-            ss.runCommands(commands);
-
-            final String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
-                    "mkdir Mosaic_ToolSuite", "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
-
-            ss.runCommands(CommandL);
-
+            ss.runCommands(new String[] { "cd " + cp.getRunningDir(), 
+                                          "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", 
+                                          "tar -xf fiji-linux64.tar.gz", 
+                                          "cd Fiji.app", 
+                                          "cd plugins",
+                                          "mkdir Mosaic_ToolSuite", 
+                                          "cd Mosaic_ToolSuite", 
+                                          "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" });
             // Wait to install Fiji
             do {
                 try {
@@ -215,16 +211,25 @@ public class ClusterSession {
                 }
 
                 System.out.println("Checking Fiji installation");
-            } while (hasFiji || hasLinuxExe
-                    || hasMosaicPlugin);
+            } while (!isAllSoftwareInstalled(ss));
         }
 
         wp.SetStatusMessage("Interfacing with batch system...");
 
         // create the macro script
 
-        final String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n" + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir()
-                + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+        /* ------------------------------ Example output ------------------------
+           job_id = getArgument();
+           if (job_id == "" )
+              exit("No job id");
+              
+           run("Squassh","config=/home/gonciarz/scratch//session1456411696096/settings.dat filepath=/home/gonciarz/scratch//session1456411696096/tmp_"+ job_id + ".tif min=456.0 max=2940.0  " );
+         -------------------------------- */
+        final String macro = new String("job_id = getArgument();\n" + 
+                                        "if (job_id == \"\" )\n" + 
+                                        "   exit(\"No job id\");\n" + 
+                                        "\n" + 
+                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 
@@ -309,6 +314,16 @@ public class ClusterSession {
         }
 
         return true;
+    }
+
+    private boolean isAllSoftwareInstalled(SecureShellSession ss) {
+        boolean hasFiji = ss.checkDirectory(cp.getRunningDir() + "Fiji.app");
+        boolean hasLinuxExe = ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64");
+        boolean hasMosaicPluginForCluster = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar");
+        boolean hasMosaicPlugin = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite.jar");
+        boolean hasAllThingsInstalled = hasFiji && hasLinuxExe && (hasMosaicPluginForCluster || hasMosaicPlugin);
+        mosaic.utils.Debug.print(hasFiji, hasLinuxExe, hasMosaicPluginForCluster, hasMosaicPlugin);
+        return hasAllThingsInstalled;
     }
 
     /**
@@ -615,9 +630,6 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
         final ProgressBarWin wp = new ProgressBarWin();
-//        wp.setFocusableWindowState(false);
-//        wp.setVisible(true);
-//        wp.setFocusableWindowState(true);
 
         // Create job array
 

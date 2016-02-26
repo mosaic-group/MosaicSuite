@@ -48,7 +48,7 @@ class VisualizationGUI {
         gd.centerDialog(false);
 
         // Visualization
-        if (GenericGUI.bypass_GUI == false) {
+        if (GenericGUI.iBypassGui == false) {
             gd.showDialog();
             if (gd.wasCanceled()) {
                 return -1;

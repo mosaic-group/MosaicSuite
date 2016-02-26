@@ -32,6 +32,7 @@ public class BregmanGLM_Batch implements Segmentation {
         // if is a macro get the arguments from macro arguments
         if (IJ.isMacro()) {
             arg0 = Macro.getOptions();
+            logger.info("Macro options: [" + arg0 + "]");
         }
 
         final String dir = IJ.getDirectory("temp");
@@ -61,13 +62,13 @@ public class BregmanGLM_Batch implements Segmentation {
         // Check the argument
         final boolean batch = GraphicsEnvironment.isHeadless();
 
-        logger.debug("isHeadless = " + batch);
-        logger.debug("gui_use_cluster = " + gui_use_cluster);
-        logger.debug("settings dir = [" + dir + "]");
-        logger.debug("config path = [" + path + "]");
-        logger.debug("norm min = [" + normmin + "]");
-        logger.debug("norm max = [" + normmax + "]");
-        logger.debug("input img = [" + (active_img != null ? active_img.getTitle() : "<no img>") + "]");
+        logger.info("isHeadless = " + batch);
+        logger.info("gui_use_cluster = " + gui_use_cluster);
+        logger.info("settings dir = [" + dir + "]");
+        logger.info("config path = [" + path + "]");
+        logger.info("norm min = [" + normmin + "]");
+        logger.info("norm max = [" + normmax + "]");
+        logger.info("input img = [" + (active_img != null ? active_img.getTitle() : "<no img>") + "]");
         
         GenericGUI window = new GenericGUI(batch, active_img);
         window.setUseCluster(gui_use_cluster);
@@ -109,7 +110,7 @@ public class BregmanGLM_Batch implements Segmentation {
      * plugin to explicitly bypass the GUI
      */
     public void bypass_GUI() {
-        GenericGUI.bypass_GUI = true;
+        GenericGUI.iBypassGui = true;
     }
 
     public void setUseCluster(boolean bl) {
