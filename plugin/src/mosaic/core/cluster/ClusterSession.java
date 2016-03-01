@@ -185,7 +185,7 @@ public class ClusterSession {
 
         // Download a working version of Fiji
         // and copy the plugins
-        boolean hasAllThingsInstalled = isAllSoftwareInstalled(ss);
+        boolean hasAllThingsInstalled = isAllSoftwareInstalled(ss, cp);
         
         if (!hasAllThingsInstalled) {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
@@ -211,7 +211,7 @@ public class ClusterSession {
                 }
 
                 System.out.println("Checking Fiji installation");
-            } while (!isAllSoftwareInstalled(ss));
+            } while (!isAllSoftwareInstalled(ss, cp));
         }
 
         wp.SetStatusMessage("Interfacing with batch system...");
@@ -316,24 +316,25 @@ public class ClusterSession {
         return true;
     }
 
-    private boolean isAllSoftwareInstalled(SecureShellSession ss) {
-        boolean hasFiji = ss.checkDirectory(cp.getRunningDir() + "Fiji.app");
-        boolean hasLinuxExe = ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64");
-        boolean hasMosaicPluginForCluster = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar");
-        boolean hasMosaicPlugin = ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite.jar");
-        boolean hasAllThingsInstalled = hasFiji && hasLinuxExe && (hasMosaicPluginForCluster || hasMosaicPlugin);
-        mosaic.utils.Debug.print(hasFiji, hasLinuxExe, hasMosaicPluginForCluster, hasMosaicPlugin);
-        return hasAllThingsInstalled;
+    private boolean isAllSoftwareInstalled(SecureShellSession aSession, ClusterProfile aProfile) {
+        // Check Fiji 
+        String fijiDir = aProfile.getRunningDir() + "Fiji.app";
+        boolean hasFiji = aSession.checkDirectory(fijiDir);
+        boolean hasLinuxExe = aSession.checkFile(fijiDir, "ImageJ-linux64");
+        
+        // Check Mosaic plugin (it can have one of two names).
+        String mosaicPluginDir = fijiDir + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator;
+        boolean hasPlugin = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite.jar");
+        boolean hasPluginForCluster = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite_for_cluster.jar");
+
+        return hasFiji && hasLinuxExe && (hasPluginForCluster || hasPlugin);
     }
 
     /**
      * Get the Jobs directory in the temporal or other folder
      *
-     * @param JobID if 0 return all directory otherwise return the directory
-     *            associated to the
-     *            specified jobID
-     * @param directory where to search for Job directory (if null the temp
-     *            directory is choosen)
+     * @param JobID if 0 return all directory otherwise return the directory associated to the specified jobID
+     * @param directory where to search for Job directory (if null the temp directory is choosen)
      * @return Get all the directory string
      */
     static public String[] getJobDirectories(final int JobID, final String directory) {

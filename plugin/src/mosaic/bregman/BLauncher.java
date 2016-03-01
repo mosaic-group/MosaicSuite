@@ -139,9 +139,9 @@ public class BLauncher {
             saveAllImages(outDir);
         }
         
-        logger.debug("Saved files:");
+        logger.info("Saved files:");
         for (FileInfo f : iSavedFilesInfo) {
-            logger.debug("            " + f);
+            logger.info("            " + f);
         }
     }
     

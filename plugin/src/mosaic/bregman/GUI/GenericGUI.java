@@ -32,6 +32,7 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+import ij.macro.Interpreter;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
 import mosaic.bregman.Files.FileInfo;
@@ -86,17 +87,6 @@ public class GenericGUI {
      * @param gd Generic dialog where to draw
      */
     private RunMode drawBatchWindow() {
-        // No visualization is active by default
-        if (GenericGUI.iBypassGui == false) {
-            BLauncher.iParameters.livedisplay = false;
-            BLauncher.iParameters.dispcolors = false;
-            BLauncher.iParameters.dispint = false;
-            BLauncher.iParameters.displabels = false;
-            BLauncher.iParameters.dispoutline = false;
-            BLauncher.iParameters.dispSoftMask = false;
-            BLauncher.iParameters.save_images = true;
-        }
-
         System.out.println("Batch window");
 
         final GenericDialog gd = new GenericDialog("Batch window");
@@ -110,13 +100,27 @@ public class GenericGUI {
             }
             
             BLauncher.iParameters.wd = gd.getNextText();
-            logger.debug("wd = [" + BLauncher.iParameters.wd + "]");
+            logger.info("wd (batch) = [" + BLauncher.iParameters.wd + "]");
+            logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
+            String arg0 = Macro.getOptions();
+            final String config = MosaicUtils.parseString("config", arg0);
+            if (config != null) {
+                BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(config, Parameters.class, BLauncher.iParameters);
+                logger.info("config (cluster) = [" + config + "]");
+            }
+            logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
+            final String filepath = MosaicUtils.parseString("filepath", arg0);
+            if (filepath != null) {
+                BLauncher.iParameters.wd = filepath;
+                logger.info("wd (cluster) = [" + BLauncher.iParameters.wd + "]");
+            }
         }
-
+        String arg0 = Macro.getOptions();
+        if (MosaicUtils.parseString("config", arg0) == null)
         if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
             return RunMode.STOP;
         }
-
+        logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
         if (iUseClusterGui == true) {
             return RunMode.CLUSTER;
         }
@@ -270,7 +274,10 @@ public class GenericGUI {
     public void run(ImagePlus aImp) {
         Boolean use_cluster = false;
 
-        logger.info("run(...) clustermode = " + iUseClusterMode);
+        logger.info("run(...)           clustermode = " + iUseClusterMode);
+        logger.info("                  IJ.isMacro() = " + IJ.isMacro());
+        logger.info("         Interpreter.batchMode = " + Interpreter.batchMode);
+        
         
         if (!iUseClusterMode) {
             RunMode rm = null;
@@ -301,8 +308,8 @@ public class GenericGUI {
             logger.info("iUseClusterMode is false");
             final GenericDialog gd = new GenericDialog("Squassh");
 
-            gd.addStringField("config", "path", 10);
-            gd.addStringField("filepath", "path", 10);
+            gd.addStringField("config", "path to config file", 10);
+            gd.addStringField("filepath", "path to file(s)", 10);
             gd.addNumericField("number of threads", 4, 0);
             gd.showDialog();
             if (gd.wasCanceled()) {
