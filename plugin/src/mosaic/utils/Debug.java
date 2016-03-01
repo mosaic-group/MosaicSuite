@@ -35,7 +35,7 @@ public class Debug { // NO_UCD (code used only for debugging)
     public static String getString(Object... aObjects) {
         String str = "";
         for (final Object o : aObjects) {
-            if (o.getClass().isArray()) {
+            if (o != null && o.getClass().isArray()) {
                 // Just to be able use Arrays utils pack an array (of unknown type) into one level more of
                 // objects array. Arrays.* will do the job. Additionally it will allow to pack more information
                 // like dimensions of array

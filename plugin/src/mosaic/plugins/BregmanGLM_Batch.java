@@ -105,14 +105,6 @@ public class BregmanGLM_Batch implements Segmentation {
 
     // =================== Stuff below is used only by tests
 
-    /**
-     * Unfortunately where is not way to hide the GUI in test mode, set the
-     * plugin to explicitly bypass the GUI
-     */
-    public void bypass_GUI() {
-        GenericGUI.iBypassGui = true;
-    }
-
     public void setUseCluster(boolean bl) {
         gui_use_cluster = bl;
     }

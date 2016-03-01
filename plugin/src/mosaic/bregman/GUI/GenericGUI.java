@@ -60,20 +60,17 @@ public class GenericGUI {
     private final boolean iUseClusterMode;
 
     private boolean iUseClusterGui = false;
-    public static boolean iBypassGui = false;
     
     protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
-    protected int posx, posy;
-
-    
+    static boolean useGUI = true;
     public GenericGUI(boolean mode, ImagePlus aInputImg) {
         imgch1 = aInputImg;
         iUseClusterMode = mode;
+        useGUI = !(IJ.isMacro() || Interpreter.batchMode);
     }
 
     /**
      * Use the cluster
-     *
      * @param bl true to use the cluster option
      */
     public void setUseCluster(boolean bl) {
@@ -83,44 +80,48 @@ public class GenericGUI {
     /**
      * Draw a window if we are running as a macro, basically does not draw
      * any window, but just get the parameters from the command line
-     *
      * @param gd Generic dialog where to draw
      */
     private RunMode drawBatchWindow() {
         System.out.println("Batch window");
 
         final GenericDialog gd = new GenericDialog("Batch window");
-
         addTextArea(gd);
 
-        if (GenericGUI.iBypassGui == false) {
-            gd.showDialog();
-            if (gd.wasCanceled()) {
-                return RunMode.STOP;
-            }
-            
-            BLauncher.iParameters.wd = gd.getNextText();
-            logger.info("wd (batch) = [" + BLauncher.iParameters.wd + "]");
-            logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
-            String arg0 = Macro.getOptions();
-            final String config = MosaicUtils.parseString("config", arg0);
-            if (config != null) {
-                BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(config, Parameters.class, BLauncher.iParameters);
-                logger.info("config (cluster) = [" + config + "]");
-            }
-            logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
-            final String filepath = MosaicUtils.parseString("filepath", arg0);
-            if (filepath != null) {
-                BLauncher.iParameters.wd = filepath;
-                logger.info("wd (cluster) = [" + BLauncher.iParameters.wd + "]");
-            }
+        String macroOptions = Macro.getOptions();
+        gd.showDialog();
+        if (gd.wasCanceled()) {
+            return RunMode.STOP;
         }
-        String arg0 = Macro.getOptions();
-        if (MosaicUtils.parseString("config", arg0) == null)
+
+        BLauncher.iParameters.wd = gd.getNextText();
+        logger.info("wd (batch) = [" + BLauncher.iParameters.wd + "]");
+
+        BLauncher.iParameters.nthreads = 4;
+
+        final String noOfThreads = MosaicUtils.parseString("nthreads", macroOptions);
+        if (noOfThreads != null) {
+            BLauncher.iParameters.nthreads = Integer.parseInt(noOfThreads);
+            logger.info("nthreads = [" + noOfThreads + "]");
+        }
+
+        final String config = MosaicUtils.parseString("config", macroOptions);
+        if (config != null) {
+            BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(config, Parameters.class, BLauncher.iParameters);
+            logger.info("config (cluster) = [" + config + "]");
+        }
+
+        final String filepath = MosaicUtils.parseString("filepath", macroOptions);
+        if (filepath != null) {
+            BLauncher.iParameters.wd = filepath;
+            logger.info("wd (cluster) = [" + BLauncher.iParameters.wd + "]");
+        }
+        
+        // This "if" is needed currently to not overwrite save outputs by GUI (which is default off/false for radio button).
+        if (config == null && !BregmanGLM_Batch.test_mode)
         if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
             return RunMode.STOP;
         }
-        logger.info("OUTIL: " + BLauncher.iParameters.dispoutline);
         if (iUseClusterGui == true) {
             return RunMode.CLUSTER;
         }
@@ -128,58 +129,35 @@ public class GenericGUI {
         return RunMode.LOCAL;
     }
 
-    /**
-     * Add text are for file path
-     */
-    private void addTextArea(GenericDialog gd) {
+    private void addTextArea(GenericDialog aGenericDialog) {
         if (BLauncher.iParameters.wd == null) {
-            gd.addTextAreas("Input Image: \n" + "insert Path to file or folder, " + "or press Button below.", null, 2, 50);
+            aGenericDialog.addTextAreas("Input Image: \n" + "insert Path to file or folder, " + "or press Button below.", null, 2, 50);
         }
-        else {
-            gd.addTextAreas(BLauncher.iParameters.wd, null, 2, 50);
-        }
+        aGenericDialog.addTextAreas(BLauncher.iParameters.wd, null, 2, 50);
     }
 
     /**
      * Draw the standard squassh main window
-     *
      * @param Active imagePlus
-     * @param It output if we have to use the cluster
      * @return run mode, -1 when cancelled
      */
     private RunMode drawStandardWindow(ImagePlus aImp) {
-        // font for reference
-        final Font bf = new Font(null, Font.BOLD, 12);
         final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
         gd.setInsets(-10, 0, 3);
 
         addTextArea(gd);
 
-        final FlowLayout fl = new FlowLayout(FlowLayout.LEFT, 75, 3);
-        Panel p = new Panel(fl);
-
-        final Button b = new Button("Select File/Folder");
-        b.addActionListener(new FileOpenerActionListener(gd.getTextArea1()));
-        p.add(b);
-
-        final Button bh = new Button("Help");
-        bh.addActionListener(new HelpOpenerActionListener(gd));
-        p.add(bh);
-
+        Panel p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
+        addButton(p, "Select File/Folder", new FileOpenerActionListener(gd.getTextArea1()));
+        addButton(p, "Help", new HelpOpenerActionListener(gd));
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 
-        gd.addChoice("Input image", new String[] { "" }, "");
+        gd.addChoice("Input image", new String[] {""}, "");
         MosaicUtils.chooseImage(gd, aImp);
 
-        Label label = new Label("Background subtraction");
-        label.setFont(bf);
         p = new Panel();
-        p.add(label);
-        
-        final Button backOption = new Button("Options");
-        p.add(backOption);
-        backOption.addActionListener(new ActionListener() {
-
+        addLabel(p, "Background subtraction");
+        addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 BackgroundSubGUI.getParameters();
@@ -187,48 +165,30 @@ public class GenericGUI {
         });
         gd.addPanel(p);
 
-        label = new Label("Segmentation parameters");
-        label.setFont(bf);
         p = new Panel();
-        p.add(label);
-        
-        final Button segOption = new Button("Options");
-        p.add(segOption);
-        segOption.addActionListener(new ActionListener() {
-
+        addLabel(p, "Segmentation parameters");
+        addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 SegmentationGUI.getParameters();
             }
-        });
+        });        
         gd.addPanel(p);
 
-        label = new Label("Colocalization (two channels images)");
-        label.setFont(bf);
         p = new Panel();
-        p.add(label);
-        
-        final Button colOption = new Button("Options");
-        p.add(colOption);
-        colOption.addActionListener(new ActionListener() {
-
+        addLabel(p, "Colocalization (two channels images)");
+        addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final ColocalizationGUI gds = new ColocalizationGUI(imgch1, imgch2, posx, posy);
+                final ColocalizationGUI gds = new ColocalizationGUI(imgch1, imgch2);
                 gds.run();
             }
-        });
+        });  
         gd.addPanel(p);
 
-        label = new Label("Vizualization and output");
-        label.setFont(bf);
         p = new Panel();
-        p.add(label);
-        
-        final Button visOption = new Button("Options");
-        p.add(visOption);
-        visOption.addActionListener(new ActionListener() {
-
+        addLabel(p, "Vizualization and output");
+        addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 VisualizationGUI.getParameters();
@@ -238,21 +198,12 @@ public class GenericGUI {
 
         gd.addCheckbox("Process on computer cluster", iUseClusterGui);
 
-        gd.centerDialog(false);
-        posx = 100;
-        posy = 120;
-        gd.setLocation(posx, posy);
-
-        // Introduce a label with reference
-        final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
+        p = new Panel();
+        p.add(new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
                 + "A generalized linear model/Bregman<br>" + "perspective. Int. J. Comput. Vis., 104(1):69–93, 2013.<br>" + "<br>" + "A. Rizk, G. Paul, P. Incardona, M. Bugarski, M. Mansouri,<br>"
                 + "A. Niemann, U. Ziegler, P. Berger, and I. F. Sbalzarini.<br>" + "Segmentation and quantification of subcellular structures<br>"
-                + "in fluorescence microscopy images using Squassh.<br>" + "Nature Protocols, 9(3):586–596, 2014. </html>");
-        p = new Panel();
-        p.add(labelJ);
+                + "in fluorescence microscopy images using Squassh.<br>" + "Nature Protocols, 9(3):586–596, 2014. </html>"));
         gd.addPanel(p);
-
-        /////////////////////////////////
 
         gd.showDialog();
         if (gd.wasCanceled()) {
@@ -261,14 +212,23 @@ public class GenericGUI {
 
         BLauncher.iParameters.wd = gd.getNextText();
 
-        final int availableProcessors = Runtime.getRuntime().availableProcessors();
-        BLauncher.iParameters.nthreads = availableProcessors;
-        RunMode rm = RunMode.LOCAL;
-        if (gd.getNextBoolean() == true) {
-            rm = RunMode.CLUSTER;
-        }
+        RunMode runMode = (gd.getNextBoolean() == true) ? RunMode.CLUSTER : RunMode.LOCAL;
 
-        return rm;
+        return runMode;
+    }
+
+    private void addLabel(Panel p, String aLabel) {
+        Label label = new Label(aLabel);
+        label.setFont(new Font(null, Font.BOLD, 12));
+        p.add(label);
+    }
+
+    static void addButton(Panel aPanel, String aLabel, ActionListener aActionListener) {
+        if (useGUI) {
+            final Button b = new Button(aLabel);
+            b.addActionListener(aActionListener);
+            aPanel.add(b);
+        }
     }
 
     public void run(ImagePlus aImp) {
@@ -279,7 +239,9 @@ public class GenericGUI {
         logger.info("         Interpreter.batchMode = " + Interpreter.batchMode);
         
         
-        if (!iUseClusterMode) {
+            final int availableProcessors = Runtime.getRuntime().availableProcessors();
+            BLauncher.iParameters.nthreads = availableProcessors;
+            
             RunMode rm = null;
             // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
             // it does not work -> unit test fails. Should be investigated why...
@@ -303,24 +265,6 @@ public class GenericGUI {
             if (rm == RunMode.STOP) {
                 return;
             }
-        }
-        else {
-            logger.info("iUseClusterMode is false");
-            final GenericDialog gd = new GenericDialog("Squassh");
-
-            gd.addStringField("config", "path to config file", 10);
-            gd.addStringField("filepath", "path to file(s)", 10);
-            gd.addNumericField("number of threads", 4, 0);
-            gd.showDialog();
-            if (gd.wasCanceled()) {
-                return;
-            }
-
-            BLauncher.iParameters.nthreads = (int) gd.getNextNumber();
-            BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class, BLauncher.iParameters);
-            BLauncher.iParameters.wd = gd.getNextString();
-        }
-
         System.out.println("Parameters: " + BLauncher.iParameters);
 
         logger.info("use_cluster = " + use_cluster);
@@ -445,6 +389,7 @@ public class GenericGUI {
 
         // Get output format and Stitch the output in the output selected
         String path = ImgUtils.getImageDirectory(aImp);
+        logger.info(mosaic.utils.Debug.getString(BregmanGLM_Batch.test_path, path, aImp));
         if (BregmanGLM_Batch.test_mode == true) {
             // TODO: Artifact from "old test system". Must be refactored!!!
             path = BregmanGLM_Batch.test_path;
@@ -529,7 +474,6 @@ public class GenericGUI {
             panel.setPreferredSize(new Dimension(575, 720));
 
             final JPanel pref = new JPanel(new GridBagLayout());
-
             setPanel(pref);
             setHelpTitle("Squassh");
             createTutorial(null);

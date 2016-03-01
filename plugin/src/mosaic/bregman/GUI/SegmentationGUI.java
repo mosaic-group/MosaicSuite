@@ -1,10 +1,8 @@
 package mosaic.bregman.GUI;
 
 
-import java.awt.Button;
 import java.awt.Font;
 import java.awt.Panel;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -21,20 +19,15 @@ class SegmentationGUI {
         gd.setInsets(-10, 0, 3);
         gd.addMessage("    Segmentation parameters ", bf);
 
-        final Button help_b = new Button("help");
-        help_b.addActionListener(new ActionListener() {
-
+        final Panel pp = new Panel();
+        GenericGUI.addButton(pp, "help", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final Point p = gd.getLocationOnScreen();
-                new SegmentationGUIHelp(p.x, p.y);
+                new SegmentationGUIHelp(gd.getLocationOnScreen().x, gd.getLocationOnScreen().y);
             }
         });
-
-        final Panel pp = new Panel();
-        pp.add(help_b);
         gd.addPanel(pp);
-
+        
         gd.addNumericField("Regularization_(>0)_ch1", BLauncher.iParameters.lreg_[0], 3);
         gd.addNumericField("Regularization_(>0)_ch2", BLauncher.iParameters.lreg_[1], 3);
 
@@ -59,9 +52,7 @@ class SegmentationGUI {
         gd.addNumericField("Remove_region_with_intensities_<", BLauncher.iParameters.min_region_filter_intensities, 0);
 
         Panel p = new Panel();
-        final Button b = new Button("Patch position");
-        b.addActionListener(new ActionListener() {
-
+        GenericGUI.addButton(p, "Patch position", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 final OpenDialog od = new OpenDialog("(Patch file", "");
@@ -71,35 +62,30 @@ class SegmentationGUI {
             }
 
         });
-        p.add(b);
         gd.addPanel(p);
 
-        final Button bp = new Button("Estimate PSF from objective properties");
-        bp.addActionListener(new PSFOpenerActionListener(gd));
         p = new Panel();
-        p.add(bp);
+        GenericGUI.addButton(p, "Estimate PSF from objective properties", new PSFOpenerActionListener(gd));
         gd.addPanel(p);
 
         gd.centerDialog(false);
 
-        if (GenericGUI.iBypassGui == false) {
-            gd.showDialog();
-            if (gd.wasCanceled()) {
-                return -1;
-            }
-
-            BLauncher.iParameters.lreg_[0] = gd.getNextNumber();
-            BLauncher.iParameters.lreg_[1] = gd.getNextNumber();
-            BLauncher.iParameters.min_intensity = gd.getNextNumber();
-            BLauncher.iParameters.min_intensityY = gd.getNextNumber();
-            BLauncher.iParameters.subpixel = gd.getNextBoolean();
-            BLauncher.iParameters.exclude_z_edges = gd.getNextBoolean();
-            BLauncher.iParameters.sigma_gaussian = gd.getNextNumber();
-            BLauncher.iParameters.zcorrec = BLauncher.iParameters.sigma_gaussian / gd.getNextNumber();
-            BLauncher.iParameters.min_region_filter_intensities = gd.getNextNumber();
-            BLauncher.iParameters.mode_intensity = gd.getNextChoiceIndex();
-            BLauncher.iParameters.noise_model = gd.getNextChoiceIndex();
+        gd.showDialog();
+        if (gd.wasCanceled()) {
+            return -1;
         }
+
+        BLauncher.iParameters.lreg_[0] = gd.getNextNumber();
+        BLauncher.iParameters.lreg_[1] = gd.getNextNumber();
+        BLauncher.iParameters.min_intensity = gd.getNextNumber();
+        BLauncher.iParameters.min_intensityY = gd.getNextNumber();
+        BLauncher.iParameters.subpixel = gd.getNextBoolean();
+        BLauncher.iParameters.exclude_z_edges = gd.getNextBoolean();
+        BLauncher.iParameters.sigma_gaussian = gd.getNextNumber();
+        BLauncher.iParameters.zcorrec = BLauncher.iParameters.sigma_gaussian / gd.getNextNumber();
+        BLauncher.iParameters.min_region_filter_intensities = gd.getNextNumber();
+        BLauncher.iParameters.mode_intensity = gd.getNextChoiceIndex();
+        BLauncher.iParameters.noise_model = gd.getNextChoiceIndex();
 
         return 0;
     }

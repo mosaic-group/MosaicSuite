@@ -62,14 +62,10 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     private final JLabel warning = new JLabel("");
     private int ns1, ns2; // slices position of imgaes whenlaunched
-    private final int posx, posy;
 
-    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy) {
+    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2) {
         imgch1 = ch1;
         imgch2 = ch2;
-
-        posx = ParentPosx + 20;
-        posy = ParentPosy + 20;
     }
 
     public void run() {
@@ -199,8 +195,6 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             init2 = true;
         }
 
-        gd.centerDialog(false);
-        gd.setLocation(posx, posy);
         gd.showDialog();
 
         if (maska_im1 != null) {

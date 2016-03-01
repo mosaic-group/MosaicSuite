@@ -112,7 +112,17 @@ public class Parameters implements Serializable {
         str += "min_intensityY" + min_intensityY + "\n";
         str += "sigma_gaussian=" + sigma_gaussian + "\n";
         str += "zcorrec=" + zcorrec + "\n";
-
+        str += "--------- Segmentation ----------------\n";
+        str += "subpixel: " + subpixel + "\n";
+        str += "exclude_z_edges: " + exclude_z_edges + "\n";
+        str += "--------- Visualization ----------------\n";
+        str += "save_images: " + save_images + "\n";
+        str += "dispoutline: " + dispoutline + "\n";
+        str += "dispSoftMask: " + dispSoftMask + "\n";
+        str += "displabels: " + displabels + "\n";
+        str += "dispint: " + dispint + "\n";
+        str += "dispcolors: " + dispcolors + "\n";
+        
         return str;
     }
 }
