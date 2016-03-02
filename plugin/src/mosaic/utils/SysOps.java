@@ -126,6 +126,12 @@ public class SysOps {
                 // Return quietly - just to comply to current behavior.
                 return;
             }
+            // Remove destination file if exist before moving (if not it generate exception).
+            String movedFileAbsolutePath = aDestDir.getAbsolutePath() + File.separator + aSrcFile.getName();
+            File movedFile = new File(movedFileAbsolutePath);
+            if (movedFile.exists()) {
+                FileUtils.deleteQuietly(movedFile);
+            }
             FileUtils.moveFileToDirectory(aSrcFile, aDestDir, aCreateDestDir);
         } catch (final IOException e) {
             e.printStackTrace();
@@ -192,5 +198,15 @@ public class SysOps {
      */
     public static String removeExtension(String aFileName) {
         return FilenameUtils.removeExtension(aFileName);
+    }
+    
+    public static String getPathToFile(String aFileName) {
+        return FilenameUtils.getFullPath(aFileName);
+    }
+    
+    public static String getSystemUsername() {
+        String username = System.getenv("USER");
+        if (username == null || username.equals("")) return null;
+        return username;
     }
 }

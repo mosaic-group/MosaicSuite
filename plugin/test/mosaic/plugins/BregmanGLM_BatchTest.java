@@ -282,7 +282,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/cluster/";
         final String setupString         = "run";
-        final String macroOptions        = "username=" + System.getProperty("user.name");
+        final String macroOptions        = "process username=" + System.getProperty("user.name");
         final String inputFile           = null;
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/droplet_1_outline_overlay_c1.zip",
                                             "__outline_overlay_c1.zip/droplet_2_outline_overlay_c1.zip",
@@ -312,9 +312,6 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Create tested plugIn
         Interpreter.batchMode = true;
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-        BregmanGLM_Batch.test_mode = true;
-        BregmanGLM_Batch.test_path = getTestTmpPath();
-        plugin.setUseCluster(true);
         copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("droplet_1.tif", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("droplet_2.tif", getTestDataPath() + tcDirName, tmpPath);
@@ -358,8 +355,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
       // Define test data
       final String tcDirName           = "Squassh/test2dCluster/";
       final String setupString         = "run";
-      final String macroOptions        = "username=" + System.getProperty("user.name");
-      final String inputFile           = null;
+      final String macroOptions        = "process username=" + System.getProperty("user.name");
+      final String inputFile           = "test2d.tif";
       final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
       final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
       final String[] expectedFiles     = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
@@ -368,11 +365,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
       // Create tested plugIn
       Interpreter.batchMode = true;
       final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-      BregmanGLM_Batch.test_mode = true;
-      BregmanGLM_Batch.test_path = getTestTmpPath();
-      plugin.setUseCluster(true);
       copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
-      copyTestResources("test2d.tif", getTestDataPath() + tcDirName, tmpPath);
+//      copyTestResources("test2d.tif", getTestDataPath() + tcDirName, tmpPath);
       
       // Test it
       testPlugin(plugin, tcDirName,

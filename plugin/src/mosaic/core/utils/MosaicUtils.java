@@ -814,6 +814,42 @@ public class MosaicUtils {
         return null;
     }
 
+    
+    /**
+     * IJ method for parsing macro checkboxes. 
+     * Returns true if aKey is in aOptions and not in a bracketed literal (e.g., "[literal]")
+     * @param aKey name of checkbox field
+     * @param aOptions macro options
+     * @return true if exist
+     */
+    public static boolean parseCheckbox(final String aKey, final String aOptions) {
+        String s1 = aOptions;
+        String s2 = aKey + " ";
+        if (s1.startsWith(s2))
+            return true;
+        s2 = " " + s2;
+        int len1 = s1.length();
+        int len2 = s2.length();
+        boolean match, inLiteral=false;
+        char c;
+        for (int i=0; i<len1-len2+1; i++) {
+            c = s1.charAt(i);
+            if (inLiteral && c==']')
+                inLiteral = false;
+            else if (c=='[')
+                inLiteral = true;
+            if (c!=s2.charAt(0) || inLiteral || (i>1&&s1.charAt(i-1)=='='))
+                continue;
+            match = true;
+            for (int j=0; j<len2; j++) {
+                if (s2.charAt(j)!=s1.charAt(i+j))
+                {match=false; break;}
+            }
+            if (match) return true;
+        }
+        return false;
+    }
+    
     /**
      * Given an imglib2 image return the dimensions as an array of long
      *

@@ -3,6 +3,7 @@ package mosaic.utils;
 import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.io.FileInfo;
 import ij.measure.Calibration;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
@@ -422,24 +423,34 @@ public class ImgUtils {
 
     /**
      * @param aImage input image
-     * @return the folder where the image is stored, if it is not saved it return the folder of the original image (or null if impossible to detect).
+     * @return the folder where the image is stored or null if impossible to detect
      */
     public static String getImageDirectory(ImagePlus aImage) {
         if (aImage == null) {
             return null;
         }
     
-        if (aImage.getFileInfo().directory == "") {
-            if (aImage.getOriginalFileInfo() == null || aImage.getOriginalFileInfo().directory == "") {
-                return null;
-            }
-            return aImage.getOriginalFileInfo().directory;
+        if (aImage.getOriginalFileInfo() == null || aImage.getOriginalFileInfo().directory == "") {
+            return null;
         }
-        
-        return aImage.getFileInfo().directory;
+        return aImage.getOriginalFileInfo().directory;
     }
     
-
-
+    /**
+     * @param aImage input image
+     * @return Absolute path to image or null if impossible to detect.
+     */
+    public static String getImageAbsolutePath(ImagePlus aImage) {
+        if (aImage != null) {
+            FileInfo fi = aImage.getOriginalFileInfo();
+            if (fi!=null) {
+                if (fi.url!=null && !fi.url.equals(""))
+                    return fi.url;
+                else if (fi.directory!=null && fi.fileName!=null)
+                    return fi.directory + fi.fileName;
+            }
+        }
+        return null;
+    }
 }
 

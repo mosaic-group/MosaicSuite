@@ -21,6 +21,7 @@ import javax.swing.border.EmptyBorder;
 
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
+import mosaic.utils.SysOps;
 
 
 /**
@@ -40,9 +41,9 @@ public class ClusterGUI extends JDialog {
     ClusterProfile cp_sel;
     protected ClusterSession cl;
 
-    final JTextField tx_u;
+    protected final JTextField tx_u;
+    protected final JPasswordField tx_p;
     private final JTextField tx_e;
-    final JPasswordField tx_p;
     ClusterProfile[] cp = null;
     private final float estimated_time = 0;
 
@@ -105,7 +106,7 @@ public class ClusterGUI extends JDialog {
         JLabel lblNewLabel_2 = new JLabel("Username");
         contentPane.add(lblNewLabel_2);
 
-        tx_u = new JTextField();
+        tx_u = new JTextField(SysOps.getSystemUsername());
         contentPane.add(tx_u);
 
         lblNewLabel_2 = new JLabel("Password");
