@@ -36,7 +36,7 @@ public class ClusterModeRC {
 
         final ClusterGUI cg = new ClusterGUI();
         ClusterSession ss = cg.getClusterSession();
-        ss.setInputArgument("text1");
+        ss.setInputParameterName("text1");
         ss.setSlotPerProcess(1);
         File[] fileslist = null;
 

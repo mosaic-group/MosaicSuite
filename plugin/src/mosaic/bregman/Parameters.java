@@ -10,50 +10,6 @@ import net.imglib2.type.numeric.real.DoubleType;
 public class Parameters implements Serializable {
     private static final long serialVersionUID = 2894976420127964864L;
 
-    // =========================== Already deleted in code - before removing update config file.
-    @SuppressWarnings("unused") final private int oc_s = 1;  
-    @SuppressWarnings("unused") final private int maxves_size = -1; 
-    @SuppressWarnings("unused") final private boolean mode_classic = false; 
-    @SuppressWarnings("unused") final private boolean mode_voronoi2 = true; 
-    @SuppressWarnings("unused") final private int model_oversampling = 1; 
-    @SuppressWarnings("unused") final private boolean displowlevels = true; 
-    @SuppressWarnings("unused") final private boolean looptest = false; 
-    @SuppressWarnings("unused") final private boolean fastsquassh = false; 
-    @SuppressWarnings("unused") final private int overs = 2; 
-    @SuppressWarnings("unused") final private boolean usePSF = true; 
-    @SuppressWarnings("unused") final private boolean automatic_int = false; 
-    @SuppressWarnings("unused") final private int dispEmodulo = 10; 
-    @SuppressWarnings("unused") final private boolean remask = false; 
-    @SuppressWarnings("unused") final private int nlevels = 1; 
-    @SuppressWarnings("unused") final private boolean dispvoronoi = false; 
-    @SuppressWarnings("unused") final private int RSSmodulo = 5000; 
-    @SuppressWarnings("unused") final private int regionSegmentLevel = 2;  
-    @SuppressWarnings("unused") final private boolean RSSinit = false; 
-    @SuppressWarnings("unused") final private double thresh = 0.75; 
-    @SuppressWarnings("unused") final private boolean findregionthresh = true; 
-    @SuppressWarnings("unused") final private double regionthresh = 0.19;
-    @SuppressWarnings("unused") final private double regionthreshy = 0.19;
-    @SuppressWarnings("unused") final private boolean dispwindows = true;
-    @SuppressWarnings("unused") final private int RegionsIntensitymodulo = 3000;
-    @SuppressWarnings("unused") final private double[] cl = new double[2];
-    @SuppressWarnings("unused") final private boolean firstphase = true;
-    @SuppressWarnings("unused") final private int ni = -1, nj = -1, nz = -1;
-    @SuppressWarnings("unused") final private int max_nsb = 151;
-    @SuppressWarnings("unused") final private boolean refinement = true;
-    @SuppressWarnings("unused") final private int energyEvaluationModulo = 5;
-    @SuppressWarnings("unused") final private boolean debug = false;
-    @SuppressWarnings("unused") final private double ldata = 1;
-    @SuppressWarnings("unused") final private double gamma = 1;
-    @SuppressWarnings("unused") final private double tol = 1e-7;  // Energy margin below which minimizing energy is stopped
-    @SuppressWarnings("unused") final private double betaMLEindefault = 1.0;
-    @SuppressWarnings("unused") final private double betaMLEoutdefault = 0.0003;
-    @SuppressWarnings("unused") final private int minves_size = 2;
-    @SuppressWarnings("unused") final private psf<DoubleType> PSF = null;
-    @SuppressWarnings("unused") final private int oversampling2ndstep = -3; // not used and set in segmentaiton
-    @SuppressWarnings("unused") final private int interpolation = 3;// 4
-    @SuppressWarnings("unused") final private double colocthreshold = 0.5;
-    @SuppressWarnings("unused") final private int nchannels = 2;
-    
     // ================================ General parameters
     public String wd = null;
     public int nthreads = 4;

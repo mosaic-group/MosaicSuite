@@ -37,15 +37,16 @@ import mosaic.core.utils.ShellCommand;
  * @author Pietro Incardona
  */
 public class ClusterSession {
-
     private static final Logger logger = Logger.getLogger(ClusterSession.class);
+    
+    public static final String DefaultInputParameterName = "input";
 
     private int nImages;
     private final ClusterProfile cp;
     private SecureShellSession ss;
     private int ns_pp = ns_pp_preferred;
     private static int ns_pp_preferred = 1;
-    private String ia_s = "filepath";
+    private String iInputParameterName = DefaultInputParameterName;
 
     ClusterSession(ClusterProfile cp_) {
         cp = cp_;
@@ -71,13 +72,15 @@ public class ClusterSession {
 
     /**
      * Set input argument
-     *
-     * @param ia_s string for the input argument
+     * @param aInputParamName string for the input argument
      */
-    public void setInputArgument(String ia_s) {
-        this.ia_s = ia_s;
+    public void setInputParameterName(String aInputParamName) {
+        iInputParameterName = aInputParamName;
     }
-
+    public String getInputParameterName() {
+        return iInputParameterName;
+    }
+    
     /**
      * Cleanup all the data you created
      */
@@ -229,7 +232,7 @@ public class ClusterSession {
                                         "if (job_id == \"\" )\n" + 
                                         "   exit(\"No job id\");\n" + 
                                         "\n" + 
-                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + "settings.dat" + " " + iInputParameterName + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 

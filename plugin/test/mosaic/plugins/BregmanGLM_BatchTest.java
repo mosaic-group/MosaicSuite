@@ -184,8 +184,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/ScriptR/";
         final String setupString         = "run";
-        final String macroOptions        = "";
-        final String inputFile           = "1 Ctrl 1.tif";
+        final String macroOptions        = "input=/tmp/test";
+        final String inputFile           = "";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/1 Ctrl 1_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/1 Ctrl 2_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/1 Ctrl 3_outline_overlay_c1.zip", 
@@ -216,6 +216,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
         copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("1 Ctrl 1.tif", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("1 Ctrl 2.tif", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("1 Ctrl 3.tif", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("2 OA1.tif", getTestDataPath() + tcDirName, tmpPath);
@@ -366,7 +367,6 @@ public class BregmanGLM_BatchTest extends CommonBase {
       Interpreter.batchMode = true;
       final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
       copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
-//      copyTestResources("test2d.tif", getTestDataPath() + tcDirName, tmpPath);
       
       // Test it
       testPlugin(plugin, tcDirName,

@@ -25,15 +25,9 @@ import org.apache.log4j.Logger;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.Macro;
 import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
 import ij.macro.Interpreter;
-import mosaic.bregman.BLauncher;
-import mosaic.bregman.Parameters;
 import mosaic.core.GUI.HelpGUI;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.plugins.BregmanGLM_Batch;
 
 
 public class GenericGUI {
@@ -46,57 +40,15 @@ public class GenericGUI {
     // Input params
     protected ImagePlus iInputImage;
 
+    // Read params
+    private String iInputField = "";
+    
     protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     static boolean useGUI = true;
+    
     public GenericGUI(ImagePlus aInputImg) {
         iInputImage = aInputImg;
         useGUI = !(IJ.isMacro() || Interpreter.batchMode);
-    }
-
-    /**
-     * Draw a window if we are running as a macro, basically does not draw
-     * any window, but just get the parameters from the command line
-     * @param gd Generic dialog where to draw
-     */
-    public RunMode drawBatchWindow() {
-        System.out.println("Batch window");
-
-        final GenericDialog gd = new GenericDialog("Batch window");
-        addTextArea(gd, null);
-        gd.showDialog();
-        if (gd.wasCanceled()) {
-            return RunMode.STOP;
-        }
-
-        String macroOptions = Macro.getOptions();
-
-        final String config = MosaicUtils.parseString("config", macroOptions);
-        if (config != null) {
-            BLauncher.iParameters = BregmanGLM_Batch.getConfigHandler().LoadFromFile(config, Parameters.class, BLauncher.iParameters);
-            logger.info("config (cluster) = [" + config + "]");
-        }
-
-        final String filepath = MosaicUtils.parseString("filepath", macroOptions);
-        if (filepath != null) {
-            BLauncher.iParameters.wd = filepath;
-            logger.info("wd (cluster) = [" + BLauncher.iParameters.wd + "]");
-        }
-        else {
-            BLauncher.iParameters.wd = gd.getNextText();
-            logger.info("wd (batch) = [" + BLauncher.iParameters.wd + "]");
-        }
-        
-        // This "if" is needed currently to not overwrite save outputs by GUI (which is default off/false for radio button).
-        if (config == null && useGUI) {
-            if (BackgroundSubGUI.getParameters() == -1 || SegmentationGUI.getParameters() == -1 || VisualizationGUI.getParameters() == -1) {
-                return RunMode.STOP;
-            }
-        }
-        if (MosaicUtils.parseCheckbox("process", macroOptions)) {
-            return RunMode.CLUSTER;
-        }
-
-        return RunMode.LOCAL;
     }
 
     /**
@@ -104,11 +56,13 @@ public class GenericGUI {
      * @param Active imagePlus
      * @return run mode, -1 when cancelled
      */
-    public RunMode drawStandardWindow(String aImgPath) {
-        final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
+    public RunMode drawStandardWindow(String aImgPath, boolean aRunOnCluster) {
+        iInputField = aImgPath;
+
+        final GenericDialog gd = new GenericDialog("Squassh");
         gd.setInsets(-10, 0, 3);
-    
-        addTextArea(gd, aImgPath);
+        
+        gd.addStringField("Input:", iInputField, 50);
     
         Panel p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
         addButton(p, "Select File/Folder", new FileOpenerActionListener(gd.getTextArea1()));
@@ -156,7 +110,7 @@ public class GenericGUI {
         });
         gd.addPanel(p);
     
-        gd.addCheckbox("Process on computer cluster", false);
+        gd.addCheckbox("Process on computer cluster", aRunOnCluster);
     
         p = new Panel();
         p.add(new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
@@ -170,28 +124,21 @@ public class GenericGUI {
             return RunMode.STOP;
         }
     
-        BLauncher.iParameters.wd = gd.getNextText();
+        iInputField = gd.getNextString();
     
         RunMode runMode = (gd.getNextBoolean() == true) ? RunMode.CLUSTER : RunMode.LOCAL;
-    
+        
         return runMode;
     }
 
-    private void addTextArea(GenericDialog aGenericDialog, String aImgPath) {
-        String fileInfo = "Input Image: \n" + "insert Path to file or folder, or press Button below.";
-        if (aImgPath != null) {
-            fileInfo = aImgPath;
-        }
-        else if (BLauncher.iParameters.wd != null) {
-            fileInfo = BLauncher.iParameters.wd;
-        }
-        aGenericDialog.addTextAreas(fileInfo, null, 2, 50);
-    }
-
+    public String getInput() { return iInputField; }
+    
     private void addLabel(Panel p, String aLabel) {
-        Label label = new Label(aLabel);
-        label.setFont(new Font(null, Font.BOLD, 12));
-        p.add(label);
+        if (useGUI) {
+            Label label = new Label(aLabel);
+            label.setFont(new Font(null, Font.BOLD, 12));
+            p.add(label);
+        }
     }
 
     static void addButton(Panel aPanel, String aLabel, ActionListener aActionListener) {
@@ -257,13 +204,6 @@ public class GenericGUI {
 
     private class Helpwindow extends HelpGUI {
         public Helpwindow(int x, int y) {
-            JFrame frame = new JFrame();
-            frame.setSize(555, 480);
-            frame.setLocation(x + 500, y - 50);
-
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-            panel.setPreferredSize(new Dimension(575, 720));
-
             final JPanel pref = new JPanel(new GridBagLayout());
             setPanel(pref);
             setHelpTitle("Squassh");
@@ -282,9 +222,14 @@ public class GenericGUI {
             desc = new String("Select one or more output and visualization options");
             createField("Visualization and output", desc, null);
 
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+            panel.setPreferredSize(new Dimension(575, 720));
             panel.add(pref);
+            
+            JFrame frame = new JFrame();
+            frame.setSize(555, 480);
+            frame.setLocation(x + 500, y - 50);
             frame.add(panel);
-
             frame.setVisible(true);
         }
     }
