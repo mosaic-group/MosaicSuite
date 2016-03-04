@@ -11,10 +11,11 @@ import ij.IJ;
 
 
 public class RScript {
+    public static final String ScriptName = "R_analysis.R";
 
     public RScript(String path, String ObjectsC1DataFile, String ObjectsC2DataFile, String ImagesDataFile, int NumberOfGroups, int[] ImagesPerGroup, String[] GroupNames, String Ch1Name, String Ch2Name) {
         try {
-            PrintWriter Script = new PrintWriter(path + File.separator + "R_analysis.R");
+            PrintWriter Script = new PrintWriter(path + File.separator + ScriptName);
             Script.println("#R_analysis v1.5 ");
             Script.println();
             

@@ -20,6 +20,7 @@ import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.process.ImageProcessor;
 import mosaic.bregman.BLauncher;
+import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.ImgUtils;
 
@@ -63,9 +64,12 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
     private final JLabel warning = new JLabel("");
     private int ns1, ns2; // slices position of imgaes whenlaunched
 
-    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2) {
+    private final Parameters iParameters;
+    
+    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, Parameters aParameters) {
         imgch1 = ch1;
         imgch2 = ch2;
+        iParameters = aParameters;
     }
 
     public void run() {
@@ -79,8 +83,8 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         final String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
         final boolean bgroup3[] = { false, false };
 
-        bgroup3[0] = BLauncher.iParameters.usecellmaskX;
-        bgroup3[1] = BLauncher.iParameters.usecellmaskY;
+        bgroup3[0] = iParameters.usecellmaskX;
+        bgroup3[1] = iParameters.usecellmaskY;
 
         t1 = new JSlider();
         t2 = new JSlider();
@@ -96,7 +100,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
         gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
 
-        gd.addNumericField("Threshold_channel_1 (0 to 1)", BLauncher.iParameters.thresholdcellmask, 4);
+        gd.addNumericField("Threshold_channel_1 (0 to 1)", iParameters.thresholdcellmask, 4);
         final Panel p1 = new Panel();
         p1.add(l1);
         p1.add(t1);
@@ -107,7 +111,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         pz1.add(tz1);
         gd.addPanel(pz1);
 
-        gd.addNumericField("Threshold_channel_2 (0 to 1)", BLauncher.iParameters.thresholdcellmasky, 4);
+        gd.addNumericField("Threshold_channel_2 (0 to 1)", iParameters.thresholdcellmasky, 4);
 
         final Panel p2 = new Panel();
         p2.add(l2);
@@ -140,8 +144,8 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         t2.setMinimum(0);
         t2.setMaximum(maxslider);
 
-        t1.setValue((int) logvalue(BLauncher.iParameters.thresholdcellmask));
-        t2.setValue((int) logvalue(BLauncher.iParameters.thresholdcellmasky));
+        t1.setValue((int) logvalue(iParameters.thresholdcellmask));
+        t2.setValue((int) logvalue(iParameters.thresholdcellmasky));
 
         val1 = new Double((v1.getText()));
         val2 = new Double((v2.getText()));
@@ -180,7 +184,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             tz2.setEnabled(false);
         }
 
-        if (BLauncher.iParameters.usecellmaskX && imgch1 != null) {
+        if (iParameters.usecellmaskX && imgch1 != null) {
             maska_im1 = new ImagePlus();
             initpreviewch1(imgch1);
             previewBinaryCellMask(new Double((v1.getText())), imgch1, maska_im1, 1);
@@ -188,7 +192,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
         }
 
-        if (BLauncher.iParameters.usecellmaskY && imgch2 != null) {
+        if (iParameters.usecellmaskY && imgch2 != null) {
             maska_im2 = new ImagePlus();
             initpreviewch2(imgch2);
             previewBinaryCellMask(new Double((v2.getText())), imgch2, maska_im2, 2);
@@ -218,10 +222,10 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
             return;
         }
 
-        BLauncher.iParameters.usecellmaskX = gd.getNextBoolean();
-        BLauncher.iParameters.usecellmaskY = gd.getNextBoolean();
-        BLauncher.iParameters.thresholdcellmask = gd.getNextNumber();
-        BLauncher.iParameters.thresholdcellmasky = gd.getNextNumber();
+        iParameters.usecellmaskX = gd.getNextBoolean();
+        iParameters.usecellmaskY = gd.getNextBoolean();
+        iParameters.thresholdcellmask = gd.getNextNumber();
+        iParameters.thresholdcellmasky = gd.getNextNumber();
     }
 
     private double expvalue(double slidervalue) {

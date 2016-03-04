@@ -8,11 +8,11 @@ import java.awt.event.ActionListener;
 
 import ij.gui.GenericDialog;
 import ij.io.OpenDialog;
-import mosaic.bregman.BLauncher;
+import mosaic.bregman.Parameters;
 
 
 class SegmentationGUI {
-    static int getParameters() {
+    static int getParameters(final Parameters aParameters) {
         final Font bf = new Font(null, Font.BOLD, 12);
 
         final GenericDialog gd = new GenericDialog("Segmentation options");
@@ -28,28 +28,28 @@ class SegmentationGUI {
         });
         gd.addPanel(pp);
         
-        gd.addNumericField("Regularization_(>0)_ch1", BLauncher.iParameters.lreg_[0], 3);
-        gd.addNumericField("Regularization_(>0)_ch2", BLauncher.iParameters.lreg_[1], 3);
+        gd.addNumericField("Regularization_(>0)_ch1", aParameters.lreg_[0], 3);
+        gd.addNumericField("Regularization_(>0)_ch2", aParameters.lreg_[1], 3);
 
-        gd.addNumericField("Minimum_object_intensity_channel_1_(0_to_1)", BLauncher.iParameters.min_intensity, 3);
-        gd.addNumericField("                        _channel_2_(0_to_1)", BLauncher.iParameters.min_intensityY, 3);
+        gd.addNumericField("Minimum_object_intensity_channel_1_(0_to_1)", aParameters.min_intensity, 3);
+        gd.addNumericField("                        _channel_2_(0_to_1)", aParameters.min_intensityY, 3);
 
-        gd.addCheckbox("Subpixel_segmentation", BLauncher.iParameters.subpixel);
-        gd.addCheckbox("Exclude_Z_edge", BLauncher.iParameters.exclude_z_edges);
+        gd.addCheckbox("Subpixel_segmentation", aParameters.subpixel);
+        gd.addCheckbox("Exclude_Z_edge", aParameters.exclude_z_edges);
 
         final String choice1[] = { "Automatic", "Low", "Medium", "High" };
-        gd.addChoice("Local_intensity_estimation ", choice1, choice1[BLauncher.iParameters.mode_intensity]);
+        gd.addChoice("Local_intensity_estimation ", choice1, choice1[aParameters.mode_intensity]);
 
         final String choice2[] = { "Poisson", "Gauss" };
-        gd.addChoice("Noise_Model ", choice2, choice2[BLauncher.iParameters.noise_model]);
+        gd.addChoice("Noise_Model ", choice2, choice2[aParameters.noise_model]);
 
         gd.addMessage("PSF model (Gaussian approximation)", bf);
 
-        gd.addNumericField("standard_deviation_xy (in pixels)", BLauncher.iParameters.sigma_gaussian, 2);
-        gd.addNumericField("standard_deviation_z  (in pixels)", BLauncher.iParameters.sigma_gaussian / BLauncher.iParameters.zcorrec, 2);
+        gd.addNumericField("standard_deviation_xy (in pixels)", aParameters.sigma_gaussian, 2);
+        gd.addNumericField("standard_deviation_z  (in pixels)", aParameters.sigma_gaussian / aParameters.zcorrec, 2);
 
         gd.addMessage("Region filter", bf);
-        gd.addNumericField("Remove_region_with_intensities_<", BLauncher.iParameters.min_region_filter_intensities, 0);
+        gd.addNumericField("Remove_region_with_intensities_<", aParameters.min_region_filter_intensities, 0);
 
         Panel p = new Panel();
         GenericGUI.addButton(p, "Patch position", new ActionListener() {
@@ -58,7 +58,7 @@ class SegmentationGUI {
                 final OpenDialog od = new OpenDialog("(Patch file", "");
                 final String directory = od.getDirectory();
                 final String name = od.getFileName();
-                if (directory != null && name != null) BLauncher.iParameters.patches_from_file = directory + name;
+                if (directory != null && name != null) aParameters.patches_from_file = directory + name;
             }
 
         });
@@ -75,17 +75,17 @@ class SegmentationGUI {
             return -1;
         }
 
-        BLauncher.iParameters.lreg_[0] = gd.getNextNumber();
-        BLauncher.iParameters.lreg_[1] = gd.getNextNumber();
-        BLauncher.iParameters.min_intensity = gd.getNextNumber();
-        BLauncher.iParameters.min_intensityY = gd.getNextNumber();
-        BLauncher.iParameters.subpixel = gd.getNextBoolean();
-        BLauncher.iParameters.exclude_z_edges = gd.getNextBoolean();
-        BLauncher.iParameters.sigma_gaussian = gd.getNextNumber();
-        BLauncher.iParameters.zcorrec = BLauncher.iParameters.sigma_gaussian / gd.getNextNumber();
-        BLauncher.iParameters.min_region_filter_intensities = gd.getNextNumber();
-        BLauncher.iParameters.mode_intensity = gd.getNextChoiceIndex();
-        BLauncher.iParameters.noise_model = gd.getNextChoiceIndex();
+        aParameters.lreg_[0] = gd.getNextNumber();
+        aParameters.lreg_[1] = gd.getNextNumber();
+        aParameters.min_intensity = gd.getNextNumber();
+        aParameters.min_intensityY = gd.getNextNumber();
+        aParameters.subpixel = gd.getNextBoolean();
+        aParameters.exclude_z_edges = gd.getNextBoolean();
+        aParameters.sigma_gaussian = gd.getNextNumber();
+        aParameters.zcorrec = aParameters.sigma_gaussian / gd.getNextNumber();
+        aParameters.min_region_filter_intensities = gd.getNextNumber();
+        aParameters.mode_intensity = gd.getNextChoiceIndex();
+        aParameters.noise_model = gd.getNextChoiceIndex();
 
         return 0;
     }

@@ -58,12 +58,13 @@ public class BLauncher {
     // filled when the plugins is called with the options min=... max=...
     public static double norm_max = 0.0;
     public static double norm_min = 0.0;
-    public static Parameters iParameters = new Parameters();
+    
+    private final Parameters iParameters;
 
     private int ni, nj, nz;
+    private int iNumOfChannels = -1;
     private int iOutputImgScale = 1;
     
-    private int iNumOfChannels = -1;
     private ImagePlus[] iInputImages;
     private double[][][][] iNormalizedImages;
     private boolean[][][][] iCellMasks;
@@ -86,7 +87,8 @@ public class BLauncher {
      * Launch the Segmentation
      * @param aImage image to be segmented
      */
-    public BLauncher(ImagePlus aImage) {
+    public BLauncher(ImagePlus aImage, Parameters aParameters) {
+        iParameters = aParameters;
         if (aImage == null) {
             IJ.error("No image to process");
             return;

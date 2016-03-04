@@ -21,41 +21,31 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.apache.log4j.Logger;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import ij.macro.Interpreter;
+import mosaic.bregman.Parameters;
 import mosaic.core.GUI.HelpGUI;
+import mosaic.plugins.BregmanGLM_Batch.RunMode;
 
 
 public class GenericGUI {
-    private static final Logger logger = Logger.getLogger(GenericGUI.class);
-    
-    public enum RunMode {
-        CLUSTER, LOCAL, STOP
-    }
-    
     // Input params
+    protected final Parameters iParameters;
     protected ImagePlus iInputImage;
 
     // Read params
     private String iInputField = "";
     
     protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
-    static boolean useGUI = true;
+    static boolean iUseGui = true;
     
-    public GenericGUI(ImagePlus aInputImg) {
+    public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters) {
+        iParameters = aParameters;
         iInputImage = aInputImg;
-        useGUI = !(IJ.isMacro() || Interpreter.batchMode);
+        iUseGui = aUseGui;
     }
 
-    /**
-     * Draw the standard squassh main window
-     * @param Active imagePlus
-     * @return run mode, -1 when cancelled
-     */
     public RunMode drawStandardWindow(String aImgPath, boolean aRunOnCluster) {
         iInputField = aImgPath;
 
@@ -74,7 +64,7 @@ public class GenericGUI {
         addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                BackgroundSubGUI.getParameters();
+                BackgroundSubGUI.getParameters(iParameters);
             }
         });
         gd.addPanel(p);
@@ -84,7 +74,7 @@ public class GenericGUI {
         addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                SegmentationGUI.getParameters();
+                SegmentationGUI.getParameters(iParameters);
             }
         });        
         gd.addPanel(p);
@@ -94,7 +84,7 @@ public class GenericGUI {
         addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, imgch2);
+                final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, imgch2, iParameters);
                 gds.run();
             }
         });  
@@ -105,7 +95,7 @@ public class GenericGUI {
         addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                VisualizationGUI.getParameters();
+                VisualizationGUI.getParameters(iParameters);
             }
         });
         gd.addPanel(p);
@@ -121,7 +111,7 @@ public class GenericGUI {
     
         gd.showDialog();
         if (gd.wasCanceled()) {
-            return RunMode.STOP;
+            return RunMode.ERROR;
         }
     
         iInputField = gd.getNextString();
@@ -134,7 +124,7 @@ public class GenericGUI {
     public String getInput() { return iInputField; }
     
     private void addLabel(Panel p, String aLabel) {
-        if (useGUI) {
+        if (iUseGui) {
             Label label = new Label(aLabel);
             label.setFont(new Font(null, Font.BOLD, 12));
             p.add(label);
@@ -145,7 +135,7 @@ public class GenericGUI {
         // Do not create buttons if not in GUI mode. It might be case of running on cluster with
         // headless mode and creating button will throw an exception. Anyway, in batch or macro mode
         // it is a pointless to have buttons since interaction with user is not possible.
-        if (useGUI) {
+        if (iUseGui) {
             final Button b = new Button(aLabel);
             b.addActionListener(aActionListener);
             aPanel.add(b);

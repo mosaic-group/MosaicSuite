@@ -21,7 +21,6 @@ import mosaic.bregman.Files.Type;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.bregman.GUI.GenericGUI;
-import mosaic.bregman.GUI.GenericGUI.RunMode;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
@@ -35,196 +34,243 @@ import mosaic.utils.io.serialize.SerializedDataFile;
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
     
-    // constant settings for plug-in
     private static final String PluginName = "Squassh";
     private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.dat";
     private static final String ConfigPrefix = "===> Conf: ";
     
-    private enum SourceData {
-        Image,      // image provided by Fiji/ImageJ via plugin interface 
-        WorkDirOrFile,    // working dir for path/file privided by macro options or from config file
-        None        // not specified - user must enter its own image source in GUI
+    private enum DataSource {
+        IMAGE,            // image provided by Fiji/ImageJ via plugin interface 
+        WORK_DIR_OR_FILE, // working dir for path/file privided by macro options or from config file
+        NONE              // not specified - user must enter its own image source in GUI
     }
     
-    // Input parameters
+    public enum RunMode {
+        CLUSTER,          // files will be sent on cluster
+        LOCAL,            // files will be processed locally 
+        ERROR             // there is an error and plug-in will be stopped
+    }
+    
     ImagePlus iInputImage;
+    Parameters iParameters = new Parameters();
     
-    
+    @Override
+    public void run(ImageProcessor imp) {}
+
     @Override
     public int setup(String aArgs, ImagePlus aInputImage) {
         iInputImage = aInputImage;
-        
-        boolean isMacro = IJ.isMacro() || Interpreter.batchMode;
-        if (isMacro) {
-            aArgs = Macro.getOptions();
-        }
-        logger.info("Input options: [" + aArgs + "]");
         
         // Initialize CSV format
         // TODO: This is ridiculous and must be refactored
         CSVOutput.initCSV(1 /* oc_s */);
 
-        // Read settings
+        // ==============================================================================
+        // Read settings 
+        boolean isMacro = IJ.isMacro() || Interpreter.batchMode;
+        if (isMacro) {
+            aArgs = Macro.getOptions();
+        }
+        logger.info("Input options: [" + aArgs + "]");
         readConfiguration(aArgs);
-        System.out.println(mosaic.utils.Debug.getJsonString(BLauncher.iParameters));
-        
         readNormalizationParams(aArgs);
         boolean iProcessOnCluster = readClusterFlag(aArgs);
-        readNumberOfThreads(aArgs);
-        
+        iParameters.nthreads = readNumberOfThreads(aArgs);
+        String workDir = readWorkingDirectoryFromArgs(aArgs);
+
+        // ==============================================================================
         // Decide what input take into segmentation. Currently priorities are:
         // 1. input file/dir provided in arguments, if not provided then
         // 2. take input image provided by Fiji (active window), if null then
         // 3. try to read old working directory from config file (or from provided file), if null
         // 4. run anyway, user may want to enter dir/file manually into window
         // It may be chnaged later by user via editing input field
-        logger.info(ConfigPrefix + "Working directory read from config file (or default) = [" + BLauncher.iParameters.wd + "]");
+        logger.info(ConfigPrefix + "Working directory read from args: [" + (workDir == null ? "<null>" : workDir) + "]");
         logger.info(ConfigPrefix + "Input image = [" + iInputImage + "][" + ImgUtils.getImageAbsolutePath(iInputImage) + "]");
-        String workDir = readWorkingDirectoryFromArgs(aArgs);
-        SourceData iSourceData = null;
+        logger.info(ConfigPrefix + "Working directory read from config file (or default) = [" + iParameters.wd + "]");
+        DataSource iSourceData = null;
         if (workDir != null) {
-            iSourceData = SourceData.WorkDirOrFile;
+            iSourceData = DataSource.WORK_DIR_OR_FILE;
         } else if (iInputImage != null) {
-            iSourceData = SourceData.Image;
+            iSourceData = DataSource.IMAGE;
             String imgPath = ImgUtils.getImageAbsolutePath(iInputImage);
             workDir = imgPath != null ? imgPath : (iInputImage != null) ? "Input Image: " + iInputImage.getTitle() : null;
         }
-        else if (BLauncher.iParameters.wd != null) {
-            iSourceData = SourceData.WorkDirOrFile;
-            workDir = BLauncher.iParameters.wd;
+        else if (iParameters.wd != null) {
+            iSourceData = DataSource.WORK_DIR_OR_FILE;
+            workDir = iParameters.wd;
         } else {
-            iSourceData = SourceData.None;
+            iSourceData = DataSource.NONE;
             workDir = "Input Image: <path to file or folder>, or press button below.";
         }
-        logger.info(ConfigPrefix + "Working directory = [" + workDir + "]");
-        logger.info(ConfigPrefix + "Working directory mode = [" + iSourceData + "]");
+        logger.info(ConfigPrefix + "Working mode = " + iSourceData + ", Working directory = [" + workDir + "]");
+
+        // ==============================================================================
+        // Run GUI and take input from user
+        boolean isHeadlessMode = GraphicsEnvironment.isHeadless();
+        boolean iGuiModeEnabled = !(isMacro || isHeadlessMode);
+        logger.info("headlessMode = " + isHeadlessMode + ", isMacro = " + IJ.isMacro() + ", batchMode = " + Interpreter.batchMode);
+        GenericGUI window = new GenericGUI(iInputImage, iGuiModeEnabled, iParameters);
+        RunMode runMode = window.drawStandardWindow(workDir, iProcessOnCluster);
         
-        boolean iIsHeadlessMode = GraphicsEnvironment.isHeadless();
-        boolean iGuiModeEnabled = !(isMacro || iIsHeadlessMode);
-        boolean iUseClusterMode = iIsHeadlessMode;
-        logger.info("iIsHeadlessMode = " + iIsHeadlessMode);
-        logger.info("input img = [" + (iInputImage != null ? iInputImage.getTitle() : "<no img>") + "]");
-        logger.info("run(...)           clustermode = " + iUseClusterMode);
-        logger.info("                  IJ.isMacro() = " + IJ.isMacro());
-        logger.info("         Interpreter.batchMode = " + Interpreter.batchMode);
-        logger.info("               iGuiModeEnabled = " + iGuiModeEnabled);
-        logger.info("             iProcessOnCluster = " + iProcessOnCluster);
-        logger.info("                       imgPath = [" + workDir + "]");
-
-        GenericGUI window = new GenericGUI(iInputImage);
-        RunMode rm = window.drawStandardWindow(workDir, iProcessOnCluster);
-        logger.info("                       runmode = " + rm);
-
-        if (rm == RunMode.STOP) {
+        logger.info("Runmode = " + runMode);
+        if (runMode == RunMode.ERROR) {
             if (!iGuiModeEnabled) Macro.abort();
             return DONE;
         }
         
-        // Update workDir with one read from GUI. 
-        String workDirOut = window.getInput();
-        logger.info(ConfigPrefix + "Working directory (from GUI) = [" + workDirOut + "]");
-        boolean isWorkingDirectoryCorrect = isWorkingDirectoryCorrect(workDirOut); 
-        if (!workDirOut.equals(workDir)) {
+        // ==============================================================================
+        // Update workDir with one read from GUI and check if we have something to process 
+        String guiWorkDir = window.getInput();
+        logger.info(ConfigPrefix + "Working directory (from GUI) = [" + guiWorkDir + "]");
+        boolean isWorkingDirectoryCorrect = isWorkingDirectoryCorrect(guiWorkDir); 
+        if (!guiWorkDir.equals(workDir)) {
             if (isWorkingDirectoryCorrect) {
-                iSourceData = SourceData.WorkDirOrFile;
+                // User has changed file/dir to process so update and continue
+                iSourceData = DataSource.WORK_DIR_OR_FILE;
+                workDir = guiWorkDir;
             }
             else {
                 return DONE;
             }
         }
-
-        // Save parameters before segmentation. If workDir is correct then update it also.
-        if (isWorkingDirectoryCorrect) BLauncher.iParameters.wd = workDirOut;
-        saveConfig(SettingsFilepath, BLauncher.iParameters);
-
-        logger.info("Parameters: " + BLauncher.iParameters);
-        if (iSourceData != SourceData.Image && iSourceData != SourceData.WorkDirOrFile) {
+        if (!(iSourceData == DataSource.IMAGE || iSourceData == DataSource.WORK_DIR_OR_FILE)) {
             logger.info("No image to process!");
             return DONE;
         }
 
-        if (iUseClusterMode || rm != RunMode.CLUSTER) {
-            runLocally(workDirOut, iSourceData);
-        }
-        else {
-            runOnCluster(workDir, iSourceData);
+        // ==============================================================================
+        // Save parameters and run segmentation. 
+        // If workDir is correct then also update it.
+        if (isWorkingDirectoryCorrect) iParameters.wd = guiWorkDir;
+        saveConfig(SettingsFilepath, iParameters);
+        
+        switch(runMode) {
+            case LOCAL:
+                runLocally(workDir, iSourceData);
+                break;
+            case CLUSTER:
+                runOnCluster(workDir, iSourceData);
+                break;
+            case ERROR:
+            default:
+                logger.error("Code should never end up in this place (" + runMode + ")");
         }
 
         return DONE;
     }
 
-    private void runLocally(String workDirOut, SourceData aSourceData) {
-        // Two different way to run the Segmentation and colocalization
-        String file1 = null;
-        String file2 = null;
-        String file3 = null;
-        // We run locally
-        String savePath = null;
-        if (aSourceData == SourceData.Image) {
-            logger.info("Taking input Image. WD NULL or EMPTY");
-            savePath = ImgUtils.getImageDirectory(iInputImage) + File.separator;
-            BLauncher bl = new BLauncher(iInputImage);
-            Set<FileInfo> savedFiles = bl.getSavedFiles();
+    private void runLocally(String aPathToFileOrDir, DataSource aSourceData) {
+        String objectsDataCh1File = null;
+        String objectsDataCh2File = null;
+        String imagesDataFile = null;
+        String outputSaveDir = null;
+        
+        logger.info("Running locally with data source (" + aSourceData + ") and working dir [" + aPathToFileOrDir + "]");
+        
+        if (aSourceData == DataSource.IMAGE) {
+            outputSaveDir = ImgUtils.getImageDirectory(iInputImage) + File.separator;
+            Set<FileInfo> savedFiles = new BLauncher(iInputImage, iParameters).getSavedFiles();
             if (savedFiles.size() == 0) return;
 
-            Files.moveFilesToOutputDirs(savedFiles, savePath);
+            Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
 
             String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
-            file1 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
-            file2 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
-            file3 = savePath + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
+            objectsDataCh1File = outputSaveDir + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
+            objectsDataCh2File = outputSaveDir + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
+            imagesDataFile = outputSaveDir + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
         }
         else {
-            logger.debug("WD with PATH: " + workDirOut);
-            final File inputFile = new File(workDirOut);
+            final File inputFile = new File(aPathToFileOrDir);
             File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
             Arrays.sort(files);
             Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
             for (final File f : files) {
                 // If it is the directory/Rscript/hidden/csv file then skip it
-                if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
+                if (f.isDirectory() == true || f.getName().equals(RScript.ScriptName) || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
                     continue;
                 }
-                System.out.println("BLAUNCHER FILE: [" + f.getAbsolutePath() + "]");
-                BLauncher bl = new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
-                allFiles.addAll(bl.getSavedFiles());
+                logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
+                allFiles.addAll(new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters).getSavedFiles());
             }
             if (allFiles.size() == 0) return;
 
-            final File fl = new File(workDirOut);
-            savePath = fl.isDirectory() ? workDirOut : fl.getParent();
-            savePath += File.separator;
-
-            if (fl.isDirectory() == true) {
-                Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, savePath);
-
-                file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1);
-                file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2);
-                file3 = savePath + Files.createTitleWithExt(Type.ImagesData, "stitch_");
-                Files.stitchCsvFiles(movedFilesNames, savePath, null);
+            String titlePrefix = null;
+            if (inputFile.isDirectory() == true) {
+                outputSaveDir = aPathToFileOrDir + File.separator;
+                titlePrefix = "stitch_";
+                
+                Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, outputSaveDir);
+                Files.stitchCsvFiles(movedFilesNames, outputSaveDir, null);
             }
             else {
                 // TODO: It would be nice to be consistent and also move files to subdirs. But it is
                 //       currently violated by cluster mode.
                 //Files.moveFilesToOutputDirs(allFiles, savePath);
-
-                String titleNoExt = SysOps.removeExtension(fl.getName());
-                file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 1);
-                file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 2);
-                file3 = savePath + Files.createTitleWithExt(Type.ImagesData, titleNoExt);
+                outputSaveDir = inputFile.getParent() + File.separator;
+                titlePrefix = SysOps.removeExtension(inputFile.getName());
             }
+            
+            objectsDataCh1File = outputSaveDir + Files.createTitleWithExt(Type.ObjectsData, titlePrefix, 1);
+            objectsDataCh2File = outputSaveDir + Files.createTitleWithExt(Type.ObjectsData, titlePrefix, 2);
+            imagesDataFile = outputSaveDir + Files.createTitleWithExt(Type.ImagesData, titlePrefix);
         }
 
+        runRscript(outputSaveDir, objectsDataCh1File, objectsDataCh2File, imagesDataFile);
+    }
 
-        if (new File(file1).exists() && new File(file2).exists()) {
-            if (BLauncher.iParameters.save_images) {
-                new RScript(savePath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
+    private void runOnCluster(String aWorkDir, DataSource aSourceData) {
+        saveParamitersForCluster(iParameters);
+        ClusterSession.setPreferredSlotPerProcess(4);
+        
+        String backgroundImageFile = null;
+        String outputPath = null;
+        switch (aSourceData) {
+            case WORK_DIR_OR_FILE:
+                File fl = new File(aWorkDir);
+                if (fl.isDirectory() == true) {
+                    File[] fileslist = fl.listFiles();
+                    ClusterSession.processFiles(fileslist, PluginName, "nthreads=4", Files.outSuffixesCluster);
+                    outputPath = fl.getAbsolutePath();
+                }
+                else if (fl.isFile()) {
+                    ClusterSession.processFile(fl, PluginName, "nthreads=4", Files.outSuffixesCluster);
+                    backgroundImageFile = fl.getAbsolutePath();
+                    outputPath = SysOps.getPathToFile(backgroundImageFile);
+                }
+                else {
+                    // Nothing to do just get the result
+                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, PluginName);
+                    fl = new File(IJ.getDirectory("Select output directory"));
+                    outputPath = fl.getAbsolutePath();
+                }
+                break;
+            case IMAGE:
+                ClusterSession.processImage(iInputImage, PluginName, "nthreads=4", Files.outSuffixesCluster);
+                backgroundImageFile = ImgUtils.getImageDirectory(iInputImage) + File.separator + iInputImage.getTitle();
+                outputPath = ImgUtils.getImageDirectory(iInputImage);
+                break;
+            case NONE:
+            default:
+                logger.error("Wrong source data for image processing: " + aSourceData);
+        }
+    
+        // Get output format and Stitch the output in the output selected
+        logger.info("cluster mode output path [" + outputPath + "], background image file [" + backgroundImageFile + "]");
+        final File dir = ClusterSession.processJobsData(outputPath);
+        MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
+    }
+
+    private void runRscript(String outputSavePath, String objectsDataCh1File, String objectsDataCh2File, String imagesDataFile) {
+        if (new File(objectsDataCh1File).exists() && new File(objectsDataCh2File).exists()) {
+            if (iParameters.save_images) {
+                new RScript(outputSavePath, objectsDataCh1File, objectsDataCh2File, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
-                // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
+                // TODO: Output seems to be completely wrong. Must be investigated.
                 try {
                     logger.debug("================ RSCRIPT BEGIN ====================");
-                    logger.debug("CMD: " + "cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
-                    ShellCommand.exeCmdString("cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
+                    String command = "cd " + outputSavePath + "; Rscript " + outputSavePath + File.separator + RScript.ScriptName;
+                    logger.debug("Command: [" + command + "]");
+                    ShellCommand.exeCmdString(command);
                     logger.debug("================ RSCRIPT END ====================");
                 }
                 catch (final IOException e) {
@@ -241,16 +287,18 @@ public class BregmanGLM_Batch implements Segmentation {
         return !(workingDir == null || workingDir.startsWith("Input Image:") || workingDir.isEmpty() || !(new File(workingDir).exists()));
     }
 
-    private void readNumberOfThreads(String aArgs) {
+    private int readNumberOfThreads(String aArgs) {
+        int num = 1;
         final String noOfThreads = MosaicUtils.parseString("nthreads", aArgs);
         if (noOfThreads != null) {
             logger.info(ConfigPrefix + "Number of threads provided in arguments = [" + noOfThreads + "]");
-            BLauncher.iParameters.nthreads = Integer.parseInt(noOfThreads);
+            num = Integer.parseInt(noOfThreads);
         }
         else {
-            BLauncher.iParameters.nthreads = Runtime.getRuntime().availableProcessors();
-            logger.info(ConfigPrefix + "Number of threads taken from system = [" + BLauncher.iParameters.nthreads + "]");
+            num = Runtime.getRuntime().availableProcessors();
+            logger.info(ConfigPrefix + "Number of threads taken from runtime = [" + num + "]");
         }
+        return num;
     }
 
     private boolean readClusterFlag(String aArgs) {
@@ -290,76 +338,31 @@ public class BregmanGLM_Batch implements Segmentation {
             config = SettingsFilepath;
             logger.info(ConfigPrefix + "Reading default config [" + config + "]");
         }
-        BLauncher.iParameters = getConfigHandler().LoadFromFile(config, Parameters.class, BLauncher.iParameters);
+        iParameters = getConfigHandler().LoadFromFile(config, Parameters.class, iParameters);
+        logger.info(mosaic.utils.Debug.getJsonString(iParameters));
     }
-
-    @Override
-    public void run(ImageProcessor imp) {}
 
     /**
      * Returns handler for (un)serializing Parameters objects.
      */
-    public static DataFile<Parameters> getConfigHandler() {
+    private static DataFile<Parameters> getConfigHandler() {
         return new SerializedDataFile<Parameters>();
     }
 
     /**
-     * Saves Parameters object
-     *
-     * @param aFullFileName - absolute path and file name
-     * @param aParams - object to be serialized
+     * Saves aParams object as a aFullFileName file
      */
     private void saveConfig(String aFullFileName, Parameters aParams) {
         getConfigHandler().SaveToFile(aFullFileName, aParams);
     }
 
+    /**
+     * Saves parameters for cluster session (with default name used by cluster session)
+     */
     private void saveParamitersForCluster(final Parameters aParameters) {
         saveConfig(ClusterSession.DefaultSettingsFileName, aParameters);
     }
 
-    private void runOnCluster(String aWorkDir, SourceData aSourceData) {
-        saveParamitersForCluster(BLauncher.iParameters);
-        ClusterSession.setPreferredSlotPerProcess(4);
-        String backgroundImageFile = null;
-        String outputPath = null;
-        switch (aSourceData) {
-            case WorkDirOrFile:
-                File fl = new File(aWorkDir);
-                if (fl.isDirectory() == true) {
-                    File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, PluginName, "", Files.outSuffixesCluster);
-                    outputPath = fl.getAbsolutePath();
-                }
-                else if (fl.isFile()) {
-                    ClusterSession.processFile(fl, PluginName, "", Files.outSuffixesCluster);
-                    backgroundImageFile = fl.getAbsolutePath();
-                    outputPath = SysOps.getPathToFile(backgroundImageFile);
-                }
-                else {
-                    // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, PluginName);
-                    
-                    // Ask for a directory
-                    fl = new File(IJ.getDirectory("Select output directory"));
-                    outputPath = fl.getAbsolutePath();
-                }
-                break;
-            case Image:
-                ClusterSession.processImage(iInputImage, PluginName, "nthreads=4", Files.outSuffixesCluster);
-                backgroundImageFile = ImgUtils.getImageDirectory(iInputImage) + File.separator + iInputImage.getTitle();
-                outputPath = ImgUtils.getImageDirectory(iInputImage);
-                break;
-            case None:
-            default:
-                logger.error("Wrong source data for image processing: " + aSourceData);
-        }
-
-        // Get output format and Stitch the output in the output selected
-        logger.info(mosaic.utils.Debug.getString("testMode", outputPath, iInputImage, aWorkDir));
-        final File dir = ClusterSession.processJobsData(outputPath);
-        MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
-    }
-    
     // =================== Implementation of Segmentation interface ===========
     /**
      * Get Mask images name output
