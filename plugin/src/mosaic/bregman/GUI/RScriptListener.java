@@ -24,7 +24,7 @@ class RScriptListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         int nbgroups = new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
-        if (nbgroups > 5) {
+        if (nbgroups > 1) {
             BLauncher.iParameters.nbimages = new int[nbgroups];
             for (int i = 0; i < nbgroups; i++) {
                 BLauncher.iParameters.nbimages[i] = 1;

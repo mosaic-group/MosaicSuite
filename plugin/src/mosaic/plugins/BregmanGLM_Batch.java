@@ -35,36 +35,30 @@ import mosaic.utils.io.serialize.SerializedDataFile;
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
     
-    // Global settings for plug-in
-    static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.dat";
-    static final String ConfigPrefix = "===> Conf: ";
+    // constant settings for plug-in
+    private static final String PluginName = "Squassh";
+    private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.dat";
+    private static final String ConfigPrefix = "===> Conf: ";
     
     private enum SourceData {
-        Image, Args, WorkDir, None
+        Image,      // image provided by Fiji/ImageJ via plugin interface 
+        WorkDirOrFile,    // working dir for path/file privided by macro options or from config file
+        None        // not specified - user must enter its own image source in GUI
     }
     
     // Input parameters
     ImagePlus iInputImage;
     
-    // Internal settings
-    SourceData iSourceData = SourceData.Image;
-    boolean iGuiModeEnabled = true;
-    boolean iIsHeadlessMode = false;
-    boolean iProcessOnCluster = false;
     
     @Override
     public int setup(String aArgs, ImagePlus aInputImage) {
         iInputImage = aInputImage;
         
         boolean isMacro = IJ.isMacro() || Interpreter.batchMode;
-        iIsHeadlessMode = GraphicsEnvironment.isHeadless();
-        iGuiModeEnabled = !(isMacro || iIsHeadlessMode);
-
         if (isMacro) {
-            // if is a macro get the arguments from macro arguments
             aArgs = Macro.getOptions();
-            logger.info("Macro options: [" + aArgs + "]");
         }
+        logger.info("Input options: [" + aArgs + "]");
         
         // Initialize CSV format
         // TODO: This is ridiculous and must be refactored
@@ -72,8 +66,10 @@ public class BregmanGLM_Batch implements Segmentation {
 
         // Read settings
         readConfiguration(aArgs);
+        System.out.println(mosaic.utils.Debug.getJsonString(BLauncher.iParameters));
+        
         readNormalizationParams(aArgs);
-        readClusterFlag(aArgs);
+        boolean iProcessOnCluster = readClusterFlag(aArgs);
         readNumberOfThreads(aArgs);
         
         // Decide what input take into segmentation. Currently priorities are:
@@ -83,16 +79,18 @@ public class BregmanGLM_Batch implements Segmentation {
         // 4. run anyway, user may want to enter dir/file manually into window
         // It may be chnaged later by user via editing input field
         logger.info(ConfigPrefix + "Working directory read from config file (or default) = [" + BLauncher.iParameters.wd + "]");
+        logger.info(ConfigPrefix + "Input image = [" + iInputImage + "][" + ImgUtils.getImageAbsolutePath(iInputImage) + "]");
         String workDir = readWorkingDirectoryFromArgs(aArgs);
+        SourceData iSourceData = null;
         if (workDir != null) {
-            iSourceData = SourceData.Args;
+            iSourceData = SourceData.WorkDirOrFile;
         } else if (iInputImage != null) {
             iSourceData = SourceData.Image;
             String imgPath = ImgUtils.getImageAbsolutePath(iInputImage);
             workDir = imgPath != null ? imgPath : (iInputImage != null) ? "Input Image: " + iInputImage.getTitle() : null;
         }
         else if (BLauncher.iParameters.wd != null) {
-            iSourceData = SourceData.WorkDir;
+            iSourceData = SourceData.WorkDirOrFile;
             workDir = BLauncher.iParameters.wd;
         } else {
             iSourceData = SourceData.None;
@@ -101,7 +99,8 @@ public class BregmanGLM_Batch implements Segmentation {
         logger.info(ConfigPrefix + "Working directory = [" + workDir + "]");
         logger.info(ConfigPrefix + "Working directory mode = [" + iSourceData + "]");
         
-
+        boolean iIsHeadlessMode = GraphicsEnvironment.isHeadless();
+        boolean iGuiModeEnabled = !(isMacro || iIsHeadlessMode);
         boolean iUseClusterMode = iIsHeadlessMode;
         logger.info("iIsHeadlessMode = " + iIsHeadlessMode);
         logger.info("input img = [" + (iInputImage != null ? iInputImage.getTitle() : "<no img>") + "]");
@@ -126,109 +125,116 @@ public class BregmanGLM_Batch implements Segmentation {
         logger.info(ConfigPrefix + "Working directory (from GUI) = [" + workDirOut + "]");
         boolean isWorkingDirectoryCorrect = isWorkingDirectoryCorrect(workDirOut); 
         if (!workDirOut.equals(workDir)) {
-            if (isWorkingDirectoryCorrect) iSourceData = SourceData.WorkDir;
-            else return DONE;
+            if (isWorkingDirectoryCorrect) {
+                iSourceData = SourceData.WorkDirOrFile;
+            }
+            else {
+                return DONE;
+            }
         }
 
         // Save parameters before segmentation. If workDir is correct then update it also.
         if (isWorkingDirectoryCorrect) BLauncher.iParameters.wd = workDirOut;
         saveConfig(SettingsFilepath, BLauncher.iParameters);
 
-
         logger.info("Parameters: " + BLauncher.iParameters);
-
-        // Two different way to run the Segmentation and colocalization
-        String file1;
-        String file2;
-        String file3;
+        if (iSourceData != SourceData.Image && iSourceData != SourceData.WorkDirOrFile) {
+            logger.info("No image to process!");
+            return DONE;
+        }
 
         if (iUseClusterMode || rm != RunMode.CLUSTER) {
-            // We run locally
-            String savePath = null;
-            if (iSourceData == SourceData.Image) {
-                logger.info("Taking input Image. WD NULL or EMPTY");
-                savePath = ImgUtils.getImageDirectory(iInputImage) + File.separator;
-                BLauncher bl = new BLauncher(iInputImage);
-                Set<FileInfo> savedFiles = bl.getSavedFiles();
-                if (savedFiles.size() == 0) return DONE;
-
-                Files.moveFilesToOutputDirs(savedFiles, savePath);
-
-                String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
-                file1 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
-                file2 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
-                file3 = savePath + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
-            }
-            else if (isWorkingDirectoryCorrect) {
-                logger.debug("WD with PATH: " + workDirOut);
-                final File inputFile = new File(workDirOut);
-                File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
-                Arrays.sort(files);
-                Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
-                for (final File f : files) {
-                    // If it is the directory/Rscript/hidden/csv file then skip it
-                    if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
-                        continue;
-                    }
-                    System.out.println("BLAUNCHER FILE: [" + f.getAbsolutePath() + "]");
-                    BLauncher bl = new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
-                    allFiles.addAll(bl.getSavedFiles());
-                }
-                if (allFiles.size() == 0) return DONE;
-
-                final File fl = new File(workDirOut);
-                savePath = fl.isDirectory() ? workDirOut : fl.getParent();
-                savePath += File.separator;
-
-                if (fl.isDirectory() == true) {
-                    Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, savePath);
-
-                    file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1);
-                    file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2);
-                    file3 = savePath + Files.createTitleWithExt(Type.ImagesData, "stitch_");
-                    Files.stitchCsvFiles(movedFilesNames, savePath, null);
-                }
-                else {
-                    // TODO: It would be nice to be consistent and also move files to subdirs. But it is
-                    //       currently violated by cluster mode.
-                    //Files.moveFilesToOutputDirs(allFiles, savePath);
-
-                    String titleNoExt = SysOps.removeExtension(fl.getName());
-                    file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 1);
-                    file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 2);
-                    file3 = savePath + Files.createTitleWithExt(Type.ImagesData, titleNoExt);
-                }
-            }
-            else {
-                logger.info("No image to process!");
-                return DONE;
-            }
-
-            if (new File(file1).exists() && new File(file2).exists()) {
-                if (BLauncher.iParameters.save_images) {
-                    new RScript(savePath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
-                    // Try to run the R script
-                    // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
-                    try {
-                        logger.debug("================ RSCRIPT BEGIN ====================");
-                        logger.debug("CMD: " + "cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
-                        ShellCommand.exeCmdString("cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
-                        logger.debug("================ RSCRIPT END ====================");
-                    }
-                    catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                    catch (final InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            runLocally(workDirOut, iSourceData);
         }
         else {
             runOnCluster(workDir, iSourceData);
         }
 
         return DONE;
+    }
+
+    private void runLocally(String workDirOut, SourceData aSourceData) {
+        // Two different way to run the Segmentation and colocalization
+        String file1 = null;
+        String file2 = null;
+        String file3 = null;
+        // We run locally
+        String savePath = null;
+        if (aSourceData == SourceData.Image) {
+            logger.info("Taking input Image. WD NULL or EMPTY");
+            savePath = ImgUtils.getImageDirectory(iInputImage) + File.separator;
+            BLauncher bl = new BLauncher(iInputImage);
+            Set<FileInfo> savedFiles = bl.getSavedFiles();
+            if (savedFiles.size() == 0) return;
+
+            Files.moveFilesToOutputDirs(savedFiles, savePath);
+
+            String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
+            file1 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
+            file2 = savePath + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
+            file3 = savePath + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
+        }
+        else {
+            logger.debug("WD with PATH: " + workDirOut);
+            final File inputFile = new File(workDirOut);
+            File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
+            Arrays.sort(files);
+            Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
+            for (final File f : files) {
+                // If it is the directory/Rscript/hidden/csv file then skip it
+                if (f.isDirectory() == true || f.getName().equals("R_analysis.R") || f.getName().startsWith(".") || f.getName().endsWith(".csv")) {
+                    continue;
+                }
+                System.out.println("BLAUNCHER FILE: [" + f.getAbsolutePath() + "]");
+                BLauncher bl = new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()));
+                allFiles.addAll(bl.getSavedFiles());
+            }
+            if (allFiles.size() == 0) return;
+
+            final File fl = new File(workDirOut);
+            savePath = fl.isDirectory() ? workDirOut : fl.getParent();
+            savePath += File.separator;
+
+            if (fl.isDirectory() == true) {
+                Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, savePath);
+
+                file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1);
+                file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2);
+                file3 = savePath + Files.createTitleWithExt(Type.ImagesData, "stitch_");
+                Files.stitchCsvFiles(movedFilesNames, savePath, null);
+            }
+            else {
+                // TODO: It would be nice to be consistent and also move files to subdirs. But it is
+                //       currently violated by cluster mode.
+                //Files.moveFilesToOutputDirs(allFiles, savePath);
+
+                String titleNoExt = SysOps.removeExtension(fl.getName());
+                file1 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 1);
+                file2 = savePath + Files.createTitleWithExt(Type.ObjectsData, titleNoExt, 2);
+                file3 = savePath + Files.createTitleWithExt(Type.ImagesData, titleNoExt);
+            }
+        }
+
+
+        if (new File(file1).exists() && new File(file2).exists()) {
+            if (BLauncher.iParameters.save_images) {
+                new RScript(savePath, file1, file2, file3, BLauncher.iParameters.nbconditions, BLauncher.iParameters.nbimages, BLauncher.iParameters.groupnames, BLauncher.iParameters.ch1, BLauncher.iParameters.ch2);
+                // Try to run the R script
+                // TODO: Output seems to be completely wrong. Must be investigated. Currently turned off.
+                try {
+                    logger.debug("================ RSCRIPT BEGIN ====================");
+                    logger.debug("CMD: " + "cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
+                    ShellCommand.exeCmdString("cd " + savePath + "; Rscript " + savePath + File.separator + "R_analysis.R");
+                    logger.debug("================ RSCRIPT END ====================");
+                }
+                catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                catch (final InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private boolean isWorkingDirectoryCorrect(String workingDir) {
@@ -247,9 +253,10 @@ public class BregmanGLM_Batch implements Segmentation {
         }
     }
 
-    private void readClusterFlag(String aArgs) {
-        iProcessOnCluster = MosaicUtils.parseCheckbox("process", aArgs);
-        logger.info(ConfigPrefix + "Process on cluster flag set to: " + iProcessOnCluster);
+    private boolean readClusterFlag(String aArgs) {
+        boolean processOnCluster = MosaicUtils.parseCheckbox("process", aArgs);
+        logger.info(ConfigPrefix + "Process on cluster flag set to: " + processOnCluster);
+        return processOnCluster;
     }
 
     private void readNormalizationParams(String aArgs) {
@@ -307,32 +314,30 @@ public class BregmanGLM_Batch implements Segmentation {
     }
 
     private void saveParamitersForCluster(final Parameters aParameters) {
-        saveConfig("/tmp/settings.dat", aParameters);
+        saveConfig(ClusterSession.DefaultSettingsFileName, aParameters);
     }
 
     private void runOnCluster(String aWorkDir, SourceData aSourceData) {
-        // We run on cluster
         saveParamitersForCluster(BLauncher.iParameters);
         ClusterSession.setPreferredSlotPerProcess(4);
         String backgroundImageFile = null;
         String outputPath = null;
         switch (aSourceData) {
-            case Args:
-            case WorkDir:
+            case WorkDirOrFile:
                 File fl = new File(aWorkDir);
                 if (fl.isDirectory() == true) {
                     File[] fileslist = fl.listFiles();
-                    ClusterSession.processFiles(fileslist, "Squassh", "", Files.outSuffixesCluster);
+                    ClusterSession.processFiles(fileslist, PluginName, "", Files.outSuffixesCluster);
                     outputPath = fl.getAbsolutePath();
                 }
                 else if (fl.isFile()) {
-                    ClusterSession.processFile(fl, "Squassh", "", Files.outSuffixesCluster);
+                    ClusterSession.processFile(fl, PluginName, "", Files.outSuffixesCluster);
                     backgroundImageFile = fl.getAbsolutePath();
                     outputPath = SysOps.getPathToFile(backgroundImageFile);
                 }
                 else {
                     // Nothing to do just get the result
-                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, "Squassh");
+                    ClusterSession.getFinishedJob(Files.outSuffixesCluster, PluginName);
                     
                     // Ask for a directory
                     fl = new File(IJ.getDirectory("Select output directory"));
@@ -340,8 +345,7 @@ public class BregmanGLM_Batch implements Segmentation {
                 }
                 break;
             case Image:
-                // It is a file
-                ClusterSession.processImage(iInputImage, "Squassh", "nthreads=4", Files.outSuffixesCluster);
+                ClusterSession.processImage(iInputImage, PluginName, "nthreads=4", Files.outSuffixesCluster);
                 backgroundImageFile = ImgUtils.getImageDirectory(iInputImage) + File.separator + iInputImage.getTitle();
                 outputPath = ImgUtils.getImageDirectory(iInputImage);
                 break;
@@ -389,6 +393,6 @@ public class BregmanGLM_Batch implements Segmentation {
      */
     @Override
     public String getName() {
-        return "Squassh";
+        return PluginName;
     }
 }

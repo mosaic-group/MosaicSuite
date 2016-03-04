@@ -22,6 +22,7 @@ import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.ChooseGUI;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
+import mosaic.utils.SysOps;
 
 
 /**
@@ -40,7 +41,8 @@ public class ClusterSession {
     private static final Logger logger = Logger.getLogger(ClusterSession.class);
     
     public static final String DefaultInputParameterName = "input";
-
+    public static final String DefaultSettingsFileName = SysOps.getTmpPath() + "settings.dat";
+    
     private int nImages;
     private final ClusterProfile cp;
     private SecureShellSession ss;
@@ -184,7 +186,7 @@ public class ClusterSession {
         }
 
         final BatchInterface bc = cp.getBatchSystem();
-        final String tmp_dir = IJ.getDirectory("temp");
+        final String tmp_dir = SysOps.getTmpPath();
 
         // Download a working version of Fiji
         // and copy the plugins
@@ -255,7 +257,7 @@ public class ClusterSession {
 
                 final File fll[] = new File[3];
                 fll[0] = new File(tmp_dir + ss.getSession_id());
-                fll[1] = new File(tmp_dir + "settings.dat");
+                fll[1] = new File(DefaultSettingsFileName);
                 fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
                 ss.upload(fll, null, null);
             }

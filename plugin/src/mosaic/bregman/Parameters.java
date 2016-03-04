@@ -3,16 +3,13 @@ package mosaic.bregman;
 
 import java.io.Serializable;
 
-import mosaic.core.psf.psf;
-import net.imglib2.type.numeric.real.DoubleType;
-
 
 public class Parameters implements Serializable {
     private static final long serialVersionUID = 2894976420127964864L;
 
     // ================================ General parameters
-    public String wd = null;
-    public int nthreads = 4;
+    public String wd = null; // Last working dir
+    public int nthreads = 4; // Number of threads
     
     // ================================ parameters changed in GUI
     // Segmentation options
@@ -51,8 +48,8 @@ public class Parameters implements Serializable {
     // Set condition names... RScriptWindow
     public String ch1 = "channel 1 name";
     public String ch2 = "channel 2 name";
-    public int[] nbimages = { 1, 1, 1, 1, 1 };// init with size 5, extended if needed in Rscriptlistener
-    public String[] groupnames = { "Condition " + 1 + " name", "Condition " + 2 + " name", "Condition " + 3 + " name", "Condition " + 4 + " name", "Condition " + 5 + " name" };
+    public int[] nbimages = { 1 }; // init with size 1, extended if needed in Rscriptlistener
+    public String[] groupnames = { "Condition 1 name" };
     
     
     @Override
