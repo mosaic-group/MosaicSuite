@@ -72,7 +72,8 @@ public class BregmanGLM_Batch implements Segmentation {
         }
         logger.info("Input options: [" + aArgs + "]");
         readConfiguration(aArgs);
-        readNormalizationParams(aArgs);
+        double normalizationMin = readNormalizationMinParams(aArgs);
+        double normalizationMax = readNormalizationMaxParams(aArgs);
         boolean iProcessOnCluster = readClusterFlag(aArgs);
         iParameters.nthreads = readNumberOfThreads(aArgs);
         String workDir = readWorkingDirectoryFromArgs(aArgs);
@@ -146,7 +147,7 @@ public class BregmanGLM_Batch implements Segmentation {
         
         switch(runMode) {
             case LOCAL:
-                runLocally(workDir, iSourceData);
+                runLocally(workDir, iSourceData, normalizationMin, normalizationMax);
                 break;
             case CLUSTER:
                 runOnCluster(workDir, iSourceData);
@@ -159,7 +160,7 @@ public class BregmanGLM_Batch implements Segmentation {
         return DONE;
     }
 
-    private void runLocally(String aPathToFileOrDir, DataSource aSourceData) {
+    private void runLocally(String aPathToFileOrDir, DataSource aSourceData, double aNormalizationMin, double aNormalizationMax) {
         String objectsDataCh1File = null;
         String objectsDataCh2File = null;
         String imagesDataFile = null;
@@ -168,8 +169,11 @@ public class BregmanGLM_Batch implements Segmentation {
         logger.info("Running locally with data source (" + aSourceData + ") and working dir [" + aPathToFileOrDir + "]");
         
         if (aSourceData == DataSource.IMAGE) {
-            outputSaveDir = ImgUtils.getImageDirectory(iInputImage) + File.separator;
-            Set<FileInfo> savedFiles = new BLauncher(iInputImage, iParameters).getSavedFiles();
+            String imageDirectory = ImgUtils.getImageDirectory(iInputImage);
+            outputSaveDir = (imageDirectory != null) ? imageDirectory + File.separator : IJ.getDirectory("Select output directory");
+            if (outputSaveDir == null) return;
+            logger.info("Output save dir: [" + outputSaveDir + "]");
+            Set<FileInfo> savedFiles = new BLauncher(iInputImage, iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles();
             if (savedFiles.size() == 0) return;
 
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
@@ -183,6 +187,7 @@ public class BregmanGLM_Batch implements Segmentation {
             final File inputFile = new File(aPathToFileOrDir);
             File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
             Arrays.sort(files);
+            outputSaveDir = (inputFile.isDirectory()) ? aPathToFileOrDir + File.separator : inputFile.getParent() + File.separator;
             Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
             for (final File f : files) {
                 // If it is the directory/Rscript/hidden/csv file then skip it
@@ -190,13 +195,12 @@ public class BregmanGLM_Batch implements Segmentation {
                     continue;
                 }
                 logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
-                allFiles.addAll(new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters).getSavedFiles());
+                allFiles.addAll(new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles());
             }
             if (allFiles.size() == 0) return;
 
             String titlePrefix = null;
             if (inputFile.isDirectory() == true) {
-                outputSaveDir = aPathToFileOrDir + File.separator;
                 titlePrefix = "stitch_";
                 
                 Set<FileInfo> movedFilesNames = Files.moveFilesToOutputDirs(allFiles, outputSaveDir);
@@ -206,7 +210,6 @@ public class BregmanGLM_Batch implements Segmentation {
                 // TODO: It would be nice to be consistent and also move files to subdirs. But it is
                 //       currently violated by cluster mode.
                 //Files.moveFilesToOutputDirs(allFiles, savePath);
-                outputSaveDir = inputFile.getParent() + File.separator;
                 titlePrefix = SysOps.removeExtension(inputFile.getName());
             }
             
@@ -307,18 +310,22 @@ public class BregmanGLM_Batch implements Segmentation {
         return processOnCluster;
     }
 
-    private void readNormalizationParams(String aArgs) {
+    private double readNormalizationMinParams(String aArgs) {
         String normmin = MosaicUtils.parseString("min", aArgs);
         if (normmin != null) {
             logger.info(ConfigPrefix + "Min normalization provided in arguments = [" + normmin + "]");
-            BLauncher.norm_min = Double.parseDouble(normmin);
+            return Double.parseDouble(normmin);
         }
-
+        return 0.0;
+    }
+    
+    private double readNormalizationMaxParams(String aArgs) {
         String normmax = MosaicUtils.parseString("max", aArgs);
         if (normmax != null) {
             logger.info(ConfigPrefix + "Max normalization provided in arguments = [" + normmax + "]");
-            BLauncher.norm_max = Double.parseDouble(normmax);
+            return Double.parseDouble(normmax);
         }
+        return 0.0;
     }
 
     private String readWorkingDirectoryFromArgs(String aArgs) {

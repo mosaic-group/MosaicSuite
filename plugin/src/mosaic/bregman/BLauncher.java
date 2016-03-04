@@ -54,10 +54,9 @@ import mosaic.utils.io.csv.CsvColumnConfig;
 public class BLauncher {
     private static final Logger logger = Logger.getLogger(BLauncher.class);
     
-    // Maximum norm, it fix the range of the normalization, useful for video normalization has to be done on all frame video, 
-    // filled when the plugins is called with the options min=... max=...
-    public static double norm_max = 0.0;
-    public static double norm_min = 0.0;
+    // Global normalization, if not provided (set to 0) min/max will be searched for provided file.
+    private final double iGlobalNormalizationMin;
+    private final double iGlobalNormalizationMax;
     
     private final Parameters iParameters;
 
@@ -87,8 +86,11 @@ public class BLauncher {
      * Launch the Segmentation
      * @param aImage image to be segmented
      */
-    public BLauncher(ImagePlus aImage, Parameters aParameters) {
+    public BLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
         iParameters = aParameters;
+        iGlobalNormalizationMin = aNormalizationMin;
+        iGlobalNormalizationMax = aNormalizationMax;
+        
         if (aImage == null) {
             IJ.error("No image to process");
             return;
@@ -121,7 +123,6 @@ public class BLauncher {
         iOutLabeledRegionsColor = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
         
-        String outDir = ImgUtils.getImageDirectory(aImage);
         String outFileName = SysOps.removeExtension(title);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
@@ -131,14 +132,14 @@ public class BLauncher {
             
             displayResult(outFileName);
             if (iParameters.save_images) {
-                saveColocImage(outDir, outFileName);
-                saveObjectDataCsv(aImage, frame - 1, title, outFileName);
-                writeImageDataCsv(outDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
+                saveColocImage(aOutputDir, outFileName);
+                saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
+                writeImageDataCsv(aOutputDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
             }
         }
 
         if (iParameters.save_images) {
-            saveAllImages(outDir);
+            saveAllImages(aOutputDir);
         }
         
         logger.info("Saved files:");
@@ -215,7 +216,7 @@ public class BLauncher {
         }
     }
 
-    private void saveObjectDataCsv(ImagePlus aImage, int aCurrentFrame, String aTitle, String aOutFileName) {
+    private void saveObjectDataCsv(int aCurrentFrame, String aOutputPath, String aTitle, String aOutFileName) {
         if (iNumOfChannels >  1) {
             // Choose the Rscript coloc format
             CSVOutput.occ = CSVOutput.oc[2];
@@ -226,14 +227,13 @@ public class BLauncher {
         }
 
         final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
-        String savepath = ImgUtils.getImageDirectory(aImage) + File.separator;
 
         for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = savepath + Files.createTitleWithExt(Type.ObjectsData, aOutFileName, ch + 1);
+            String outFileName = aOutputPath + Files.createTitleWithExt(Type.ObjectsData, aOutFileName, ch + 1);
             boolean shouldAppend = (new File(outFileName).exists()) ? true : false;
             Vector<? extends Outdata<Region>> regionsData = CSVOutput.getObjectsList(iRegionsList.get(ch), aCurrentFrame);
             csvWriter.clearMetaInformation();
-            csvWriter.setMetaInformation("background", savepath + aTitle);
+            csvWriter.setMetaInformation("background", aOutputPath + aTitle);
             CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
             addSavedFile(Type.ObjectsData, outFileName);
         }
@@ -397,9 +397,9 @@ public class BLauncher {
         
         // Calculate min/max. If we are removing the background we have no idea which is the minimum across 
         // all the frames so let be conservative and put min = 0.0 (for sure cannot be < 0).
-        double min = (iParameters.removebackground) ? 0.0 : norm_min;
-        double max = norm_max;
-        if (norm_max == 0) {
+        double min = (iParameters.removebackground) ? 0.0 : iGlobalNormalizationMin;
+        double max = iGlobalNormalizationMax;
+        if (iGlobalNormalizationMax == 0) {
             MinMax<Double> mm = ImgUtils.findMinMax(img);
             min = mm.getMin();
             max = mm.getMax();
@@ -445,9 +445,9 @@ public class BLauncher {
     // ============================================ MASKS and tools ==============================
     
     private void generateMasks(int channel, final ImagePlus img) {
-        double minNorm = norm_min;
-        double maxNorm = norm_max;
-        if (norm_max == 0) {
+        double minNorm = iGlobalNormalizationMin;
+        double maxNorm = iGlobalNormalizationMax;
+        if (iGlobalNormalizationMax == 0) {
             MinMax<Double> mm = ImgUtils.findMinMax(img);
             minNorm = mm.getMin();
             maxNorm = mm.getMax();
