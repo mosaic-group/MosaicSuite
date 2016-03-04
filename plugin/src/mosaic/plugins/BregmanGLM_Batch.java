@@ -50,8 +50,8 @@ public class BregmanGLM_Batch implements Segmentation {
         ERROR             // there is an error and plug-in will be stopped
     }
     
-    ImagePlus iInputImage;
-    Parameters iParameters = new Parameters();
+    private ImagePlus iInputImage;
+    private Parameters iParameters;
     
     @Override
     public void run(ImageProcessor imp) {}
@@ -71,11 +71,11 @@ public class BregmanGLM_Batch implements Segmentation {
             aArgs = Macro.getOptions();
         }
         logger.info("Input options: [" + aArgs + "]");
-        readConfiguration(aArgs);
+        iParameters = readConfiguration(aArgs);
+        iParameters.nthreads = readNumberOfThreads(aArgs);
         double normalizationMin = readNormalizationMinParams(aArgs);
         double normalizationMax = readNormalizationMaxParams(aArgs);
         boolean iProcessOnCluster = readClusterFlag(aArgs);
-        iParameters.nthreads = readNumberOfThreads(aArgs);
         String workDir = readWorkingDirectoryFromArgs(aArgs);
 
         // ==============================================================================
@@ -266,7 +266,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private void runRscript(String outputSavePath, String objectsDataCh1File, String objectsDataCh2File, String imagesDataFile) {
         if (new File(objectsDataCh1File).exists() && new File(objectsDataCh2File).exists()) {
             if (iParameters.save_images) {
-                new RScript(outputSavePath, objectsDataCh1File, objectsDataCh2File, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
+                RScript.makeRScript(outputSavePath, objectsDataCh1File, objectsDataCh2File, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
                 // TODO: Output seems to be completely wrong. Must be investigated.
                 try {
@@ -336,7 +336,7 @@ public class BregmanGLM_Batch implements Segmentation {
         return filepath;
     }
 
-    private void readConfiguration(String aArgs) {
+    private Parameters readConfiguration(String aArgs) {
         String config = MosaicUtils.parseString("config", aArgs);
         if (config != null) {
             logger.info(ConfigPrefix + "Reading config provided in arguments [" + config + "]");
@@ -345,8 +345,9 @@ public class BregmanGLM_Batch implements Segmentation {
             config = SettingsFilepath;
             logger.info(ConfigPrefix + "Reading default config [" + config + "]");
         }
-        iParameters = getConfigHandler().LoadFromFile(config, Parameters.class, iParameters);
-        logger.info(mosaic.utils.Debug.getJsonString(iParameters));
+        Parameters parameters = getConfigHandler().LoadFromFile(config, Parameters.class, new Parameters());
+        logger.info(mosaic.utils.Debug.getJsonString(parameters));
+        return parameters;
     }
 
     /**

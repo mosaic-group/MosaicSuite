@@ -11,7 +11,7 @@ import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
-import java.awt.TextArea;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -33,12 +33,10 @@ public class GenericGUI {
     // Input params
     protected final Parameters iParameters;
     protected ImagePlus iInputImage;
-
-    // Read params
-    private String iInputField = "";
-    
-    protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     static boolean iUseGui = true;
+
+    private String iInputField = "";
+    protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     
     public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters) {
         iParameters = aParameters;
@@ -55,7 +53,7 @@ public class GenericGUI {
         gd.addStringField("Input:", iInputField, 50);
     
         Panel p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
-        addButton(p, "Select File/Folder", new FileOpenerActionListener(gd.getTextArea1()));
+        addButton(p, "Select File/Folder", new FileOpenerActionListener((TextField)gd.getStringFields().get(0)));
         addButton(p, "Help", new HelpOpenerActionListener(gd));
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
     
@@ -143,10 +141,10 @@ public class GenericGUI {
     }
 
     private class FileOpenerActionListener implements ActionListener {
-        TextArea ta;
+        TextField ta;
 
-        public FileOpenerActionListener(TextArea ta) {
-            this.ta = ta;
+        public FileOpenerActionListener(TextField aTextField) {
+            ta = aTextField;
         }
 
         @Override

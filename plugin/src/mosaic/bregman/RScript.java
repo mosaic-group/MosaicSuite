@@ -13,7 +13,7 @@ import ij.IJ;
 public class RScript {
     public static final String ScriptName = "R_analysis.R";
 
-    public RScript(String path, String ObjectsC1DataFile, String ObjectsC2DataFile, String ImagesDataFile, int NumberOfGroups, int[] ImagesPerGroup, String[] GroupNames, String Ch1Name, String Ch2Name) {
+    public static void makeRScript(String path, String ObjectsC1DataFile, String ObjectsC2DataFile, String ImagesDataFile, int NumberOfGroups, int[] ImagesPerGroup, String[] GroupNames, String Ch1Name, String Ch2Name) {
         try {
             PrintWriter Script = new PrintWriter(path + File.separator + ScriptName);
             Script.println("#R_analysis v1.5 ");
@@ -56,7 +56,7 @@ public class RScript {
             
             InputStream in = null;
             try {
-                in = getClass().getResourceAsStream("Rscript.r");
+                in = RScript.class.getResourceAsStream("Rscript.r");
                 if (in == null) {
                     IJ.log("RSCRIPT generation has not succeed (cannot find Rscript.r resource)");
                 }
