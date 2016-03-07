@@ -86,6 +86,7 @@ public class ColocalizationAnalysis {
             for (Pix p : r.iPixels) {
                 regions[p.pz][p.px][p.py] = label;
             }
+            r.iLabel = label;
             label++;
         }
         

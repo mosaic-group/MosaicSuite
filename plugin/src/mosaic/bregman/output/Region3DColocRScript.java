@@ -84,7 +84,7 @@ public class Region3DColocRScript implements Outdata<Region> {
     public void setData(Region r) {
         fileName = "";
         Image_ID = 0;
-        Object_ID = 0;
+        Object_ID = r.iLabel;
         Intensity = r.getintensity();
         Perimeter = r.getperimeter();
         Size = r.getrsize();
