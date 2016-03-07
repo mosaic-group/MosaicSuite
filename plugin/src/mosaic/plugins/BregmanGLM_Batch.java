@@ -14,12 +14,12 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.process.ImageProcessor;
-import mosaic.bregman.BLauncher;
 import mosaic.bregman.Files;
 import mosaic.bregman.Files.FileInfo;
 import mosaic.bregman.Files.Type;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
+import mosaic.bregman.SquasshLauncher;
 import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.cluster.ClusterSession;
@@ -173,7 +173,7 @@ public class BregmanGLM_Batch implements Segmentation {
             outputSaveDir = (imageDirectory != null) ? imageDirectory + File.separator : IJ.getDirectory("Select output directory");
             if (outputSaveDir == null) return;
             logger.info("Output save dir: [" + outputSaveDir + "]");
-            Set<FileInfo> savedFiles = new BLauncher(iInputImage, iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles();
+            Set<FileInfo> savedFiles = new SquasshLauncher(iInputImage, iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles();
             if (savedFiles.size() == 0) return;
 
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
@@ -195,7 +195,7 @@ public class BregmanGLM_Batch implements Segmentation {
                     continue;
                 }
                 logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
-                allFiles.addAll(new BLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles());
+                allFiles.addAll(new SquasshLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles());
             }
             if (allFiles.size() == 0) return;
 

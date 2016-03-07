@@ -51,8 +51,8 @@ import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
 
-public class BLauncher {
-    private static final Logger logger = Logger.getLogger(BLauncher.class);
+public class SquasshLauncher {
+    private static final Logger logger = Logger.getLogger(SquasshLauncher.class);
     
     // Global normalization, if not provided (set to 0) min/max will be searched for provided file.
     private final double iGlobalNormalizationMin;
@@ -87,7 +87,7 @@ public class BLauncher {
      * Launch the Segmentation
      * @param aImage image to be segmented
      */
-    public BLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
+    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
         iParameters = aParameters;
         iGlobalNormalizationMin = aNormalizationMin;
         iGlobalNormalizationMax = aNormalizationMax;
