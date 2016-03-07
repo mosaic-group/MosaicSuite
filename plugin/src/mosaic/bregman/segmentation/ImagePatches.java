@@ -2,6 +2,7 @@ package mosaic.bregman.segmentation;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -151,18 +152,18 @@ class ImagePatches {
                 pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
             }
         }
-        if (iOutputRegionsList.size() != newRegionList.size()) System.out.println("HAHAHA");
         iOutputRegionsList.clear();
         for (Entry<Integer, ArrayList<Pix>> e : newRegionList.entrySet()) {
             // Because of connectivity may disconnect some regions (single pixels) check for regions size.
             if (e.getValue().size() >= iParameters.minRegionSize) {
                 iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
+                System.out.println(e.getKey());
             }
         }
         logger.debug("number of found regions after postprocessing: " + iOutputRegionsList.size());
         
-        // Now we run Object properties on this regions list, it is not needed to zeroed iRegions since
-        // it overwrite all pixels of old regions with new values
+        // Clear output label regions since regions are filtered above.
+        ArrayOps.fill(iOutputLabeledRegions, (short) 0);
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);
         
         // --------------------------------------------------------------------
@@ -190,6 +191,7 @@ class ImagePatches {
             ArrayOps.fill(iOutputLabeledRegions, (short) 0);
             generateLabeledRegions(regionsListFiltered, iOutputLabeledRegions);
             iOutputRegionsList = regionsListFiltered;
+            System.out.println("FFFFFFFFFFFFILE");
         }
         logger.debug("number of found regions after filtering:      " + iOutputRegionsList.size());
     }

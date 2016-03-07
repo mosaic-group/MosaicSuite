@@ -111,6 +111,19 @@ public class SquasshSegmentation {
         ipatches.processPatches();
         iRegionsList = ipatches.getRegionsList();
         iLabeledRegions = ipatches.getLabeledRegions();
+        
+        relabelRegions(iRegionsList, iLabeledRegions);
+    }
+    
+    private void relabelRegions(ArrayList<Region> aRegionsList, short[][][] aLabeledRegions) {
+        short label = 1;
+        for (Region r : aRegionsList) {
+            for (Pix p : r.iPixels) {
+                aLabeledRegions[p.pz][p.px][p.py] = label;
+            }
+            r.iLabel = label;
+            label++;
+        }
     }
 
     private GaussPSF<DoubleType> generatePsf() {

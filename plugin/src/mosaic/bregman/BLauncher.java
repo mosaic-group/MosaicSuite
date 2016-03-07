@@ -338,12 +338,10 @@ public class BLauncher {
             final int factor2 = iOutputImgScale;
             
             ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
-            ca.addRegion(iRegionsList.get(0), iNormalizedImages[0]);
-            ca.addRegion(iRegionsList.get(1), iNormalizedImages[1]);
+            ca.addRegion(iRegionsList.get(0), iLabeledRegions[0], iNormalizedImages[0]);
+            ca.addRegion(iRegionsList.get(1), iLabeledRegions[1], iNormalizedImages[1]);
             resAB = ca.calculate(0, 1);
             resBA = ca.calculate(1, 0);
-            iLabeledRegions[0] = ca.getLabeledRegion(0);
-            iLabeledRegions[1] = ca.getLabeledRegion(1);
         }
         return new ColocResult[] {resAB, resBA};
     }
@@ -439,8 +437,10 @@ public class BLauncher {
         }
         channel = tempChannel;
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
+        
+        iLabeledRegions[channel] = rg.iLabeledRegions; 
         iRegionsList.set(channel, rg.iRegionsList);
-        iLabeledRegions[channel] = rg.iLabeledRegions;
+        
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
         if (iParameters.dispSoftMask) {

@@ -22,9 +22,10 @@ public class ColocalizationAnalysis {
         iScaleZ = aScaleZ;
     }
     
-    public void addRegion(ArrayList<Region> aRegion, double[][][] aImage) {
+    public void addRegion(ArrayList<Region> aRegion, short[][][] aLabeledRegion, double[][][] aImage) {
         iRegions.add(aRegion);
-        iLabeledRegions.add(labelRegions(aRegion));
+//        iLabeledRegions.add(labelRegions(aRegion));
+        iLabeledRegions.add(aLabeledRegion);
         iImages.add(aImage);
     }
     
