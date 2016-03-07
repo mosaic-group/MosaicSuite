@@ -15,6 +15,8 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -53,7 +55,7 @@ public class GenericGUI {
         gd.addStringField("Input:", iInputField, 50);
     
         Panel p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
-        addButton(p, "Select File/Folder", new FileOpenerActionListener((TextField)gd.getStringFields().get(0)));
+        addButton(p, "Select File/Folder", new FileOpenerActionListener(gd.getStringFields(), 0));
         addButton(p, "Help", new HelpOpenerActionListener(gd));
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
     
@@ -141,10 +143,17 @@ public class GenericGUI {
     }
 
     private class FileOpenerActionListener implements ActionListener {
-        TextField ta;
+        List<?> iTextFields;
+        int iFieldNumber;
 
-        public FileOpenerActionListener(TextField aTextField) {
-            ta = aTextField;
+        /**
+         * This constructor intentionally takes separately all text fields and field number for path to be modified.
+         * It is because of headless mode which return null if asked for all fields. And obviously in headless mode
+         * file opener will never be called so it is seems OK to leave it like that.
+         */
+        public FileOpenerActionListener(Vector<?> aTextFields, int aFilePathFieldNumber) {
+            iTextFields = aTextFields;
+            iFieldNumber = aFilePathFieldNumber;
         }
 
         @Override
@@ -172,7 +181,8 @@ public class GenericGUI {
                 final ImagePlus img2 = IJ.openImage(path);
                 img2.show();
             }
-            ta.setText(path);
+            TextField tf = (TextField)iTextFields.get(iFieldNumber);
+            tf.setText(path);
         }
     }
 

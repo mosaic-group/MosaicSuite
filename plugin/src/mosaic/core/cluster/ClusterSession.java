@@ -504,6 +504,7 @@ public class ClusterSession {
 
         for (int i = 0; i < directories.length; i++) {
             final String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+            if (s == null) continue;
             final int nf = Integer.parseInt(s[1]);
             String filename = s[2];
 
@@ -513,7 +514,6 @@ public class ClusterSession {
             }
 
             MosaicUtils.reorganize(output, "tmp", filename, directories[i], nf);
-
         }
     }
 
@@ -849,7 +849,6 @@ public class ClusterSession {
         final ClusterSession ss = cg.getClusterSession();
 
         // Get all image processor statistics and calculate the maximum
-
         if (max == 0.0) {
             if (aImp != null) {
                 final StackStatistics stack_stats = new StackStatistics(aImp);
@@ -861,7 +860,6 @@ public class ClusterSession {
         }
 
         // Run plugin on frames
-
         if (ss.runPluginsOnFrames(aImp, command, "min=" + min + " max=" + max + " " + options, out, cg.getEstimatedTime(), sync) == false) {
             return null;
         }
