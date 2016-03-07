@@ -84,7 +84,7 @@ public class SquasshLauncher {
     public Set<FileInfo> getSavedFiles() { return iSavedFilesInfo; }
     
     /**
-     * Launch the Segmentation
+     * Launch the Segmentation for provided image. Calculate colocalization, generate images and save all files according to settings provided in aParameters/aOutputDir.
      * @param aImage image to be segmented
      */
     public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
@@ -228,10 +228,6 @@ public class SquasshLauncher {
         if (iNumOfChannels >  1) {
             // Choose the Rscript coloc format
             CSVOutput.occ = CSVOutput.oc[2];
-//            
-//            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
-//            computeOverallMask(nz, ni, nj);
-//            applyMask();
         }
 
         final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
