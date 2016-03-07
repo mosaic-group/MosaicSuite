@@ -130,10 +130,11 @@ public class BLauncher {
 
             runSegmentation(aImage, frame, title);
             
-            // Order below is a must - runColocalizationAnalysis updates stuff needed by displayAndUpdateImages.
-            ColocResult[] colocResults = runColocalizationAnalysis();
             displayAndUpdateImages(outFileName);
-            saveInfoToCsvFiles(aOutputDir, title, outFileName, frame, colocResults);
+            if (iParameters.save_images) {
+                writeImageDataCsv(aOutputDir, title, outFileName, frame - 1);
+                saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
+            }
         }
 
         if (iParameters.save_images) {
@@ -143,12 +144,6 @@ public class BLauncher {
         logger.info("Saved files:");
         for (FileInfo f : iSavedFilesInfo) {
             logger.info("            " + f);
-        }
-    }
-    private void saveInfoToCsvFiles(String aOutputDir, final String title, String outFileName, int frame, ColocResult[] colocResults) {
-        if (iParameters.save_images) {
-            saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
-            writeImageDataCsv(aOutputDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
         }
     }
     
@@ -233,10 +228,10 @@ public class BLauncher {
         if (iNumOfChannels >  1) {
             // Choose the Rscript coloc format
             CSVOutput.occ = CSVOutput.oc[2];
-            
-            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
-            computeOverallMask(nz, ni, nj);
-            applyMask();
+//            
+//            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
+//            computeOverallMask(nz, ni, nj);
+//            applyMask();
         }
 
         final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
@@ -252,9 +247,10 @@ public class BLauncher {
         }
     }
 
-    private void writeImageDataCsv(String path, String filename, String outfilename, int hcount, ColocResult resAB, ColocResult resBA) {
+    private void writeImageDataCsv(String path, String filename, String outfilename, int hcount) {
         boolean shouldAppend = (hcount != 0);
         PrintWriter out = null;
+        
         try {
             String fileName = path + File.separator + Files.createTitleWithExt(Type.ImagesData, outfilename);
             out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
@@ -267,16 +263,12 @@ public class BLauncher {
 
         // write the header
         if (!shouldAppend) {
+            out.print("File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1");
             if (iNumOfChannels == 2) {
-                out.print("File;Image ID;" 
-                        + "Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1;" 
-                        + "Objects ch2;Mean size in ch2;Mean surface in ch2;Mean length in ch2;" 
+                out.print(";Objects ch2;Mean size in ch2;Mean surface in ch2;Mean length in ch2;" 
                         + "Colocalization ch1 in ch2 (signal based);Colocalization ch2 in ch1 (signal based);Colocalization ch1 in ch2 (size based);Colocalization ch2 in ch1 (size based);"
                         + "Colocalization ch1 in ch2 (objects numbers);Colocalization ch2 in ch1 (objects numbers);Mean ch2 intensity of ch1 objects;Mean ch1 intensity of ch2 objects;"
                         + "Pearson correlation;Pearson correlation inside cell masks");
-            }
-            else {
-                out.print("File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1");
             }
             out.println();
 
@@ -293,7 +285,12 @@ public class BLauncher {
 
         final double meanSA = meanSurface(iRegionsList.get(0));
         final double meanLA = meanLength(iRegionsList.get(0));
+        out.print(filename + ";" + hcount + ";" + iRegionsList.get(0).size() + ";" + round(meanSize(iRegionsList.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
         if (iNumOfChannels == 2) {
+            ColocResult[] colocResults = runColocalizationAnalysis();
+            ColocResult resAB = colocResults[0];
+            ColocResult resBA = colocResults[1];
+            
             double colocAB = round(resAB.colocsegABsignal, 4);
             double colocABnumber = round(resAB.colocsegABnumber, 4);
             double colocABsize = round(resAB.colocsegABsize, 4);
@@ -307,15 +304,12 @@ public class BLauncher {
             final double meanSB = meanSurface(iRegionsList.get(1));
             final double meanLB = meanLength(iRegionsList.get(1));
 
-            out.print(filename + ";" + hcount + ";" + iRegionsList.get(0).size() + ";" + round(meanSize(iRegionsList.get(0)), 4) + ";" + round(meanSA, 4) + ";"
-                    + round(meanLA, 4) + ";" + +iRegionsList.get(1).size() + ";" + round(meanSize(iRegionsList.get(1)), 4) + ";" + round(meanSB, 4) + ";"
+            out.print(";" + + iRegionsList.get(1).size() + ";" + round(meanSize(iRegionsList.get(1)), 4) + ";" + round(meanSB, 4) + ";"
                     + round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
                     + colocB + ";" + round(temp[0], 4) + ";" + round(temp[1], 4));
         }
-        else {
-            out.print(filename + ";" + hcount + ";" + iRegionsList.get(0).size() + ";" + round(meanSize(iRegionsList.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
-        }
         out.println();
+
         out.flush();
         out.close();
     }
@@ -335,11 +329,16 @@ public class BLauncher {
         ColocResult resAB = null;
         ColocResult resBA = null;
         if (iNumOfChannels == 2) {
+            // Compute and apply colocalization mask
+            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
+            computeOverallMask(nz, ni, nj);
+            ArrayList<ArrayList<Region>> maskedRegionList = applyMask();
+
+            // Run colocalization
             final int factor2 = iOutputImgScale;
-            
             ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
-            ca.addRegion(iRegionsList.get(0), iLabeledRegions[0], iNormalizedImages[0]);
-            ca.addRegion(iRegionsList.get(1), iLabeledRegions[1], iNormalizedImages[1]);
+            ca.addRegion(maskedRegionList.get(0), iNormalizedImages[0]);
+            ca.addRegion(maskedRegionList.get(1), iNormalizedImages[1]);
             resAB = ca.calculate(0, 1);
             resBA = ca.calculate(1, 0);
         }
@@ -501,7 +500,8 @@ public class BLauncher {
         }
     }
     
-    private void applyMask() {
+    private ArrayList<ArrayList<Region>> applyMask() {
+        ArrayList<ArrayList<Region>> maskedRegionList = new ArrayList<ArrayList<Region>>();
         for (int channel = 0; channel < iNumOfChannels; channel++) {
             final ArrayList<Region> maskedRegion = new ArrayList<Region>();
             for (Region r : iRegionsList.get(channel)) {
@@ -509,8 +509,9 @@ public class BLauncher {
                     maskedRegion.add(r);
                 }
             }
-            iRegionsList.set(channel, maskedRegion);
+            maskedRegionList.add(maskedRegion);
         }
+        return maskedRegionList;
     }
     
     private boolean isInside(Region r) {

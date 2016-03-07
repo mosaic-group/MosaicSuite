@@ -348,51 +348,51 @@ public class BregmanGLM_BatchTest extends CommonBase {
             compareCsvFiles(refFile, testFile);
         }
     }
-    
-    @Test
-//  @org.junit.Ignore
-  public void testClusterShort()  {
-      
-      // Define test data
-      final String tcDirName           = "Squassh/test2dCluster/";
-      final String setupString         = "run";
-      final String macroOptions        = "process username=" + System.getProperty("user.name");
-      final String inputFile           = "test2d.tif";
-      final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
-      final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
-      final String[] expectedFiles     = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
-      final String[] referenceFiles    = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
-      
-      // Create tested plugIn
-      Interpreter.batchMode = true;
-      final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
-      copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
-      
-      // Test it
-      testPlugin(plugin, tcDirName,
-                 macroOptions, 
-                 setupString, inputFile,
-                 null, null, null, null);
-                 
-      File dataDir = new File(getTestDataPath() + tcDirName);
-      File testDir = new File(tmpPath);
-      
-      // compare output from plugin with reference images
-      for (int i = 0; i < expectedImgFiles.length; ++i) {
-          final File refJobFile = findJobFile(referenceImgFiles[i], dataDir);
-          assertTrue("Reference file [" + dataDir + referenceImgFiles[i] + "] not found!", refJobFile != null);
-          String refFile = refJobFile.getAbsoluteFile().toString();
-          final File testJobFile = findJobFile(expectedImgFiles[i], testDir);
-          assertTrue("Test file [" + testDir + "/" + expectedImgFiles[i] + "] not found!", testJobFile != null);
-          String testFile = testJobFile.getAbsoluteFile().toString();
-          testFile = "./" + testFile.substring(tmpPath.length(), testFile.length());
-          compareImageFromIJ(refFile, testFile);
-      }
 
-      for (int i = 0; i < expectedFiles.length; ++i) {
-          String refFile = findJobFile(referenceFiles[i], dataDir).getAbsoluteFile().toString();
-          String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
-          compareCsvFiles(refFile, testFile);
-      }
-  }
+    @Test
+//    @org.junit.Ignore
+    public void testClusterShort()  {
+
+        // Define test data
+        final String tcDirName           = "Squassh/test2dCluster/";
+        final String setupString         = "run";
+        final String macroOptions        = "process username=" + System.getProperty("user.name");
+        final String inputFile           = "test2d.tif";
+        final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
+        final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        Interpreter.batchMode = true;
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+
+        // Test it
+        testPlugin(plugin, tcDirName,
+                macroOptions, 
+                setupString, inputFile,
+                null, null, null, null);
+
+        File dataDir = new File(getTestDataPath() + tcDirName);
+        File testDir = new File(tmpPath);
+
+        // compare output from plugin with reference images
+        for (int i = 0; i < expectedImgFiles.length; ++i) {
+            final File refJobFile = findJobFile(referenceImgFiles[i], dataDir);
+            assertTrue("Reference file [" + dataDir + referenceImgFiles[i] + "] not found!", refJobFile != null);
+            String refFile = refJobFile.getAbsoluteFile().toString();
+            final File testJobFile = findJobFile(expectedImgFiles[i], testDir);
+            assertTrue("Test file [" + testDir + "/" + expectedImgFiles[i] + "] not found!", testJobFile != null);
+            String testFile = testJobFile.getAbsoluteFile().toString();
+            testFile = "./" + testFile.substring(tmpPath.length(), testFile.length());
+            compareImageFromIJ(refFile, testFile);
+        }
+
+        for (int i = 0; i < expectedFiles.length; ++i) {
+            String refFile = findJobFile(referenceFiles[i], dataDir).getAbsoluteFile().toString();
+            String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
+            compareCsvFiles(refFile, testFile);
+        }
+    }
 }

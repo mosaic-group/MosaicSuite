@@ -22,15 +22,22 @@ public class ColocalizationAnalysis {
         iScaleZ = aScaleZ;
     }
     
+    /**
+     * Add new region.
+     */
     public void addRegion(ArrayList<Region> aRegion, short[][][] aLabeledRegion, double[][][] aImage) {
         iRegions.add(aRegion);
-//        iLabeledRegions.add(labelRegions(aRegion));
         iLabeledRegions.add(aLabeledRegion);
         iImages.add(aImage);
     }
     
-    public short[][][] getLabeledRegion(int aIndex) {
-        return iLabeledRegions.get(aIndex);
+    /**
+     * Add new region. LabeledRegion will be computed basing on input region list and provided in contructor dimensions.
+     */
+    public void addRegion(ArrayList<Region> aRegion, double[][][] aImage) {
+        iRegions.add(aRegion);
+        iLabeledRegions.add(labelRegions(aRegion));
+        iImages.add(aImage);
     }
     
     public class ColocResult {
