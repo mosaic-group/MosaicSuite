@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.Parameters;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.plugins.BregmanGLM_Batch.RunMode;
@@ -46,10 +47,16 @@ public class GenericGUI {
         iUseGui = aUseGui;
     }
 
+    public GenericDialog dialogFactory(String aTitle) {
+        // In GUI mode it is convinient to have non-blocking gui (for example to use nicely Help windows).
+        // in non-gui -> use regular GenericDialog since it is only version which has headless version.
+        return (iUseGui) ? new NonBlockingGenericDialog(aTitle) : new GenericDialog(aTitle);
+    }
+    
     public RunMode drawStandardWindow(String aImgPath, boolean aRunOnCluster) {
         iInputField = aImgPath;
 
-        final GenericDialog gd = new GenericDialog("Squassh");
+        final GenericDialog gd = dialogFactory("Squassh");
         gd.setInsets(-10, 0, 3);
         
         gd.addStringField("Input:", iInputField, 50);
@@ -124,6 +131,7 @@ public class GenericGUI {
     public String getInput() { return iInputField; }
     
     private void addLabel(Panel p, String aLabel) {
+        // Do not create labels if not in GUI mode.
         if (iUseGui) {
             Label label = new Label(aLabel);
             label.setFont(new Font(null, Font.BOLD, 12));
@@ -205,7 +213,6 @@ public class GenericGUI {
             final JPanel pref = new JPanel(new GridBagLayout());
             setPanel(pref);
             setHelpTitle("Squassh");
-            createTutorial(null);
             createArticle("http://mosaic.mpi-cbg.de/docs/Paul2013a.pdf");
             String desc = new String("Background subtraction is performed first, as the segmentation model assumes locally "
                     + "homogeneous intensities. Background variations are non-specific signals that are not accounted for by "

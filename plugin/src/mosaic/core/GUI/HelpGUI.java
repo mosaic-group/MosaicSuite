@@ -17,19 +17,12 @@ import javax.swing.JPanel;
 
 /**
  * Class to create help windows + link to respective documentation
- *
  * @author Pietro Incardona
  */
-
 public class HelpGUI {
 
     private JPanel pref;
-
-    private final int gridx = 0;
     private int gridy = 0;
-
-    public HelpGUI() {
-    }
 
     protected void setPanel(JPanel pref_) {
         pref = pref_;
@@ -37,12 +30,10 @@ public class HelpGUI {
 
     protected void setHelpTitle(String title) {
         final GridBagConstraints c = new GridBagConstraints();
-        c.gridx = gridx;
+        c.gridx = 0;
         c.gridy = gridy;
         c.gridwidth = 2;
-        final JLabel label = new JLabel();
-        label.setText("<html>" + "<h1> " + title + " </h1>" + "</html>");
-        pref.add(label, c);
+        pref.add(new JLabel("<html>" + "<h1> " + title + " </h1>" + "</html>"), c);
 
         gridy++;
     }
@@ -53,36 +44,15 @@ public class HelpGUI {
         }
 
         final GridBagConstraints c = new GridBagConstraints();
-
-        final JLabel label = new JLabel();
-        final JButton bt_a = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
-        bt_a.setBorderPainted(false);
-        bt_a.setOpaque(false);
-        bt_a.setBackground(Color.GRAY);
-        bt_a.setToolTipText(link);
-        bt_a.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-
-                try {
-                    open(new URI(link));
-                }
-                catch (final URISyntaxException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-
-        label.setText("<html>Article: </html>");
         c.gridx = 0;
         c.gridy = gridy;
         c.anchor = GridBagConstraints.CENTER;
-        pref.add(label, c);
+        pref.add(new JLabel("<html>Article: </html>"), c);
+
         c.gridx = 1;
         c.anchor = GridBagConstraints.WEST;
-        pref.add(bt_a, c);
+        final JButton button = createLinkButton("<html><font color=\"blue\">click here</font></hmtl>", link);
+        pref.add(button, c);
 
         gridy++;
     }
@@ -93,37 +63,15 @@ public class HelpGUI {
         }
 
         final GridBagConstraints c = new GridBagConstraints();
-
-        final JLabel label = new JLabel();
-        final JButton bt_t = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
-        bt_t.setBorderPainted(false);
-        bt_t.setOpaque(false);
-        bt_t.setBackground(Color.GRAY);
-        bt_t.setToolTipText(link);
-        bt_t.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-
-                try {
-                    open(new URI(link));
-                }
-                catch (final URISyntaxException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        pref.add(label, c);
-
-        label.setText("<html>Tutorial: </html>");
         c.gridx = 0;
         c.gridy = gridy;
         c.gridwidth = 1;
-        pref.add(label, c);
+        pref.add(new JLabel("<html>Tutorial: </html>"), c);
+
         c.gridx = 1;
         c.anchor = GridBagConstraints.WEST;
-        pref.add(bt_t, c);
+        final JButton button = createLinkButton("<html><font color=\"blue\">click here</font></hmtl>", link);
+        pref.add(button, c);
 
         gridy++;
     }
@@ -131,94 +79,72 @@ public class HelpGUI {
     protected void createSection(String sc, final String link) {
         final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.WEST;
+        c.gridx = 0;
+        c.gridy = gridy;
 
         if (link == null) {
-            c.gridx = 0;
-            c.gridy = gridy;
             c.gridwidth = 2;
-            final JLabel label = new JLabel();
-            label.setText("<html><h1> " + sc + " </h1>");
-            pref.add(label, c);
-
-            gridy++;
+            pref.add(new JLabel("<html><h1> " + sc + " </h1>"), c);
         }
         else {
-            c.gridx = 0;
-            c.gridy = gridy;
             c.gridwidth = 1;
-            final JLabel label = new JLabel();
-            label.setText("<html><h1> " + sc + " </h1>");
-            pref.add(label, c);
+            pref.add(new JLabel("<html><h1> " + sc + " </h1>"), c);
 
-            final JButton bt_s = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
-            bt_s.setBorderPainted(false);
-            bt_s.setOpaque(false);
-            bt_s.setBackground(Color.GRAY);
-            bt_s.setToolTipText(link);
-            bt_s.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-
-                    try {
-                        open(new URI(link));
-                    }
-                    catch (final URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            });
             c.gridx = 1;
-            pref.add(bt_s, c);
-
-            gridy++;
+            final JButton button = createLinkButton("<html><font color=\"blue\">more info</font></hmtl>", link);
+            pref.add(button, c);
         }
+        
+        gridy++;
     }
 
     protected void createField(String fld, String desc, final String link) {
         final GridBagConstraints c = new GridBagConstraints();
-
         c.anchor = GridBagConstraints.WEST;
         c.gridx = 0;
         c.gridy = gridy;
         c.gridwidth = 2;
-        final JLabel label = new JLabel();
-        label.setText("<html>" + "<h2> <font color=\"red\"> " + fld + " </font></h2>" + "<div style=\"width:400px\">" + desc + "</div>");
-        pref.add(label, c);
+        pref.add(new JLabel("<html>" + "<h2> <font color=\"red\"> " + fld + " </font></h2>" + "<div style=\"width:400px\">" + desc + "</div>"), c);
 
         gridy++;
 
         if (link != null) {
-            final JButton bt_pr = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
-            bt_pr.setBorderPainted(false);
-            bt_pr.setOpaque(false);
-            bt_pr.setBackground(Color.GRAY);
-            bt_pr.setToolTipText(link);
-            bt_pr.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-
-                    try {
-                        open(new URI(link));
-                    }
-                    catch (final URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            });
             c.gridx = 0;
             c.gridy = gridy;
             c.gridwidth = 2;
-            pref.add(bt_pr, c);
+            final JButton button = createLinkButton("<html><font color=\"blue\">more info</font></hmtl>", link);
+            pref.add(button, c);
         }
 
         gridy++;
     }
+    
+    private JButton createLinkButton(String buttonStr, final String link) {
+        final JButton button = new JButton(buttonStr);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setBackground(Color.GRAY);
+        button.setToolTipText(link);
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                open(link);
+            }
+        });
+        
+        return button;
+    }
 
-    protected static void open(URI uri) {
+    protected static void open(String aUriString) {
+        try {
+            open(new URI(aUriString));
+        }
+        catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(uri);
