@@ -185,7 +185,7 @@ public class GenericGUI {
             String path = selFile.getAbsolutePath();
             final boolean isFile = selFile.isFile();
             if (isFile) {
-                // should be checked with isSymbolicLink also (only in 1.7). Since  link to directory is considered as a file.
+                // should be checked with isSymbolicLink also (only in Java >= 1.7). Since  link to directory is considered as a file.
                 final ImagePlus img2 = IJ.openImage(path);
                 img2.show();
             }

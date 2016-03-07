@@ -75,6 +75,7 @@ public class BLauncher {
     private ImagePlus[] iOutIntensities;
     private ImagePlus[] iOutLabeledRegionsColor;
     private ImagePlus[] iOutLabeledRegionsGray;
+    private ImagePlus[] iOutColoc;
     
     private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
     private void addSavedFile(Type aFI, String aFileName) {
@@ -122,20 +123,17 @@ public class BLauncher {
         iOutIntensities = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsColor = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
-        
+        iOutColoc = new ImagePlus[1]; // Only one channel needed
         String outFileName = SysOps.removeExtension(title);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
             runSegmentation(aImage, frame, title);
-            ColocResult[] colocResults = runColocalizationAnalysis();
             
-            displayResult(outFileName);
-            if (iParameters.save_images) {
-                saveColocImage(aOutputDir, outFileName);
-                saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
-                writeImageDataCsv(aOutputDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
-            }
+            // Order below is a must - runColocalizationAnalysis updates stuff needed by displayAndUpdateImages.
+            ColocResult[] colocResults = runColocalizationAnalysis();
+            displayAndUpdateImages(outFileName);
+            saveInfoToCsvFiles(aOutputDir, title, outFileName, frame, colocResults);
         }
 
         if (iParameters.save_images) {
@@ -147,12 +145,18 @@ public class BLauncher {
             logger.info("            " + f);
         }
     }
+    private void saveInfoToCsvFiles(String aOutputDir, final String title, String outFileName, int frame, ColocResult[] colocResults) {
+        if (iParameters.save_images) {
+            saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
+            writeImageDataCsv(aOutputDir, title, outFileName, frame - 1, colocResults[0], colocResults[1]);
+        }
+    }
     
     /**
      * Display results
      * @param separate true if you do not want separate the images
      */
-    private void displayResult(String aTitle) {
+    private void displayAndUpdateImages(String aTitle) {
         
         final int factor = iOutputImgScale;
         int fz = (nz > 1) ? factor : 1;
@@ -178,6 +182,10 @@ public class BLauncher {
                 iOutSoftMasks[channel].setTitle(Files.createTitleWithExt(Type.SoftMask, aTitle, channel + 1));
                 iOutSoftMasks[channel].show();
             }
+        }
+        if (iNumOfChannels == 2) {
+            ImagePlus img = generateColocImage();
+            updateImages(0, img, Files.createTitleWithExt(Type.Colocalization, aTitle), true, iOutColoc);
         }
     }
 
@@ -213,6 +221,11 @@ public class BLauncher {
                 IJ.save(iOutSoftMasks[i], fileName);
                 addSavedFile(Type.SoftMask, fileName);
             }
+        }
+        if (iOutColoc[0] != null) {
+            String fileName = savePath + iOutColoc[0].getTitle();
+            IJ.save(iOutColoc[0], fileName);
+            addSavedFile(Type.Colocalization, fileName);
         }
     }
 
@@ -335,19 +348,14 @@ public class BLauncher {
         return new ColocResult[] {resAB, resBA};
     }
 
-    private void saveColocImage(String aDir, String title) {
+    private ImagePlus generateColocImage() {
         if (iNumOfChannels == 2) {
-            // TODO: Coloc image should be udpated like other images (it will be overwrite in case of
-            //       processing multiframe images.
             final int factor2 = iOutputImgScale;
             int fz2 = (nz > 1) ? factor2 : 1;
 
-            ImagePlus colocImg = generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
-            colocImg.show();
-            String fileName = aDir + Files.createTitleWithExt(Type.Colocalization, title);
-            IJ.save(colocImg, fileName);
-            addSavedFile(Type.Colocalization, fileName);
+            return generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
         }
+        return null;
     }
     
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
