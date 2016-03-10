@@ -60,7 +60,9 @@ public class SquasshLauncher {
     
     private final Parameters iParameters;
 
-    private int ni, nj, nz;
+    private int ni;
+    private int nj;
+    private int nz;
     private int iNumOfChannels = -1;
     private int iOutputImgScale = 1;
     
@@ -81,7 +83,7 @@ public class SquasshLauncher {
     
     private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
     private void addSavedFile(FileType aFI, String aFileName) {
-        iSavedFilesInfo.add(new FileInfo(aFI, aFileName.replaceAll("/+", "/")));
+        iSavedFilesInfo.add(new FileInfo(aFI, SysOps.removeRedundantSeparators(aFileName)));
     } 
     public Set<FileInfo> getSavedFiles() { return iSavedFilesInfo; }
     
@@ -136,26 +138,7 @@ public class SquasshLauncher {
         iOutLabeledRegionsColor = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
         
-        if (aAnalysisPairs != null) { 
-            iAnalysisPairs = aAnalysisPairs;
-        }
-        else {
-            // Old behavior with only two channels allowed;
-            iAnalysisPairs = new ArrayList<ChannelPair>();
-            iAnalysisPairs.add(new ChannelPair(0, 1));
-            iAnalysisPairs.add(new ChannelPair(0, 2));
-            
-        }
-        
-        // Remove all pairs not applicable for current image (user can define channel pairs 
-        // arbitrarily - it is needed for batch processing multiple files with possibly different 
-        // diemnsions).
-        for (Iterator<ChannelPair> iterator = iAnalysisPairs.iterator(); iterator.hasNext(); ) {
-            ChannelPair cp = iterator.next();
-            if (cp.ch1 >= iNumOfChannels || cp.ch2 >= iNumOfChannels) {
-                iterator.remove();
-            }
-        }
+        iAnalysisPairs = computeValidChannelsPairsForImage(aAnalysisPairs, iNumOfChannels);
         
         iOutColoc = new ImagePlus[iAnalysisPairs.size()];
         
@@ -182,6 +165,32 @@ public class SquasshLauncher {
         for (FileInfo f : iSavedFilesInfo) {
             logger.info("            " + f);
         }
+    }
+    
+    private List<ChannelPair> computeValidChannelsPairsForImage(List<ChannelPair> aAnalysisPairs, int aNumOfChannels) {
+        // Always crate new container since later some of its elements are removed
+        // If it would be done on input parameter it would impact processing of multiple images.
+        
+        List<ChannelPair> iAnalysisPairs = new ArrayList<ChannelPair>();
+        if (aAnalysisPairs != null) { 
+            iAnalysisPairs.addAll(aAnalysisPairs);
+        }
+        else {
+            // Old behavior with only two channels processed (0, 1)
+            iAnalysisPairs.add(new ChannelPair(0, 1));
+        }
+        
+        // Remove all pairs not applicable for current image (user can define channel pairs 
+        // arbitrarily - it is needed for batch processing multiple files with possibly different 
+        // diemnsions).
+        for (Iterator<ChannelPair> iterator = iAnalysisPairs.iterator(); iterator.hasNext(); ) {
+            ChannelPair cp = iterator.next();
+            if (cp.ch1 >= aNumOfChannels || cp.ch2 >= aNumOfChannels) {
+                iterator.remove();
+            }
+        }
+        
+        return iAnalysisPairs;
     }
     
     /**

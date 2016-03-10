@@ -200,13 +200,26 @@ public class SysOps {
         return FilenameUtils.removeExtension(aFileName);
     }
     
+    /**
+     * @return return directory path taken from given path to file
+     */
     public static String getPathToFile(String aFileName) {
         return FilenameUtils.getFullPath(aFileName);
     }
     
+    /**
+     * @return system username (usually login name of a user) or null if not possible to detect.
+     */
     public static String getSystemUsername() {
         String username = System.getenv("USER");
         if (username == null || username.equals("")) return null;
         return username;
+    }
+    
+    /**
+     * @return returns nicer path with removed redundant separators ("/tmp///x.tif" -> "/tmp/x.tif") 
+     */
+    public static String removeRedundantSeparators(String aFileName) {
+        return aFileName.replaceAll("/+", "/");
     }
 }
