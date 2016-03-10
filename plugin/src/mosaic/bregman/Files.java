@@ -209,5 +209,4 @@ public class Files {
             csv.StitchAny(currentFilesAbsPaths,  aOutputDir + "stitch_" + e.getKey());
         }
     }
-    
 }

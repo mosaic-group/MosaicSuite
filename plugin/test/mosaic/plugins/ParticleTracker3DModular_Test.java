@@ -115,16 +115,16 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           = "sequence.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/Traj_sequence.tif.csv", "__ObjectsData_c1.csv/Traj_sequence.tif.txt"};
+        final String[] expectedFiles     = {"__NEW_ObjectData.csv/Traj_sequence.tif.csv", "__NEW_ObjectData.csv/Traj_sequence.tif.txt"};
         final String[] referenceFiles    = {"Traj_sequence.tif.csv", "Traj_sequence.tif.txt"};
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        copyTestResources("__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("__ObjectsData_c1.csv", getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("__outline_overlay_c1.zip", getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("stitch__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("stitch__ObjectsData_c1.csv", getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("__outline_overlay_c1.zip", getTestDataPath() + tcDirName, tmpPath);
+//        copyTestResources("stitch__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,

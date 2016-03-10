@@ -197,7 +197,7 @@ public class MosaicUtils {
             final String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
                 final File fR = new File(Folder + sR[j]);
-
+                mosaic.utils.Debug.print("checkSegmentationInfo", fR.getAbsoluteFile());
                 if (fR.exists()) {
                     return true;
                 }
