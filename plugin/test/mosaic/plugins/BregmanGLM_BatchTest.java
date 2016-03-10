@@ -113,8 +113,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__mask_c1.zip/moImg_mask_c1.zip", "__mask_c2.zip/moImg_mask_c2.zip", 
                                             "__outline_overlay_c1.zip/moImg_outline_overlay_c1.zip", "__outline_overlay_c2.zip/moImg_outline_overlay_c2.zip",
                                             "__seg_c1.zip/moImg_seg_c1.zip", "__seg_c2.zip/moImg_seg_c2.zip"};
-        final String[] expectedFiles     = {"__ImagesData.csv/moImg_ImagesData.csv", "__ObjectsData_c1.csv/moImg_ObjectsData_c1.csv", "__ObjectsData_c2.csv/moImg_ObjectsData_c2.csv"};
-        final String[] referenceFiles    = {"__ImagesData.csv/moImg_ImagesData.csv", "__ObjectsData_c1.csv/moImg_ObjectsData_c1.csv", "__ObjectsData_c2.csv/moImg_ObjectsData_c2.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageColoc.csv/moImg_NEW_ImageColoc.csv", "__NEW_ImageData.csv/moImg_NEW_ImageData.csv", "__NEW_ObjectColoc.csv/moImg_NEW_ObjectColoc.csv", "__NEW_ObjectData.csv/moImg_NEW_ObjectData.csv"};
+        final String[] referenceFiles     = {"__NEW_ImageColoc.csv/moImg_NEW_ImageColoc.csv", "__NEW_ImageData.csv/moImg_NEW_ImageData.csv", "__NEW_ObjectColoc.csv/moImg_NEW_ObjectColoc.csv", "__NEW_ObjectData.csv/moImg_NEW_ObjectData.csv"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
@@ -138,8 +138,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
         final String inputFile           = "sphereSmall.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/sphereSmall_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/sphereSmall_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/sphereSmall_ObjectsData_c1.csv", "__ImagesData.csv/sphereSmall_ImagesData.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/sphereSmall_ObjectsData_c1.csv", "__ImagesData.csv/sphereSmall_ImagesData.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageData.csv/sphereSmall_NEW_ImageData.csv", "__NEW_ObjectData.csv/sphereSmall_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ImageData.csv/sphereSmall_NEW_ImageData.csv", "__NEW_ObjectData.csv/sphereSmall_NEW_ObjectData.csv"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
@@ -163,9 +163,9 @@ public class BregmanGLM_BatchTest extends CommonBase {
         final String inputFile           = "dropletVideoSmall.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/dropletVideoSmall_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/dropletVideoSmall_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/dropletVideoSmall_ObjectsData_c1.csv", "__ImagesData.csv/dropletVideoSmall_ImagesData.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/dropletVideoSmall_ObjectsData_c1.csv", "__ImagesData.csv/dropletVideoSmall_ImagesData.csv"};
-
+        final String[] expectedFiles     = {"__NEW_ImageData.csv/dropletVideoSmall_NEW_ImageData.csv", "__NEW_ObjectData.csv/dropletVideoSmall_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ImageData.csv/dropletVideoSmall_NEW_ImageData.csv", "__NEW_ObjectData.csv/dropletVideoSmall_NEW_ObjectData.csv"};
+        
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
         copyTestResources("spb_settings.dat", getTestDataPath() + tcDirName, "/tmp");
@@ -210,8 +210,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__outline_overlay_c1.zip/4 OA1_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/4 OA3_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/4 OA4_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"stitch__ImagesData.csv", "R_analysis.R"};
-        final String[] referenceFiles    = {"stitch__ImagesData.csv", "R_analysis.R"};
+        final String[] expectedFiles     = {"stitch__NEW_ImageColoc.csv", "stitch__NEW_ImageData.csv", "stitch__NEW_ObjectColoc.csv", "stitch__NEW_ObjectData.csv", "R_analysis.R"};
+        final String[] referenceFiles    = {"stitch__NEW_ImageColoc.csv", "stitch__NEW_ImageData.csv", "stitch__NEW_ObjectColoc.csv", "stitch__NEW_ObjectData.csv", "R_analysis.R"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
@@ -261,8 +261,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__outline_overlay_c2.zip/coloc_test_outline_overlay_c2.zip",
                                             "__seg_c1.zip/coloc_test_seg_c1.zip",
                                             "__seg_c2.zip/coloc_test_seg_c2.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageColoc.csv/coloc_test_NEW_ImageColoc.csv", "__NEW_ImageData.csv/coloc_test_NEW_ImageData.csv", "__NEW_ObjectColoc.csv/coloc_test_NEW_ObjectColoc.csv", "__NEW_ObjectData.csv/coloc_test_NEW_ObjectData.csv"};
+        final String[] referenceFiles     = {"__NEW_ImageColoc.csv/coloc_test_NEW_ImageColoc.csv", "__NEW_ImageData.csv/coloc_test_NEW_ImageData.csv", "__NEW_ObjectColoc.csv/coloc_test_NEW_ObjectColoc.csv", "__NEW_ObjectData.csv/coloc_test_NEW_ObjectData.csv"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
@@ -297,18 +297,18 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__outline_overlay_c1.zip/droplet_4_outline_overlay_c1.zip",
                                             "__outline_overlay_c1.zip/droplet_5_outline_overlay_c1.zip",
                                             "__outline_overlay_c1.zip/droplet_6_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/droplet_1_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_2_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_3_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_4_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_5_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_6_ObjectsData_c1.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/droplet_1_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_2_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_3_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_4_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_5_ObjectsData_c1.csv",
-                                            "__ObjectsData_c1.csv/droplet_6_ObjectsData_c1.csv"};
+        final String[] expectedFiles     = {"__NEW_ObjectData.csv/droplet_1_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_2_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_3_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_4_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_5_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_6_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ObjectData.csv/droplet_1_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_2_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_3_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_4_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_5_NEW_ObjectData.csv",
+                                            "__NEW_ObjectData.csv/droplet_6_NEW_ObjectData.csv"};
         
         // Create tested plugIn
         Interpreter.batchMode = true;
@@ -333,7 +333,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // compare output from plugin with reference images
         for (int i = 0; i < expectedImgFiles.length; ++i) {
             final File refJobFile = findJobFile(referenceImgFiles[i], dataDir);
-            assertTrue("Reference file [" + dataDir + referenceImgFiles[i] + "] not found!", refJobFile != null);
+            assertTrue("Reference file [" + dataDir + "/" + referenceImgFiles[i] + "] not found!", refJobFile != null);
             String refFile = refJobFile.getAbsoluteFile().toString();
             final File testJobFile = findJobFile(expectedImgFiles[i], testDir);
             assertTrue("Test file [" + testDir + "/" + expectedImgFiles[i] + "] not found!", testJobFile != null);
@@ -343,8 +343,12 @@ public class BregmanGLM_BatchTest extends CommonBase {
         }
 
         for (int i = 0; i < expectedFiles.length; ++i) {
-            String refFile = findJobFile(referenceFiles[i], dataDir).getAbsoluteFile().toString();
-            String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
+            File refJobFile = findJobFile(referenceFiles[i], dataDir);
+            assertTrue("Reference file [" + dataDir + "/" + referenceFiles[i] + "] not found!", refJobFile != null);
+            String refFile = refJobFile.getAbsoluteFile().toString();
+            File testJobFile = findJobFile(expectedFiles[i], testDir);
+            assertTrue("Test file [" + testDir + "/" + expectedFiles[i] + "] not found!", testJobFile != null);
+            String testFile = testJobFile.getAbsoluteFile().toString();
             compareCsvFiles(refFile, testFile);
         }
     }
@@ -360,8 +364,9 @@ public class BregmanGLM_BatchTest extends CommonBase {
         final String inputFile           = "test2d.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageData.csv/test2d_NEW_ImageData.csv", "__NEW_ObjectData.csv/test2d_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ImageData.csv/test2d_NEW_ImageData.csv", "__NEW_ObjectData.csv/test2d_NEW_ObjectData.csv"};
+
 
         // Create tested plugIn
         Interpreter.batchMode = true;

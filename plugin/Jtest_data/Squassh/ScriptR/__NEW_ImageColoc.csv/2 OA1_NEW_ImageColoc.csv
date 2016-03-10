@@ -1,0 +1,4 @@
+FileName;Frame;Channel;ChannelColoc;ColocSignalBased;ColocSizeBased;ColocObjectsNumber;MeanIntensity;PearsonCorr;PearsonCorrMasked
+%background:/tmp/test/2 OA1.tif
+2 OA1.tif;0;0;1;0.0286;0.0243;0.0;0.0052;-0.0561;-0.0561
+2 OA1.tif;0;1;0;0.0775;0.087;0.1333;0.0701;-0.0561;-0.0561

@@ -1,0 +1,4 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test//coloc_test.tif
+coloc_test.tif;0;0;1;2474.5156;924.0;346.5
+coloc_test.tif;0;1;28;44.4068;33.241;8.0133

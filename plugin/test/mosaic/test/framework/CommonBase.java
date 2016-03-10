@@ -347,7 +347,7 @@ public class CommonBase extends Info {
      */
     protected Img<?> loadImageByName(String aImageName) {
         logger.debug("Loading image from IJ WindowManager: [" + aImageName + "]");
-        final String outputFileName = getTestTmpPath() + aImageName + ".tif";
+        final String outputFileName = getTestTmpPath() + aImageName + ".savedForTest.tif";
         final ImagePlus imageByName = getImageByName(aImageName);
         if (imageByName != null) {
             logger.debug("Saving [" + aImageName + "] as [" + outputFileName + "]");

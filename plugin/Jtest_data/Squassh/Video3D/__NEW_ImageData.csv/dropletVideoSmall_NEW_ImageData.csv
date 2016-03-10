@@ -1,0 +1,7 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test//dropletVideoSmall.tif
+dropletVideoSmall.tif;0;0;1;4.0;18.0;3.0
+dropletVideoSmall.tif;1;0;2;86.0;132.5;1.5
+dropletVideoSmall.tif;2;0;1;50.0;106.0;1.0
+dropletVideoSmall.tif;3;0;2;8.0;21.5;0.0
+dropletVideoSmall.tif;4;0;1;40.0;92.0;2.0

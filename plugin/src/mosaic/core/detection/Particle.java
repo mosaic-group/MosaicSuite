@@ -52,7 +52,8 @@ public class Particle {
     /**
      * @param aX - original x coordinates
      * @param aY - original y coordinates
-     * @param aFrameNumber - the number of the frame this particle belonges to
+     * @param aZ - original z coordinates
+     * @param aFrameNumber - the number of the frame this particle belongs to
      * @param aLinkRange linking range
      */
     public Particle(float aX, float aY, float aZ, int aFrameNumber, int aLinkRange) {

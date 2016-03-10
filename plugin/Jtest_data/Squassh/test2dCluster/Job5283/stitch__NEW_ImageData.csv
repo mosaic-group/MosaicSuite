@@ -1,0 +1,4 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test//test2d.tif
+%background:/home/gonciarz/scratch/session1457603708724/tmp_1.tif
+tmp_1.tif;0;0;1;483.0;100.0;2.0

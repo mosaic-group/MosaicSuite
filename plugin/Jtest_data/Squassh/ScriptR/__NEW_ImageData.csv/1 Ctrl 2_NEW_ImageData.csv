@@ -1,0 +1,4 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test/1 Ctrl 2.tif
+1 Ctrl 2.tif;0;0;16;25.125;19.9375;3.3125
+1 Ctrl 2.tif;0;1;27;16.3333;18.4444;3.2962
