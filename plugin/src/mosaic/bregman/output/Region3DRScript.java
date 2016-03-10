@@ -4,7 +4,7 @@ package mosaic.bregman.output;
 import mosaic.bregman.segmentation.Region;
 
 
-public class Region3DRScript implements Outdata<Region> {
+public class Region3DRScript implements Outdata {
 
     private int Image_ID;
     private int Object_ID;

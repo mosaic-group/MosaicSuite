@@ -8,7 +8,6 @@
 	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
-	<classpathentry kind="lib" path="lib/dozer.jar"/>
 	<classpathentry kind="lib" path="lib/eventbus-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/ImageJ_3D_Viewer.jar"/>
 	<classpathentry kind="lib" path="lib/imglib2-2.2.1.jar"/>
@@ -23,8 +22,6 @@
 	<classpathentry kind="lib" path="lib/scifio-lifesci-0.7.0.jar"/>
 	<classpathentry kind="lib" path="lib/scifio-tools-0.14.0.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.6.jar"/>
-	<classpathentry kind="lib" path="lib/super-csv-2.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/super-csv-dozer-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/weka-dev-3.7.11.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.12.jar" sourcepath="/Users/gonciarz/.m2/repository/junit/junit/4.12/junit-4.12-sources.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
@@ -65,5 +62,8 @@
 	<classpathentry kind="lib" path="lib/guava-17.0.jar"/>
 	<classpathentry kind="lib" path="lib/Skeletonize3D_-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/ij-1.50e.jar"/>
+	<classpathentry kind="lib" path="lib/dozer-5.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/super-csv-2.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/super-csv-dozer-2.4.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

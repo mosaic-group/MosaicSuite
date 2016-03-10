@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +30,13 @@ import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.Files.FileInfo;
-import mosaic.bregman.Files.Type;
+import mosaic.bregman.Files.FileType;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
+import mosaic.bregman.outputNew.ImageColoc;
+import mosaic.bregman.outputNew.ImageData;
+import mosaic.bregman.outputNew.ObjectsColoc;
+import mosaic.bregman.outputNew.ObjectsData;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.bregman.segmentation.SegmentationParameters;
@@ -77,17 +82,29 @@ public class SquasshLauncher {
     private ImagePlus[] iOutLabeledRegionsGray;
     private ImagePlus[] iOutColoc;
     
+    private List<ChannelPair> iAnalysisPairs;
+    
     private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
-    private void addSavedFile(Type aFI, String aFileName) {
+    private void addSavedFile(FileType aFI, String aFileName) {
         iSavedFilesInfo.add(new FileInfo(aFI, aFileName.replaceAll("/+", "/")));
-    }
+    } 
     public Set<FileInfo> getSavedFiles() { return iSavedFilesInfo; }
+    
+    public class ChannelPair {
+        ChannelPair(int aCh1, int aCh2) { ch1 = aCh1; ch2 = aCh2; }
+        int ch1;
+        int ch2;
+    }
+    
+    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
+        this(aImage, aParameters, aOutputDir, aNormalizationMin, aNormalizationMax, null);
+    }
     
     /**
      * Launch the Segmentation for provided image. Calculate colocalization, generate images and save all files according to settings provided in aParameters/aOutputDir.
      * @param aImage image to be segmented
      */
-    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
+    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax, List<ChannelPair> aAnalysisPairs) {
         iParameters = aParameters;
         iGlobalNormalizationMin = aNormalizationMin;
         iGlobalNormalizationMax = aNormalizationMax;
@@ -123,7 +140,30 @@ public class SquasshLauncher {
         iOutIntensities = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsColor = new ImagePlus[iNumOfChannels];
         iOutLabeledRegionsGray = new ImagePlus[iNumOfChannels];
-        iOutColoc = new ImagePlus[1]; // Only one channel needed
+        
+        if (aAnalysisPairs != null) { 
+            iAnalysisPairs = aAnalysisPairs;
+        }
+        else {
+            // Old behavior with only two channels allowed;
+            iAnalysisPairs = new ArrayList<ChannelPair>();
+            iAnalysisPairs.add(new ChannelPair(0, 1));
+            iAnalysisPairs.add(new ChannelPair(0, 2));
+            
+        }
+        
+        // Remove all pairs not applicable for current image (user can define channel pairs 
+        // arbitrarily - it is needed for batch processing multiple files with possibly different 
+        // diemnsions).
+        for (Iterator<ChannelPair> iterator = iAnalysisPairs.iterator(); iterator.hasNext(); ) {
+            ChannelPair cp = iterator.next();
+            if (cp.ch1 >= iNumOfChannels || cp.ch2 >= iNumOfChannels) {
+                iterator.remove();
+            }
+        }
+        
+        iOutColoc = new ImagePlus[iAnalysisPairs.size()];
+        
         String outFileName = SysOps.removeExtension(title);
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
@@ -134,6 +174,10 @@ public class SquasshLauncher {
             if (iParameters.save_images) {
                 writeImageDataCsv(aOutputDir, title, outFileName, frame - 1);
                 saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
+                writeImageDataCsv2(aOutputDir, title, outFileName, frame - 1);
+                writeObjectDataCsv2(aOutputDir, title, outFileName, frame - 1);
+                writeImageColoc2(aOutputDir, title, outFileName, frame - 1);
+                writeObjectsColocCsv2(aOutputDir, title, outFileName, frame - 1);
             }
         }
 
@@ -159,28 +203,29 @@ public class SquasshLauncher {
         for (int channel = 0; channel < iNumOfChannels; ++channel) {
             if (iParameters.dispoutline) {
                 final ImagePlus img = generateOutlineOverlay(iLabeledRegions[channel], iNormalizedImages[channel]);
-                updateImages(channel, img, Files.createTitleWithExt(Type.Outline, aTitle, channel + 1), iParameters.dispoutline, iOutOutlines);
+                updateImages(channel, img, Files.createTitleWithExt(FileType.Outline, aTitle, channel + 1), iParameters.dispoutline, iOutOutlines);
             }
             if (iParameters.dispint) {
                 ImagePlus img = generateIntensitiesImg(iRegionsList.get(channel), nz * fz, ni * factor, nj * factor);
-                updateImages(channel, img, Files.createTitleWithExt(Type.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
+                updateImages(channel, img, Files.createTitleWithExt(FileType.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
                 ImagePlus img = generateRegionImg(iLabeledRegions[channel], iRegionsList.get(channel).size(), "");
-                updateImages(channel, img, Files.createTitleWithExt(Type.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
+                updateImages(channel, img, Files.createTitleWithExt(FileType.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
             }
             if (iParameters.dispcolors) {
                 final ImagePlus img = generateLabelsGray(channel);
-                updateImages(channel, img, Files.createTitleWithExt(Type.Mask, aTitle, channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
+                updateImages(channel, img, Files.createTitleWithExt(FileType.Mask, aTitle, channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
             }
             if (iParameters.dispSoftMask) {
-                iOutSoftMasks[channel].setTitle(Files.createTitleWithExt(Type.SoftMask, aTitle, channel + 1));
+                iOutSoftMasks[channel].setTitle(Files.createTitleWithExt(FileType.SoftMask, aTitle, channel + 1));
                 iOutSoftMasks[channel].show();
             }
         }
-        if (iNumOfChannels == 2) {
-            ImagePlus img = generateColocImage();
-            updateImages(0, img, Files.createTitleWithExt(Type.Colocalization, aTitle), true, iOutColoc);
+        for (int i = 0; i < iAnalysisPairs.size(); ++i) {
+            ChannelPair cp = iAnalysisPairs.get(i);
+            ImagePlus img = generateColocImage(cp);
+            updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle /* + "_ch_" + cp.ch1 + "_" + cp.ch2 */ ), true, iOutColoc);
         }
     }
 
@@ -194,33 +239,35 @@ public class SquasshLauncher {
             if (iOutOutlines[i] != null) {
                 String fileName = savePath + iOutOutlines[i].getTitle();
                 IJ.save(iOutOutlines[i], fileName);
-                addSavedFile(Type.Outline, fileName);
+                addSavedFile(FileType.Outline, fileName);
             }
             if (iOutIntensities[i] != null) {
                 String fileName = savePath + iOutIntensities[i].getTitle();
                 IJ.save(iOutIntensities[i], fileName);
-                addSavedFile(Type.Intensity, fileName);
+                addSavedFile(FileType.Intensity, fileName);
             }
             if (iOutLabeledRegionsColor[i] != null) {
                 String fileName = savePath + iOutLabeledRegionsColor[i].getTitle();
                 IJ.save(iOutLabeledRegionsColor[i], fileName);
-                addSavedFile(Type.Segmentation, fileName);
+                addSavedFile(FileType.Segmentation, fileName);
             }
             if (iOutLabeledRegionsGray[i] != null) {
                 String fileName = savePath + iOutLabeledRegionsGray[i].getTitle();
                 IJ.save(iOutLabeledRegionsGray[i], fileName);
-                addSavedFile(Type.Mask, fileName);
+                addSavedFile(FileType.Mask, fileName);
             }
             if (iOutSoftMasks[i] != null) {
                 String fileName = savePath + iOutSoftMasks[i].getTitle();
                 IJ.save(iOutSoftMasks[i], fileName);
-                addSavedFile(Type.SoftMask, fileName);
+                addSavedFile(FileType.SoftMask, fileName);
             }
         }
-        if (iOutColoc[0] != null) {
-            String fileName = savePath + iOutColoc[0].getTitle();
-            IJ.save(iOutColoc[0], fileName);
-            addSavedFile(Type.Colocalization, fileName);
+        for (ImagePlus ip : iOutColoc) {
+            if (ip != null) {
+                String fileName = savePath + ip.getTitle();
+                IJ.save(ip, fileName);
+                addSavedFile(FileType.Colocalization, fileName);
+            }
         }
     }
 
@@ -229,28 +276,28 @@ public class SquasshLauncher {
             // Choose the Rscript coloc format
             CSVOutput.occ = CSVOutput.oc[2];
         }
-
-        final CSV<? extends Outdata<Region>> csvWriter = CSVOutput.getCSV();
-
+        
+        final CSV<? extends Outdata> csvWriter = CSVOutput.getCSV();
+        
         for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = aOutputPath + Files.createTitleWithExt(Type.ObjectsData, aOutFileName, ch + 1);
+            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsData, aOutFileName, ch + 1);
             boolean shouldAppend = (new File(outFileName).exists()) ? true : false;
-            Vector<? extends Outdata<Region>> regionsData = CSVOutput.getObjectsList(iRegionsList.get(ch), aCurrentFrame);
+            Vector<? extends Outdata> regionsData = CSVOutput.getObjectsList(iRegionsList.get(ch), aCurrentFrame);
             csvWriter.clearMetaInformation();
             csvWriter.setMetaInformation("background", aOutputPath + aTitle);
             CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
-            addSavedFile(Type.ObjectsData, outFileName);
+            addSavedFile(FileType.ObjectsData, outFileName);
         }
     }
-
+    
     private void writeImageDataCsv(String path, String filename, String outfilename, int hcount) {
         boolean shouldAppend = (hcount != 0);
         PrintWriter out = null;
         
         try {
-            String fileName = path + File.separator + Files.createTitleWithExt(Type.ImagesData, outfilename);
+            String fileName = path + File.separator + Files.createTitleWithExt(FileType.ImagesData, outfilename);
             out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
-            addSavedFile(Type.ImagesData, fileName);
+            addSavedFile(FileType.ImagesData, fileName);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -262,8 +309,10 @@ public class SquasshLauncher {
             out.print("File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1");
             if (iNumOfChannels == 2) {
                 out.print(";Objects ch2;Mean size in ch2;Mean surface in ch2;Mean length in ch2;" 
-                        + "Colocalization ch1 in ch2 (signal based);Colocalization ch2 in ch1 (signal based);Colocalization ch1 in ch2 (size based);Colocalization ch2 in ch1 (size based);"
-                        + "Colocalization ch1 in ch2 (objects numbers);Colocalization ch2 in ch1 (objects numbers);Mean ch2 intensity of ch1 objects;Mean ch1 intensity of ch2 objects;"
+                        + "Colocalization ch1 in ch2 (signal based);Colocalization ch2 in ch1 (signal based);" 
+                        + "Colocalization ch1 in ch2 (size based);Colocalization ch2 in ch1 (size based);"
+                        + "Colocalization ch1 in ch2 (objects numbers);Colocalization ch2 in ch1 (objects numbers);" 
+                        + "Mean ch2 intensity of ch1 objects;Mean ch1 intensity of ch2 objects;"
                         + "Pearson correlation;Pearson correlation inside cell masks");
             }
             out.println();
@@ -283,7 +332,7 @@ public class SquasshLauncher {
         final double meanLA = meanLength(iRegionsList.get(0));
         out.print(filename + ";" + hcount + ";" + iRegionsList.get(0).size() + ";" + round(meanSize(iRegionsList.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
         if (iNumOfChannels == 2) {
-            ColocResult[] colocResults = runColocalizationAnalysis();
+            ColocResult[] colocResults = runColocalizationAnalysis(0, 1);
             ColocResult resAB = colocResults[0];
             ColocResult resBA = colocResults[1];
             
@@ -321,34 +370,28 @@ public class SquasshLauncher {
         }
     }
 
-    private ColocResult[] runColocalizationAnalysis() {
-        ColocResult resAB = null;
-        ColocResult resBA = null;
-        if (iNumOfChannels == 2) {
-            // Compute and apply colocalization mask
-            for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
-            computeOverallMask(nz, ni, nj);
-            ArrayList<ArrayList<Region>> maskedRegionList = applyMask();
+    private ColocResult[] runColocalizationAnalysis(int aChannel1, int aChannel2) {
+        // Compute and apply colocalization mask
+        for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
+        computeOverallMask(nz, ni, nj);
+        ArrayList<ArrayList<Region>> maskedRegionList = applyMask();
 
-            // Run colocalization
-            final int factor2 = iOutputImgScale;
-            ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
-            ca.addRegion(maskedRegionList.get(0), iNormalizedImages[0]);
-            ca.addRegion(maskedRegionList.get(1), iNormalizedImages[1]);
-            resAB = ca.calculate(0, 1);
-            resBA = ca.calculate(1, 0);
-        }
+        // Run colocalization
+        final int factor2 = iOutputImgScale;
+        ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
+        ca.addRegion(maskedRegionList.get(aChannel1), iNormalizedImages[aChannel1]);
+        ca.addRegion(maskedRegionList.get(aChannel2), iNormalizedImages[aChannel2]);
+        ColocResult resAB = ca.calculate(0, 1);
+        ColocResult resBA = ca.calculate(1, 0);
+
         return new ColocResult[] {resAB, resBA};
     }
 
-    private ImagePlus generateColocImage() {
-        if (iNumOfChannels == 2) {
-            final int factor2 = iOutputImgScale;
-            int fz2 = (nz > 1) ? factor2 : 1;
+    private ImagePlus generateColocImage(ChannelPair aChannelPair) {
+        final int factor2 = iOutputImgScale;
+        int fz2 = (nz > 1) ? factor2 : 1;
 
-            return generateColocImg(iRegionsList.get(0), iRegionsList.get(1), ni * factor2, nj * factor2, nz * fz2);
-        }
-        return null;
+        return generateColocImg(iRegionsList.get(aChannelPair.ch1), iRegionsList.get(aChannelPair.ch2), ni * factor2, nj * factor2, nz * fz2);
     }
     
     private ImagePlus generateOutlineOverlay(short[][][] regions, double[][][] aImage) {
@@ -582,7 +625,7 @@ public class SquasshLauncher {
     
     // ============================================ Regions analysis ==================================
 
-    private double meanSurface(ArrayList<Region> aRegionsList) {
+    private double meanSurface(List<Region> aRegionsList) {
         double totalPerimeter = 0;
         for (Region r : aRegionsList) {
             totalPerimeter += r.perimeter;
@@ -591,7 +634,7 @@ public class SquasshLauncher {
         return (totalPerimeter / aRegionsList.size());
     }
 
-    private double meanSize(ArrayList<Region> aRegionsList) {
+    private double meanSize(List<Region> aRegionsList) {
         double totalSize = 0;
         for (Region r : aRegionsList) {
             totalSize += r.iPixels.size();
@@ -600,7 +643,7 @@ public class SquasshLauncher {
         return (totalSize / aRegionsList.size()) / (Math.pow(iOutputImgScale, 2));
     }
     
-    private double meanLength(ArrayList<Region> aRegionsList) {
+    private double meanLength(List<Region> aRegionsList) {
         double totalLength = 0;
         for (Region r : aRegionsList) {
             totalLength += r.length;
@@ -853,5 +896,159 @@ public class SquasshLauncher {
         }
         
         return new ImagePlus("Intensities", is);
+    }
+    
+// ================================================ NEW OUTPUT 
+    
+    // ------------------------------------------------------------------
+    
+    List<ObjectsData> getObjectsData(List<Region> regions, String aFile, int frame, int channel) {
+        List<ObjectsData> res = new ArrayList<ObjectsData>();
+        
+        for (Region r : regions) {
+            ObjectsData id = new ObjectsData(aFile,
+                                             frame, 
+                                             channel, 
+                                             r.iLabel, 
+                                             r.getcx(),
+                                             r.getcy(),
+                                             r.getcz(),
+                                             r.getrsize(),
+                                             r.getperimeter(),
+                                             r.getlength(),
+                                             r.getintensity());
+            res.add(id);
+        }
+        
+        return res;
+    }
+    
+    private void writeObjectDataCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        final CSV<ObjectsData> csv = new CSV<ObjectsData>(ObjectsData.class);
+        csv.setDelimiter(';');
+        for (int ch = 0; ch < iNumOfChannels; ch++) {
+            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsDataNew, aOutFileName);
+            boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
+            csv.clearMetaInformation();
+            csv.setMetaInformation("background", aOutputPath + aTitle);
+            csv.Write(outFileName, getObjectsData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ObjectsData.ColumnConfig, shouldAppend);
+            addSavedFile(FileType.ObjectsDataNew, outFileName);
+        }
+    }
+    
+    // ------------------------------------------------------------------
+    
+    List<ObjectsColoc> getObjectsColoc(List<Region> regions, String aFile, int frame, int channel, int channelColoc) {
+        List<ObjectsColoc> res = new ArrayList<ObjectsColoc>();
+        
+        for (Region r : regions) {
+            ObjectsColoc id = new ObjectsColoc(aFile,
+                                               frame, 
+                                               channel, 
+                                               r.iLabel, 
+                                               channelColoc,
+                                               r.getoverlap_with_ch(),
+                                               r.getcoloc_object_size(),
+                                               r.getcoloc_object_intensity(),
+                                               r.getcoloc_image_intensity(),
+                                               r.getsingle_coloc());
+            res.add(id);
+        }
+        
+        return res;
+    }
+    
+    private void writeObjectsColocCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        for (ChannelPair cp : iAnalysisPairs) {
+            // Currently runColocalisationAnalysis updates needed fields for each region
+            // TODO: It must be done somehow different
+            runColocalizationAnalysis(cp.ch1, cp.ch2);
+            final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
+            csv.setDelimiter(';');
+            for (int direction = 0; direction <= 1; direction++) {
+                int c1 = (direction == 0) ? cp.ch1 : cp.ch2;
+                int c2 = (direction == 0) ? cp.ch2 : cp.ch1;
+                String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColocNew, aOutFileName);
+                boolean shouldAppend = !(aCurrentFrame == 0 && direction == 0);
+                csv.clearMetaInformation();
+                csv.setMetaInformation("background", aOutputPath + aTitle);
+                csv.Write(outFileName, getObjectsColoc(iRegionsList.get(c1), aTitle, aCurrentFrame, c1, c2), ObjectsColoc.ColumnConfig, shouldAppend);
+                addSavedFile(FileType.ObjectsColocNew, outFileName);
+            }
+        }
+    }
+    
+    // ------------------------------------------------------------------
+
+    List<ImageColoc> getImageColoc(ColocResult aColoc, double[] aPearson, String aFile, int frame, int channel1, int channel2) {
+        List<ImageColoc> res = new ArrayList<ImageColoc>();
+        
+        ImageColoc id = new ImageColoc(aFile,
+                                       frame, 
+                                       channel1, 
+                                       channel2,
+                                       round(aColoc.colocsegABsignal, 4),
+                                       round(aColoc.colocsegABsize, 4),
+                                       round(aColoc.colocsegABnumber, 4),
+                                       round(aColoc.colocsegA, 4),
+                                       round(aPearson[0], 4),
+                                       round(aPearson[1], 4));
+        res.add(id);
+        
+        return res;
+    }
+
+    private void writeImageColoc2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        for (int pairNum = 0; pairNum < iAnalysisPairs.size(); pairNum++) {
+            ChannelPair cp = iAnalysisPairs.get(pairNum);
+            ColocResult[] colocResults = runColocalizationAnalysis(cp.ch1, cp.ch2);
+            ColocResult resAB = colocResults[0];
+            ColocResult resBA = colocResults[1];
+
+            final CSV<ImageColoc> csv = new CSV<ImageColoc>(ImageColoc.class);
+            csv.setDelimiter(';');
+            for (int direction = 0; direction <= 1; direction++) {
+                double[] temp = (direction == 0) ? new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch1], iInputImages[cp.ch2], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run() 
+                        : new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch2], iInputImages[cp.ch1], iParameters.usecellmaskY, iParameters.thresholdcellmasky, iParameters.usecellmaskX, iParameters.thresholdcellmask).run();
+                ColocResult coloc = (direction == 0) ? resAB : resBA;
+                int c1 = (direction == 0) ? cp.ch1 : cp.ch2;
+                int c2 = (direction == 0) ? cp.ch2 : cp.ch1;
+                String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColocNew, aOutFileName);
+                boolean shouldAppend = !(aCurrentFrame == 0 && direction == 0 && pairNum == 0);
+                csv.clearMetaInformation();
+                csv.setMetaInformation("background", aOutputPath + aTitle);
+                csv.Write(outFileName, getImageColoc(coloc, temp, aTitle, aCurrentFrame, c1, c2), ImageColoc.ColumnConfig, shouldAppend);
+                addSavedFile(FileType.ImageColocNew, outFileName);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    
+    List<ImageData> getImagesData(List<Region> regions, String aFile, int frame, int channel) {
+        List<ImageData> res = new ArrayList<ImageData>();
+        
+        ImageData id = new ImageData(aFile,
+                                     frame, 
+                                     channel, 
+                                     regions.size(), 
+                                     round(meanSize(regions), 4),
+                                     round(meanSurface(regions), 4),
+                                     round(meanLength(regions), 4));
+        res.add(id);
+        return res;
+    }
+    
+    private void writeImageDataCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        final CSV<ImageData> csv = new CSV<ImageData>(ImageData.class);
+        csv.setDelimiter(';');
+        for (int ch = 0; ch < iNumOfChannels; ch++) {
+            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesDataNew, aOutFileName);
+            boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
+            csv.clearMetaInformation();
+            csv.setMetaInformation("background", aOutputPath + aTitle);
+            csv.Write(outFileName, getImagesData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ImageData.ColumnConfig, shouldAppend);
+            addSavedFile(FileType.ImagesDataNew, outFileName);
+        }
     }
 }

@@ -27,28 +27,38 @@ public class Files {
                                         "*_seg_c1.zip", "*_seg_c2.zip", 
                                         "*_coloc.zip", 
                                         "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
-                                        "*.tif" };
+                                        "*.tif",
+                                        "*_NEW_ImageData.csv", 
+                                        "*_NEW_ObjectData.csv",
+                                        "*_NEW_ImageColoc.csv",
+                                        "*_NEW_ObjectColoc.csv"};
 
     // ============= Below will be put new implementations =================
     interface BaseType {
         public String baseName();
         public String ext();
         public boolean hasChannelInfo();
+        public int numOfChannels();
     }
     
-    public enum Type implements BaseType {
-        Outline("_outline_overlay", "zip", true), 
-        Intensity("_intensities", "zip", true), 
-        Segmentation("_seg", "zip", true), 
-        Mask("_mask", "zip", true), 
-        SoftMask("_soft_mask", "tiff", true), 
-        Colocalization("_coloc", "zip", false), 
-        ObjectsData("_ObjectsData", "csv", true), 
-        ImagesData("_ImagesData", "csv", false);
+    public enum FileType implements BaseType {
+        Outline("_outline_overlay", "zip", true, 1), 
+        Intensity("_intensities", "zip", true, 1), 
+        Segmentation("_seg", "zip", true, 1), 
+        SoftMask("_soft_mask", "tiff", true, 1), 
+        Colocalization("_coloc", "zip", false, 0), 
+        Mask("_mask", "zip", true, 1), 
+        ObjectsData("_ObjectsData", "csv", true, 1), 
+        ImagesData("_ImagesData", "csv", false, 0),
+        ImagesDataNew("_NEW_ImageData", "csv", false, 0),
+        ObjectsDataNew("_NEW_ObjectData", "csv", false, 0), 
+        ImageColocNew("_NEW_ImageColoc", "csv", false, 0),
+        ObjectsColocNew("_NEW_ObjectColoc", "csv", false, 0);
         
         private String baseName;
         private String ext;
         private boolean hasChannelInfo;
+        private int numOfChannels;
         
         @Override
         public String baseName() {return baseName;}
@@ -56,57 +66,83 @@ public class Files {
         public String ext() {return ext;}
         @Override
         public boolean hasChannelInfo() {return hasChannelInfo;}
+        @Override
+        public int numOfChannels() {return numOfChannels;}
         
-        Type(String aBaseName, String aExt, boolean aHasChannelInfo) {baseName = aBaseName; ext = aExt; hasChannelInfo = aHasChannelInfo;}
+        FileType(String aBaseName, String aExt, boolean aHasChannelInfo, int aNumOfChannels) { baseName = aBaseName; ext = aExt; hasChannelInfo = aHasChannelInfo; numOfChannels = aNumOfChannels; }
         
         @Override
         public String toString() {return "[" + name() + ", "+ baseName + " / " + ext + "]";}
     }
     
+    
     public static class FileInfo {
-        FileInfo(Type aType, String aName) {type = aType; name = aName;}
-        Type type;
+        FileInfo(FileType aType, String aName) {type = aType; name = aName;}
+        FileType type;
         String name;
         
         @Override
         public String toString() {return "[" + type + ", " + name + "]";}
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((name == null) ? 0 : name.hashCode());
+            result = prime * result + ((type == null) ? 0 : type.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            FileInfo other = (FileInfo) obj;
+            if (name == null) {
+                if (other.name != null) return false;
+            }
+            else if (!name.equals(other.name)) return false;
+            if (type != other.type) return false;
+            return true;
+        }
     }
     
-    public static String createTitle(Type aType, String aTitle) {
+    public static <E extends BaseType> String createTitle(E aType, String aTitle) {
         if (aType.hasChannelInfo()) throw new RuntimeException("Channel info not provided! [" + aTitle + " " + aType +"]");
         return aTitle + aType.baseName();
     }
-
-    public static String createTitle(Type aType, String aTitle, int aChannel) {
+    
+    public static <E extends BaseType> String createTitle(E aType, String aTitle, int aChannel) {
         if (!aType.hasChannelInfo()) throw new RuntimeException("Channel provided but this type does not require it! [" + aTitle + " " + aType +"], " + aChannel + "]");
         return aTitle + aType.baseName() + "_c" + aChannel;
     }
     
-    public static String createTitleWithExt(Type aType, String aTitle) {
+    public static <E extends BaseType> String createTitleWithExt(E aType, String aTitle) {
         return addExt(aType, createTitle(aType, aTitle));
     }
 
-    public static String createTitleWithExt(Type aType, String aTitle, int aChannel) {
+    public static <E extends BaseType> String createTitleWithExt(E aType, String aTitle, int aChannel) {
         return addExt(aType, createTitle(aType, aTitle, aChannel));
     }
     
-    private static String addExt(Type aType, String aTitle) {
+    private static <E extends BaseType> String addExt(E aType, String aTitle) {
         return aTitle + "." + aType.ext();
     }
     
-    public static String getTypeDir(Type aType) {
+    public static <E extends BaseType> String getTypeDir(E aType) {
         return createTitleWithExt(aType, "_") + File.separator;
     }
     
-    public static String getTypeDir(Type aType, int aChannel) {
+    public static <E extends BaseType> String getTypeDir(E aType, int aChannel) {
         return createTitleWithExt(aType, "_", aChannel) + File.separator;
     }
     
-    public static String getMovedFilePath(Type aType, String aTitle, int aChannel) {
+    public static <E extends BaseType> String getMovedFilePath(E aType, String aTitle, int aChannel) {
         return Files.getTypeDir(aType, aChannel) + Files.createTitleWithExt(aType, aTitle, aChannel);
     }
     
-    public static String getMovedFilePath(Type aType, String aTitle) {
+    public static <E extends BaseType> String getMovedFilePath(E aType, String aTitle) {
         return Files.getTypeDir(aType) + Files.createTitleWithExt(aType, aTitle);
     }
     

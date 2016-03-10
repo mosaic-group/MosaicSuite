@@ -23,8 +23,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__mask_c1.zip/psf_mask_c1.zip", "__seg_c1.zip/psf_seg_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/psf_outline_overlay_c1.zip", "__intensities_c1.zip/psf_intensities_c1.zip",
                                             "__mask_c1.zip/psf_mask_c1.zip", "__seg_c1.zip/psf_seg_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/psf_ObjectsData_c1.csv", "__ImagesData.csv/psf_ImagesData.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/psf_ObjectsData_c1.csv", "__ImagesData.csv/psf_ImagesData.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageData.csv/psf_NEW_ImageData.csv", "__NEW_ObjectData.csv/psf_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ImageData.csv/psf_NEW_ImageData.csv", "__NEW_ObjectData.csv/psf_NEW_ObjectData.csv"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
@@ -80,8 +80,8 @@ public class BregmanGLM_BatchTest extends CommonBase {
                                             "__mask_c1.zip/test2d_mask_c1.zip", "__seg_c1.zip/test2d_seg_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip", "__intensities_c1.zip/test2d_intensities_c1.zip",
                                             "__mask_c1.zip/test2d_mask_c1.zip", "__seg_c1.zip/test2d_seg_c1.zip"};
-        final String[] expectedFiles     = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv", "__ImagesData.csv/test2d_ImagesData.csv"};
-        final String[] referenceFiles    = {"__ObjectsData_c1.csv/test2d_ObjectsData_c1.csv", "__ImagesData.csv/test2d_ImagesData.csv"};
+        final String[] expectedFiles     = {"__NEW_ImageData.csv/test2d_NEW_ImageData.csv", "__NEW_ObjectData.csv/test2d_NEW_ObjectData.csv"};
+        final String[] referenceFiles    = {"__NEW_ImageData.csv/test2d_NEW_ImageData.csv", "__NEW_ObjectData.csv/test2d_NEW_ObjectData.csv"};
 
         // Create tested plugIn
         final BregmanGLM_Batch plugin = new BregmanGLM_Batch();

@@ -5,7 +5,7 @@ import mosaic.bregman.segmentation.Region;
 import mosaic.core.imageUtils.Point;
 
 
-public class Region3DTrack implements Outdata<Region> {
+public class Region3DTrack implements Outdata {
 
     private int Frame;
     private double x;

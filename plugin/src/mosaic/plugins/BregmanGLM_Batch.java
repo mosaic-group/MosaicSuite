@@ -16,7 +16,7 @@ import ij.macro.Interpreter;
 import ij.process.ImageProcessor;
 import mosaic.bregman.Files;
 import mosaic.bregman.Files.FileInfo;
-import mosaic.bregman.Files.Type;
+import mosaic.bregman.Files.FileType;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.bregman.SquasshLauncher;
@@ -179,9 +179,9 @@ public class BregmanGLM_Batch implements Segmentation {
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
 
             String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
-            objectsDataCh1File = outputSaveDir + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1);
-            objectsDataCh2File = outputSaveDir + Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2);
-            imagesDataFile = outputSaveDir + Files.getMovedFilePath(Type.ImagesData, titleNoExt);
+            objectsDataCh1File = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 1);
+            objectsDataCh2File = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 2);
+            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImagesData, titleNoExt);
         }
         else {
             final File inputFile = new File(aPathToFileOrDir);
@@ -209,13 +209,13 @@ public class BregmanGLM_Batch implements Segmentation {
             else {
                 // TODO: It would be nice to be consistent and also move files to subdirs. But it is
                 //       currently violated by cluster mode.
-                //Files.moveFilesToOutputDirs(allFiles, savePath);
+                // Files.moveFilesToOutputDirs(allFiles, savePath);
                 titlePrefix = SysOps.removeExtension(inputFile.getName());
             }
             
-            objectsDataCh1File = outputSaveDir + Files.createTitleWithExt(Type.ObjectsData, titlePrefix, 1);
-            objectsDataCh2File = outputSaveDir + Files.createTitleWithExt(Type.ObjectsData, titlePrefix, 2);
-            imagesDataFile = outputSaveDir + Files.createTitleWithExt(Type.ImagesData, titlePrefix);
+            objectsDataCh1File = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsData, titlePrefix, 1);
+            objectsDataCh2File = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsData, titlePrefix, 2);
+            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImagesData, titlePrefix);
         }
 
         runRscript(outputSaveDir, objectsDataCh1File, objectsDataCh2File, imagesDataFile);
@@ -380,8 +380,8 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getMask(ImagePlus aImp) {
         String titleNoExt = SysOps.removeExtension(aImp.getTitle());
-        return new String[] { Files.getMovedFilePath(Type.Mask, titleNoExt, 1),
-                              Files.getMovedFilePath(Type.Mask, titleNoExt, 2) };
+        return new String[] { Files.getMovedFilePath(FileType.Mask, titleNoExt, 1),
+                              Files.getMovedFilePath(FileType.Mask, titleNoExt, 2) };
     }
     
     /**
@@ -392,11 +392,11 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         String titleNoExt = SysOps.removeExtension(aImp.getTitle());
-        return new String[] { Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 1),
-                              Files.getMovedFilePath(Type.ObjectsData, titleNoExt, 2), 
+        return new String[] { Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 1),
+                              Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 2), 
                               // This is produced if there is a stitch operation
-                              Files.createTitleWithExt(Type.ObjectsData, "stitch_", 1), 
-                              Files.createTitleWithExt(Type.ObjectsData, "stitch_", 2) };
+                              Files.createTitleWithExt(FileType.ObjectsData, "stitch_", 1), 
+                              Files.createTitleWithExt(FileType.ObjectsData, "stitch_", 2) };
     }
     
     /**

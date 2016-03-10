@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Vector;
 
-import mosaic.bregman.segmentation.Region;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
@@ -26,7 +25,7 @@ public class ConvertAndWrite<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public void Write(CSV<? extends Outdata<Region>> aCsv, String aCsvFilename, Vector<?> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
+    public void Write(CSV<? extends Outdata> aCsv, String aCsvFilename, Vector<?> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
         ((CSV<T>) aCsv).Write(aCsvFilename, (Vector<T>) aOutputData, aOutputChoose, aShouldAppend);
     }
 

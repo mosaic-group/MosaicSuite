@@ -32,12 +32,10 @@ public class ColocalizationAnalysis {
     }
     
     /**
-     * Add new region. LabeledRegion will be computed basing on input region list and provided in contructor dimensions.
+     * Add new region. LabeledRegion will be computed basing on input region list and provided in constructor dimensions.
      */
     public void addRegion(ArrayList<Region> aRegion, double[][][] aImage) {
-        iRegions.add(aRegion);
-        iLabeledRegions.add(labelRegions(aRegion));
-        iImages.add(aImage);
+        addRegion(aRegion, labelRegions(aRegion), aImage);
     }
     
     public class ColocResult {

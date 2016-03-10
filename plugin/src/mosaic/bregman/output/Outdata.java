@@ -1,10 +1,8 @@
 package mosaic.bregman.output;
 
+import mosaic.bregman.segmentation.Region;
 
-public interface Outdata<E> {
-    void setData(E r); // NO_UCD (unused code)
-
-    // TODO: This is added temporarily to "simulate" all interface ICSVGeneral
-    // After Regions3D*.java classes are cleaned up it should go away (possibly wiht Outdata itself).
+public interface Outdata {
+    void setData(Region r); 
     public void setFrame(int fr);
 }

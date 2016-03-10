@@ -29,8 +29,8 @@ public class Region implements Comparable<Region> {
     public float overlapFactor = 0.0f;
     public float colocObjectsAverageArea = 0.0f;
     public float colocObjectsAverageIntensity = 0.0f;
-    public boolean singleRegionColoc = false;
     public double colocObjectIntensity = 0.0;
+    public boolean singleRegionColoc = false;
     
 
     /**

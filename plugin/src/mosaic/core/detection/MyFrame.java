@@ -835,11 +835,11 @@ public class MyFrame {
 
             p_ini.iX /= scaling_[0];
             p_ini.iY /= scaling_[1];
-            p_ini.iZ /= scaling_[2];
+            if (out_a.numDimensions() > 2) p_ini.iZ /= scaling_[2];
 
             p_end.iX /= scaling_[0];
             p_end.iY /= scaling_[1];
-            p_end.iZ /= scaling_[2];
+            if (out_a.numDimensions() > 2) p_end.iZ /= scaling_[2];
 
 
             drawLine(out, p_ini, p_end, col);
