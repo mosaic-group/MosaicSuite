@@ -120,10 +120,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-//        copyTestResources("__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("__outline_overlay_c1.zip", getTestDataPath() + tcDirName, tmpPath);
-//        copyTestResources("stitch__ImagesData.csv", getTestDataPath() + tcDirName, tmpPath);
         copyTestResources("stitch__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it

@@ -1,4 +1,4 @@
-package mosaic.bregman.outputNew;
+package mosaic.bregman.output;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.supercsv.cellprocessor.FmtBool;

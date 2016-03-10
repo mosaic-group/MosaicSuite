@@ -1,4 +1,4 @@
-package mosaic.bregman.outputNew;
+package mosaic.bregman.output;
 
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.Optional;
