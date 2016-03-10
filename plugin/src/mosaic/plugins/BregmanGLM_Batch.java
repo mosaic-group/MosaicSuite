@@ -21,7 +21,6 @@ import mosaic.bregman.Parameters;
 import mosaic.bregman.RScript;
 import mosaic.bregman.SquasshLauncher;
 import mosaic.bregman.GUI.GenericGUI;
-import mosaic.bregman.output.CSVOutput;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
@@ -59,10 +58,6 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public int setup(String aArgs, ImagePlus aInputImage) {
         iInputImage = aInputImage;
-        
-        // Initialize CSV format
-        // TODO: This is ridiculous and must be refactored
-        CSVOutput.initCSV(1 /* oc_s */);
 
         // ==============================================================================
         // Read settings 
@@ -161,8 +156,7 @@ public class BregmanGLM_Batch implements Segmentation {
     }
 
     private void runLocally(String aPathToFileOrDir, DataSource aSourceData, double aNormalizationMin, double aNormalizationMax) {
-        String objectsDataCh1File = null;
-        String objectsDataCh2File = null;
+        String objectsDataFile = null;
         String imagesDataFile = null;
         String outputSaveDir = null;
         
@@ -179,9 +173,8 @@ public class BregmanGLM_Batch implements Segmentation {
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
 
             String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
-            objectsDataCh1File = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 1);
-            objectsDataCh2File = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 2);
-            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImagesData, titleNoExt);
+            objectsDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsDataNew, titleNoExt);
+            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImagesDataNew, titleNoExt);
         }
         else {
             final File inputFile = new File(aPathToFileOrDir);
@@ -213,12 +206,11 @@ public class BregmanGLM_Batch implements Segmentation {
                 titlePrefix = SysOps.removeExtension(inputFile.getName());
             }
             
-            objectsDataCh1File = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsData, titlePrefix, 1);
-            objectsDataCh2File = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsData, titlePrefix, 2);
-            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImagesData, titlePrefix);
+            objectsDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsDataNew, titlePrefix);
+            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImagesDataNew, titlePrefix);
         }
 
-        runRscript(outputSaveDir, objectsDataCh1File, objectsDataCh2File, imagesDataFile);
+        runRscript(outputSaveDir, objectsDataFile, imagesDataFile);
     }
 
     private void runOnCluster(String aWorkDir, DataSource aSourceData) {
@@ -263,10 +255,11 @@ public class BregmanGLM_Batch implements Segmentation {
         MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
     }
 
-    private void runRscript(String outputSavePath, String objectsDataCh1File, String objectsDataCh2File, String imagesDataFile) {
-        if (new File(objectsDataCh1File).exists() && new File(objectsDataCh2File).exists()) {
+    private void runRscript(String outputSavePath, String objectsDataFile, String imagesDataFile) {
+        if (new File(objectsDataFile).exists() && new File(imagesDataFile).exists()) {
             if (iParameters.save_images) {
-                RScript.makeRScript(outputSavePath, objectsDataCh1File, objectsDataCh2File, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
+                // TODO: Now both channels are kept in one csv file so below stuff should be changed.
+                RScript.makeRScript(outputSavePath, objectsDataFile, objectsDataFile, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
                 // TODO: Output seems to be completely wrong. Must be investigated.
                 try {
@@ -392,11 +385,9 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         String titleNoExt = SysOps.removeExtension(aImp.getTitle());
-        return new String[] { Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 1),
-                              Files.getMovedFilePath(FileType.ObjectsData, titleNoExt, 2), 
+        return new String[] { Files.getMovedFilePath(FileType.ObjectsDataNew, titleNoExt),
                               // This is produced if there is a stitch operation
-                              Files.createTitleWithExt(FileType.ObjectsData, "stitch_", 1), 
-                              Files.createTitleWithExt(FileType.ObjectsData, "stitch_", 2) };
+                              Files.createTitleWithExt(FileType.ObjectsDataNew, "stitch_") };
     }
     
     /**

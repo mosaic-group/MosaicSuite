@@ -3,9 +3,9 @@
 ###Mandatory parameters###################################################################### 
 
 ##file names 
-file_1="/tmp/test/stitch__ObjectsData_c1.csv"  #(objA channel)
-file_2="/tmp/test/stitch__ObjectsData_c2.csv"  #(objB channel)
-file_3="/tmp/test/stitch__ImagesData.csv"  #(images mean results)
+file_1="/tmp/test/stitch__NEW_ObjectData.csv"  #(objA channel)
+file_2="/tmp/test/stitch__NEW_ObjectData.csv"  #(objB channel)
+file_3="/tmp/test/stitch__NEW_ImageData.csv"  #(images mean results)
 
 #Data Properties 
 NR=1

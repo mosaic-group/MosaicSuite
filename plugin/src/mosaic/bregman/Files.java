@@ -19,9 +19,8 @@ public class Files {
     // =============== OLD files definitions, will be kept as long as necessary =============================
     
     // This is the output for cluster
-    public final static String outSuffixesCluster[] = {"*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", 
+    public final static String outSuffixesCluster[] = {
                                         "*_mask_c1.zip", "*_mask_c2.zip", 
-                                        "*_ImagesData.csv", 
                                         "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
                                         "*_intensities_c1.zip", "*_intensities_c2.zip", 
                                         "*_seg_c1.zip", "*_seg_c2.zip", 
@@ -48,8 +47,6 @@ public class Files {
         SoftMask("_soft_mask", "tiff", true, 1), 
         Colocalization("_coloc", "zip", false, 0), 
         Mask("_mask", "zip", true, 1), 
-        ObjectsData("_ObjectsData", "csv", true, 1), 
-        ImagesData("_ImagesData", "csv", false, 0),
         ImagesDataNew("_NEW_ImageData", "csv", false, 0),
         ObjectsDataNew("_NEW_ObjectData", "csv", false, 0), 
         ImageColocNew("_NEW_ImageColoc", "csv", false, 0),

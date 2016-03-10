@@ -9,8 +9,6 @@ import java.awt.event.ActionListener;
 
 import ij.gui.GenericDialog;
 import mosaic.bregman.Parameters;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.SquasshOutputChoose;
 
 
 class VisualizationGUI {
@@ -26,16 +24,6 @@ class VisualizationGUI {
         final boolean bgroup2[] = { aParameters.livedisplay, aParameters.dispcolors, aParameters.dispint, aParameters.displabels, aParameters.dispoutline, aParameters.dispSoftMask, aParameters.save_images };
         gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
 
-        final Panel p1 = new Panel();
-        GenericGUI.addButton(p1, "Output options", new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                final OutputGUI og = new OutputGUI();
-                CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc, 1 /* oc_s */);
-            }
-        });
-        gd.add(p1);
-        
         gd.addMessage("    R script data analysis settings", bf);
         gd.addNumericField("Number of conditions", aParameters.nbconditions, 0);
 

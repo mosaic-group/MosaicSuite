@@ -1,10 +1,10 @@
-package mosaic.bregman.output;
+package mosaic.core.utils;
 
 
 import mosaic.bregman.segmentation.Region;
 
 
-public class Region3DColocRScript implements Outdata {
+public class Region3DColocRScript {
     private String fileName;
     private int Image_ID;
     private int Object_ID;
@@ -80,7 +80,6 @@ public class Region3DColocRScript implements Outdata {
     public Region3DColocRScript() {
     }
 
-    @Override
     public void setData(Region r) {
         fileName = "";
         Image_ID = 0;
@@ -199,7 +198,6 @@ public class Region3DColocRScript implements Outdata {
         return result;
     }
     
-    @Override
     public void setFrame(int fr) {
         Image_ID = fr;
     }

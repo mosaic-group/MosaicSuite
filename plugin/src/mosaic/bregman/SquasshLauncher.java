@@ -4,9 +4,6 @@ package mosaic.bregman;
 import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -31,8 +28,6 @@ import ij.process.ShortProcessor;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.Files.FileInfo;
 import mosaic.bregman.Files.FileType;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.Outdata;
 import mosaic.bregman.outputNew.ImageColoc;
 import mosaic.bregman.outputNew.ImageData;
 import mosaic.bregman.outputNew.ObjectsColoc;
@@ -173,11 +168,9 @@ public class SquasshLauncher {
             displayAndUpdateImages(outFileName);
             if (iParameters.save_images) {
                 writeImageDataCsv(aOutputDir, title, outFileName, frame - 1);
-                saveObjectDataCsv(frame - 1, aOutputDir, title, outFileName);
-                writeImageDataCsv2(aOutputDir, title, outFileName, frame - 1);
-                writeObjectDataCsv2(aOutputDir, title, outFileName, frame - 1);
-                writeImageColoc2(aOutputDir, title, outFileName, frame - 1);
-                writeObjectsColocCsv2(aOutputDir, title, outFileName, frame - 1);
+                writeObjectDataCsv(aOutputDir, title, outFileName, frame - 1);
+                writeImageColoc(aOutputDir, title, outFileName, frame - 1);
+                writeObjectsColocCsv(aOutputDir, title, outFileName, frame - 1);
             }
         }
 
@@ -269,94 +262,6 @@ public class SquasshLauncher {
                 addSavedFile(FileType.Colocalization, fileName);
             }
         }
-    }
-
-    private void saveObjectDataCsv(int aCurrentFrame, String aOutputPath, String aTitle, String aOutFileName) {
-        if (iNumOfChannels >  1) {
-            // Choose the Rscript coloc format
-            CSVOutput.occ = CSVOutput.oc[2];
-        }
-        
-        final CSV<? extends Outdata> csvWriter = CSVOutput.getCSV();
-        
-        for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsData, aOutFileName, ch + 1);
-            boolean shouldAppend = (new File(outFileName).exists()) ? true : false;
-            Vector<? extends Outdata> regionsData = CSVOutput.getObjectsList(iRegionsList.get(ch), aCurrentFrame);
-            csvWriter.clearMetaInformation();
-            csvWriter.setMetaInformation("background", aOutputPath + aTitle);
-            CSVOutput.occ.converter.Write(csvWriter, outFileName, regionsData, CSVOutput.occ.outputChoose, shouldAppend);
-            addSavedFile(FileType.ObjectsData, outFileName);
-        }
-    }
-    
-    private void writeImageDataCsv(String path, String filename, String outfilename, int hcount) {
-        boolean shouldAppend = (hcount != 0);
-        PrintWriter out = null;
-        
-        try {
-            String fileName = path + File.separator + Files.createTitleWithExt(FileType.ImagesData, outfilename);
-            out = new PrintWriter(new FileOutputStream(new File(fileName), shouldAppend )); 
-            addSavedFile(FileType.ImagesData, fileName);
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        // write the header
-        if (!shouldAppend) {
-            out.print("File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1");
-            if (iNumOfChannels == 2) {
-                out.print(";Objects ch2;Mean size in ch2;Mean surface in ch2;Mean length in ch2;" 
-                        + "Colocalization ch1 in ch2 (signal based);Colocalization ch2 in ch1 (signal based);" 
-                        + "Colocalization ch1 in ch2 (size based);Colocalization ch2 in ch1 (size based);"
-                        + "Colocalization ch1 in ch2 (objects numbers);Colocalization ch2 in ch1 (objects numbers);" 
-                        + "Mean ch2 intensity of ch1 objects;Mean ch1 intensity of ch2 objects;"
-                        + "Pearson correlation;Pearson correlation inside cell masks");
-            }
-            out.println();
-
-            final String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
-            final String choice2[] = { "Poisson", "Gauss" };
-            out.print("%Parameters:" + " " + "background removal " + " " + iParameters.removebackground + " " + "window size " + iParameters.size_rollingball + " " + "stddev PSF xy " + " "
-                    + round(iParameters.sigma_gaussian, 5) + " " + "stddev PSF z " + " " + round(iParameters.sigma_gaussian / iParameters.zcorrec, 5) + " "
-                    + "Regularization " + iParameters.lreg_[0] + " " + iParameters.lreg_[1] + " " + "Min intensity ch1 " + iParameters.min_intensity + " " + "Min intensity ch2 "
-                    + iParameters.min_intensityY + " " + "subpixel " + iParameters.subpixel + " " + "Cell mask ch1 " + iParameters.usecellmaskX + " " + "mask threshold ch1 "
-                    + iParameters.thresholdcellmask + " " + "Cell mask ch2 " + iParameters.usecellmaskY + " " + "mask threshold ch2 " + iParameters.thresholdcellmasky + " " + "Intensity estimation "
-                    + choice1[iParameters.mode_intensity] + " " + "Noise model " + choice2[iParameters.noise_model] + ";");
-            out.println();
-        }
-
-        final double meanSA = meanSurface(iRegionsList.get(0));
-        final double meanLA = meanLength(iRegionsList.get(0));
-        out.print(filename + ";" + hcount + ";" + iRegionsList.get(0).size() + ";" + round(meanSize(iRegionsList.get(0)), 4) + ";" + round(meanSA, 4) + ";" + round(meanLA, 4));
-        if (iNumOfChannels == 2) {
-            ColocResult[] colocResults = runColocalizationAnalysis(0, 1);
-            ColocResult resAB = colocResults[0];
-            ColocResult resBA = colocResults[1];
-            
-            double colocAB = round(resAB.colocsegABsignal, 4);
-            double colocABnumber = round(resAB.colocsegABnumber, 4);
-            double colocABsize = round(resAB.colocsegABsize, 4);
-            double colocA = round(resAB.colocsegA, 4);
-            double colocBA = round(resBA.colocsegABsignal, 4);
-            double colocBAnumber = round(resBA.colocsegABnumber, 4);
-            double colocBAsize = round(resBA.colocsegABsize, 4);
-            double colocB = round(resBA.colocsegA, 4);
-
-            double[] temp = new SamplePearsonCorrelationCoefficient(iInputImages[0], iInputImages[1], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run();
-            final double meanSB = meanSurface(iRegionsList.get(1));
-            final double meanLB = meanLength(iRegionsList.get(1));
-
-            out.print(";" + + iRegionsList.get(1).size() + ";" + round(meanSize(iRegionsList.get(1)), 4) + ";" + round(meanSB, 4) + ";"
-                    + round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
-                    + colocB + ";" + round(temp[0], 4) + ";" + round(temp[1], 4));
-        }
-        out.println();
-
-        out.flush();
-        out.close();
     }
 
     private void runSegmentation(ImagePlus aImage, int aCurrentFrame, String aTitle) {
@@ -923,7 +828,7 @@ public class SquasshLauncher {
         return res;
     }
     
-    private void writeObjectDataCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+    private void writeObjectDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
         final CSV<ObjectsData> csv = new CSV<ObjectsData>(ObjectsData.class);
         csv.setDelimiter(';');
         for (int ch = 0; ch < iNumOfChannels; ch++) {
@@ -958,7 +863,7 @@ public class SquasshLauncher {
         return res;
     }
     
-    private void writeObjectsColocCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+    private void writeObjectsColocCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
         for (ChannelPair cp : iAnalysisPairs) {
             // Currently runColocalisationAnalysis updates needed fields for each region
             // TODO: It must be done somehow different
@@ -998,7 +903,7 @@ public class SquasshLauncher {
         return res;
     }
 
-    private void writeImageColoc2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+    private void writeImageColoc(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
         for (int pairNum = 0; pairNum < iAnalysisPairs.size(); pairNum++) {
             ChannelPair cp = iAnalysisPairs.get(pairNum);
             ColocResult[] colocResults = runColocalizationAnalysis(cp.ch1, cp.ch2);
@@ -1039,7 +944,7 @@ public class SquasshLauncher {
         return res;
     }
     
-    private void writeImageDataCsv2(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+    private void writeImageDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
         final CSV<ImageData> csv = new CSV<ImageData>(ImageData.class);
         csv.setDelimiter(';');
         for (int ch = 0; ch < iNumOfChannels; ch++) {

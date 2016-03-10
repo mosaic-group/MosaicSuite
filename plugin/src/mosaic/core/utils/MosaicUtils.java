@@ -22,7 +22,6 @@ import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
