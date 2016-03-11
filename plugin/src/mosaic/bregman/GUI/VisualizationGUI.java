@@ -52,14 +52,14 @@ class VisualizationGUI {
         return 0;
     }
     
-    static class RScriptListener implements ActionListener {
+    private static class RScriptListener implements ActionListener {
 
         private final GenericDialog gd;
         private final int posx;
         private final int posy;
         private final Parameters iParameters;
         
-        public RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy, Parameters aParameters) {
+        protected RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy, Parameters aParameters) {
             this.gd = gd;
             posx = ParentPosx;
             posy = ParentPosy;

@@ -1,4 +1,4 @@
-package mosaic.bregman.segmentation.solver;
+package mosaic.bregman.solver;
 
 
 import java.util.concurrent.ExecutorService;
@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import mosaic.bregman.segmentation.solver.SolverParameters.NoiseModel;
+import mosaic.bregman.solver.SolverParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 

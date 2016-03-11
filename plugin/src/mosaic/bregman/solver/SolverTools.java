@@ -1,9 +1,9 @@
-package mosaic.bregman.segmentation.solver;
+package mosaic.bregman.solver;
 
 
 import java.util.concurrent.CountDownLatch;
 
-import mosaic.bregman.segmentation.solver.SolverParameters.NoiseModel;
+import mosaic.bregman.solver.SolverParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;

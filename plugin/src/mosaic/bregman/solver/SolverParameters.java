@@ -1,4 +1,4 @@
-package mosaic.bregman.segmentation.solver;
+package mosaic.bregman.solver;
 
 import mosaic.utils.Debug;
 

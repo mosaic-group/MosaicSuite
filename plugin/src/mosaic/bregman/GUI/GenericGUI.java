@@ -36,7 +36,7 @@ public class GenericGUI {
     // Input params
     protected final Parameters iParameters;
     protected ImagePlus iInputImage;
-    static boolean iUseGui = true;
+    private static boolean iUseGui = true;
 
     private String iInputField = "";
     protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
@@ -47,7 +47,7 @@ public class GenericGUI {
         iUseGui = aUseGui;
     }
 
-    public GenericDialog dialogFactory(String aTitle) {
+    private GenericDialog dialogFactory(String aTitle) {
         // In GUI mode it is convinient to have non-blocking gui (for example to use nicely Help windows).
         // in non-gui -> use regular GenericDialog since it is only version which has headless version.
         return (iUseGui) ? new NonBlockingGenericDialog(aTitle) : new GenericDialog(aTitle);
