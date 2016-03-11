@@ -2,6 +2,8 @@ package mosaic.bregman.segmentation;
 
 import org.junit.Test;
 
+import ij.ImagePlus;
+import ij.ImageStack;
 import mosaic.test.framework.CommonBase;
 
 
@@ -80,4 +82,35 @@ public class SquasshSegmentationTest extends CommonBase {
 //        String result = sb.toString();
 //        return result;
 //    }
+    
+    @Test
+    public void testGray() {
+//        String path1 = "/tmp/test1.tif";
+//        ImagePlus ip1 = loadImagePlus(path1);
+//        String path2 = "/tmp/test2.tif";
+//        ImagePlus ip2 = loadImagePlus(path2);
+//        int channels = 2;
+//        ImagePlus[] ips = new ImagePlus[] {ip1, ip2};
+//        ImageStack is = new ImageStack(ip1.getWidth(), ip1.getHeight());
+//        for (int f = 0; f < ip1.getNFrames();f++)
+//        for (int z = 0; z < ip1.getNSlices();z++)
+//        for (int c = 0; c < channels; c++) {
+//            int sidx = ip1.getStackIndex(1, z + 1, f + 1);
+//            mosaic.utils.Debug.print(sidx, c, z, f);
+//            is.addSlice(ips[c].getStack().getProcessor(sidx));
+//        }
+//        
+//        ip1.setStack(is);
+//        ip1.setDimensions(2, 1, 3);
+//        ip1.setOpenAsHyperStack(true);
+//        ip1.show();
+//      try {
+//      Thread.sleep(30000);
+//      }
+//      catch (InterruptedException e) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//      }
+    }
+    
 }

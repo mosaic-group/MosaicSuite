@@ -22,7 +22,7 @@ class VisualizationGUI {
 
         final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
         final boolean bgroup2[] = { aParameters.livedisplay, aParameters.dispcolors, aParameters.dispint, aParameters.displabels, aParameters.dispoutline, aParameters.dispSoftMask, aParameters.save_images };
-        gd.addCheckboxGroup(3, 3, sgroup2, bgroup2);
+        gd.addCheckboxGroup(4, 2, sgroup2, bgroup2);
 
         gd.addMessage("    R script data analysis settings", bf);
         gd.addNumericField("Number of conditions", aParameters.nbconditions, 0);

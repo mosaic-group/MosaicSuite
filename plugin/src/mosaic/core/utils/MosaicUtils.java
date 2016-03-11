@@ -346,6 +346,7 @@ public class MosaicUtils {
                 }
             }
         }
+        a1.getStack().setColorModel(a2.getStack().getColorModel());
         a1.setDimensions(a2.getNChannels(), a2.getNSlices(), hcount);
     }
 

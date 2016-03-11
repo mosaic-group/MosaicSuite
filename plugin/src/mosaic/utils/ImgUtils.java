@@ -338,16 +338,11 @@ public class ImgUtils {
 
         final ImageStack origStack = aOrigIp.getStack();
         final ImageStack copyStack = new ImageStack(newWidth, newHeight);
-        ImageProcessor ip1, ip2;
         for (int i = 1; i <= nSlices; i++) {
-            ip1 = origStack.getProcessor(i);
+            ImageProcessor ip1 = origStack.getProcessor(i);
             final String label = origStack.getSliceLabel(i);
-            if (!convertToRgb) {
-                ip2 = ip1.createProcessor(newWidth, newHeight);
-            }
-            else {
-                ip2 = new ColorProcessor(newWidth, newHeight);
-            }
+            ImageProcessor ip2 =  (!convertToRgb) ? ip1.createProcessor(newWidth, newHeight)
+                                                  : new ColorProcessor(newWidth, newHeight);
             if (ip2 != null) {
                 copyStack.addSlice(label, ip2);
             }
@@ -364,11 +359,10 @@ public class ImgUtils {
         final int[] dim = aOrigIp.getDimensions();
         copyIp.setDimensions(dim[2], dim[3], dim[4]);
 
-        if (aOrigIp.isComposite()) {
+        if (aOrigIp.isComposite() && !(convertToRgb && copyIp.getStackSize() > 1)) {
             copyIp = new CompositeImage(copyIp, ((CompositeImage)aOrigIp).getMode());
             ((CompositeImage)copyIp).copyLuts(aOrigIp);
         }
-
 
         if (aOrigIp.isHyperStack()) {
             copyIp.setOpenAsHyperStack(true);
@@ -451,6 +445,16 @@ public class ImgUtils {
             }
         }
         return null;
+    }
+    
+    public static String getStrInfo(ImagePlus aImage) {
+        final String title = aImage.getTitle();
+        final int ni = aImage.getWidth();
+        final int nj = aImage.getHeight();
+        final int nz = aImage.getNSlices();
+        final int numOfFrames = aImage.getNFrames();
+        final int numOfChannels = aImage.getNChannels();
+        return "Image title: [" + title + "] Dims(x/y/z): "+ ni + "/" + nj + "/" + nz + " NumOfFrames: " + numOfFrames + " NumOfChannels: " + numOfChannels;
     }
 }
 

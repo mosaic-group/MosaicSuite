@@ -72,9 +72,11 @@ public class SquasshLauncher {
     private boolean[][][] iOoverallCellMask;
     private ArrayList<ArrayList<Region>> iRegionsList;
     private short[][][][] iLabeledRegions;
+    private double[][][][] iSoftMasks;
     private ImagePlus[] iOutSoftMasks;
     private ImagePlus[] iOutOutlines;
     private ImagePlus[] iOutIntensities;
+    private int iMaxNumberOfRegionsFound = 0;
     private ImagePlus[] iOutLabeledRegionsColor;
     private ImagePlus[] iOutLabeledRegionsGray;
     private ImagePlus[] iOutColoc;
@@ -132,6 +134,7 @@ public class SquasshLauncher {
         iRegionsList = new ArrayList<ArrayList<Region>>(iNumOfChannels);
         for (int i = 0; i < iNumOfChannels; i++) iRegionsList.add(null);
         iLabeledRegions = new short[iNumOfChannels][][][];
+        iSoftMasks = new double[iNumOfChannels][][][];
         iOutSoftMasks = new ImagePlus[iNumOfChannels];
         iOutOutlines = new ImagePlus[iNumOfChannels];
         iOutIntensities = new ImagePlus[iNumOfChannels];
@@ -212,16 +215,18 @@ public class SquasshLauncher {
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
-                ImagePlus img = generateRegionImg(iLabeledRegions[channel], iRegionsList.get(channel).size(), "");
+                mosaic.utils.Debug.print("before:", channel);
+                iMaxNumberOfRegionsFound = (iMaxNumberOfRegionsFound < iRegionsList.get(channel).size()) ? iRegionsList.get(channel).size() : iMaxNumberOfRegionsFound;
+                ImagePlus img = generateRegionImg(iLabeledRegions[channel], iMaxNumberOfRegionsFound, "");
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
-            }
-            if (iParameters.dispcolors) {
-                final ImagePlus img = generateLabelsGray(channel);
-                updateImages(channel, img, Files.createTitleWithExt(FileType.Mask, aTitle, channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
+                if (iParameters.dispcolors) {
+                    final ImagePlus imgGray = generateLabelsGray(img);
+                    updateImages(channel, imgGray, Files.createTitleWithExt(FileType.Mask, aTitle, channel + 1), iParameters.dispcolors, iOutLabeledRegionsGray);
+                }
             }
             if (iParameters.dispSoftMask) {
-                iOutSoftMasks[channel].setTitle(Files.createTitleWithExt(FileType.SoftMask, aTitle, channel + 1));
-                iOutSoftMasks[channel].show();
+                ImagePlus img = ImgUtils.ZXYarrayToImg(iSoftMasks[channel], "Mask" + ((channel == 0) ? "X" : "Y"));
+                updateImages(channel, img, Files.createTitleWithExt(FileType.SoftMask, aTitle, channel + 1), iParameters.dispSoftMask, iOutSoftMasks);
             }
         }
         for (int i = 0; i < iAnalysisPairs.size(); ++i) {
@@ -318,9 +323,10 @@ public class SquasshLauncher {
         return RGBStackMerge.mergeChannels(new ImagePlus[] {regionsOutlines, scaledImg}, false);
     }
 
-    private ImagePlus generateLabelsGray(int channel) {
-        final ImagePlus img = iOutLabeledRegionsColor[channel].duplicate();
+    private ImagePlus generateLabelsGray(ImagePlus aImage) {
+        final ImagePlus img = aImage.duplicate();
         IJ.run(img, "Grays", "");
+        img.resetDisplayRange();
         return img;
     }
     
@@ -395,9 +401,7 @@ public class SquasshLauncher {
         
         logger.debug("------------------- Found " + rg.iRegionsList.size() + " object(s) in channel " + channel);
         // =============================
-        if (iParameters.dispSoftMask) {
-            iOutSoftMasks[channel] = ImgUtils.ZXYarrayToImg(rg.iSoftMask, "Mask" + ((channel == 0) ? "X" : "Y"));
-        }
+        iSoftMasks[channel] = rg.iSoftMask;
         ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
         if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
     }
@@ -629,7 +633,10 @@ public class SquasshLauncher {
             is.addSlice(colorProc);
         }
         
-        return new ImagePlus("Colocalization", is);
+        ImagePlus result = new ImagePlus("Colocalization", is);
+        result.setDimensions(1, iDepth, 1);
+        mosaic.utils.Debug.print("generateColocImg", ImgUtils.getStrInfo(result));
+        return result;
     }
     
     /**
@@ -677,8 +684,6 @@ public class SquasshLauncher {
      * @return ImagePlus generated for all provided regions, each region has its own color.
      */
     private ImagePlus generateRegionImg(short[][][] aLabeledRegions, int aMaxRegionNumber, final String aTitle) {
-        // TODO: This generates images with set color space but.. mostly it is white on screen. After converting to
-        //       RGB it looks nice. Should be somehow fixed.
         final int depth = aLabeledRegions.length;
         final int width = aLabeledRegions[0].length;
         final int height = aLabeledRegions[0][0].length;
@@ -709,7 +714,7 @@ public class SquasshLauncher {
      */
     private IndexColorModel generateColorModel(int aNumOfColors) {
         int numOfColors = aNumOfColors > 255 ? 255 : aNumOfColors;
-        
+        mosaic.utils.Debug.print("generateColorModel", aNumOfColors);
         final byte[] r = new byte[256];
         final byte[] g = new byte[256];
         final byte[] b = new byte[256];

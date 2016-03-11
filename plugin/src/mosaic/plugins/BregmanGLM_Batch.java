@@ -180,6 +180,10 @@ public class BregmanGLM_Batch implements Segmentation {
             final File inputFile = new File(aPathToFileOrDir);
             File[] files = (inputFile.isDirectory()) ? inputFile.listFiles() : new File[] {inputFile};
             Arrays.sort(files);
+            if (files.length == 0) {
+                logger.info("No files to process in given direcotry. Exiting.");
+                return;
+            }
             outputSaveDir = (inputFile.isDirectory()) ? aPathToFileOrDir + File.separator : inputFile.getParent() + File.separator;
             Set<FileInfo> allFiles = new LinkedHashSet<FileInfo>();
             for (final File f : files) {
@@ -190,7 +194,10 @@ public class BregmanGLM_Batch implements Segmentation {
                 logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
                 allFiles.addAll(new SquasshLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles());
             }
-            if (allFiles.size() == 0) return;
+            if (allFiles.size() == 0) {
+                logger.debug("No files have been written. Exiting.");
+                return;
+            }
 
             String titlePrefix = null;
             if (inputFile.isDirectory() == true) {
