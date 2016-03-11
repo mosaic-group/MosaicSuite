@@ -12,6 +12,10 @@ import ij.ImageStack;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver2D;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver3D;
+import mosaic.bregman.segmentation.solver.SolverParameters;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
@@ -41,7 +45,7 @@ public class SquasshSegmentation {
     public short[][][] iLabeledRegions;
     public ArrayList<Region> iRegionsList;
     public double[][][] iSoftMask;
-    public List<float[][][]> iAllMasks = new ArrayList<float[][][]>();
+    public final List<float[][][]> iAllMasks = new ArrayList<float[][][]>();
     
     public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
         logger.debug(aParameters);
@@ -61,12 +65,17 @@ public class SquasshSegmentation {
         // threshold should not be = 1: creates empty mask and wrong behavior in dct3D computation
         double maskThreshold = (iParameters.defaultBetaMleIn == 1) ? 0.5 : iParameters.defaultBetaMleIn;
         iMask = createMask(iImage, maskThreshold);
-        
+//        ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
         iPsf = generatePsf();
         
+        SolverParameters solverParams = new SolverParameters(iParameters.numOfThreads, 
+                                                             SolverParameters.NoiseModel.valueOf(iParameters.noiseModel.name()),
+                                                             iParameters.defaultBetaMleIn, 
+                                                             iParameters.defaultBetaMleOut, 
+                                                             iParameters.lambdaRegularization);
         iSolver = (nz > 1) 
-                ? new ASplitBregmanSolver3D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.lambdaRegularization, iPsf)
-                : new ASplitBregmanSolver2D(iParameters, iImage, iMask, null, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn, iParameters.lambdaRegularization, iPsf);
+                ? new ASplitBregmanSolver3D(solverParams, iImage, iMask, iPsf)
+                : new ASplitBregmanSolver2D(solverParams, iImage, iMask, iPsf);
     }
 
     public void run() {        
@@ -83,21 +92,20 @@ public class SquasshSegmentation {
         setProgress(0);
         
         final int numOfIterations = 151;
-        final boolean isFirstPhase = true;
         
         boolean isDone = false;
         int iteration = 0;
         while (iteration < numOfIterations && !isDone) {
-            isDone = iSolver.performIteration(isFirstPhase, numOfIterations);
+            isDone = iSolver.performIteration(numOfIterations);
             if (iParameters.debug) iAllMasks.add(ConvertArray.toFloat(iSolver.w3k));
             setProgress((50 * iteration)/(numOfIterations - 1));
             iteration++;
         }
-        iSolver.postprocess(isFirstPhase);
+        iSolver.postprocess();
     }
 
     private void stepOneFromPatches(double[][][] aInputMask) {
-        Tools.copytab(iSolver.w3kbest, aInputMask);
+        SegmentationTools.copytab(iSolver.w3kbest, aInputMask);
     }
 
     private void stepTwoSegmentation() {
@@ -206,7 +214,6 @@ public class SquasshSegmentation {
         ij.Prefs.blackBackground = tempBlackBackground;
 
         maskImg.getProcessor().invert();
-        
         
         setProgress(53);
         

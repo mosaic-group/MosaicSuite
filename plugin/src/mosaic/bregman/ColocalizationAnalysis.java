@@ -6,12 +6,12 @@ import java.util.List;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 
-public class ColocalizationAnalysis {
-    List<double[][][]> iImages = new ArrayList<double[][][]>();
-    List<List<Region>> iRegions = new ArrayList<List<Region>>();
-    List<short[][][]> iLabeledRegions = new ArrayList<short[][][]>();
-    int iX, iY, iZ;
-    int iScaleX, iScaleY, iScaleZ;
+class ColocalizationAnalysis {
+    private List<double[][][]> iImages = new ArrayList<double[][][]>();
+    private List<List<Region>> iRegions = new ArrayList<List<Region>>();
+    private List<short[][][]> iLabeledRegions = new ArrayList<short[][][]>();
+    private int iX, iY, iZ;
+    private int iScaleX, iScaleY, iScaleZ;
     
     ColocalizationAnalysis(int aZsize, int aXsize, int aYsize, int aScaleZ, int aScaleX, int aScaleY) {
         iX = aXsize;
@@ -25,7 +25,7 @@ public class ColocalizationAnalysis {
     /**
      * Add new region.
      */
-    public void addRegion(ArrayList<Region> aRegion, short[][][] aLabeledRegion, double[][][] aImage) {
+    void addRegion(ArrayList<Region> aRegion, short[][][] aLabeledRegion, double[][][] aImage) {
         iRegions.add(aRegion);
         iLabeledRegions.add(aLabeledRegion);
         iImages.add(aImage);
@@ -34,18 +34,18 @@ public class ColocalizationAnalysis {
     /**
      * Add new region. LabeledRegion will be computed basing on input region list and provided in constructor dimensions.
      */
-    public void addRegion(ArrayList<Region> aRegion, double[][][] aImage) {
+    void addRegion(ArrayList<Region> aRegion, double[][][] aImage) {
         addRegion(aRegion, labelRegions(aRegion), aImage);
     }
     
-    public class ColocResult {
+    class ColocResult {
         double colocsegABsignal;
         double colocsegABnumber; 
         double colocsegABsize;
         double colocsegA;
     }
     
-    public ColocResult calculate(int a1stRegionIndex, int a2ndRegionIndex) {
+    ColocResult calculate(int a1stRegionIndex, int a2ndRegionIndex) {
         
         final List<Region> region1 = iRegions.get(a1stRegionIndex);
         final List<Region> region2 = iRegions.get(a2ndRegionIndex);

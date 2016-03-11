@@ -1,9 +1,9 @@
-package mosaic.bregman.segmentation;
+package mosaic.bregman.segmentation.solver;
 
 
 import java.util.concurrent.CountDownLatch;
 
-import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
+import mosaic.bregman.segmentation.solver.SolverParameters.NoiseModel;
 
 
 class ZoneTask2D implements Runnable {
@@ -25,12 +25,12 @@ class ZoneTask2D implements Runnable {
     private final CountDownLatch Dct;
     private final ASplitBregmanSolver2D AS;
     private final int iStart, iEnd, jStart, jEnd, nt;
-    private final Tools LocalTools;
+    private final SolverTools LocalTools;
     private final boolean iEvaluateEnergy;
     
     ZoneTask2D(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Dct, CountDownLatch Sync5, CountDownLatch Sync6,
             CountDownLatch Sync7, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, int iStart, int iEnd, int jStart, int jEnd, int num,
-            ASplitBregmanSolver2D AS, Tools tTools, boolean aEvaluateEnergy) {
+            ASplitBregmanSolver2D AS, SolverTools tTools, boolean aEvaluateEnergy) {
         this.LocalTools = tTools;
         this.ZoneDoneSignal = ZoneDoneSignal;
         this.Sync1 = Sync1;
@@ -71,12 +71,12 @@ class ZoneTask2D implements Runnable {
         LocalTools.subtab(AS.temp2, AS.w2yk, AS.b2yk, iStart, iEnd);
 
         
-        Tools.synchronizedWait(Sync1);
+        SolverTools.synchronizedWait(Sync1);
 
         
         LocalTools.mydivergence(AS.temp3, AS.temp1, AS.temp2, AS.temp4, Sync2, iStart, iEnd, jStart, jEnd);
 
-        Tools.synchronizedWait(Sync12);
+        SolverTools.synchronizedWait(Sync12);
 
         for (int z = 0; z < AS.nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -86,11 +86,11 @@ class ZoneTask2D implements Runnable {
             }
         }
         
-        Tools.synchronizedWait(Sync3);
+        SolverTools.synchronizedWait(Sync3);
 
-        Tools.convolve2Dseparable(AS.temp4[0], AS.temp2[0], AS.ni, AS.nj, AS.iPsf, AS.temp1[0], iStart, iEnd);
+        SolverTools.convolve2Dseparable(AS.temp4[0], AS.temp2[0], AS.ni, AS.nj, AS.iPsf, AS.temp1[0], iStart, iEnd);
 
-        Tools.synchronizedWait(Sync11);
+        SolverTools.synchronizedWait(Sync11);
 
         for (int i = iStart; i < iEnd; i++) {
             for (int j = 0; j < AS.nj; j++) {
@@ -102,9 +102,9 @@ class ZoneTask2D implements Runnable {
         
         Dct.await();
 
-        Tools.convolve2Dseparable(AS.temp2[0], AS.temp1[0], AS.ni, AS.nj, AS.iPsf, AS.temp3[0], iStart, iEnd);
+        SolverTools.convolve2Dseparable(AS.temp2[0], AS.temp1[0], AS.ni, AS.nj, AS.iPsf, AS.temp3[0], iStart, iEnd);
 
-        Tools.synchronizedWait(Sync10);
+        SolverTools.synchronizedWait(Sync10);
 
         
         for (int i = iStart; i < iEnd; i++) {
@@ -165,13 +165,13 @@ class ZoneTask2D implements Runnable {
             }
         }
 
-        Tools.synchronizedWait(Sync5);
+        SolverTools.synchronizedWait(Sync5);
 
         LocalTools.fgradx2D(AS.temp3, AS.temp1, jStart, jEnd);
         LocalTools.fgrady2D(AS.temp4, AS.temp1, iStart, iEnd);
 
         
-        Tools.synchronizedWait(Sync6);
+        SolverTools.synchronizedWait(Sync6);
 
         LocalTools.addtab(AS.w2xk, AS.temp3, AS.b2xk, iStart, iEnd);
         LocalTools.addtab(AS.w2yk, AS.temp4, AS.b2yk, iStart, iEnd);
@@ -188,7 +188,7 @@ class ZoneTask2D implements Runnable {
             }
         }
 
-        Tools.synchronizedWait(Sync7);
+        SolverTools.synchronizedWait(Sync7);
 
         // faire le menage dans les tableaux ici w2xk utilise comme temp
         // Google translation: do the household in here w2xk tables used as Temp

@@ -2,8 +2,6 @@ package mosaic.bregman.segmentation;
 
 import org.junit.Test;
 
-import ij.ImagePlus;
-import ij.ImageStack;
 import mosaic.test.framework.CommonBase;
 
 

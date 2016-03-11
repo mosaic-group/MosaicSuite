@@ -1,4 +1,4 @@
-package mosaic.bregman.segmentation;
+package mosaic.bregman.segmentation.solver;
 
 
 import java.util.concurrent.ExecutorService;
@@ -7,19 +7,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
-import mosaic.bregman.segmentation.SegmentationParameters.NoiseModel;
+import mosaic.bregman.segmentation.solver.SolverParameters.NoiseModel;
 import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-abstract class ASplitBregmanSolver {
+public abstract class ASplitBregmanSolver {
     private static final Logger logger = Logger.getLogger(ASplitBregmanSolver.class);
     
     // Input parameters
-    protected final SegmentationParameters iParameters;
+    protected final SolverParameters iParameters;
     protected final double[][][] iImage;
-    private final AnalysePatch iAnalysePatch;
     protected double iBetaMleOut;
     protected double iBetaMleIn;
     final double iRegularization;
@@ -27,16 +25,16 @@ abstract class ASplitBregmanSolver {
 
     // Internal data
     protected final int ni, nj, nz;
-    protected final Tools iLocalTools;
+    protected final SolverTools iLocalTools;
     protected final ExecutorService executor;
     protected final double iEnergies[];
     // betaMleOut/betaMleIn are being updated in 2D case but not in 3D. In 3d only returned
     // getBetaMLE() is based on updated stuff
-    final double[] betaMle = new double[2];
+    public final double[] betaMle = new double[2];
 
     // Segmentation masks
-    protected final double[][][] w3k;
-    protected final double[][][] w3kbest;
+    public final double[][][] w3k;
+    public final double[][][] w3kbest;
     
     // Used by superclasses and utils
     protected final NoiseModel iNoiseModel;
@@ -53,23 +51,22 @@ abstract class ASplitBregmanSolver {
     protected double[][][] temp4;
     
     
-    ASplitBregmanSolver(SegmentationParameters aParameters, double[][][] aImage, double[][][] aMask, AnalysePatch aAnalazePatch, double aBetaMleOut, double aBetaMleIn, double aRegularization, psf<DoubleType> aPsf) {
+    ASplitBregmanSolver(SolverParameters aParameters, double[][][] aImage, double[][][] aMask, psf<DoubleType> aPsf) {
         iParameters = aParameters;
         iImage = aImage;
-        iAnalysePatch = aAnalazePatch;
-        iBetaMleOut = aBetaMleOut;
-        iBetaMleIn = aBetaMleIn;
-        iRegularization = aRegularization;
+        iBetaMleOut = iParameters.betaMleOut;
+        iBetaMleIn = iParameters.betaMleIn;
+        iRegularization = iParameters.lambdaRegularization;
         iPsf = aPsf;
         ni = aImage[0].length; 
         nj = aImage[0][0].length;
         nz = aImage.length; 
 
         w3k = new double[nz][ni][nj];
-        Tools.copytab(w3k, aMask);
+        SolverTools.copytab(w3k, aMask);
         w3kbest = new double[nz][ni][nj];
         
-        iLocalTools = new Tools(ni, nj, nz);
+        iLocalTools = new SolverTools(ni, nj, nz);
         executor = Executors.newFixedThreadPool(iParameters.numOfThreads);
         iEnergies = new double[iParameters.numOfThreads];
         betaMle[0] = iBetaMleOut;
@@ -89,20 +86,8 @@ abstract class ASplitBregmanSolver {
         temp4 = new double[nz][ni][nj];
     }
 
-    final double getBetaMleIn() {
+    public final double getBetaMleIn() {
         return betaMle[1];
-    }
-
-    final void second_run() {
-        final int numOfIterations = 101;
-        final boolean isFirstPhase = false;
-        boolean isDone = false;
-        int iteration = 0;
-        while (iteration < numOfIterations && !isDone) {
-            isDone = performIteration(isFirstPhase, numOfIterations);
-            iteration++;
-        }
-        postprocess(isFirstPhase);
     }
 
     private int iIterNum = 0;
@@ -110,7 +95,7 @@ abstract class ASplitBregmanSolver {
     private double iBestEnergy = Double.MAX_VALUE;
     private double iLastEnergy = 0;
     
-    final boolean performIteration(boolean aFirstPhase, int aNumOfIterations) {
+    public final boolean performIteration(int aNumOfIterations) {
         final boolean lastIteration = (iIterNum == aNumOfIterations - 1);
         final boolean energyEvaluation = (iIterNum % iParameters.energyEvaluationModulo == 0 || lastIteration);
         boolean stopFlag = false;
@@ -129,7 +114,7 @@ abstract class ASplitBregmanSolver {
             }
             
             if (currentEnergy < iBestEnergy) {
-                Tools.copytab(w3kbest, w3k);
+                SolverTools.copytab(w3kbest, w3k);
                 iBestIterationNum = iIterNum;
                 iBestEnergy = currentEnergy;
             }
@@ -141,42 +126,26 @@ abstract class ASplitBregmanSolver {
             }
             iLastEnergy = currentEnergy;
             
-            if (aFirstPhase) {
-                if (iParameters.debug) {
-                    logger.debug("Energy at step " + iIterNum + ": " + currentEnergy + " stopFlag: " + stopFlag);
-                }
+            if (iParameters.debug) {
+                logger.debug("Energy at step " + iIterNum + ": " + currentEnergy + " stopFlag: " + stopFlag);
             }
         }
 
-        if (!aFirstPhase) {
-            if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (iIterNum == 40 || iIterNum == 70)) {
-                iAnalysePatch.estimateIntensity(w3k);
-                betaMle[0] = Math.max(0, iAnalysePatch.cout);
-                betaMle[1] = Math.max(0.75 * iAnalysePatch.iNormalizedMinObjectIntensity, iAnalysePatch.cin);
-                init();
-                if (iParameters.debug) {
-                    logger.debug("Region " + iAnalysePatch.iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", iAnalysePatch.cout, iAnalysePatch.cin));
-                }
-            }
-        }
-        
         iIterNum++;
 
         return stopFlag;
     }
 
-    void postprocess(boolean aFirstPhase) {
+    public void postprocess() {
         if (iBestIterationNum < 50) { // use what iteration threshold ?
-            Tools.copytab(w3kbest, w3k);
+            SolverTools.copytab(w3kbest, w3k);
             iBestIterationNum = iIterNum - 1;
             iBestEnergy = iLastEnergy;
             
             logger.debug("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iBestIterationNum);
         }
-        if (aFirstPhase) { 
-            if (iParameters.debug) {
-                logger.debug("Best energy : " + Tools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);
-            }
+        if (iParameters.debug) {
+            logger.debug("Best energy : " + SolverTools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);
         }
         try {
             executor.shutdown();
@@ -188,5 +157,5 @@ abstract class ASplitBregmanSolver {
     }
 
     abstract protected void step(boolean aEvaluateEnergy) throws InterruptedException;
-    abstract protected void init();
+    public abstract void init();
 }

@@ -50,7 +50,7 @@ class ObjectProperties implements Runnable {
         double[][][] mask = fillMask(iRegion);
         double cin = estimateIntensity(mask, patch);
         iRegion.intensity = cin * (patchMinMax.getMax() - patchMinMax.getMin()) + patchMinMax.getMin();
-        iRegion.realSize = (float) Tools.round((iRegion.iPixels.size()) / ((float) osxy * osxy * osz), 3);
+        iRegion.realSize = (float) SegmentationTools.round((iRegion.iPixels.size()) / ((float) osxy * osxy * osz), 3);
 
         // Probably some stuff for saving images - recalculations etc.
         iRegion.calculateRegionCenter(osxy, osz);
@@ -85,7 +85,7 @@ class ObjectProperties implements Runnable {
 
     private double estimateIntensity(double[][][] aMask, double[][][] aPatch) {
         double[][][][] temp = new double[3][sz][sx][sy];
-        Tools.normalizeAndConvolveMask(temp[2], aMask, iPsf, temp[0], temp[1]);
+        SegmentationTools.normalizeAndConvolveMask(temp[2], aMask, iPsf, temp[0], temp[1]);
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp[0], temp[1], aPatch, null, 10, iBetaMleOut, iBetaMleIn);
         RSS.eval(temp[2] /* convolved mask */);
         return RSS.betaMLEin;

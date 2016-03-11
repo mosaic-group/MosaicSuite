@@ -1,4 +1,4 @@
-package mosaic.bregman.segmentation;
+package mosaic.bregman.segmentation.solver;
 
 
 import java.util.concurrent.CountDownLatch;
@@ -9,7 +9,7 @@ import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-class ASplitBregmanSolver3D extends ASplitBregmanSolver {
+public class ASplitBregmanSolver3D extends ASplitBregmanSolver {
 
     final double[][][] w2zk;
     final double[][][] b2zk;
@@ -19,8 +19,8 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
     private final double[][][] eigenLaplacian3D;
     private final DoubleDCT_3D dct3d;
 
-    public ASplitBregmanSolver3D(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, psf<DoubleType> aPsf) {
-        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aPsf);
+    public ASplitBregmanSolver3D(SolverParameters aParameters, double[][][] image, double[][][] mask, psf<DoubleType> aPsf) {
+        super(aParameters, image, mask, aPsf);
         w2zk = new double[nz][ni][nj];
         b2zk = new double[nz][ni][nj];
         ukz = new double[nz][ni][nj];
@@ -51,7 +51,7 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
     }
     
     @Override
-    protected void init() {
+    public void init() {
         // TODO: Why these values are not updated and compute_eigenPSF3D() is not called? (as
         //       it is done for 2D case?
 //        mosaic.utils.Debug.print("BetaMLE: ", betaMle);
@@ -70,7 +70,7 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][][] aValues) {
-        Tools.convolve3Dseparable(temp3, aValues, ni, nj, nz, iPsf, temp4);
+        SolverTools.convolve3Dseparable(temp3, aValues, ni, nj, nz, iPsf, temp4);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -143,7 +143,7 @@ class ASplitBregmanSolver3D extends ASplitBregmanSolver {
         final int xmin = Math.min(sz[0], eigenPsf3D[0].length);
         final int ymin = Math.min(sz[1], eigenPsf3D[0][0].length);
         final int zmin = Math.min(sz[2], eigenPsf3D.length);
-        Tools.convolve3Dseparable(eigenPsf3D, iPsf.getImage3DAsDoubleArray(), xmin, ymin, zmin, iPsf, temp4);
+        SolverTools.convolve3Dseparable(eigenPsf3D, iPsf.getImage3DAsDoubleArray(), xmin, ymin, zmin, iPsf, temp4);
         ArrayOps.fill(temp1, 0);
         for (int z = 0; z < zmin; z++) {
             for (int i = 0; i < xmin; i++) {

@@ -281,7 +281,7 @@ public class SquasshLauncher {
     private void runSegmentation(ImagePlus aImage, int aCurrentFrame, String aTitle) {
         for (int channel = 0; channel < iNumOfChannels; channel++) {
             logger.debug("------------------- Segmentation of [" + aTitle + "] channel: " + channel + ", frame: " + aCurrentFrame);
-            iInputImages[channel] =  ImgUtils.extractImage(aImage, aCurrentFrame, channel + 1 /* 1-based */);
+            iInputImages[channel] =  ImgUtils.extractImage(aImage, aCurrentFrame, channel + 1 /* 1-based */, true /* make copy */);
             iNormalizedImages[channel] = ImgUtils.ImgToZXYarray(iInputImages[channel]);
             ArrayOps.normalize(iNormalizedImages[channel]);
             segment(channel, aCurrentFrame);
@@ -880,7 +880,7 @@ public class SquasshLauncher {
     private void writeObjectsColocCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
         for (ChannelPair cp : iAnalysisPairs) {
             // Currently runColocalisationAnalysis updates needed fields for each region
-            // TODO: It must be done somehow different
+            // TODO: It must be done somehow different to not calculate same stuff over and over again (like masks etc.)
             runColocalizationAnalysis(cp.ch1, cp.ch2);
             final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
             csv.setDelimiter(';');

@@ -106,7 +106,7 @@ class ImagePatches {
             numOfDoneJobs++;
             
             double progress = 55 + (45 * ((double) numOfDoneJobs) / (numberOfJobs));
-            IJ.showStatus("Computing segmentation  " + Tools.round(progress, 2) + "%");
+            IJ.showStatus("Computing segmentation  " + SegmentationTools.round(progress, 2) + "%");
             IJ.showProgress(progress/100);
         }
         generateLabeledRegions(iOutputRegionsList, iOutputLabeledRegions);

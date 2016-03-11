@@ -1,4 +1,4 @@
-package mosaic.bregman.segmentation;
+package mosaic.bregman.segmentation.solver;
 
 
 import java.util.concurrent.CountDownLatch;
@@ -9,14 +9,14 @@ import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-class ASplitBregmanSolver2D extends ASplitBregmanSolver {
+public class ASplitBregmanSolver2D extends ASplitBregmanSolver {
 
     private final double[][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
     private final double[][] eigenLaplacian;
     
-    public ASplitBregmanSolver2D(SegmentationParameters aParameters, double[][][] image, double[][][] mask, AnalysePatch ap, double aBetaMleOut, double aBetaMleIn, double aLreg, psf<DoubleType> aPsf) {
-        super(aParameters, image, mask, ap, aBetaMleOut, aBetaMleIn, aLreg, aPsf);
+    public ASplitBregmanSolver2D(SolverParameters aParameters, double[][][] image, double[][][] mask, psf<DoubleType> aPsf) {
+        super(aParameters, image, mask, aPsf);
         dct2d = new DoubleDCT_2D(ni, nj);
 
         eigenLaplacian = new double[ni][nj];
@@ -34,7 +34,7 @@ class ASplitBregmanSolver2D extends ASplitBregmanSolver {
     }
 
     @Override
-    protected void init() {
+    public void init() {
         iBetaMleOut = betaMle[0];
         iBetaMleIn = betaMle[1];
         compute_eigenPSF();
@@ -44,7 +44,7 @@ class ASplitBregmanSolver2D extends ASplitBregmanSolver {
     }
 
     private void convolveAndScale(double[][] aValues) {
-        Tools.convolve2D(temp3[0], aValues, ni, nj, iPsf);
+        SolverTools.convolve2D(temp3[0], aValues, ni, nj, iPsf);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -118,7 +118,7 @@ class ASplitBregmanSolver2D extends ASplitBregmanSolver {
         final int[] sz = iPsf.getSuggestedImageSize();
         final int xmin = Math.min(sz[0], eigenPsf2D.length);
         final int ymin = Math.min(sz[1], eigenPsf2D[0].length);
-        Tools.convolve2D(eigenPsf2D, iPsf.getImage2DAsDoubleArray(), xmin, ymin, iPsf);
+        SolverTools.convolve2D(eigenPsf2D, iPsf.getImage2DAsDoubleArray(), xmin, ymin, iPsf);
 
         ArrayOps.fill(temp1, 0);
         for (int i = 0; i < xmin; i++) {

@@ -46,7 +46,7 @@ public class BregmanGLM_Batch implements Segmentation {
     public enum RunMode {
         CLUSTER,          // files will be sent on cluster
         LOCAL,            // files will be processed locally 
-        ERROR             // there is an error and plug-in will be stopped
+        STOP              // there is an error or user canceled operation and plug-in will be stopped
     }
     
     private ImagePlus iInputImage;
@@ -109,7 +109,7 @@ public class BregmanGLM_Batch implements Segmentation {
         RunMode runMode = window.drawStandardWindow(workDir, iProcessOnCluster);
         
         logger.info("Runmode = " + runMode);
-        if (runMode == RunMode.ERROR) {
+        if (runMode == RunMode.STOP) {
             if (!iGuiModeEnabled) Macro.abort();
             return DONE;
         }
@@ -147,7 +147,7 @@ public class BregmanGLM_Batch implements Segmentation {
             case CLUSTER:
                 runOnCluster(workDir, iSourceData);
                 break;
-            case ERROR:
+            case STOP:
             default:
                 logger.error("Code should never end up in this place (" + runMode + ")");
         }

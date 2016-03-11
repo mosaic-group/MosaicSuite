@@ -14,6 +14,10 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver2D;
+import mosaic.bregman.segmentation.solver.ASplitBregmanSolver3D;
+import mosaic.bregman.segmentation.solver.SolverParameters;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
@@ -54,11 +58,11 @@ class AnalysePatch {
     private int iSizeOverInterZ;
        
     // Input parameters
-    final Region iInputRegion;
+    private final Region iInputRegion;
     private final SegmentationParameters iParameters;
     private final psf<DoubleType> iPsf;
 
-    private final Tools iLocalTools;
+    private final SegmentationTools iLocalTools;
     private final double iRegulariztionPatch;
     
     private final double[][][] iRegionMask;
@@ -69,9 +73,11 @@ class AnalysePatch {
     private final double iMinObjectIntensity;
     private final double iIntensityMin;
     private final double iIntensityMax;
-    final double iNormalizedMinObjectIntensity;
+    private final double iNormalizedMinObjectIntensity;
     private double iRescaledMinIntensityAll;
-    double cin, cout_front, cout; 
+    private double cin;
+    private double cout_front;
+    private double cout; 
     private final double[] betaMleIntensities = new double[2];
     
     // Temporary buffers for RSS and computeEnergyPSF_weighted methods
@@ -89,7 +95,7 @@ class AnalysePatch {
         iPsf = aPsf;
 
         computePatchGeometry(iInputRegion, aOversampling, iParameters.interpolation);
-        iLocalTools = new Tools(iSizeOverX, iSizeOverY, iSizeOverZ);
+        iLocalTools = new SegmentationTools(iSizeOverX, iSizeOverY, iSizeOverZ);
         
         iRegionMask = generateMask(iInputRegion.rvoronoi, true);
         iPatch = generateFromPatchArea(aInputImage, iRegionMask, iOversamplingXY, iOversamplingZ, iOffsetOrigX, iOffsetOrigY, iOffsetOrigZ);
@@ -150,11 +156,36 @@ class AnalysePatch {
             betaMleIntensities[0] = iParameters.defaultBetaMleOut;
             betaMleIntensities[1] = iParameters.defaultBetaMleIn;
         }
+        SolverParameters solverParams = new SolverParameters(iParameters.numOfThreads, 
+                                                             SolverParameters.NoiseModel.valueOf(iParameters.noiseModel.name()),
+                                                             betaMleIntensities[1], 
+                                                             betaMleIntensities[0], 
+                                                             iRegulariztionPatch);
+        
         ASplitBregmanSolver solver = (iSizeOverZ > 1)
-                ? new ASplitBregmanSolver3D(iParameters, iPatch, w3kpatch, this, betaMleIntensities[0], betaMleIntensities[1], iRegulariztionPatch, iPsf)
-                : new ASplitBregmanSolver2D(iParameters, iPatch, w3kpatch, this, betaMleIntensities[0], betaMleIntensities[1], iRegulariztionPatch, iPsf);
+                ? new ASplitBregmanSolver3D(solverParams, iPatch, w3kpatch, iPsf)
+                : new ASplitBregmanSolver2D(solverParams, iPatch, w3kpatch, iPsf);
     
-        solver.second_run();
+        final int numOfIterations = 101;
+        
+        boolean isDone = false;
+        int iteration = 0;
+        while (iteration < numOfIterations && !isDone) {
+            isDone = solver.performIteration(numOfIterations);
+            
+            if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (iteration == 40 || iteration == 70)) {
+                estimateIntensity(solver.w3k);
+                solver.betaMle[0] = Math.max(0, cout);
+                solver.betaMle[1] = Math.max(0.75 * iNormalizedMinObjectIntensity, cin);
+                solver.init();
+                if (iParameters.debug) {
+                    logger.debug("Region " + iInputRegion.iLabel + String.format(" Photometry :%n background %10.8e %n foreground %10.8e", cout, cin));
+                }
+            }
+            
+            iteration++;
+        }
+        solver.postprocess();
     
         cin = solver.getBetaMleIn();
     
@@ -180,7 +211,7 @@ class AnalysePatch {
         return generateRegions();
     }
 
-    void estimateIntensity(double[][][] w3kbest) {
+    private void estimateIntensity(double[][][] w3kbest) {
         double bestEnergy = Double.MAX_VALUE;
         double cinbest = cin;
         double coutbest = cout;
@@ -434,7 +465,7 @@ class AnalysePatch {
     }
 
     private void estimateIntensityRSS(double[][][] mask) {
-        Tools.normalizeAndConvolveMask(temp3, mask, iPsf, temp1, temp2);
+        SegmentationTools.normalizeAndConvolveMask(temp3, mask, iPsf, temp1, temp2);
         RegionStatisticsSolver RSS = new RegionStatisticsSolver(temp1, temp2, iPatch, iRegionMask, 10, iParameters.defaultBetaMleOut, iParameters.defaultBetaMleIn);
         RSS.eval(temp3 /* convolved mask */);
     

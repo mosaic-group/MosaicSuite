@@ -18,9 +18,6 @@ public class SegmentationParameters {
     // Constant segmentation parameters 
     final boolean debug = false;
     final double lambdaData = 1;
-    final double gamma = 1;
-    final int energyEvaluationModulo = 5;
-    final double energySearchThreshold = 1e-7;
     final double defaultBetaMleIn = 1.0;
     final double defaultBetaMleOut = 0.0003;
     final int minRegionSize = 2;

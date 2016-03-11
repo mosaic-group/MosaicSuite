@@ -118,7 +118,7 @@ public class GenericGUI {
     
         gd.showDialog();
         if (gd.wasCanceled()) {
-            return RunMode.ERROR;
+            return RunMode.STOP;
         }
     
         iInputField = gd.getNextString();
