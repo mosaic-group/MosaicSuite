@@ -96,7 +96,8 @@ public class SquasshSegmentation {
         boolean isDone = false;
         int iteration = 0;
         while (iteration < numOfIterations && !isDone) {
-            isDone = iSolver.performIteration(numOfIterations);
+            final boolean lastIteration = (iteration == numOfIterations - 1);
+            isDone = iSolver.performIteration(lastIteration);
             if (iParameters.debug) iAllMasks.add(ConvertArray.toFloat(iSolver.w3k));
             setProgress((50 * iteration)/(numOfIterations - 1));
             iteration++;

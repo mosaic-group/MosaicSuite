@@ -95,9 +95,8 @@ public abstract class ASplitBregmanSolver {
     private double iBestEnergy = Double.MAX_VALUE;
     private double iLastEnergy = 0;
     
-    public final boolean performIteration(int aNumOfIterations) {
-        final boolean lastIteration = (iIterNum == aNumOfIterations - 1);
-        final boolean energyEvaluation = (iIterNum % iParameters.energyEvaluationModulo == 0 || lastIteration);
+    public final boolean performIteration(boolean aLastIteration) {
+        final boolean energyEvaluation = (iIterNum % iParameters.energyEvaluationModulo == 0 || aLastIteration);
         boolean stopFlag = false;
 
         try {

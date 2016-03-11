@@ -110,13 +110,6 @@ class AnalysePatch {
 
         double[][][] mask = generateMask(iInputRegion, false);
         
-        if (iParameters.debug) {
-//            ImgUtils.ZXYarrayToImg(iRegionMask, "iRegionMask_" + aInputRegion.iLabel).show();
-//            ImgUtils.ZXYarrayToImg(iPatch, "iPatch_" + aInputRegion.iLabel).show();
-//            ImgUtils.ZXYarrayToImg(w3kpatch, "w3kpatch_" + aInputRegion.iLabel).show();
-//            ImgUtils.ZXYarrayToImg(mask, "mask_" + aInputRegion.iLabel).show();
-        }
-        
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
@@ -171,7 +164,8 @@ class AnalysePatch {
         boolean isDone = false;
         int iteration = 0;
         while (iteration < numOfIterations && !isDone) {
-            isDone = solver.performIteration(numOfIterations);
+            final boolean lastIteration = (iteration == numOfIterations - 1);
+            isDone = solver.performIteration(lastIteration);
             
             if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (iteration == 40 || iteration == 70)) {
                 estimateIntensity(solver.w3k);
