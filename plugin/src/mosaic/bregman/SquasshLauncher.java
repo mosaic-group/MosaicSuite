@@ -215,7 +215,6 @@ public class SquasshLauncher {
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
-                mosaic.utils.Debug.print("before:", channel);
                 iMaxNumberOfRegionsFound = (iMaxNumberOfRegionsFound < iRegionsList.get(channel).size()) ? iRegionsList.get(channel).size() : iMaxNumberOfRegionsFound;
                 ImagePlus img = generateRegionImg(iLabeledRegions[channel], iMaxNumberOfRegionsFound, "");
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
@@ -635,7 +634,6 @@ public class SquasshLauncher {
         
         ImagePlus result = new ImagePlus("Colocalization", is);
         result.setDimensions(1, iDepth, 1);
-        mosaic.utils.Debug.print("generateColocImg", ImgUtils.getStrInfo(result));
         return result;
     }
     
@@ -714,7 +712,6 @@ public class SquasshLauncher {
      */
     private IndexColorModel generateColorModel(int aNumOfColors) {
         int numOfColors = aNumOfColors > 255 ? 255 : aNumOfColors;
-        mosaic.utils.Debug.print("generateColorModel", aNumOfColors);
         final byte[] r = new byte[256];
         final byte[] g = new byte[256];
         final byte[] b = new byte[256];

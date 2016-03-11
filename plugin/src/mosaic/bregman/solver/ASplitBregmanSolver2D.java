@@ -9,13 +9,13 @@ import mosaic.utils.ArrayOps;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-public class ASplitBregmanSolver2D extends ASplitBregmanSolver {
+class ASplitBregmanSolver2D extends ASplitBregmanSolver {
 
     private final double[][] eigenPsf2D;
     private final DoubleDCT_2D dct2d;
     private final double[][] eigenLaplacian;
     
-    public ASplitBregmanSolver2D(SolverParameters aParameters, double[][][] image, double[][][] mask, psf<DoubleType> aPsf) {
+    ASplitBregmanSolver2D(SolverParameters aParameters, double[][][] image, double[][][] mask, psf<DoubleType> aPsf) {
         super(aParameters, image, mask, aPsf);
         dct2d = new DoubleDCT_2D(ni, nj);
 

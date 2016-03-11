@@ -346,7 +346,8 @@ public class BregmanGLM_Batch implements Segmentation {
             logger.info(ConfigPrefix + "Reading default config [" + config + "]");
         }
         Parameters parameters = getConfigHandler().LoadFromFile(config, Parameters.class, new Parameters());
-        logger.info(mosaic.utils.Debug.getJsonString(parameters));
+        logger.info(parameters);
+        
         return parameters;
     }
 

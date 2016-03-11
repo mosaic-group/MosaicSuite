@@ -9,6 +9,7 @@ import org.junit.Test;
 import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 
+
 public class BregmanGLM_BatchTest extends CommonBase {
     
     @Test

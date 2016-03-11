@@ -13,8 +13,6 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.solver.ASplitBregmanSolver;
-import mosaic.bregman.solver.ASplitBregmanSolver2D;
-import mosaic.bregman.solver.ASplitBregmanSolver3D;
 import mosaic.bregman.solver.SolverParameters;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.psf.psf;
@@ -65,7 +63,7 @@ public class SquasshSegmentation {
         // threshold should not be = 1: creates empty mask and wrong behavior in dct3D computation
         double maskThreshold = (iParameters.defaultBetaMleIn == 1) ? 0.5 : iParameters.defaultBetaMleIn;
         iMask = createMask(iImage, maskThreshold);
-//        ArrayOps.normalize(aInputImg, iImage, iGlobalMin, iGlobalMax);
+//        ArrayOps.normalize(aInputImg, iImage, iGlobalMin*0.9, iGlobalMax*1.1);
         iPsf = generatePsf();
         
         SolverParameters solverParams = new SolverParameters(iParameters.numOfThreads, 
@@ -73,9 +71,7 @@ public class SquasshSegmentation {
                                                              iParameters.defaultBetaMleIn, 
                                                              iParameters.defaultBetaMleOut, 
                                                              iParameters.lambdaRegularization);
-        iSolver = (nz > 1) 
-                ? new ASplitBregmanSolver3D(solverParams, iImage, iMask, iPsf)
-                : new ASplitBregmanSolver2D(solverParams, iImage, iMask, iPsf);
+        iSolver = ASplitBregmanSolver.create(solverParams, iImage, iMask, iPsf);
     }
 
     public void run() {        

@@ -15,8 +15,6 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.bregman.segmentation.SegmentationParameters.IntensityMode;
 import mosaic.bregman.solver.ASplitBregmanSolver;
-import mosaic.bregman.solver.ASplitBregmanSolver2D;
-import mosaic.bregman.solver.ASplitBregmanSolver3D;
 import mosaic.bregman.solver.SolverParameters;
 import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
@@ -154,11 +152,8 @@ class AnalysePatch {
                                                              betaMleIntensities[1], 
                                                              betaMleIntensities[0], 
                                                              iRegulariztionPatch);
-        
-        ASplitBregmanSolver solver = (iSizeOverZ > 1)
-                ? new ASplitBregmanSolver3D(solverParams, iPatch, w3kpatch, iPsf)
-                : new ASplitBregmanSolver2D(solverParams, iPatch, w3kpatch, iPsf);
-    
+        ASplitBregmanSolver solver = ASplitBregmanSolver.create(solverParams, iPatch, w3kpatch, iPsf);
+
         final int numOfIterations = 101;
         
         boolean isDone = false;

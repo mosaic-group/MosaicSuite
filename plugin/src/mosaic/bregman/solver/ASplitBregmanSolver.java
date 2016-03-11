@@ -51,6 +51,12 @@ public abstract class ASplitBregmanSolver {
     protected double[][][] temp4;
     
     
+    public static ASplitBregmanSolver create(SolverParameters aParameters, double[][][] aImage, double[][][] aMask, psf<DoubleType> aPsf) {
+        return  (aImage.length > 1) 
+                ? new ASplitBregmanSolver3D(aParameters, aImage, aMask, aPsf)
+                : new ASplitBregmanSolver2D(aParameters, aImage, aMask, aPsf);
+    }
+    
     ASplitBregmanSolver(SolverParameters aParameters, double[][][] aImage, double[][][] aMask, psf<DoubleType> aPsf) {
         iParameters = aParameters;
         iImage = aImage;

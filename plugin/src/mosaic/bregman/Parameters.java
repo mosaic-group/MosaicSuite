@@ -54,28 +54,6 @@ public class Parameters implements Serializable {
     
     @Override
     public String toString() {
-        String str = "save_images=" + save_images + "\n";
-        str += "wd=" + wd + "\n";
-        for (int i = 0; i < lreg_.length; i++) {
-            str += "lreg_[" + i + "]" + lreg_[i] + "\n";
-        }
-        str += "size_rollingball=" + size_rollingball + "\n";
-        str += "removebackground=" + removebackground + "\n";
-        str += "min_intensity=" + min_intensity + "\n";
-        str += "min_intensityY" + min_intensityY + "\n";
-        str += "sigma_gaussian=" + sigma_gaussian + "\n";
-        str += "zcorrec=" + zcorrec + "\n";
-        str += "--------- Segmentation ----------------\n";
-        str += "subpixel: " + subpixel + "\n";
-        str += "exclude_z_edges: " + exclude_z_edges + "\n";
-        str += "--------- Visualization ----------------\n";
-        str += "save_images: " + save_images + "\n";
-        str += "dispoutline: " + dispoutline + "\n";
-        str += "dispSoftMask: " + dispSoftMask + "\n";
-        str += "displabels: " + displabels + "\n";
-        str += "dispint: " + dispint + "\n";
-        str += "dispcolors: " + dispcolors + "\n";
-        
-        return str;
+        return mosaic.utils.Debug.getJsonString(this);
     }
 }
