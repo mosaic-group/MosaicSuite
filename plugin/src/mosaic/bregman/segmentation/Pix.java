@@ -7,7 +7,7 @@ public class Pix {
     public int px;
     public int py;
 
-    Pix(int z, int x, int y) {
+    public Pix(int z, int x, int y) {
         this.pz = z;
         this.px = x;
         this.py = y;

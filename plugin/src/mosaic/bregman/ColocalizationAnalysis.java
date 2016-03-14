@@ -1,6 +1,5 @@
 package mosaic.bregman;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ class ColocalizationAnalysis {
         iScaleZ = aScaleZ;
     }
     
-    Map<ChannelPair, ColocResult> calculateAll(List<ChannelPair> aChannelPairs, ArrayList<ArrayList<Region>> aRegions, short[][][][] aLabeledRegions, double[][][][] aNormalizedImages) {
+    Map<ChannelPair, ColocResult> calculateAll(List<ChannelPair> aChannelPairs, List<List<Region>> aRegions, short[][][][] aLabeledRegions, double[][][][] aNormalizedImages) {
         Map<ChannelPair, ColocResult> results = new HashMap<ChannelPair, ColocResult>();
         for (ChannelPair cp : aChannelPairs) {
             ColocResult channelColoc = calculateChannelColoc(aRegions.get(cp.ch1), aRegions.get(cp.ch2), aLabeledRegions[cp.ch2], aNormalizedImages[cp.ch2]);
@@ -34,8 +33,8 @@ class ColocalizationAnalysis {
         boolean singleRegionColoc = true;
         double intensityColoc = 0;
         double sizeColoc = 0;
-        
         double sum = 0;
+        
         for (Pix p : a1stRegion.iPixels) {
             sum += a2ndRegionImage[p.pz / iScaleZ][p.px / iScaleX][p.py / iScaleY];
             int label = a2ndLabeledRegions[p.pz][p.px][p.py];
@@ -46,7 +45,7 @@ class ColocalizationAnalysis {
                 }
                 Region region2 = a2ndRegion.get(label - 1);
                 intensityColoc += region2.intensity;
-                sizeColoc += region2.iPixels.size();
+                sizeColoc += region2.realSize;
                 previousColocLabel = label;
             }
         }
@@ -56,70 +55,73 @@ class ColocalizationAnalysis {
         regionColoc.overlapFactor = ((float) colocCount) / count;
         regionColoc.singleRegionColoc = singleRegionColoc;
         if (colocCount != 0) {
-            regionColoc.colocObjectsAverageArea = (float) (sizeColoc / colocCount) / (iScaleX * iScaleY * iScaleZ);
-            mosaic.utils.Debug.print("NEW  : " ,sizeColoc / colocCount,iScaleX , iScaleY , iScaleZ );
+            regionColoc.colocObjectsAverageArea = (float) (sizeColoc / colocCount);
             regionColoc.colocObjectsAverageIntensity = (float) (intensityColoc) / colocCount;
         }
         return regionColoc;
     }
     
-    private ColocResult calculateChannelColoc(final List<Region> region1, final List<Region> region2, final short[][][] labeledRegion2, final double[][][] imageRegion2) {
+    private ColocResult calculateChannelColoc(final List<Region> aRegions1, final List<Region> aRegions2, final short[][][] aLabeledRegions2, final double[][][] aImageRegions2) {
         final float ColocThreshold = 0.5f;
         
-        int objectsCount = region1.size();
+        int objectsCount = aRegions1.size();
         double totalsignal = 0;
         double colocsignal = 0;
         double totalsize = 0;
         double colocsize = 0;
         double sum = 0;
         double objectscoloc = 0;
-        Map<Integer, RegionColoc> colocs = new TreeMap<Integer, RegionColoc>();
-        for (Region r : region1) {
-            RegionColoc cd = regionColocData(r, region2, labeledRegion2, imageRegion2);
-            colocs.put(r.iLabel, cd);
+        Map<Integer, RegionColoc> regionColocs = new TreeMap<Integer, RegionColoc>();
+        for (Region r : aRegions1) {
+            RegionColoc regionColoc = regionColocData(r, aRegions2, aLabeledRegions2, aImageRegions2);
+            regionColocs.put(r.iLabel, regionColoc);
             
-            colocsignal += r.realSize * r.intensity * cd.overlapFactor;
+            colocsignal += r.realSize * r.intensity * regionColoc.overlapFactor;
             totalsignal += r.realSize * r.intensity;
-            colocsize += r.realSize * cd.overlapFactor;
+            colocsize += r.realSize * regionColoc.overlapFactor;
             totalsize += r.realSize;
-            sum += cd.colocObjectIntensity;
-            if (cd.overlapFactor > ColocThreshold) objectscoloc++;
+            sum += regionColoc.colocObjectIntensity;
+            if (regionColoc.overlapFactor > ColocThreshold) objectscoloc++;
         }
         
-        double colocSignalBasedOfRegion2InRegion1 =  colocsignal / totalsignal;
-        double colocSizeBasedOfRegion2InRegion1 =  colocsize / totalsize;
-        double colocObjectsNumberOfRegion2InRegion1 =  objectscoloc / objectsCount;
-        double meanRegion2ObjectsIntensityInRegion1 = sum / objectsCount;
-              
-        ChannelColoc cr = new ChannelColoc();
-        cr.colocsegABsignal = colocSignalBasedOfRegion2InRegion1; 
-        cr.colocsegABnumber =  colocObjectsNumberOfRegion2InRegion1; 
-        cr.colocsegABsize = colocSizeBasedOfRegion2InRegion1;
-        cr.colocsegA = meanRegion2ObjectsIntensityInRegion1;
+        ChannelColoc channelColoc = new ChannelColoc();
+        channelColoc.colocSignal = colocsignal / totalsignal; 
+        channelColoc.colocNumber =  objectscoloc / objectsCount; 
+        channelColoc.colocSize = colocsize / totalsize;
+        channelColoc.coloc = sum / objectsCount;
         
         ColocResult colRes = new ColocResult();
-        colRes.channelColoc = cr;
-        colRes.regionsColoc = colocs;
+        colRes.channelColoc = channelColoc;
+        colRes.regionsColoc = regionColocs;
         return colRes;
     }
     
     class ChannelColoc {
-        double colocsegABsignal;
-        double colocsegABnumber; 
-        double colocsegABsize;
-        double colocsegA;
+        // what is average intensity/signal of overlapped part of regions? (first to second channel) (normalized to 0-1) 
+        double colocSignal;
+        // what is average number of objects that colocalize over threshold with second channel? (normalized to 0-1)
+        double colocNumber;
+        // what is average size of overlapped parts of regions? (normalized to 0-1)
+        double colocSize;
+        // what is average image in second channel? (signal from overlapping area)
+        double coloc;
         
         @Override
         public String toString() {
-            return "[" + colocsegABsignal + ", " + colocsegABnumber + ", " + colocsegABsize + ", " + colocsegA + "]";
+            return "[" + colocSignal + ", " + colocNumber + ", " + colocSize + ", " + coloc + "]";
         }
     }
     
     class RegionColoc {
+        // how big area of region overlaps region(s) in second channel?
         public float overlapFactor = 0.0f;
+        // what is average area/size of region(s) from second channel that overlaps with this region?
         public float colocObjectsAverageArea = 0.0f;
+        // what is average intensity of region(s) from second channel that overlaps with this region?
         public float colocObjectsAverageIntensity = 0.0f;
+        // what is average intensity of image area in second channel covered by this region?
         public double colocObjectIntensity = 0.0;
+        // does this object colocalize only with one region from second channel?
         public boolean singleRegionColoc = false;
         
         @Override
@@ -135,7 +137,7 @@ class ColocalizationAnalysis {
         
         @Override
         public String toString() {
-            return "" + regionsColoc + "\n" + channelColoc;
+            return "" + regionsColoc + "\n" + channelColoc + "\n";
         }
     }
     

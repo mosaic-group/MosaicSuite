@@ -157,7 +157,7 @@ public class SquasshLauncher {
                 // Compute and apply colocalization mask
                 for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
                 computeOverallMask(nz, ni, nj);
-                ArrayList<ArrayList<Region>> maskedRegionList = applyMask();
+                List<List<Region>> maskedRegionList = applyMask();
                 final int factor2 = iOutputImgScale;
                 ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? factor2 : 1, factor2, factor2);
                 Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);
@@ -453,8 +453,8 @@ public class SquasshLauncher {
         }
     }
     
-    private ArrayList<ArrayList<Region>> applyMask() {
-        ArrayList<ArrayList<Region>> maskedRegionList = new ArrayList<ArrayList<Region>>();
+    private List<List<Region>> applyMask() {
+        List<List<Region>> maskedRegionList = new ArrayList<List<Region>>();
         for (int channel = 0; channel < iNumOfChannels; channel++) {
             final ArrayList<Region> maskedRegion = new ArrayList<Region>();
             for (Region r : iRegionsList.get(channel)) {
@@ -826,7 +826,7 @@ public class SquasshLauncher {
                                              r.getcx(),
                                              r.getcy(),
                                              r.getcz(),
-                                             r.getrsize(),
+                                             (float)round(r.getrsize(), 3), // TODO: Nasty way did by old impl. - currently kept to have same results but should be changed.
                                              r.getperimeter(),
                                              r.getlength(),
                                              r.getintensity());
@@ -840,7 +840,6 @@ public class SquasshLauncher {
         String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsDataNew, aOutFileName);
         final CSV<ObjectsData> csv = new CSV<ObjectsData>(ObjectsData.class);
         csv.setDelimiter(';');
-        csv.clearMetaInformation();
         csv.setMetaInformation("background", aOutputPath + aTitle);
         
         for (int ch = 0; ch < iNumOfChannels; ch++) {
@@ -877,7 +876,6 @@ public class SquasshLauncher {
         String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColocNew, aOutFileName);
         final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
         csv.setDelimiter(';');
-        csv.clearMetaInformation();
         csv.setMetaInformation("background", aOutputPath + aTitle);
         
         boolean shouldAppend = aCurrentFrame != 0;
@@ -898,10 +896,10 @@ public class SquasshLauncher {
                                        frame, 
                                        channel1, 
                                        channel2,
-                                       round(aColoc.colocsegABsignal, 4),
-                                       round(aColoc.colocsegABsize, 4),
-                                       round(aColoc.colocsegABnumber, 4),
-                                       round(aColoc.colocsegA, 4),
+                                       round(aColoc.colocSignal, 4),
+                                       round(aColoc.colocSize, 4),
+                                       round(aColoc.colocNumber, 4),
+                                       round(aColoc.coloc, 4),
                                        round(aPearson[0], 4),
                                        round(aPearson[1], 4));
         res.add(id);
@@ -913,7 +911,6 @@ public class SquasshLauncher {
         String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColocNew, aOutFileName);
         final CSV<ImageColoc> csv = new CSV<ImageColoc>(ImageColoc.class);
         csv.setDelimiter(';');
-        csv.clearMetaInformation();
         csv.setMetaInformation("background", aOutputPath + aTitle);
         
         boolean shouldAppend = !(aCurrentFrame == 0);
@@ -946,7 +943,6 @@ public class SquasshLauncher {
         String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesDataNew, aOutFileName);
         final CSV<ImageData> csv = new CSV<ImageData>(ImageData.class);
         csv.setDelimiter(';');
-        csv.clearMetaInformation();
         csv.setMetaInformation("background", aOutputPath + aTitle);
         
         for (int ch = 0; ch < iNumOfChannels; ch++) {

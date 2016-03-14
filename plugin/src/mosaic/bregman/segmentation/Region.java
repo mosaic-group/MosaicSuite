@@ -1,19 +1,19 @@
 package mosaic.bregman.segmentation;
 
 
-import java.util.ArrayList;
+import java.util.List;
 
 
 public class Region implements Comparable<Region> {
 
-    Region(int aLabel, ArrayList<Pix> aPixels) {
+    public Region(int aLabel, List<Pix> aPixels) {
         iLabel = aLabel;
         iPixels = aPixels;
     }
 
     // Object definition
     public int iLabel;
-    public final ArrayList<Pix> iPixels;
+    public final List<Pix> iPixels;
     
     // Object properties
     public double intensity; // estimated intensity

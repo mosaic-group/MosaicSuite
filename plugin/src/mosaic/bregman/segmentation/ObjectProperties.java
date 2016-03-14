@@ -50,7 +50,7 @@ class ObjectProperties implements Runnable {
         double[][][] mask = fillMask(iRegion);
         double cin = estimateIntensity(mask, patch);
         iRegion.intensity = cin * (patchMinMax.getMax() - patchMinMax.getMin()) + patchMinMax.getMin();
-        iRegion.realSize = (float) SegmentationTools.round((iRegion.iPixels.size()) / ((float) osxy * osxy * osz), 3);
+        iRegion.realSize = (iRegion.iPixels.size()) / ((float) osxy * osxy * osz);
 
         // Probably some stuff for saving images - recalculations etc.
         iRegion.calculateRegionCenter(osxy, osz);
