@@ -74,7 +74,7 @@ public class SquasshLauncher {
     private double[][][][] iNormalizedImages;
     private boolean[][][][] iCellMasks;
     private boolean[][][] iOoverallCellMask;
-    private ArrayList<ArrayList<Region>> iRegionsList;
+    private List<List<Region>> iRegionsList;
     private short[][][][] iLabeledRegions;
     private double[][][][] iSoftMasks;
     private ImagePlus[] iOutSoftMasks;
@@ -129,7 +129,7 @@ public class SquasshLauncher {
         iInputImages = new ImagePlus[iNumOfChannels];
         iNormalizedImages = new double[iNumOfChannels][][][];
         iCellMasks = new boolean[iNumOfChannels][][][];
-        iRegionsList = new ArrayList<ArrayList<Region>>(iNumOfChannels);
+        iRegionsList = new ArrayList<List<Region>>(iNumOfChannels);
         for (int i = 0; i < iNumOfChannels; i++) iRegionsList.add(null);
         iLabeledRegions = new short[iNumOfChannels][][][];
         iSoftMasks = new double[iNumOfChannels][][][];
@@ -160,6 +160,10 @@ public class SquasshLauncher {
                 List<List<Region>> maskedRegionList = applyMask();
                 final int factor2 = iOutputImgScale;
                 ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? factor2 : 1, factor2, factor2);
+                mosaic.utils.Debug.print("LOOP", frame, maskedRegionList.size(), maskedRegionList);
+                for (int i = 0; i < iNumOfChannels; i++) {
+                    mosaic.utils.Debug.print(i, maskedRegionList.get(i).size(), maskedRegionList.get(i));
+                }
                 Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);
                 writeImageColoc(aOutputDir, title, outFileName, frame - 1, allColocs);
                 writeObjectsColocCsv(aOutputDir, title, outFileName, frame - 1, allColocs);
@@ -185,9 +189,15 @@ public class SquasshLauncher {
             iAnalysisPairs.addAll(aAnalysisPairs);
         }
         else {
-            // Old behavior with only two channels processed (0, 1)
-            iAnalysisPairs.add(new ChannelPair(0, 1));
-            iAnalysisPairs.add(new ChannelPair(1, 0));
+            // If not provided add all comparisons for channels 0, 1, 2
+            final int numOfChannels = 3;
+            for (int c1 = 0; c1 < numOfChannels; c1++)
+                for (int c2 = c1; c2 < numOfChannels; c2++) {
+                    if (c1 != c2) {
+                        iAnalysisPairs.add(new ChannelPair(c1, c2));
+                        iAnalysisPairs.add(new ChannelPair(c2, c1));
+                    }
+                }
         }
         
         // Remove all pairs not applicable for current image (user can define channel pairs 
@@ -244,7 +254,7 @@ public class SquasshLauncher {
                 // Add also opposite pair
                 processedChannels.add(new ChannelPair(cp.ch2, cp.ch1));
                 ImagePlus img = generateColocImage(cp);
-                updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle /* + "_ch_" + cp.ch1 + "_" + cp.ch2 */ ), true, iOutColoc);
+                updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle + "_ch_" + cp.ch1 + "_" + cp.ch2 + "_" ), true, iOutColoc);
             }
         }
     }
@@ -617,7 +627,7 @@ public class SquasshLauncher {
     /**
      * @return Generated image with regions with of given size.
      */
-    private ImagePlus generateColocImg(ArrayList<Region> aRegionsListA, ArrayList<Region> aRegionsListB, int iWidth, int iHeigth, int iDepth) {
+    private ImagePlus generateColocImg(List<Region> aRegionsListA, List<Region> aRegionsListB, int iWidth, int iHeigth, int iDepth) {
         final int[][] imagecolor = new int[iDepth][iWidth * iHeigth];
         setRgb(imagecolor, aRegionsListA, /* green */ 1, iWidth);
         setRgb(imagecolor, aRegionsListB, /* red */ 2, iWidth);
@@ -641,7 +651,7 @@ public class SquasshLauncher {
      * @param aColor color R=2, G=1, B=0
      * @param aWidth width of [x*y]
      */
-    private void setRgb(int[][] pixels, ArrayList<Region> aRegions, int aColor, int aWidth) {
+    private void setRgb(int[][] pixels, List<Region> aRegions, int aColor, int aWidth) {
         int shift = 8 * aColor;
         for (final Region r : aRegions) {
             for (final Pix p : r.iPixels) {
@@ -795,7 +805,7 @@ public class SquasshLauncher {
     /**
      * @return ImagePlus with intensities image with provided dimensions
      */
-    private ImagePlus generateIntensitiesImg(ArrayList<Region> aRegions, int aDepth, int aWidth, int aHeight) {
+    private ImagePlus generateIntensitiesImg(List<Region> aRegions, int aDepth, int aWidth, int aHeight) {
         short[][] pixels = new short [aDepth][aWidth * aHeight];
         for (final Region r : aRegions) {
             for (final Pix p : r.iPixels) {

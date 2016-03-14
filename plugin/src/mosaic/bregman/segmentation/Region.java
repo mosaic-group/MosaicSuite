@@ -102,4 +102,9 @@ public class Region implements Comparable<Region> {
     public double getlength() {
         return length;
     }
+    
+    @Override
+    public String toString() { 
+        return "{" + iLabel + ", " + iPixels.size() + "}";
+    }
 }

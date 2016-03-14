@@ -43,7 +43,11 @@ class ColocalizationAnalysis {
                 if (previousColocLabel != 0 && label != previousColocLabel) {
                     singleRegionColoc = false;
                 }
+                // Check if region has not been removed during applying mask (it is then removed only from list not from labeled regions).
+                if (a2ndRegion == null || a2ndRegion.size() < label) continue;
                 Region region2 = a2ndRegion.get(label - 1);
+                if (region2 == null) continue;
+                
                 intensityColoc += region2.intensity;
                 sizeColoc += region2.realSize;
                 previousColocLabel = label;
