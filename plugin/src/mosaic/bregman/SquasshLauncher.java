@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.bregman.ColocalizationAnalysis.ChannelColoc;
+import mosaic.bregman.ColocalizationAnalysis.ChannelPair;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.ColocalizationAnalysis.RegionColoc;
 import mosaic.bregman.Files.FileInfo;
@@ -52,7 +54,6 @@ import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
-
 
 public class SquasshLauncher {
     private static final Logger logger = Logger.getLogger(SquasshLauncher.class);
@@ -84,7 +85,7 @@ public class SquasshLauncher {
     private ImagePlus[] iOutLabeledRegionsGray;
     private ImagePlus[] iOutColoc;
     
-    private List<ColocalizationAnalysis.ChannelPair> iAnalysisPairs;
+    private List<ChannelPair> iAnalysisPairs;
     
     private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
     private void addSavedFile(FileType aFI, String aFileName) {
@@ -100,7 +101,7 @@ public class SquasshLauncher {
      * Launch the Segmentation for provided image. Calculate colocalization, generate images and save all files according to settings provided in aParameters/aOutputDir.
      * @param aImage image to be segmented
      */
-    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax, List<ColocalizationAnalysis.ChannelPair> aAnalysisPairs) {
+    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax, List<ChannelPair> aAnalysisPairs) {
         iParameters = aParameters;
         iGlobalNormalizationMin = aNormalizationMin;
         iGlobalNormalizationMax = aNormalizationMax;
@@ -159,7 +160,7 @@ public class SquasshLauncher {
                 ArrayList<ArrayList<Region>> maskedRegionList = applyMask();
                 final int factor2 = iOutputImgScale;
                 ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? factor2 : 1, factor2, factor2);
-                Map<ColocalizationAnalysis.ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages, iOutputImgScale);
+                Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);
                 writeImageColoc(aOutputDir, title, outFileName, frame - 1, allColocs);
                 writeObjectsColocCsv(aOutputDir, title, outFileName, frame - 1, allColocs);
             }
@@ -175,24 +176,25 @@ public class SquasshLauncher {
         }
     }
     
-    private List<ColocalizationAnalysis.ChannelPair> computeValidChannelsPairsForImage(List<ColocalizationAnalysis.ChannelPair> aAnalysisPairs, int aNumOfChannels) {
+    private List<ChannelPair> computeValidChannelsPairsForImage(List<ChannelPair> aAnalysisPairs, int aNumOfChannels) {
         // Always crate new container since later some of its elements are removed
         // If it would be done on input parameter it would impact processing of multiple images.
         
-        List<ColocalizationAnalysis.ChannelPair> iAnalysisPairs = new ArrayList<ColocalizationAnalysis.ChannelPair>();
+        List<ChannelPair> iAnalysisPairs = new ArrayList<ChannelPair>();
         if (aAnalysisPairs != null) { 
             iAnalysisPairs.addAll(aAnalysisPairs);
         }
         else {
             // Old behavior with only two channels processed (0, 1)
-            iAnalysisPairs.add(new ColocalizationAnalysis.ChannelPair(0, 1));
+            iAnalysisPairs.add(new ChannelPair(0, 1));
+            iAnalysisPairs.add(new ChannelPair(1, 0));
         }
         
         // Remove all pairs not applicable for current image (user can define channel pairs 
         // arbitrarily - it is needed for batch processing multiple files with possibly different 
         // diemnsions).
-        for (Iterator<ColocalizationAnalysis.ChannelPair> iterator = iAnalysisPairs.iterator(); iterator.hasNext(); ) {
-            ColocalizationAnalysis.ChannelPair cp = iterator.next();
+        for (Iterator<ChannelPair> iterator = iAnalysisPairs.iterator(); iterator.hasNext(); ) {
+            ChannelPair cp = iterator.next();
             if (cp.ch1 >= aNumOfChannels || cp.ch2 >= aNumOfChannels) {
                 iterator.remove();
             }
@@ -233,10 +235,17 @@ public class SquasshLauncher {
                 updateImages(channel, img, Files.createTitleWithExt(FileType.SoftMask, aTitle, channel + 1), iParameters.dispSoftMask, iOutSoftMasks);
             }
         }
+        
+        // Channel colloc image is created only for one pair, the second opposite should be skipped (i.e. only for pair (0,1) and not for (1,0)
+        Set<ChannelPair> processedChannels = new HashSet<ChannelPair>();
         for (int i = 0; i < iAnalysisPairs.size(); ++i) {
-            ColocalizationAnalysis.ChannelPair cp = iAnalysisPairs.get(i);
-            ImagePlus img = generateColocImage(cp);
-            updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle /* + "_ch_" + cp.ch1 + "_" + cp.ch2 */ ), true, iOutColoc);
+            ChannelPair cp = iAnalysisPairs.get(i);
+            if (processedChannels.add(cp)) {
+                // Add also opposite pair
+                processedChannels.add(new ChannelPair(cp.ch2, cp.ch1));
+                ImagePlus img = generateColocImage(cp);
+                updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle /* + "_ch_" + cp.ch1 + "_" + cp.ch2 */ ), true, iOutColoc);
+            }
         }
     }
 
@@ -293,7 +302,7 @@ public class SquasshLauncher {
         }
     }
 
-    private ImagePlus generateColocImage(ColocalizationAnalysis.ChannelPair aChannelPair) {
+    private ImagePlus generateColocImage(ChannelPair aChannelPair) {
         final int factor2 = iOutputImgScale;
         int fz2 = (nz > 1) ? factor2 : 1;
 
@@ -828,13 +837,14 @@ public class SquasshLauncher {
     }
     
     private void writeObjectDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsDataNew, aOutFileName);
         final CSV<ObjectsData> csv = new CSV<ObjectsData>(ObjectsData.class);
         csv.setDelimiter(';');
+        csv.clearMetaInformation();
+        csv.setMetaInformation("background", aOutputPath + aTitle);
+        
         for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsDataNew, aOutFileName);
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
-            csv.clearMetaInformation();
-            csv.setMetaInformation("background", aOutputPath + aTitle);
             csv.Write(outFileName, getObjectsData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ObjectsData.ColumnConfig, shouldAppend);
             addSavedFile(FileType.ObjectsDataNew, outFileName);
         }
@@ -852,32 +862,30 @@ public class SquasshLauncher {
                                                channel, 
                                                label, 
                                                channelColoc,
-                                               regionColoc.overlapFactor,// getoverlap_with_ch(),
-                                               regionColoc.colocObjectsAverageArea,//getcoloc_object_size(),
-                                               regionColoc.colocObjectsAverageIntensity, //getcoloc_object_intensity(),
-                                               regionColoc.colocObjectIntensity, //getcoloc_image_intensity(),
-                                               regionColoc.singleRegionColoc); //getsingle_coloc());
+                                               regionColoc.overlapFactor,
+                                               regionColoc.colocObjectsAverageArea,
+                                               regionColoc.colocObjectsAverageIntensity,
+                                               regionColoc.colocObjectIntensity,
+                                               regionColoc.singleRegionColoc);
             res.add(id);
         }
         
         return res;
     }
     
-    private void writeObjectsColocCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ColocalizationAnalysis.ChannelPair, ColocResult> allColocs) {
-        for (ColocalizationAnalysis.ChannelPair cp : iAnalysisPairs) {
-            final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
-            csv.setDelimiter(';');
-            for (int direction = 0; direction <= 1; direction++) {
-                int c1 = (direction == 0) ? cp.ch1 : cp.ch2;
-                int c2 = (direction == 0) ? cp.ch2 : cp.ch1;
-                String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColocNew, aOutFileName);
-                boolean shouldAppend = !(aCurrentFrame == 0 && direction == 0);
-                csv.clearMetaInformation();
-                csv.setMetaInformation("background", aOutputPath + aTitle);
-                Map<Integer, RegionColoc> regionsColoc = allColocs.get(new ColocalizationAnalysis.ChannelPair(c1, c2)).regionsColoc;
-                csv.Write(outFileName, getObjectsColoc(aTitle, aCurrentFrame, c1, c2, regionsColoc), ObjectsColoc.ColumnConfig, shouldAppend);
-                addSavedFile(FileType.ObjectsColocNew, outFileName);
-            }
+    private void writeObjectsColocCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ChannelPair, ColocResult> allColocs) {
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColocNew, aOutFileName);
+        final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
+        csv.setDelimiter(';');
+        csv.clearMetaInformation();
+        csv.setMetaInformation("background", aOutputPath + aTitle);
+        
+        boolean shouldAppend = aCurrentFrame != 0;
+        for (ChannelPair cp : iAnalysisPairs) {
+            Map<Integer, RegionColoc> regionsColoc = allColocs.get(cp).regionsColoc;
+            csv.Write(outFileName, getObjectsColoc(aTitle, aCurrentFrame, cp.ch1, cp.ch2, regionsColoc), ObjectsColoc.ColumnConfig, shouldAppend);
+            shouldAppend = true;
+            addSavedFile(FileType.ObjectsColocNew, outFileName);
         }
     }
     
@@ -901,26 +909,20 @@ public class SquasshLauncher {
         return res;
     }
 
-    private void writeImageColoc(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ColocalizationAnalysis.ChannelPair, ColocResult> allColocs) {
-        for (int pairNum = 0; pairNum < iAnalysisPairs.size(); pairNum++) {
-            ColocalizationAnalysis.ChannelPair cp = iAnalysisPairs.get(pairNum);
-            ChannelColoc resAB=allColocs.get(cp).channelColoc;
-            ChannelColoc resBA=allColocs.get(new ColocalizationAnalysis.ChannelPair(cp.ch2, cp.ch1)).channelColoc;
-            final CSV<ImageColoc> csv = new CSV<ImageColoc>(ImageColoc.class);
-            csv.setDelimiter(';');
-            for (int direction = 0; direction <= 1; direction++) {
-                double[] pearsonResult = (direction == 0) ? new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch1], iInputImages[cp.ch2], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run() 
-                                                          : new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch2], iInputImages[cp.ch1], iParameters.usecellmaskY, iParameters.thresholdcellmasky, iParameters.usecellmaskX, iParameters.thresholdcellmask).run();
-                ChannelColoc coloc = (direction == 0) ? resAB : resBA;
-                int c1 = (direction == 0) ? cp.ch1 : cp.ch2;
-                int c2 = (direction == 0) ? cp.ch2 : cp.ch1;
-                String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColocNew, aOutFileName);
-                boolean shouldAppend = !(aCurrentFrame == 0 && direction == 0 && pairNum == 0);
-                csv.clearMetaInformation();
-                csv.setMetaInformation("background", aOutputPath + aTitle);
-                csv.Write(outFileName, getImageColoc(coloc, pearsonResult, aTitle, aCurrentFrame, c1, c2), ImageColoc.ColumnConfig, shouldAppend);
-                addSavedFile(FileType.ImageColocNew, outFileName);
-            }
+    private void writeImageColoc(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ChannelPair, ColocResult> allColocs) {
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColocNew, aOutFileName);
+        final CSV<ImageColoc> csv = new CSV<ImageColoc>(ImageColoc.class);
+        csv.setDelimiter(';');
+        csv.clearMetaInformation();
+        csv.setMetaInformation("background", aOutputPath + aTitle);
+        
+        boolean shouldAppend = !(aCurrentFrame == 0);
+        for (ChannelPair cp : iAnalysisPairs) {
+            ChannelColoc resAB = allColocs.get(cp).channelColoc;
+            double[] pearsonResult = new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch1], iInputImages[cp.ch2], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run(); 
+            csv.Write(outFileName, getImageColoc(resAB, pearsonResult, aTitle, aCurrentFrame, cp.ch1, cp.ch2), ImageColoc.ColumnConfig, shouldAppend);
+            shouldAppend = true;
+            addSavedFile(FileType.ImageColocNew, outFileName);
         }
     }
 
@@ -941,13 +943,14 @@ public class SquasshLauncher {
     }
     
     private void writeImageDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesDataNew, aOutFileName);
         final CSV<ImageData> csv = new CSV<ImageData>(ImageData.class);
         csv.setDelimiter(';');
+        csv.clearMetaInformation();
+        csv.setMetaInformation("background", aOutputPath + aTitle);
+        
         for (int ch = 0; ch < iNumOfChannels; ch++) {
-            String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesDataNew, aOutFileName);
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
-            csv.clearMetaInformation();
-            csv.setMetaInformation("background", aOutputPath + aTitle);
             csv.Write(outFileName, getImagesData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ImageData.ColumnConfig, shouldAppend);
             addSavedFile(FileType.ImagesDataNew, outFileName);
         }

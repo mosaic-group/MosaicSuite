@@ -10,9 +10,6 @@ import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 
 class ColocalizationAnalysis {
-    private List<double[][][]> iImages = new ArrayList<double[][][]>();
-    private List<List<Region>> iRegions = new ArrayList<List<Region>>();
-    private List<short[][][]> iLabeledRegions = new ArrayList<short[][][]>();
     private int iScaleX, iScaleY, iScaleZ;
     
     ColocalizationAnalysis(int aScaleZ, int aScaleX, int aScaleY) {
@@ -21,92 +18,17 @@ class ColocalizationAnalysis {
         iScaleZ = aScaleZ;
     }
     
-    /**
-     * Add new region.
-     */
-    void addRegion(ArrayList<Region> aRegion, short[][][] aLabeledRegion, double[][][] aImage) {
-        iRegions.add(aRegion);
-        iLabeledRegions.add(aLabeledRegion);
-        iImages.add(aImage);
+    Map<ChannelPair, ColocResult> calculateAll(List<ChannelPair> aChannelPairs, ArrayList<ArrayList<Region>> aRegions, short[][][][] aLabeledRegions, double[][][][] aNormalizedImages) {
+        Map<ChannelPair, ColocResult> results = new HashMap<ChannelPair, ColocResult>();
+        for (ChannelPair cp : aChannelPairs) {
+            ColocResult channelColoc = calculateChannelColoc(aRegions.get(cp.ch1), aRegions.get(cp.ch2), aLabeledRegions[cp.ch2], aNormalizedImages[cp.ch2]);
+            results.put(cp, channelColoc);
+        }
+        
+        return results;
     }
-    
-//    ChannelColoc calculate(int a1stRegionIndex, int a2ndRegionIndex) {
-//        
-//        final List<Region> region1 = iRegions.get(a1stRegionIndex);
-//        final List<Region> region2 = iRegions.get(a2ndRegionIndex);
-//        final short[][][] labeledRegion2 = iLabeledRegions.get(a2ndRegionIndex);
-//        final double[][][] imageRegion2 = iImages.get(a2ndRegionIndex);
-//
-//        return calculateChannelColoc(region1, region2, labeledRegion2, imageRegion2);
-//    }
-//
-//    private ChannelColoc calculateChannelColoc(final List<Region> region1, final List<Region> region2, final short[][][] labeledRegion2, final double[][][] imageRegion2) {
-//        int objectsCount = region1.size();
-//        double totalsignal = 0;
-//        double colocsignal = 0;
-//        double totalsize = 0;
-//        double colocsize = 0;
-//        double sum = 0;
-//        double objectscoloc = 0;
-//        for (Region r : region1) {
-//            regionColocData(r, region2, labeledRegion2, imageRegion2);
-//            
-//            colocsignal += r.realSize * r.intensity * r.overlapFactor;
-//            totalsignal += r.realSize * r.intensity;
-//            colocsize += r.realSize * r.overlapFactor;
-//            totalsize += r.realSize;
-//            sum += r.colocObjectIntensity;
-//            if (r.overlapFactor > Region.ColocThreshold) objectscoloc++;
-//        }
-//        
-//        double colocSignalBasedOfRegion2InRegion1 =  colocsignal / totalsignal;
-//        double colocSizeBasedOfRegion2InRegion1 =  colocsize / totalsize;
-//        double colocObjectsNumberOfRegion2InRegion1 =  objectscoloc / objectsCount;
-//        double meanRegion2ObjectsIntensityInRegion1 = sum / objectsCount;
-//              
-//        ChannelColoc cr = new ChannelColoc();
-//        cr.colocsegABsignal = colocSignalBasedOfRegion2InRegion1; 
-//        cr.colocsegABnumber =  colocObjectsNumberOfRegion2InRegion1; 
-//        cr.colocsegABsize = colocSizeBasedOfRegion2InRegion1;
-//        cr.colocsegA = meanRegion2ObjectsIntensityInRegion1;
-//        
-//        return cr;
-//    }    
-//    
-//    private void regionColocData(Region a1stRegion, List<Region> a2ndRegion, short[][][] a2ndLabeledRegions, double[][][] a2ndRegionImage) {
-//        int colocCount = 0;
-//        int previousColocLabel = 0;
-//        boolean singleRegionColoc = true;
-//        double intensityColoc = 0;
-//        double sizeColoc = 0;
-//        
-//        double sum = 0;
-//        for (Pix p : a1stRegion.iPixels) {
-//            sum += a2ndRegionImage[p.pz / iScaleZ][p.px / iScaleX][p.py / iScaleY];
-//            int label = a2ndLabeledRegions[p.pz][p.px][p.py];
-//            if (label > 0) {
-//                colocCount++;
-//                if (previousColocLabel != 0 && label != previousColocLabel) {
-//                    singleRegionColoc = false;
-//                }
-//                Region region2 = a2ndRegion.get(label - 1);
-//                intensityColoc += region2.intensity;
-//                sizeColoc += region2.iPixels.size();
-//                previousColocLabel = label;
-//            }
-//        }
-//        int count = a1stRegion.iPixels.size();
-//        a1stRegion.colocObjectIntensity = (sum / count);
-//        a1stRegion.overlapFactor = ((float) colocCount) / count;
-//        a1stRegion.singleRegionColoc = singleRegionColoc;
-//        if (colocCount != 0) {
-//            a1stRegion.colocObjectsAverageArea = (float) (sizeColoc / colocCount) / (iScaleX * iScaleY * iScaleZ);
-//            mosaic.utils.Debug.print("NORMAL: " ,sizeColoc / colocCount,iScaleX , iScaleY , iScaleZ );
-//            a1stRegion.colocObjectsAverageIntensity = (float) (intensityColoc) / colocCount;
-//        }
-//    }
-    
-    RegionColoc regionColocData2(Region a1stRegion, List<Region> a2ndRegion, short[][][] a2ndLabeledRegions, double[][][] a2ndRegionImage) {
+
+    private RegionColoc regionColocData(Region a1stRegion, List<Region> a2ndRegion, short[][][] a2ndLabeledRegions, double[][][] a2ndRegionImage) {
         int colocCount = 0;
         int previousColocLabel = 0;
         boolean singleRegionColoc = true;
@@ -141,7 +63,7 @@ class ColocalizationAnalysis {
         return regionColoc;
     }
     
-    private ColocResult calculateChannelColoc2(final List<Region> region1, final List<Region> region2, final short[][][] labeledRegion2, final double[][][] imageRegion2) {
+    private ColocResult calculateChannelColoc(final List<Region> region1, final List<Region> region2, final short[][][] labeledRegion2, final double[][][] imageRegion2) {
         final float ColocThreshold = 0.5f;
         
         int objectsCount = region1.size();
@@ -153,7 +75,7 @@ class ColocalizationAnalysis {
         double objectscoloc = 0;
         Map<Integer, RegionColoc> colocs = new TreeMap<Integer, RegionColoc>();
         for (Region r : region1) {
-            RegionColoc cd = regionColocData2(r, region2, labeledRegion2, imageRegion2);
+            RegionColoc cd = regionColocData(r, region2, labeledRegion2, imageRegion2);
             colocs.put(r.iLabel, cd);
             
             colocsignal += r.realSize * r.intensity * cd.overlapFactor;
@@ -246,35 +168,5 @@ class ColocalizationAnalysis {
         public String toString() {
             return "{" + ch1 + ", " + ch2 + "}";
         }
-    }
-
-    static Map<ColocalizationAnalysis.ChannelPair, ColocResult> map = new HashMap<ColocalizationAnalysis.ChannelPair, ColocResult>();
-    
-//    private ChannelColoc[] runColocalizationAnalysis(int aChannel1, int aChannel2) {
-//        // Run colocalization
-//        final int factor2 = iOutputImgScale;
-//        ColocalizationAnalysis ca = new ColocalizationAnalysis(nz, ni, nj, (nz > 1) ? factor2 : 1, factor2, factor2);
-//        ca.addRegion(maskedRegionList.get(aChannel1), iLabeledRegions[aChannel1], iNormalizedImages[aChannel1]);
-//        ca.addRegion(maskedRegionList.get(aChannel2), iLabeledRegions[aChannel2], iNormalizedImages[aChannel2]);
-//        ChannelColoc resAB = ca.calculate(0, 1);
-//        ChannelColoc resBA = ca.calculate(1, 0);
-//
-//        return new ChannelColoc[] {resAB, resBA};
-//    }
-//    
-    public Map<ColocalizationAnalysis.ChannelPair, ColocResult> calculateAll(List<ColocalizationAnalysis.ChannelPair> aChannelPairs, ArrayList<ArrayList<Region>> aRegions, short[][][][] aLabeledRegions, double[][][][] aNormalizedImages, int iOutputImgScale) {
-        final int nz = aNormalizedImages[0].length;
-        final int factor2 = iOutputImgScale;
-        
-        ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? factor2 : 1, factor2, factor2);
-        for (ColocalizationAnalysis.ChannelPair cp : aChannelPairs) {
-            ColocResult calculateChannelColocAB = ca.calculateChannelColoc2(aRegions.get(cp.ch1), aRegions.get(cp.ch2), aLabeledRegions[cp.ch2], aNormalizedImages[cp.ch2]);
-            map.put(cp, calculateChannelColocAB);
-            ColocResult calculateChannelColocBA = ca.calculateChannelColoc2(aRegions.get(cp.ch2), aRegions.get(cp.ch1), aLabeledRegions[cp.ch1], aNormalizedImages[cp.ch1]);
-            
-            map.put(new ColocalizationAnalysis.ChannelPair(cp.ch2, cp.ch1), calculateChannelColocBA);
-        }
-        
-        return map;
     }
 }
