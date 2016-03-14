@@ -24,15 +24,6 @@ public class Region implements Comparable<Region> {
     
     Region rvoronoi;
 
-    // Used only in regions analysis
-    public static final float ColocThreshold = 0.5f;
-    public float overlapFactor = 0.0f;
-    public float colocObjectsAverageArea = 0.0f;
-    public float colocObjectsAverageIntensity = 0.0f;
-    public double colocObjectIntensity = 0.0;
-    public boolean singleRegionColoc = false;
-    
-
     /**
      * @return 2-element array of type Pix with {minPixCoord, maxPixCoord}
      */
@@ -110,25 +101,5 @@ public class Region implements Comparable<Region> {
 
     public double getlength() {
         return length;
-    }
-
-    public double getoverlap_with_ch() {
-        return overlapFactor;
-    }
-
-    public double getcoloc_object_size() {
-        return colocObjectsAverageArea;
-    }
-
-    public double getcoloc_object_intensity() {
-        return colocObjectsAverageIntensity;
-    }
-
-    public boolean getsingle_coloc() {
-        return singleRegionColoc;
-    }
-
-    public double getcoloc_image_intensity() {
-        return colocObjectIntensity;
     }
 }

@@ -88,11 +88,11 @@ public class Region3DColocRScript {
         Perimeter = r.getperimeter();
         Size = r.getrsize();
         Length = r.getlength();
-        Overlap_with_ch = r.getoverlap_with_ch();
-        Coloc_object_size = r.getcoloc_object_size();
-        Coloc_object_intensity = r.getcoloc_object_intensity();
-        Single_Coloc = r.getsingle_coloc();
-        Coloc_image_intensity = r.getcoloc_image_intensity();
+//        Overlap_with_ch = r.getoverlap_with_ch();
+//        Coloc_object_size = r.getcoloc_object_size();
+//        Coloc_object_intensity = r.getcoloc_object_intensity();
+//        Single_Coloc = r.getsingle_coloc();
+//        Coloc_image_intensity = r.getcoloc_image_intensity();
         x = r.getcx();
         y = r.getcy();
         z = r.getcz();
