@@ -18,8 +18,8 @@ import javax.swing.event.ChangeListener;
 
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import mosaic.bregman.Mask;
 import mosaic.bregman.Parameters;
-import mosaic.bregman.SquasshLauncher;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.ImgUtils;
 
@@ -423,7 +423,7 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
         int currentSlice = img.getSlice();
         
         double threshold = threshold_i * ((channel == 1) ? (max - min) + min : (max2 - min2) + min2);
-        ImagePlus mask = SquasshLauncher.createBinaryCellMask(img, "Cell mask channel " + channel, threshold);
+        ImagePlus mask = Mask.createBinaryCellMask(img, "Cell mask channel " + channel, threshold);
         maska_im.setStack(mask.getStack());
         maska_im.setTitle(mask.getTitle());
         maska_im.updateAndDraw();

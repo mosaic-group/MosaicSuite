@@ -72,8 +72,6 @@ public class SquasshLauncher {
     
     private ImagePlus[] iInputImages;
     private double[][][][] iNormalizedImages;
-    private boolean[][][][] iCellMasks;
-    private boolean[][][] iOoverallCellMask;
     private List<List<Region>> iRegionsList;
     private short[][][][] iLabeledRegions;
     private double[][][][] iSoftMasks;
@@ -128,7 +126,7 @@ public class SquasshLauncher {
         iNumOfChannels = numOfChannels;
         iInputImages = new ImagePlus[iNumOfChannels];
         iNormalizedImages = new double[iNumOfChannels][][][];
-        iCellMasks = new boolean[iNumOfChannels][][][];
+//        iCellMasks = new boolean[iNumOfChannels][][][];
         iRegionsList = new ArrayList<List<Region>>(iNumOfChannels);
         for (int i = 0; i < iNumOfChannels; i++) iRegionsList.add(null);
         iLabeledRegions = new short[iNumOfChannels][][][];
@@ -155,10 +153,14 @@ public class SquasshLauncher {
                 writeObjectDataCsv(aOutputDir, title, outFileName, frame - 1);
                 
                 // Compute and apply colocalization mask
-                for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
-                computeOverallMask(nz, ni, nj);
-                List<List<Region>> maskedRegionList = applyMask();
-                
+                Mask mask = new Mask(iGlobalNormalizationMin, iGlobalNormalizationMax);
+                for (int i = 0; i < iNumOfChannels; i++) {
+                    if (i == 0 && iParameters.usecellmaskX) mask.generateMasks(i, iInputImages[i], iParameters.thresholdcellmask);
+                    else if (i == 1 && iParameters.usecellmaskY) mask.generateMasks(i, iInputImages[i], iParameters.thresholdcellmasky);
+                }
+                mask.computeOverallMask(nz, ni, nj);
+                List<List<Region>> maskedRegionList = mask.applyMask(iRegionsList, iOutputImgScale);
+
                 ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? iOutputImgScale : 1, iOutputImgScale, iOutputImgScale);
                 Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);
                 writeImageColoc(aOutputDir, title, outFileName, frame - 1, allColocs);
@@ -408,86 +410,7 @@ public class SquasshLauncher {
         ImagePlus maskImg = generateMaskImg(rg.iAllMasks); 
         if (maskImg != null) {maskImg.setTitle("Mask Evol");maskImg.show();}
     }
-    
-    // ============================================ MASKS and tools ==============================
-    
-    private void generateMasks(int channel, final ImagePlus img) {
-        double minNorm = iGlobalNormalizationMin;
-        double maxNorm = iGlobalNormalizationMax;
-        if (iGlobalNormalizationMax == 0) {
-            MinMax<Double> mm = ImgUtils.findMinMax(img);
-            minNorm = mm.getMin();
-            maxNorm = mm.getMax();
-        }
-        if (iParameters.usecellmaskX && channel == 0) {
-            iCellMasks[channel] = generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmask);
-        }
-        if (iParameters.usecellmaskY && channel == 1) {
-            iCellMasks[channel] = generateMask(channel, img, minNorm, maxNorm, iParameters.thresholdcellmasky);
-        }
-    }
-    
-    private boolean[][][] generateMask(int channel, final ImagePlus img, double min, double max, double maskThreshold) {
-        ImagePlus mask = createBinaryCellMask(img, "Cell mask channel " + (channel + 1), maskThreshold * (max - min) + min);
-        if (iParameters.livedisplay) {
-            mask.show();
-        }
-        
-        return ImgUtils.imgToZXYbinaryArray(mask);
-    }
-    
-    private void computeOverallMask(int nz, int ni, int nj) {
-        iOoverallCellMask = new boolean[nz][ni][nj];
 
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (iParameters.usecellmaskX && iParameters.usecellmaskY) {
-                        iOoverallCellMask[z][i][j] = iCellMasks[0][z][i][j] && iCellMasks[1][z][i][j];
-                    }
-                    else if (iParameters.usecellmaskX) {
-                        iOoverallCellMask[z][i][j] = iCellMasks[0][z][i][j];
-                    }
-                    else if (iParameters.usecellmaskY) {
-                        iOoverallCellMask[z][i][j] = iCellMasks[1][z][i][j];
-                    }
-                    else {
-                        iOoverallCellMask[z][i][j] = true;
-                    }
-
-                }
-            }
-        }
-    }
-    
-    private List<List<Region>> applyMask() {
-        List<List<Region>> maskedRegionList = new ArrayList<List<Region>>();
-        for (int channel = 0; channel < iNumOfChannels; channel++) {
-            final ArrayList<Region> maskedRegion = new ArrayList<Region>();
-            for (Region r : iRegionsList.get(channel)) {
-                if (isInside(r)) {
-                    maskedRegion.add(r);
-                }
-            }
-            maskedRegionList.add(maskedRegion);
-        }
-        return maskedRegionList;
-    }
-    
-    private boolean isInside(Region r) {
-        final int factor2 = iOutputImgScale;
-        int fz2 = (iOoverallCellMask.length > 1) ? factor2 : 1;
-
-        double size = r.iPixels.size();
-        int inside = 0;
-        for (Pix px : r.iPixels) {
-            if (iOoverallCellMask[px.pz / fz2][px.px / factor2][px.py / factor2]) {
-                inside++;
-            }
-        }
-        return ((inside / size) > 0.1);
-    }
-    
     // ============================== Mask from particles ======================================
     
     private double[][][] generateMaskFromPatches(String aFileName, int nz, int ni, int nj, int aFrame) {
@@ -584,41 +507,6 @@ public class SquasshLauncher {
         return y;
     }
     
-    public static ImagePlus createBinaryCellMask(ImagePlus aInputImage, String aTitle, double aThreshold) {
-        int ni = aInputImage.getWidth();
-        int nj = aInputImage.getHeight();
-        int nz = aInputImage.getNSlices();
-        final ImageStack maskStack = new ImageStack(ni, nj);
-        for (int z = 0; z < nz; z++) {
-            aInputImage.setSlice(z + 1);
-            ImageProcessor ip = aInputImage.getProcessor();
-            final byte[] mask = new byte[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (ip.getPixelValue(i, j) > aThreshold) {
-                        mask[j * ni + i] = (byte) 255;
-                    }
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(mask);
-            maskStack.addSlice("", bp);
-        }
-        final ImagePlus maskImg = new ImagePlus(aTitle, maskStack);
-        IJ.run(maskImg, "Invert", "stack");
-        
-        // "Fill Holes" is using Prefs.blackBackground global setting. We need false here.
-        boolean tempBlackbackground = ij.Prefs.blackBackground;
-        ij.Prefs.blackBackground = false;
-        IJ.run(maskImg, "Fill Holes", "stack");
-        ij.Prefs.blackBackground = tempBlackbackground;
-        
-        IJ.run(maskImg, "Open", "stack");
-        IJ.run(maskImg, "Invert", "stack");
-        maskImg.changes = false;
-        
-        return maskImg;
-    }
     // ==================================== Image generation ==========================
     
     /**
