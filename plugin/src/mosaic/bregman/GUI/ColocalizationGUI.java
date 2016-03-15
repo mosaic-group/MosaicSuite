@@ -18,7 +18,6 @@ import javax.swing.event.ChangeListener;
 
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import ij.process.ImageProcessor;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.SquasshLauncher;
 import mosaic.utils.ArrayOps.MinMax;
@@ -29,7 +28,6 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     private ImagePlus imgch1;
     private ImagePlus imgch2;
-    private int ni, nj, nz;
 
     private JSlider t1, t2;
     private JSlider tz1, tz2;// slider for z stack preview
@@ -408,9 +406,6 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     // find min and max values in channel 1
     private void initpreviewch1(ImagePlus img) {
-        ni = img.getWidth();
-        nj = img.getHeight();
-        nz = img.getNSlices();
         MinMax<Double> mm = ImgUtils.findMinMax(img);
         min = mm.getMin();
         max = mm.getMax();
@@ -418,26 +413,9 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     // find min and max values in channel 2
     private void initpreviewch2(ImagePlus img) {
-
-        ni = img.getWidth();
-        nj = img.getHeight();
-        nz = img.getNSlices();
-
-        ImageProcessor imp;
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max2) {
-                        max2 = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min2) {
-                        min2 = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
+        MinMax<Double> mm = ImgUtils.findMinMax(img);
+        max2 = mm.getMax();
+        min2 = mm.getMin();
     }
 
     // compute and display cell mask

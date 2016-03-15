@@ -169,7 +169,7 @@ class ObjectProperties implements Runnable {
     
         for (Pix v : r.iPixels) {
             // count number of pixels in skeleton
-            if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) {
+            if (is.getProcessor(v.pz - cz + 1).getPixelValue(v.px - cx, v.py - cy) != 0) {
                 length++;
             }
         }

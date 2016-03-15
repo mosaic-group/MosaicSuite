@@ -189,15 +189,13 @@ public class SquasshLauncher {
             iAnalysisPairs.addAll(aAnalysisPairs);
         }
         else {
-            // If not provided add all comparisons for channels 0, 1, 2
-            final int numOfChannels = 3;
-            for (int c1 = 0; c1 < numOfChannels; c1++)
-                for (int c2 = c1; c2 < numOfChannels; c2++) {
-                    if (c1 != c2) {
-                        iAnalysisPairs.add(new ChannelPair(c1, c2));
-                        iAnalysisPairs.add(new ChannelPair(c2, c1));
-                    }
+            // If not provided add all comparisons for all channels in image
+            for (int c1 = 0; c1 < aNumOfChannels; c1++) {
+                for (int c2 = c1 + 1; c2 < aNumOfChannels; c2++) {
+                    iAnalysisPairs.add(new ChannelPair(c1, c2));
+                    iAnalysisPairs.add(new ChannelPair(c2, c1));
                 }
+            }
         }
         
         // Remove all pairs not applicable for current image (user can define channel pairs 
@@ -254,7 +252,7 @@ public class SquasshLauncher {
                 // Add also opposite pair
                 processedChannels.add(new ChannelPair(cp.ch2, cp.ch1));
                 ImagePlus img = generateColocImage(cp);
-                updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle + "_ch_" + cp.ch1 + "_" + cp.ch2 + "_" ), true, iOutColoc);
+                updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle + "_ch_" + cp.ch1 + "_" + cp.ch2), true, iOutColoc);
             }
         }
     }
@@ -369,10 +367,12 @@ public class SquasshLauncher {
         // all the frames so let be conservative and put min = 0.0 (for sure cannot be < 0).
         double min = (iParameters.removebackground) ? 0.0 : iGlobalNormalizationMin;
         double max = iGlobalNormalizationMax;
+        logger.info("Global min/max: " + min + "/" + max);
         if (iGlobalNormalizationMax == 0) {
             MinMax<Double> mm = ImgUtils.findMinMax(img);
             min = mm.getMin();
             max = mm.getMax();
+            logger.info("Global min/max from image: " + min + "/" + max);
         }
         
         double minIntensity = (channel == 0) ? iParameters.min_intensity : iParameters.min_intensityY;

@@ -147,7 +147,7 @@ public abstract class ASplitBregmanSolver {
             iBestIterationNum = iIterNum - 1;
             iBestEnergy = iLastEnergy;
             
-            logger.debug("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iBestIterationNum);
+            logger.debug("Warning : increasing energy. Last computed mask is then used for first phase object segmentation. Iter: " + iBestIterationNum);
         }
         if (iParameters.debug) {
             logger.debug("Best energy : " + SolverTools.round(iBestEnergy, 3) + ", found at step " + iBestIterationNum);

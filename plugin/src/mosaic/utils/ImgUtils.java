@@ -384,11 +384,12 @@ public class ImgUtils {
             ImageProcessor imp = img.getProcessor();
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max) {
-                        max = imp.getPixel(i, j);
+                    float value = imp.getPixelValue(i, j);
+                    if (value > max) {
+                        max = value;
                     }
-                    if (imp.getPixel(i, j) < min) {
-                        min = imp.getPixel(i, j);
+                    if (value < min) {
+                        min = value;
                     }
                 }
             }

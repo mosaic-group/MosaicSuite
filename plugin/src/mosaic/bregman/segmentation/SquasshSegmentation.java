@@ -63,6 +63,8 @@ public class SquasshSegmentation {
         // threshold should not be = 1: creates empty mask and wrong behavior in dct3D computation
         double maskThreshold = (iParameters.defaultBetaMleIn == 1) ? 0.5 : iParameters.defaultBetaMleIn;
         iMask = createMask(iImage, maskThreshold);
+        // Test for quite successful mask init. It is close to original so it is still room for calculating gradients etc. 
+        // But because it is "almost there" it is quite fast.
 //        ArrayOps.normalize(aInputImg, iImage, iGlobalMin*0.9, iGlobalMax*1.1);
         iPsf = generatePsf();
         

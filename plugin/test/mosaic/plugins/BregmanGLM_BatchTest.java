@@ -104,7 +104,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         final String setupString         = "run";
         final String macroOptions        = "";
         final String inputFile           = "moImg.tif";
-        final String[] expectedImgFiles  = {"__coloc.zip/moImg_coloc.zip", 
+        final String[] expectedImgFiles  = {"__coloc.zip/moImg_ch_0_1_coloc.zip", 
                                             "__intensities_c1.zip/moImg_intensities_c1.zip", "__intensities_c2.zip/moImg_intensities_c2.zip", 
                                             "__mask_c1.zip/moImg_mask_c1.zip", "__mask_c2.zip/moImg_mask_c2.zip", 
                                             "__outline_overlay_c1.zip/moImg_outline_overlay_c1.zip", "__outline_overlay_c2.zip/moImg_outline_overlay_c2.zip",
