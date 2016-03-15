@@ -157,9 +157,12 @@ public class SquasshLauncher {
                 for (int i = 0; i < iNumOfChannels; i++) {
                     if (i == 0 && iParameters.usecellmaskX) mask.generateMasks(i, iInputImages[i], iParameters.thresholdcellmask);
                     else if (i == 1 && iParameters.usecellmaskY) mask.generateMasks(i, iInputImages[i], iParameters.thresholdcellmasky);
+                    else {
+                        // TODO: Currently parameters provided only 'old' set of information for channels 0 and 1
+                        //       only. It will be refactored to sth supporting n-channels.
+                    }
                 }
-                mask.computeOverallMask(nz, ni, nj);
-                List<List<Region>> maskedRegionList = mask.applyMask(iRegionsList, iOutputImgScale);
+                List<List<Region>> maskedRegionList = mask.applyMask(iRegionsList, iOutputImgScale, nz, ni, nj);
 
                 ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? iOutputImgScale : 1, iOutputImgScale, iOutputImgScale);
                 Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);

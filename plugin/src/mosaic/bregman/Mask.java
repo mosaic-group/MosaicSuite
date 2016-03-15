@@ -22,6 +22,9 @@ public class Mask {
     
     private double iGlobalMin;
     private double iGlobalMax;
+    
+    // iCellMasks keep track of channels and mask generated for this channel. Channel info is currently
+    // kept only for debug purposes.
     private Map<Integer, boolean[][][]> iCellMasks;
     private boolean[][][] iOoverallCellMask;
     
@@ -48,7 +51,7 @@ public class Mask {
         return ImgUtils.imgToZXYbinaryArray(mask);
     }
     
-    void computeOverallMask(int nz, int ni, int nj) {
+    private void computeOverallMask(int nz, int ni, int nj) {
         iOoverallCellMask = new boolean[nz][ni][nj];
 
         for (int z = 0; z < nz; z++) {
@@ -64,7 +67,8 @@ public class Mask {
         }
     }
     
-    List<List<Region>> applyMask(List<List<Region>> aInputRegions, int aScale) {
+    List<List<Region>> applyMask(List<List<Region>> aInputRegions, int aScale, int nz, int ni, int nj) {
+        computeOverallMask(nz, ni, nj);
         List<List<Region>> maskedRegionList = new ArrayList<List<Region>>();
         for (int channel = 0; channel < aInputRegions.size(); channel++) {
             final ArrayList<Region> maskedRegion = new ArrayList<Region>();
