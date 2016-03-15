@@ -158,12 +158,8 @@ public class SquasshLauncher {
                 for (int i = 0; i < iNumOfChannels; i++) generateMasks(i, iInputImages[i]);
                 computeOverallMask(nz, ni, nj);
                 List<List<Region>> maskedRegionList = applyMask();
-                final int factor2 = iOutputImgScale;
-                ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? factor2 : 1, factor2, factor2);
-                mosaic.utils.Debug.print("LOOP", frame, maskedRegionList.size(), maskedRegionList);
-                for (int i = 0; i < iNumOfChannels; i++) {
-                    mosaic.utils.Debug.print(i, maskedRegionList.get(i).size(), maskedRegionList.get(i));
-                }
+                
+                ColocalizationAnalysis ca = new ColocalizationAnalysis((nz > 1) ? iOutputImgScale : 1, iOutputImgScale, iOutputImgScale);
                 Map<ChannelPair, ColocResult> allColocs = ca.calculateAll(iAnalysisPairs, maskedRegionList, iLabeledRegions, iNormalizedImages);
                 writeImageColoc(aOutputDir, title, outFileName, frame - 1, allColocs);
                 writeObjectsColocCsv(aOutputDir, title, outFileName, frame - 1, allColocs);
@@ -252,6 +248,7 @@ public class SquasshLauncher {
                 // Add also opposite pair
                 processedChannels.add(new ChannelPair(cp.ch2, cp.ch1));
                 ImagePlus img = generateColocImage(cp);
+                // TODO: Coloc image should be handeld in Files and be expected type of FileType.Colocalization, here channels info is added temporarily 
                 updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle + "_ch_" + cp.ch1 + "_" + cp.ch2), true, iOutColoc);
             }
         }

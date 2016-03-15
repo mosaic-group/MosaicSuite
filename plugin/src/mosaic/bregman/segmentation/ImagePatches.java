@@ -156,7 +156,6 @@ class ImagePatches {
             // Because of connectivity may disconnect some regions (single pixels) check for regions size.
             if (e.getValue().size() >= iParameters.minRegionSize) {
                 iOutputRegionsList.add(new Region(e.getKey(), e.getValue()));
-                System.out.println(e.getKey());
             }
         }
         logger.debug("number of found regions after postprocessing: " + iOutputRegionsList.size());
@@ -190,7 +189,6 @@ class ImagePatches {
             ArrayOps.fill(iOutputLabeledRegions, (short) 0);
             generateLabeledRegions(regionsListFiltered, iOutputLabeledRegions);
             iOutputRegionsList = regionsListFiltered;
-            System.out.println("FFFFFFFFFFFFILE");
         }
         logger.debug("number of found regions after filtering:      " + iOutputRegionsList.size());
     }
