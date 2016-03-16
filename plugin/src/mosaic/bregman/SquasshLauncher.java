@@ -145,7 +145,7 @@ public class SquasshLauncher {
         for (int frame = 1; frame <= numOfFrames; frame++) {
             aImage.setPosition(aImage.getChannel(), aImage.getSlice(), frame);      
 
-            runSegmentation(aImage, frame, title);
+            segmentFrame(aImage, frame, title);
             
             displayAndUpdateImages(outFileName);
             if (iParameters.save_images) {
@@ -304,13 +304,16 @@ public class SquasshLauncher {
         }
     }
 
-    private void runSegmentation(ImagePlus aImage, int aCurrentFrame, String aTitle) {
+    private void segmentFrame(ImagePlus aImage, int aCurrentFrame, String aTitle) {
         for (int channel = 0; channel < iNumOfChannels; channel++) {
             logger.debug("------------------- Segmentation of [" + aTitle + "] channel: " + channel + ", frame: " + aCurrentFrame);
             iInputImages[channel] =  ImgUtils.extractImage(aImage, aCurrentFrame, channel + 1 /* 1-based */, true /* make copy */);
             iNormalizedImages[channel] = ImgUtils.ImgToZXYarray(iInputImages[channel]);
             ArrayOps.normalize(iNormalizedImages[channel]);
-            segment(channel, aCurrentFrame);
+            
+            double[][][] mask = (iParameters.patches_from_file != null) ? generateMaskFromPatches(iParameters.patches_from_file, nz, ni, nj, aCurrentFrame) : null;
+            
+            segmentChannel(channel, mask);
             logger.debug("------------------- End of Segmentation ---------------------------");
         }
     }
@@ -355,7 +358,7 @@ public class SquasshLauncher {
         }
     }
 
-    private void segment(int channel, int frame) {
+    private void segmentChannel(int channel, double[][][] aMask) {
         final ImagePlus img = iInputImages[channel];
 
         if (iParameters.removebackground) {
@@ -398,11 +401,11 @@ public class SquasshLauncher {
                 iParameters.min_region_filter_intensities );
         //  ============== SEGMENTATION
         SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);
-        if (iParameters.patches_from_file == null) {
+        if (aMask == null) {
             rg.run();
         }
         else {
-            rg.runWithProvidedMask(generateMaskFromPatches(iParameters.patches_from_file, nz, ni, nj, frame));
+            rg.runWithProvidedMask(aMask);
         }
         channel = tempChannel;
         iOutputImgScale = rg.iLabeledRegions[0].length / ni;
