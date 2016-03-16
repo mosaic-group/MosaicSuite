@@ -231,6 +231,9 @@ public class SquasshLauncher {
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Intensity, aTitle, channel + 1), iParameters.dispint, iOutIntensities);
             }
             if (iParameters.displabels || iParameters.dispcolors) {
+                // Since generateRegionImg is also responsible for generating color space for objects we keep track
+                // of maximum number of regions found (colors from the very last image generated are used, and it 
+                // may happen that last image has small number of colors).
                 iMaxNumberOfRegionsFound = (iMaxNumberOfRegionsFound < iRegionsList.get(channel).size()) ? iRegionsList.get(channel).size() : iMaxNumberOfRegionsFound;
                 ImagePlus img = generateRegionImg(iLabeledRegions[channel], iMaxNumberOfRegionsFound, "");
                 updateImages(channel, img, Files.createTitleWithExt(FileType.Segmentation, aTitle, channel + 1), iParameters.displabels, iOutLabeledRegionsColor);
