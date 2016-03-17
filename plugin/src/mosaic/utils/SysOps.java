@@ -208,6 +208,13 @@ public class SysOps {
     }
     
     /**
+     * @return returns an extension from a provided filename
+     */
+    public static String getExtension(String aFileName) {
+        return FilenameUtils.getExtension(aFileName);
+    }
+    
+    /**
      * @return system username (usually login name of a user) or null if not possible to detect.
      */
     public static String getSystemUsername() {
@@ -222,4 +229,6 @@ public class SysOps {
     public static String removeRedundantSeparators(String aFileName) {
         return aFileName.replaceAll("/+", "/");
     }
+    
+    
 }

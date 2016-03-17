@@ -42,6 +42,7 @@ public class ClusterSession {
     
     public static final String DefaultInputParameterName = "input";
     public static final String DefaultSettingsFileName = SysOps.getTmpPath() + "settings.dat";
+    public static final String DefaultJsonSettingsFileName = SysOps.getTmpPath() + "settings.json";
     
     private int nImages;
     private final ClusterProfile cp;
@@ -230,11 +231,12 @@ public class ClusterSession {
               
            run("Squassh","config=/home/gonciarz/scratch//session1456411696096/settings.dat filepath=/home/gonciarz/scratch//session1456411696096/tmp_"+ job_id + ".tif min=456.0 max=2940.0  " );
          -------------------------------- */
+        File configFile = (new File(DefaultJsonSettingsFileName).exists()) ? new File(DefaultJsonSettingsFileName) : new File(DefaultSettingsFileName);
         final String macro = new String("job_id = getArgument();\n" + 
                                         "if (job_id == \"\" )\n" + 
                                         "   exit(\"No job id\");\n" + 
                                         "\n" + 
-                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + "settings.dat" + " " + iInputParameterName + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + configFile.getName() + " " + iInputParameterName + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 
@@ -257,7 +259,7 @@ public class ClusterSession {
 
                 final File fll[] = new File[3];
                 fll[0] = new File(tmp_dir + ss.getSession_id());
-                fll[1] = new File(DefaultSettingsFileName);
+                fll[1] = configFile;
                 fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
                 ss.upload(fll, null, null);
             }

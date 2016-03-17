@@ -28,13 +28,13 @@ import mosaic.core.utils.ShellCommand;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
-import mosaic.utils.io.serialize.SerializedDataFile;
+import mosaic.utils.io.serialize.JsonDataFile;
 
 public class BregmanGLM_Batch implements Segmentation {
     private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
     
     private static final String PluginName = "Squassh";
-    private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.dat";
+    private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.json";
     private static final String ConfigPrefix = "===> Conf: ";
     
     private enum DataSource {
@@ -355,7 +355,7 @@ public class BregmanGLM_Batch implements Segmentation {
      * Returns handler for (un)serializing Parameters objects.
      */
     private static DataFile<Parameters> getConfigHandler() {
-        return new SerializedDataFile<Parameters>();
+        return new JsonDataFile<Parameters>();
     }
 
     /**
