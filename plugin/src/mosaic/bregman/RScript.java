@@ -52,8 +52,6 @@ public class RScript {
             Script.println(") #group names (should have as many names as number of groups)");
             Script.println();
             
-            Script.flush();
-            
             InputStream in = null;
             try {
                 in = RScript.class.getResourceAsStream("Rscript.r");
@@ -70,7 +68,6 @@ public class RScript {
                 System.err.println("Error generating R Script " + e.getMessage());
             }
             finally {
-                Script.flush();
                 Script.close();
                 try {
                     if (in != null) in.close();
