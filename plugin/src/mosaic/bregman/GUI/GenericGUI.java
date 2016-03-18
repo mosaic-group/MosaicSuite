@@ -18,15 +18,14 @@ import java.io.File;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.Parameters;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.plugins.BregmanGLM_Batch.RunMode;
@@ -47,16 +46,10 @@ public class GenericGUI {
         iUseGui = aUseGui;
     }
 
-    private GenericDialog dialogFactory(String aTitle) {
-        // In GUI mode it is convinient to have non-blocking gui (for example to use nicely Help windows).
-        // in non-gui -> use regular GenericDialog since it is only version which has headless version.
-        return (iUseGui) ? new NonBlockingGenericDialog(aTitle) : new GenericDialog(aTitle);
-    }
-    
     public RunMode drawStandardWindow(String aImgPath, boolean aRunOnCluster) {
         iInputField = aImgPath;
 
-        final GenericDialog gd = dialogFactory("Squassh");
+        final GenericDialog gd = new GenericDialog("Squassh");
         gd.setInsets(-10, 0, 3);
         
         gd.addStringField("Input:", iInputField, 50);
@@ -231,7 +224,8 @@ public class GenericGUI {
             panel.setPreferredSize(new Dimension(575, 720));
             panel.add(pref);
             
-            JFrame frame = new JFrame();
+            JDialog frame = new JDialog();
+            frame.setModal(true);
             frame.setSize(555, 480);
             frame.setLocation(x + 500, y - 50);
             frame.add(panel);
