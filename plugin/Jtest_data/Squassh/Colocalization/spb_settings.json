@@ -31,17 +31,9 @@
   "ch1": "channel 1 name",
   "ch2": "channel 2 name",
   "nbimages": [
-    1,
-    1,
-    1,
-    1,
     1
   ],
   "groupnames": [
-    "Condition 1 name",
-    "Condition 2 name",
-    "Condition 3 name",
-    "Condition 4 name",
-    "Condition 5 name"
+    "Condition 1 name"
   ]
 }

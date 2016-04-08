@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -14,6 +15,7 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.process.ImageProcessor;
+import mosaic.bregman.ColocalizationAnalysis.ChannelPair;
 import mosaic.bregman.Files;
 import mosaic.bregman.Files.FileInfo;
 import mosaic.bregman.Files.FileType;
@@ -157,8 +159,10 @@ public class BregmanGLM_Batch implements Segmentation {
 
     private void runLocally(String aPathToFileOrDir, DataSource aSourceData, double aNormalizationMin, double aNormalizationMax) {
         String objectsDataFile = null;
+        String objectsColocFile = null;
         String imagesDataFile = null;
         String outputSaveDir = null;
+        List<ChannelPair> channelPairs = null;
         
         logger.info("Running locally with data source (" + aSourceData + ") and working dir [" + aPathToFileOrDir + "]");
         
@@ -167,14 +171,17 @@ public class BregmanGLM_Batch implements Segmentation {
             outputSaveDir = (imageDirectory != null) ? imageDirectory + File.separator : IJ.getDirectory("Select output directory");
             if (outputSaveDir == null) return;
             logger.info("Output save dir: [" + outputSaveDir + "]");
-            Set<FileInfo> savedFiles = new SquasshLauncher(iInputImage, iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles();
+            SquasshLauncher squasshLauncher = new SquasshLauncher(iInputImage, iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax, null);
+            Set<FileInfo> savedFiles = squasshLauncher.getSavedFiles();
+            channelPairs = squasshLauncher.getChannelPairs();
             if (savedFiles.size() == 0) return;
 
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
 
             String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
             objectsDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsDataNew, titleNoExt);
-            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImagesDataNew, titleNoExt);
+            objectsColocFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsColocNew, titleNoExt);
+            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImageColocNew, titleNoExt);
         }
         else {
             final File inputFile = new File(aPathToFileOrDir);
@@ -192,7 +199,13 @@ public class BregmanGLM_Batch implements Segmentation {
                     continue;
                 }
                 logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
-                allFiles.addAll(new SquasshLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax).getSavedFiles());
+                SquasshLauncher squasshLauncher = new SquasshLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax, null);
+                // TODO: Currently it is being overwrite for each processed file. It should be decided how to handle it.
+                //       1. All files should have same number of channels and processed pairs?
+                //       2. or do we allow to have different files.. but then probably Rscript should be run separately 
+                //          for each file
+                channelPairs = squasshLauncher.getChannelPairs();
+                allFiles.addAll(squasshLauncher.getSavedFiles());
             }
             if (allFiles.size() == 0) {
                 logger.debug("No files have been written. Exiting.");
@@ -214,10 +227,11 @@ public class BregmanGLM_Batch implements Segmentation {
             }
             
             objectsDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsDataNew, titlePrefix);
-            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImagesDataNew, titlePrefix);
+            objectsColocFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsColocNew, titlePrefix);
+            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImageColocNew, titlePrefix);
         }
 
-        runRscript(outputSaveDir, objectsDataFile, imagesDataFile);
+        runRscript(outputSaveDir, objectsDataFile, objectsColocFile, imagesDataFile, channelPairs);
     }
 
     private void runOnCluster(String aWorkDir, DataSource aSourceData) {
@@ -262,16 +276,16 @@ public class BregmanGLM_Batch implements Segmentation {
         MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Files.outSuffixesCluster, backgroundImageFile);
     }
 
-    private void runRscript(String outputSavePath, String objectsDataFile, String imagesDataFile) {
-        if (new File(objectsDataFile).exists() && new File(imagesDataFile).exists()) {
+    private void runRscript(String aOutputSavePath, String aObjectsDataFile, String aObjectsColocFile, String aImagesDataFile, List<ChannelPair> aChannelPairs) {
+        if (new File(aObjectsDataFile).exists() && new File(aImagesDataFile).exists()) {
             if (iParameters.save_images) {
                 // TODO: Now both channels are kept in one csv file so below stuff should be changed.
-                RScript.makeRScript(outputSavePath, objectsDataFile, objectsDataFile, imagesDataFile, iParameters.nbconditions, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
+                RScript.makeRScript(aOutputSavePath, aObjectsDataFile, aObjectsColocFile, aImagesDataFile, aChannelPairs, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
                 // TODO: Output seems to be completely wrong. Must be investigated.
                 try {
                     logger.debug("================ RSCRIPT BEGIN ====================");
-                    String command = "cd " + outputSavePath + "; Rscript " + outputSavePath + File.separator + RScript.ScriptName;
+                    String command = "cd " + aOutputSavePath + "; Rscript " + aOutputSavePath + File.separator + RScript.ScriptName;
                     logger.debug("Command: [" + command + "]");
                     ShellCommand.exeCmdString(command);
                     logger.debug("================ RSCRIPT END ====================");

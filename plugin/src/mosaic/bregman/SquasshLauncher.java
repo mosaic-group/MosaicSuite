@@ -84,16 +84,8 @@ public class SquasshLauncher {
     private ImagePlus[] iOutColoc;
     
     private List<ChannelPair> iAnalysisPairs;
-    
     private Set<FileInfo> iSavedFilesInfo = new LinkedHashSet<FileInfo>();
-    private void addSavedFile(FileType aFI, String aFileName) {
-        iSavedFilesInfo.add(new FileInfo(aFI, SysOps.removeRedundantSeparators(aFileName)));
-    } 
-    public Set<FileInfo> getSavedFiles() { return iSavedFilesInfo; }
     
-    public SquasshLauncher(ImagePlus aImage, Parameters aParameters, String aOutputDir, double aNormalizationMin, double aNormalizationMax) {
-        this(aImage, aParameters, aOutputDir, aNormalizationMin, aNormalizationMax, null);
-    }
     
     /**
      * Launch the Segmentation for provided image. Calculate colocalization, generate images and save all files according to settings provided in aParameters/aOutputDir.
@@ -126,7 +118,6 @@ public class SquasshLauncher {
         iNumOfChannels = numOfChannels;
         iInputImages = new ImagePlus[iNumOfChannels];
         iNormalizedImages = new double[iNumOfChannels][][][];
-//        iCellMasks = new boolean[iNumOfChannels][][][];
         iRegionsList = new ArrayList<List<Region>>(iNumOfChannels);
         for (int i = 0; i < iNumOfChannels; i++) iRegionsList.add(null);
         iLabeledRegions = new short[iNumOfChannels][][][];
@@ -180,6 +171,24 @@ public class SquasshLauncher {
             logger.info("            " + f);
         }
     }
+    
+    /**
+     * @return list of files that were created and saved by SquashLauncher
+     */
+    public Set<FileInfo> getSavedFiles() { 
+        return iSavedFilesInfo; 
+    }
+    
+    /**
+     * @return list of channel pairs that were actually processed.
+     */
+    public List<ChannelPair> getChannelPairs() { 
+        return iAnalysisPairs; 
+    }
+
+    private void addSavedFile(FileType aFI, String aFileName) {
+        iSavedFilesInfo.add(new FileInfo(aFI, SysOps.removeRedundantSeparators(aFileName)));
+    } 
     
     private List<ChannelPair> computeValidChannelsPairsForImage(List<ChannelPair> aAnalysisPairs, int aNumOfChannels) {
         // Always crate new container since later some of its elements are removed

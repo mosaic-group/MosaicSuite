@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 
-class ColocalizationAnalysis {
+public class ColocalizationAnalysis {
     private int iScaleX, iScaleY, iScaleZ;
     
     ColocalizationAnalysis(int aScaleZ, int aScaleX, int aScaleY) {

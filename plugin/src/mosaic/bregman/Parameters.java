@@ -48,7 +48,7 @@ public class Parameters implements Serializable {
     // Set condition names... RScriptWindow
     public String ch1 = "channel 1 name";
     public String ch2 = "channel 2 name";
-    public int[] nbimages = { 1 }; // init with size 1, extended if needed in Rscriptlistener
+    public int[] nbimages = { 1 }; // number images per group, extended if needed in Rscriptlistener
     public String[] groupnames = { "Condition 1 name" };
     
     
