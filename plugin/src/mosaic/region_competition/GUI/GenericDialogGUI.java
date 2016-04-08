@@ -160,6 +160,7 @@ public class GenericDialogGUI  {
         if (IJ.isMacro() == true) {
             // Must be 'false' since headless mode of Fiji cannot handle this window.
             keepAllFrames = false;
+            System.out.println("MACRO MODE");
             gd = new GenericDialog("MACRO MODE");
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
@@ -167,7 +168,7 @@ public class GenericDialogGUI  {
             gd.addCheckbox("Show_and_save_Statistics", true);
             return;
         }
-        
+        System.out.println("Regular GUI");
         gd = new CustomDialog("Region Competition");
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);

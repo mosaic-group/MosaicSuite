@@ -16,8 +16,8 @@ import java.util.Vector;
 import ij.IJ;
 import ij.ImageStack;
 import ij.measure.Calibration;
-import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -472,7 +472,7 @@ public class MyFrame {
 
     static private float[] getScaling(int dim, Calibration cal) {
         final float scaling[] = new float[dim];
-        final float scaling_[] = new float[3];
+        final float scaling_[] = new float[dim];
 
         if (cal != null) {
             scaling[0] = (float) (cal.pixelWidth);
@@ -638,7 +638,6 @@ public class MyFrame {
                     else {
                         p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]), (int) (ptt.iZ / scaling_[2]));
                     }
-
                     rg_m.setMiddlePoint(p_c);
 
                     while (rg_m.hasNext()) {
@@ -836,11 +835,11 @@ public class MyFrame {
 
             p_ini.iX /= scaling_[0];
             p_ini.iY /= scaling_[1];
-            p_ini.iZ /= scaling_[2];
+            if (out_a.numDimensions() > 2) p_ini.iZ /= scaling_[2];
 
             p_end.iX /= scaling_[0];
             p_end.iY /= scaling_[1];
-            p_end.iZ /= scaling_[2];
+            if (out_a.numDimensions() > 2) p_end.iZ /= scaling_[2];
 
 
             drawLine(out, p_ini, p_end, col);

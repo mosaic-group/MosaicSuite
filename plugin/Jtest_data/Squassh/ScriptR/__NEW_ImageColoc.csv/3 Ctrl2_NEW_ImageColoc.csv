@@ -1,0 +1,4 @@
+FileName;Frame;Channel;ChannelColoc;ColocSignalBased;ColocSizeBased;ColocObjectsNumber;MeanIntensity;PearsonCorr;PearsonCorrMasked
+%background:/tmp/test/3 Ctrl2.tif
+3 Ctrl2.tif;0;0;1;0.0;0.0;0.0;0.0216;-0.048;-0.048
+3 Ctrl2.tif;0;1;0;0.0;0.0;0.0;0.0033;-0.048;-0.048

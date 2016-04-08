@@ -13,19 +13,23 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseInt;
+import org.supercsv.cellprocessor.ift.CellProcessor;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.Region3DTrack;
+import mosaic.bregman.segmentation.Region;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
+import mosaic.utils.Debug;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.Cursor;
@@ -177,7 +181,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     private int[] calculateGridPoint(int spacing) {
         // Calculate the grid size
         int szi = 0;
-
+        System.out.println("Max object size: " + spacing);
+        System.out.println("Spacing: " + Debug.getArrayDims(Spacing) + " " + Arrays.toString(Spacing));
+        System.out.println("Image_sz: " + Debug.getArrayDims(Image_sz) + " " + Arrays.toString(Image_sz));
         for (int i = 0; i < Image_sz.length - 1; i++) {
             if (Image_sz[i] != 1) {
                 szi++;
@@ -191,9 +197,12 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Calculate the number of grid point
         for (int i = 0; i < szi; i++) {
-            gs[i] = (int) ((Image_sz[i] - spacing / Spacing[i]) / (spacing / Spacing[i]));
+            int numOfObjects = (int) (Image_sz[i]/(spacing + Spacing[i]));
+            if (Image_sz[i] - (long) (numOfObjects * (spacing + Spacing[i])) < Spacing[i]) numOfObjects--;
+            if (numOfObjects < 0) numOfObjects = 0;
+            gs[i] = numOfObjects; //(int) ((Image_sz[i] - spacing / Spacing[i]) / (spacing / Spacing[i]));
         }
-
+        System.out.println("gs: " + Debug.getArrayDims(gs) + " " + Arrays.toString(gs));
         return gs;
     }
 
@@ -237,7 +246,193 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             cnt++;
         }
     }
+    
+    public static final String[] Region3DTrack_map         = new String[] { "Frame", "x", "y", "z", "Size", "Intensity", "Surface" };
+    /**
+     * Get CellProcessor for Region3DTrack objects
+     */
+    public static CellProcessor[] getRegion3DTrackCellProcessor() {
+        return new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), };
+    }
+    
+    public class Region3DTrack {
 
+        private int Frame;
+        private double x;
+        private double y;
+        private double z;
+        private double Size;
+        private double Intensity;
+        private double Surface;
+
+        public void setFrame(int fr) {
+            Frame = fr;
+        }
+
+        public void setx(double x_) { // NO_UCD (unused code)
+            x = x_;
+        } // NO_UCD (unused code)
+
+        public void sety(double y_) { // NO_UCD (unused code)
+            y = y_;
+        } // NO_UCD (unused code)
+
+        public void setz(double z_) { // NO_UCD (unused code)
+            z = z_;
+        } // NO_UCD (unused code)
+
+        public void setIntensity(double Intensity_) {
+            Intensity = Intensity_;
+        }
+
+        public void setSize(double Size_) {
+            Size = Size_;
+        }
+
+        public void setSurface(double Surface_) {
+            Surface = Surface_;
+        }
+
+        public int getFrame() {
+            return Frame;
+        }
+
+        public double getx() { // NO_UCD (unused code)
+            return x;
+        } // NO_UCD (unused code)
+
+        public double gety() { // NO_UCD (unused code)
+            return y;
+        } // NO_UCD (unused code)
+
+        public double getz() { // NO_UCD (unused code)
+            return z;
+        } // NO_UCD (unused code)
+
+        public double getIntensity() {
+            return Intensity;
+        }
+
+        public double getSize() {
+            return Size;
+        }
+
+        public double getSurface() {
+            return Surface;
+        }
+
+        public Region3DTrack() {
+        }
+
+        public void setData(Region r) {
+            Frame = 0;
+            x = r.getcx();
+            y = r.getcy();
+            z = r.getcz();
+            Size = r.getrsize();
+            Intensity = r.getintensity();
+            Surface = r.getperimeter();
+        }
+
+        public void setData(Region3DTrack r) {
+            Frame = r.Frame;
+            x = r.x;
+            y = r.y;
+            z = r.z;
+            Size = r.Size;
+            Intensity = r.Intensity;
+            Surface = r.Surface;
+        }
+
+        public void setObject_ID(@SuppressWarnings("unused") int Object_ID_) {
+
+        }
+
+        public void setPerimeter(double Perimeter_) {
+            Surface = Perimeter_;
+        }
+
+        public void setLength(@SuppressWarnings("unused") double Length_) {
+
+        }
+
+        public void setImage_ID(int Image_ID_) {
+            Frame = Image_ID_;
+        }
+
+        public void Coord_X(double Coord_X_) { // NO_UCD (unused code)
+            x = Coord_X_;
+        }
+        
+        public void Coord_Y(double Coord_Y_) { // NO_UCD (unused code)
+            y = Coord_Y_;
+        }
+        
+        public void Coord_Z(double Coord_Z_) { // NO_UCD (unused code)
+            z = Coord_Z_;
+        } 
+        
+        public void setCoord_X(double Coord_X_) {
+            x = Coord_X_;
+        }
+
+        public void setCoord_Y(double Coord_Y_) {
+            y = Coord_Y_;
+        }
+
+        public void setCoord_Z(double Coord_Z_) {
+            z = Coord_Z_;
+        }
+
+        public int getImage_ID() {
+            return Frame;
+        }
+
+        public int getObject_ID() {
+            return 0;
+        }
+
+        public double getPerimeter() {
+            return 0;
+        }
+
+        public double getLength() {
+            return 0;
+        }
+
+        public double getCoord_X() {
+            return x;
+        }
+
+        public double getCoord_Y() {
+            return y;
+        }
+
+        public double getCoord_Z() {
+            return z;
+        }
+
+        public void setData(Point point) {
+            if (point.iCoords.length >= 3) {
+                x = point.iCoords[0];
+                y = point.iCoords[1];
+                z = point.iCoords[2];
+            }
+            else {
+                x = point.iCoords[0];
+                y = point.iCoords[1];
+            }
+        }
+
+        public void setFile(@SuppressWarnings("unused") String dummy) {
+        }
+
+        public String getFile() {
+            return null;
+        }
+    }
+
+    
     /**
      * Process the frames
      *
@@ -252,7 +447,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Grid of possible region
         final Img<T> out = createImage(cls);
-
+        
         final Cursor<T> c = out.cursor();
         while (c.hasNext()) {
             c.next();
@@ -265,6 +460,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
             // set intensity
             int gs[] = null;
+            System.out.println("MAX: max_radius: " + max_radius);
             gs = calculateGridPoint(2 * max_radius + 1);
             final long np = totalGridPoint(gs);
             if (np == 0) {
@@ -345,7 +541,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         String ImgTitle = new String();
         ImgTitle += "Regions_size_" + max_radius + "_" + min_radius + "_" + max_int + "_" + min_int;
 
-        ImageJFunctions.show(out, ImgTitle);
+        ImageJFunctions.show(out, ImgTitle).setDimensions(1, (int)Image_sz[2], (int)Image_sz[3]);
 
         // Output ground truth
         final CSV<Region3DTrack> P_csv = new CSV<Region3DTrack>(Region3DTrack.class);
@@ -354,7 +550,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         String output = IJ.getDirectory("Choose output directory");
         if (output != null) {
             output += ImgTitle + ".csv";
-            final CsvColumnConfig oc = new CsvColumnConfig(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
+            final CsvColumnConfig oc = new CsvColumnConfig(Region3DTrack_map, getRegion3DTrackCellProcessor());
             P_csv.Write(output, pt_r, oc, false);
         }
     }

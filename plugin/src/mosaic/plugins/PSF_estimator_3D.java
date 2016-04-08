@@ -19,7 +19,6 @@ import ij.process.Blitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
-import mosaic.interpolators.BilinearInterpolator;
 
 //TODO: GUI,
 //TODO: print number of points considered.
@@ -711,9 +710,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
                 if (vZ < 1 || vZStart < 0 || vZEnd > mNSlices) {
                     continue;
                 }
-                //				BicubicInterpolator vBI = new BicubicInterpolator();
-                final BilinearInterpolator vBI = new BilinearInterpolator();
-                vBI.setImageProcessor(aIS.getProcessor(vZ));
 
                 for (double vR = 0f; vR <= vMaxRInPx; vR = vR + mRInc) {
                     for (double vPhi = 0; vPhi < Math.PI*2; vPhi = vPhi + mPhiInc) {

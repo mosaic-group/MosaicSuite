@@ -7,6 +7,7 @@ import java.util.HashSet;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import ij.macro.Interpreter;
 import mosaic.core.utils.ShellCommand;
 import mosaic.test.framework.CommonBase;
 
@@ -19,6 +20,9 @@ public class MergeJobsTest extends CommonBase {
         /**
          * TODO: This test must be rewritten. It is just moved here from "old test system". It does not do what it is intend.
          */
+        
+        Interpreter.batchMode = true;
+        
         final MergeJobs mj = new MergeJobs();
 
         final String dir = getTestDataPath();
@@ -42,8 +46,8 @@ public class MergeJobsTest extends CommonBase {
             e.printStackTrace();
         }
 
-        mj.setDir(dir_test);
-        mj.setup("", null);
+        mj.setJobsDir(dir_test);
+        mj.run(null);
 
         // Check the result
         final String dir_result = dir + File.separator + "merge_jobs" + File.separator + "Result";

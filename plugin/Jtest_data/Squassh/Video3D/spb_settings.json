@@ -1,0 +1,47 @@
+{
+  "wd": "/tmp/test/dropletVideoSmall.tif",
+  "nthreads": 8,
+  "lreg_": [
+    0.1,
+    0.1
+  ],
+  "min_intensity": 0.05,
+  "min_intensityY": 0.05,
+  "subpixel": false,
+  "exclude_z_edges": true,
+  "mode_intensity": 0,
+  "noise_model": 0,
+  "sigma_gaussian": 1.5,
+  "zcorrec": 0.436046511627907,
+  "min_region_filter_intensities": 0.0,
+  "removebackground": true,
+  "size_rollingball": 50,
+  "usecellmaskX": false,
+  "usecellmaskY": false,
+  "thresholdcellmask": 0.0015,
+  "thresholdcellmasky": 0.0015,
+  "livedisplay": false,
+  "dispcolors": false,
+  "dispint": false,
+  "displabels": false,
+  "dispoutline": true,
+  "dispSoftMask": false,
+  "save_images": true,
+  "nbconditions": 1,
+  "ch1": "channel 1 name",
+  "ch2": "channel 2 name",
+  "nbimages": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "groupnames": [
+    "Condition 1 name",
+    "Condition 2 name",
+    "Condition 3 name",
+    "Condition 4 name",
+    "Condition 5 name"
+  ]
+}

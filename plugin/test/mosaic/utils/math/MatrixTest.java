@@ -178,6 +178,18 @@ public class MatrixTest extends CommonBase {
 
             assertEquals(expected, test);
         }
+        {
+            final Matrix expected = Matrix.mkRowVector(new double[] {1, 2, 3, 4, 5, 6});
+            final Matrix test = Matrix.mkRowVector(new double[][]{{1, 2}, {3, 4}, {5, 6}});
+
+            assertEquals(expected, test);
+        }
+        {
+            final Matrix expected = Matrix.mkRowVector(new double[] {1, 2, 3, 4, 5, 6});
+            final Matrix test = Matrix.mkRowVector(new double[][][]{{{1, 2, 3}, { 4, 5, 6}}});
+
+            assertEquals(expected, test);
+        }
     }
 
     @Test

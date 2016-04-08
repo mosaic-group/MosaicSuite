@@ -20,20 +20,16 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import ij.gui.GenericDialog;
-import mosaic.bregman.GaussianPSFModel;
 
 
 class PSFWindow implements ActionListener, PropertyChangeListener {
 
     private double lem, lex, NA, n, pinhole, pix_xy, pix_z;
     private final JDialog frame;
-    // Initialize Buttons
     private final JPanel panel;
     private boolean confocal = true;
 
     private final String[] items = { "Confocal Microscope", "Wide Field Fluorescence Microscope" };
-
-    // jcb.setModel(new DefaultComboBoxModel(potentialOptions));
 
     private final NumberFormat nf = NumberFormat.getInstance(Locale.US);
 
@@ -103,9 +99,6 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
         pres.setPreferredSize(new Dimension(280, 80));
         pres.setSize(pres.getPreferredSize());
         pres.add(result);
-
-        // JLabel label = new JLabel();
-        // panel.add(label, BorderLayout.NORTH);
         Vlem.setColumns(4);
         Vlex.setColumns(4);
         VNA.setColumns(4);
@@ -148,12 +141,6 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
         Vpix_z.setSize(Vpix_z.getPreferredSize());
         estimate.setSize(estimate.getPreferredSize());
 
-        //
-        //
-        // micr.setLocation(145,120);
-
-        // rlevel.setLocation(145,120);
-        // rlevell.setLocation(20,125);
         pref.setLocation(10, 0);
         panel.add(pref);
 
@@ -209,17 +196,8 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
         Vpix_z.addPropertyChangeListener(this);
 
         micr.addActionListener(this);
-        //
 
         frame.setVisible(true);
-        // frame.requestFocus();
-        // frame.setAlwaysOnTop(true);
-
-        // JOptionPane.showMessageDialog(frame,
-        // "Eggs are not supposed to be green.\n dsfdsfsd",
-        // "A plain message",
-        // JOptionPane.PLAIN_MESSAGE);
-
     }
 
     @Override

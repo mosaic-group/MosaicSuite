@@ -14,8 +14,8 @@ import mosaic.filamentSegmentation.GUI.ConfigDialog;
 import mosaic.filamentSegmentation.GUI.FilamentResultsTable;
 import mosaic.filamentSegmentation.GUI.OutputImageWindow;
 import mosaic.filamentSegmentation.GUI.PlotDialog;
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
 
 /**

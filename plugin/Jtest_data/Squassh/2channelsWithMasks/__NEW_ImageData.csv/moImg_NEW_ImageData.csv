@@ -1,0 +1,4 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test//moImg.tif
+moImg.tif;0;0;2;185.75;122.25;51.1875
+moImg.tif;0;1;2;190.4609;121.25;49.25

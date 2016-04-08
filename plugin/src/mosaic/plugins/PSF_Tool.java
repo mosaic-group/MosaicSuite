@@ -1,5 +1,24 @@
 package mosaic.plugins;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -11,34 +30,12 @@ import ij.io.SaveDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Vector;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
-import mosaic.psf2d.PsfBessel;
-import mosaic.psf2d.PsfPointSpreadFunction;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.psf2d.PsfRefinement;
+import mosaic.psf2d.PsfSampler;
 import mosaic.psf2d.PsfSourcePosition;
+import mosaic.utils.ArrayOps;
+import mosaic.utils.math.MathOps;
 
 /**
  * <h2>PSF_Tool</h2>
@@ -87,7 +84,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 
     private boolean select_start = false;		// Flag to test if in selection-mode or not
     private PsfRefinement Refine;					// Used to refine positions based on centroid calculation
-    private PsfPointSpreadFunction EstimatePSF[];	// Instance of class PointSpreadFunction that does the actual work
+    private PsfSampler EstimatePSF[];	// Instance of class PointSpreadFunction that does the actual work
     private float[] PSF;						// Float Array containing PSF-values
     private float rad[];						// Float Array containing PSF-radius to plot the function
     private Vector<PsfSourcePosition> Positions;					// Vector to hold user selected coordinates
@@ -218,20 +215,20 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             singlePSF(selected);//TODO
             selections.setLength(0);
             selections.append(centroid);
-            selections.append("\n%\t" + selected.x + "\t" + selected.y);
+            selections.append("\n%\t" + selected.iX + "\t" + selected.iY);
 
             Positions.addElement(selected);			// Add point source to vector containing user-selections
             num_of_particles = Positions.size();	// Update number of sources
 
             // Add Checkbox to GUI
-            final JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.x + ", " + selected.y + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
+            final JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.iX + ", " + selected.iY + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
             chb.setSelected(true);
             checkbox_panel.setLayout(new GridLayout(num_of_particles,1));
             checkbox_panel.add(chb);
             checkbox_panel.updateUI();
             // Make selection visible in a nice color
             color.setColor(Color.RED);
-            color.drawPixel(Math.round(selected.x), Math.round(selected.y));
+            color.drawPixel(Math.round(selected.iX), Math.round(selected.iY));
             imp.updateAndDraw();
         }
     }
@@ -315,15 +312,14 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 selections.append(centroid);
                 // Start the calculations
                 final PsfSourcePosition[] particles = new PsfSourcePosition[num_of_particles];
-                EstimatePSF = new PsfPointSpreadFunction[num_of_particles];
+                EstimatePSF = new PsfSampler[num_of_particles];
                 // Loop over Point Sources
                 for (int i=0; i<num_of_particles; i++){
                     float[] PSFtmp;
                     particles[i] = Positions.elementAt(i);
-                    selections.append("\n%" + (i+1) + ":\t" + particles[i].x + "\t" + particles[i].y);	// update report file
-                    EstimatePSF[i] = new PsfPointSpreadFunction(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
-                    EstimatePSF[i].calculatePSF();
-                    PSFtmp = EstimatePSF[i].getPSF();
+                    selections.append("\n%" + (i+1) + ":\t" + particles[i].iX + "\t" + particles[i].iY);	// update report file
+                    EstimatePSF[i] = new PsfSampler(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
+                    PSFtmp = EstimatePSF[i].getPsf();
                     for (int j=0; j<PSFtmp.length; j++) {
                         PSF[j] = PSF[j] + PSFtmp[j];
                     }
@@ -332,8 +328,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 for (int i=0; i<PSF.length;i++) {
                     PSF[i] = PSF[i]/num_of_particles;
                 }
-                // Normalize values to [0,1] TODO
-                EstimatePSF[0].normalizePSF(PSF);
+                ArrayOps.normalize(PSF);
 
                 rad = EstimatePSF[0].getRadius();
                 whm = widthAtHalfMaximum();
@@ -348,7 +343,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             if (sd.getDirectory() == null || sd.getFileName() == null) {
                 return;
             }
-            write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
+            MosaicUtils.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
             return;
         }
     }
@@ -366,8 +361,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 final PsfSourcePosition last = Positions.elementAt(i);
                 Positions.removeElementAt(i);
                 // Get original RGB-value and re-draw
-                iArray  = lastcolor.getPixel(Math.round(last.x), Math.round(last.y), iArray);
-                color.putPixel(Math.round(last.x), Math.round(last.y), iArray);
+                iArray  = lastcolor.getPixel(Math.round(last.iX), Math.round(last.iY), iArray);
+                color.putPixel(Math.round(last.iX), Math.round(last.iY), iArray);
                 imp.updateAndDraw();
                 checkbox_panel.remove(cb);
             }
@@ -417,9 +412,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     //	TODO think about better ways to handle single/multiple selections
     private void singlePSF(PsfSourcePosition single_part){
-        final PsfPointSpreadFunction single_estimate = new PsfPointSpreadFunction(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
-        single_estimate.calculatePSF();
-        PSF = single_estimate.getPSF();
+        final PsfSampler single_estimate = new PsfSampler(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
+        PSF = single_estimate.getPsf();
         rad = single_estimate.getRadius();
         whm = widthAtHalfMaximum();
         drawPSF("PSF of Last Selection");
@@ -491,7 +485,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         double barg;
         for (int i=0;i<rad.length;i++){
             barg = arg*rad[i];
-            b[i] = (2*PsfBessel.j1(barg)/barg)*(2*PsfBessel.j1(barg)/barg);
+            b[i] = (2*MathOps.bessel1(barg)/barg)*(2*MathOps.bessel1(barg)/barg);
         }
         b[0] = 1;
         return b;
@@ -529,29 +523,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             }
         }
         return eq;
-    }
-
-    /**
-     * Creates a Textfile containing all relevant configurations and results
-     * @param directory Directory of file
-     * @param file_name File name
-     * @param info String holding the text that should be written to the file
-     * @return boolean (writing to file successful or error message)
-     */
-    private boolean write2File(String directory, String file_name, String info) {
-        PrintWriter print_writer = null;
-        try {
-            final FileOutputStream fos = new FileOutputStream(directory + file_name);
-            final BufferedOutputStream bos = new BufferedOutputStream(fos);
-            print_writer = new PrintWriter(bos);
-            print_writer.print(info);
-            print_writer.close();
-            return true;
-        }
-        catch (final IOException e) {
-            IJ.error("" + e);
-            return false;
-        }
     }
 
     /**
@@ -614,7 +585,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         if (EstimatePSF != null){
             for (int i=0; i<EstimatePSF.length; i++){
                 report.append("\n\n%Point Source " + (i+1) + ":");
-                report.append(EstimatePSF[i].getPSFreport());
+                report.append(EstimatePSF[i].getPsfReport());
             }
         }
         else {

@@ -31,8 +31,6 @@ import net.imglib2.view.Views;
 class GaussPSFSettings implements Serializable {
 
     private static final long serialVersionUID = 1777976543628904166L;
-
-    //float var[] = new float[16];
 }
 
 public class GaussPSF<T extends RealType<T>> implements psf<T> {
@@ -40,7 +38,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     private GaussPSFSettings settings = new GaussPSFSettings();
 
     private final RealType<T> pos[];
-    private RealType<T> var[];
+    private RealType<T> stdDev[];
     private final RealType<T> offset[];
     private final Class<T> clCreator;
     private final double[][] sepDimD;
@@ -62,12 +60,11 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
      * @param dim dimension
      * @param cl give the class of the parameter T
      */
-
     @SuppressWarnings("unchecked")
     public GaussPSF(int dim, Class<T> cl) {
         clCreator = cl;
         pos = (RealType<T>[]) Array.newInstance(cl, dim);
-        var = (RealType<T>[]) Array.newInstance(cl, dim);
+        stdDev = (RealType<T>[]) Array.newInstance(cl, dim);
         offset = (RealType<T>[]) Array.newInstance(cl, dim);
         sepDimD = new double[dim][];
 
@@ -75,7 +72,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
             for (int i = 0; i < dim; i++) {
                 pos[i] = cl.newInstance();
-                var[i] = cl.newInstance();
+                stdDev[i] = cl.newInstance();
                 offset[i] = cl.newInstance();
             }
         }
@@ -88,13 +85,11 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     }
 
     /**
-     * Set variance of the Gaussian
-     *
+     * Set std. deviation of the Gaussian
      * @param var_
      */
-
-    public void setVar(RealType<T> var_[]) {
-        var = var_;
+    public void setStdDeviation(RealType<T> var_[]) {
+        stdDev = var_;
     }
 
     @Override
@@ -232,8 +227,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
         double res = 1.0;
 
         for (int i = 0; i < pos.length; i++) {
-            res *= 1.0 / Math.sqrt(2.0 * Math.PI) / var[i].getRealDouble()
-                    * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble()) * (pos[i].getRealDouble() - offset[i].getRealDouble()) / (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
+            res *= 1.0 / Math.sqrt(2.0 * Math.PI) / stdDev[i].getRealDouble()
+                    * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble()) * (pos[i].getRealDouble() - offset[i].getRealDouble()) / (2.0 * stdDev[i].getRealDouble() * stdDev[i].getRealDouble()));
         }
         final RealType<T> rc = pos[0].createVariable();
         rc.setReal(res);
@@ -288,8 +283,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
             return;
         }
 
-        for (int i = 0; i < var.length; i++) {
-            var[i].setReal(gd.getNextNumber());
+        for (int i = 0; i < stdDev.length; i++) {
+            stdDev[i].setReal(gd.getNextNumber());
         }
 
         getConfigHandler().SaveToFile(IJ.getDirectory("temp") + File.separator + "psf_gauss_settings.dat", settings);
@@ -299,14 +294,14 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     public <S extends RealType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) {
         final double[] sigma = new double[img.numDimensions()];
 
-        if (var == null) {
+        if (stdDev == null) {
             for (int d = 0; d < sigma.length; ++d) {
                 sigma[d] = 1.0;
             }
         }
         else {
             for (int d = 0; d < sigma.length; ++d) {
-                sigma[d] = var[d].getRealDouble();
+                sigma[d] = stdDev[d].getRealDouble();
             }
         }
 
@@ -333,15 +328,15 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     public String getStringParameters() {
         String opt = new String();
 
-        if (var.length == 2) {
-            opt += "sigma_x=" + var[0] + " sigma_y=" + var[1] + " Dimensions=" + var.length;
+        if (stdDev.length == 2) {
+            opt += "sigma_x=" + stdDev[0] + " sigma_y=" + stdDev[1] + " Dimensions=" + stdDev.length;
         }
         else {
-            opt += "sigma_x=" + var[0] + " sigma_y=" + var[1] + " sigma_z=" + var[2] + " Dimensions=" + var.length;
+            opt += "sigma_x=" + stdDev[0] + " sigma_y=" + stdDev[1] + " sigma_z=" + stdDev[2] + " Dimensions=" + stdDev.length;
         }
 
-        for (int i = 0; i < var.length - 3; i++) {
-            opt += "sigma_" + i + "=" + var[i + 3];
+        for (int i = 0; i < stdDev.length - 3; i++) {
+            opt += "sigma_" + i + "=" + stdDev[i + 3];
         }
 
         return opt;
@@ -364,7 +359,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
         final int sz[] = new int[pos.length];
 
         for (int i = 0; i < pos.length; i++) {
-            final int szo = (int) (var[i].getRealDouble() * 8.0) + 1;
+            // Width of 4 * stdDev on both sides of a mean (covers 99.994% of distr) + 1 for being sure that at least one pixel
+            final int szo = (int) (stdDev[i].getRealDouble() * 8.0) + 1;
             if (szo % 2 == 0) {
                 sz[i] = szo + 1;
             }
@@ -387,30 +383,29 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     }
 
     @Override
-    public double[] getSeparableImageAsDoubleArray(int dim) {
-        if (sepDimD[dim] == null) {
+    public double[] getSeparableImageAsDoubleArray(int aDim) {
+        if (sepDimD[aDim] == null) {
             final int sz[] = getSuggestedImageSize();
             final int mid[] = new int[sz.length];
-            int[] old_mid = new int[sz.length];
-
             for (int i = 0; i < sz.length; i++) {
                 mid[i] = sz[i] / 2;
             }
-            old_mid = getCenter();
+            
+            int[] old_mid = getCenter();
             setCenter(mid);
 
-            sepDimD[dim] = new double[sz[dim]];
+            for (int dim = 0; dim < sepDimD.length; dim++) {
+                sepDimD[dim] = new double[sz[dim]];
+                for (int i = 0; i < sz[dim]; i++) {
+                    final double res = 1.0 / Math.sqrt(2.0 * Math.PI) / stdDev[dim].getRealDouble()
+                            * Math.exp(-(i - offset[dim].getRealDouble()) * (i - offset[dim].getRealDouble()) / (2.0 * stdDev[dim].getRealDouble() * stdDev[dim].getRealDouble()));
 
-            for (int i = 0; i < sepDimD[dim].length; i++) {
-                final double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble()
-                        * Math.exp(-(i - offset[dim].getRealDouble()) * (i - offset[dim].getRealDouble()) / (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble()));
-
-                sepDimD[dim][i] = res;
+                    sepDimD[dim][i] = res;
+                }
             }
-
             setCenter(old_mid);
         }
-        return sepDimD[dim];
+        return sepDimD[aDim];
     }
 
     @Override

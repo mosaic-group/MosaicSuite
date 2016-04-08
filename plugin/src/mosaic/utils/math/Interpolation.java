@@ -175,7 +175,7 @@ public class Interpolation {
      * @param aSrc - source data
      * @return
      */
-    static private double bicubicInterpolation(double aX, double aY, double[][] aSrc, InterpolationMode aMode) {
+    static public double bicubicInterpolation(double aX, double aY, double[][] aSrc, InterpolationMode aMode) {
         final int srcWidth = aSrc.length;
         final int srcHeight = aSrc[0].length;
 

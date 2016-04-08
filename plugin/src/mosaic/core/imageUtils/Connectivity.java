@@ -126,7 +126,7 @@ public class Connectivity {
     /**
      * Converts an a Point offset to an index in unit cube
      * 
-     * @param p Point offset
+     * @param iParams Point offset
      * @return Integer offset
      */
     public int toIndex(Point aOffset) {

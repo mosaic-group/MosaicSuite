@@ -7,9 +7,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import mosaic.test.framework.CommonBase;
-
 import org.junit.Test;
+
+import mosaic.test.framework.CommonBase;
 
 public class MatlabTest extends CommonBase {
 
@@ -133,11 +133,11 @@ public class MatlabTest extends CommonBase {
     @Test
     public void testImfiltersymmetricVectorFilter() {
         final Matrix expected = new Matrix(new double [][] {{-1, 2, -1},
-                {-1, 2, -1}});
+                                                            {-1, 2, -1}});
 
         // Input values
         final Matrix img = new Matrix(new double[][] {{ 1, 2, 1},
-                { 2, 3, 2}});
+                                                      { 2, 3, 2}});
 
         final Matrix filter = Matrix.mkRowVector(new double[] {-1, 2, -1});
 
@@ -150,15 +150,15 @@ public class MatlabTest extends CommonBase {
     @Test
     public void testImfiltersymmetricMatrixFilter() {
         final Matrix expected = new Matrix(new double [][] {{2, -1, 2},
-                {0, -3, 0}});
+                                                            {0, -3, 0}});
 
         // Input values
         final Matrix img = new Matrix(new double[][] {{ 1, 2, 1},
-                { 2, 3, 2}});
+                                                      { 2, 3, 2}});
 
         final Matrix filter = new Matrix(new double[][] {{0,  1,  0},
-                {1, -4,  1},
-                {0,  1,  0}});
+                                                         {1, -4,  1},
+                                                         {0,  1,  0}});
 
         // Tested function
         final Matrix result = Matlab.imfilterSymmetric(img, filter);

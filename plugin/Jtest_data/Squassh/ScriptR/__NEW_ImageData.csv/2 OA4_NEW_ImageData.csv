@@ -1,0 +1,4 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test/2 OA4.tif
+2 OA4.tif;0;0;12;281.5;69.1666;6.8333
+2 OA4.tif;0;1;8;15.875;17.25;1.75

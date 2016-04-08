@@ -144,7 +144,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/labelImgFromFile/";
         final String setupString         = "run";
-        final String macroOptions        = "inputimage=object.tif labelimage=label.tif show_and_save_statistics";
+        final String macroOptions        = "labelimage=label.tif show_and_save_statistics";
         final String inputFile           = "object.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/object_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/object_seg_c1.tif"};

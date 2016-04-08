@@ -131,5 +131,14 @@ public class StatisticsUtilsTest {
             }
         }
     }
-
+    
+    @Test
+    public void testSamplePearsonCorrelationCoefficient() {
+        double[] a = new double[] { 1, 2 ,3 ,4, 5};
+        double[] b = new double[] { 1, 2, 3, 4, 5};
+        double[] c = new double[] { 5, 4, 3, 2, 1};
+        
+        assertEquals(1, StatisticsUtils.samplePearsonCorrelationCoefficient(a, b), 1e-9);
+        assertEquals(-1, StatisticsUtils.samplePearsonCorrelationCoefficient(a, c), 1e-9);
+    }
 }

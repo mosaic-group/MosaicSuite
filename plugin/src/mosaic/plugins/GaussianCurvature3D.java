@@ -10,8 +10,8 @@ import java.awt.Panel;
 import java.awt.SystemColor;
 import java.awt.TextArea;
 
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloat3DBase;
+import mosaic.utils.ImgUtils;
 import mosaic.variationalCurvatureFilters.CurvatureFilter3D;
 import mosaic.variationalCurvatureFilters.FilterKernelGc3D;
 import mosaic.variationalCurvatureFilters.NoSplitFilter3D;

@@ -14,7 +14,7 @@ import ij.process.ImageProcessor;
 import mosaic.filamentSegmentation.SegmentationFunctions;
 import mosaic.filamentSegmentation.SegmentationFunctions.FilamentXyCoordinates;
 import mosaic.plugins.FilamentSegmentation.VisualizationLayer;
-import mosaic.plugins.utils.ImgUtils;
+import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
 
 

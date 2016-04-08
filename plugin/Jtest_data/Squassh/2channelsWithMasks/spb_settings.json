@@ -1,0 +1,39 @@
+{
+  "wd": "/tmp/test/moImg.tif",
+  "nthreads": 8,
+  "lreg_": [
+    0.05,
+    0.05
+  ],
+  "min_intensity": 0.15,
+  "min_intensityY": 0.15,
+  "subpixel": true,
+  "exclude_z_edges": true,
+  "mode_intensity": 3,
+  "noise_model": 1,
+  "sigma_gaussian": 0.8,
+  "zcorrec": 1.0,
+  "min_region_filter_intensities": 2.0,
+  "removebackground": true,
+  "size_rollingball": 10,
+  "usecellmaskX": true,
+  "usecellmaskY": true,
+  "thresholdcellmask": 0.0015,
+  "thresholdcellmasky": 0.0015,
+  "livedisplay": false,
+  "dispcolors": true,
+  "dispint": true,
+  "displabels": true,
+  "dispoutline": true,
+  "dispSoftMask": true,
+  "save_images": true,
+  "nbconditions": 1,
+  "ch1": "channel 1 name",
+  "ch2": "channel 2 name",
+  "nbimages": [
+    1
+  ],
+  "groupnames": [
+    "Condition 1 name"
+  ]
+}

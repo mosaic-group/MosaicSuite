@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -31,7 +32,7 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import mosaic.utils.SystemOperations;
+import mosaic.utils.SysOps;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -155,7 +156,13 @@ public class CommonBase extends Info {
             for (int i = 0; i < aExpectedFiles.length; ++i) {
                 String refFile = tcPath + aReferenceFiles[i];
                 String testFile = tmpPath + aExpectedFiles[i];
-                compareTextFiles(refFile, testFile);
+                String extension = FilenameUtils.getExtension(refFile);
+                if (extension.equals("csv")) { 
+                    compareCsvFiles(refFile, testFile);
+                }
+                else {
+                    compareTextFiles(refFile, testFile);
+                }
             }
         }
     }
@@ -202,6 +209,9 @@ public class CommonBase extends Info {
         try {
             List<String> ref = readLines(refFile);
             List<String> test = readLines(testFile);
+            if (ref.size() != test.size()) {
+                fail("Size of compared CVS files are different!");
+            }
             for (int i = 0; i < ref.size(); ++i) {
                 if (ref.get(i).startsWith("%background:")) continue;
                 assertEquals(ref.get(i), test.get(i));
@@ -236,10 +246,10 @@ public class CommonBase extends Info {
             final File in = new File(aInputPath + aInputFileOrDirectory);
             final File out = new File(aDestinationPath);
             if (in.isDirectory()) {
-                SystemOperations.copyDirectoryToDirectory(in, out);
+                SysOps.copyDirectoryToDirectory(in, out);
             }
             else {
-                SystemOperations.copyFileToDirectory(in, out);
+                SysOps.copyFileToDirectory(in, out);
             }
         }
     }
@@ -337,7 +347,7 @@ public class CommonBase extends Info {
      */
     protected Img<?> loadImageByName(String aImageName) {
         logger.debug("Loading image from IJ WindowManager: [" + aImageName + "]");
-        final String outputFileName = getTestTmpPath() + aImageName + ".tif";
+        final String outputFileName = getTestTmpPath() + aImageName + ".savedForTest.tif";
         final ImagePlus imageByName = getImageByName(aImageName);
         if (imageByName != null) {
             logger.debug("Saving [" + aImageName + "] as [" + outputFileName + "]");
@@ -359,6 +369,7 @@ public class CommonBase extends Info {
         ImagePlus ip = loadImagePlus(aFileName);
         if (ip == null) {
             logger.error("Failed to load: [" + aFileName + "]");
+            fail();
         }
         return ImagePlusAdapter.wrap(ip);
         
@@ -448,7 +459,7 @@ public class CommonBase extends Info {
             throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
         }
 
-        return path + SystemOperations.SEPARATOR;
+        return path + SysOps.SEPARATOR;
     }
     
     /**
@@ -457,7 +468,7 @@ public class CommonBase extends Info {
      */
     public static String getTestTmpPath() {
         final String TEST_TMP_DIR = "test";
-        return SystemOperations.getTmpPath() + TEST_TMP_DIR + SystemOperations.SEPARATOR;
+        return SysOps.getTmpPath() + TEST_TMP_DIR + SysOps.SEPARATOR;
     }
 
     /**
@@ -478,7 +489,7 @@ public class CommonBase extends Info {
      * will throw and break an execution of test.
      */
     public static void removeTestTmpDir() {
-        SystemOperations.removeDir(getTestTmpPath());
+        SysOps.removeDir(getTestTmpPath());
 
     }
 
@@ -487,7 +498,7 @@ public class CommonBase extends Info {
      * will throw and break an execution of test.
      */
     private static void createTestTmpDir() {
-        SystemOperations.createDir(getTestTmpPath());
+        SysOps.createDir(getTestTmpPath());
     }
     
     protected File findJobFile(String aName, File aDir) {
@@ -501,5 +512,35 @@ public class CommonBase extends Info {
             }
         }
         return null;
+    }
+    
+//    static protected void compareArrays(Object[] expected, Object[] result) {
+//        assertTrue(Arrays.deepEquals(expected, result));
+//    }
+    
+    static protected void compareArrays(float[][] expected, float[][] result) {
+        for (int i = 0; i < expected.length; ++i) {
+            for (int j = 0; j < expected[0].length; ++j) {
+                assertEquals("Elements at [" + i + "][" + j + "] should be same", expected[i][j], result[i][j], 0.0f);
+            }
+        }
+    }
+
+    static protected void compareArrays(double[][] expected, double[][] result) {
+        for (int i = 0; i < expected.length; ++i) {
+            for (int j = 0; j < expected[0].length; ++j) {
+                assertEquals("Elements at [" + i + "][" + j + "] should be same", expected[i][j], result[i][j], 0.0f);
+            }
+        }
+    }
+    
+    static protected void compareArrays(double[][][] expected, double[][][] result) {
+        for (int z = 0; z < expected.length; ++z) {
+            for (int i = 0; i < expected[0].length; ++i) {
+                for (int j = 0; j < expected[0][0].length; ++j) {
+                    assertEquals("Elements at [" + z + "][" + i + "][" + j + "] should be same", expected[z][i][j], result[z][i][j], 0.0f);
+                }
+            }
+        }
     }
 }

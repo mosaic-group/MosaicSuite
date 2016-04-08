@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -21,13 +22,12 @@ import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import mosaic.bregman.GUI.ChooseGUI;
-import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.utils.ConvertArray;
-import mosaic.utils.SystemOperations;
+import mosaic.utils.ImgUtils;
+import mosaic.utils.SysOps;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvMetaInfo;
 import net.imglib2.Cursor;
@@ -170,7 +170,7 @@ public class MosaicUtils {
 
             final ChooseGUI cg = new ChooseGUI();
 
-            return cg.choose("Choose segmentation", "Found multiple segmentations", PossibleFile);
+            return cg.chooseFile("Choose segmentation", "Found multiple segmentations", PossibleFile);
         }
         else {
             if (PossibleFile.size() == 1) {
@@ -188,7 +188,7 @@ public class MosaicUtils {
      * @param Image
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
-        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final String Folder = ImgUtils.getImageDirectory(aImp);
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         // Get infos from possible segmentation
@@ -197,7 +197,7 @@ public class MosaicUtils {
             final String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
                 final File fR = new File(Folder + sR[j]);
-
+                mosaic.utils.Debug.print("checkSegmentationInfo", fR.getAbsoluteFile());
                 if (fR.exists()) {
                     return true;
                 }
@@ -239,7 +239,7 @@ public class MosaicUtils {
      * @param Image
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
-        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final String Folder = ImgUtils.getImageDirectory(aImp);
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         final Vector<File> PossibleFile = new Vector<File>();
@@ -323,11 +323,12 @@ public class MosaicUtils {
 
     /**
      * This function merge the frames of the image a2 into a1
-     *
      * @param a1 Image a1
      * @param a2 Image a2
      */
     static public void MergeFrames(ImagePlus a1, ImagePlus a2) {
+        if (a1 == null || a2 == null) return;
+        
         // If a1 does not have an imageStack set it to a2 and return
         if (a1.getImageStack().getSize() == 0) {
             a1.setStack("Merge frames", a2.getImageStack().duplicate());
@@ -345,16 +346,15 @@ public class MosaicUtils {
                 }
             }
         }
+        a1.getStack().setColorModel(a2.getStack().getColorModel());
         a1.setDimensions(a2.getNChannels(), a2.getNSlices(), hcount);
     }
 
     /**
      * Read a file and split the String by space
-     *
      * @param file
      * @return values array of String
      */
-
     public static String[] readAndSplit(String file) {
         // Z means: "The end of the input but for the final terminator, if any"
         String output = null;
@@ -372,31 +372,6 @@ public class MosaicUtils {
         }
 
         return output.split(" ");
-    }
-
-    /**
-     * Return the folder where the image is stored, if it is not saved it return
-     * the folder of the original image
-     *
-     * @param img Image
-     * @return folder of the image
-     */
-    public static String ValidFolderFromImage(ImagePlus img) {
-        if (img == null) {
-            return null;
-        }
-
-        if (img.getFileInfo().directory == "") {
-            if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "") {
-                return null;
-            }
-            else {
-                return img.getOriginalFileInfo().directory;
-            }
-        }
-        else {
-            return img.getFileInfo().directory;
-        }
     }
 
     public static ImageProcessor cropImageStack2D(ImageProcessor ip, int cropsize) {
@@ -546,7 +521,7 @@ public class MosaicUtils {
      * @param directory location of the file to write to
      * @param file_name file name to write to
      * @param info info the write to file
-     * @see java.io.FileOutputStream#FileOutputStream(java.lang.String)
+     * @return boolean (writing to file successful or error message)
      */
     public static boolean write2File(String directory, String file_name, String info) {
         try {
@@ -654,48 +629,6 @@ public class MosaicUtils {
 
     /**
      * Reorganize the data in the directories inside sv, following the file
-     * patterns specified Give output[] = {data*file1, data*file2} and bases =
-     * {"A","B","C" ..... , "Z"} it create two folder data_file1 and data_file2
-     * (* is replaced with _) and inside put all the file with pattern
-     * dataAfile1 ..... dataZfile1 in the first and dataAfile2 ..... dataZfile2
-     * in the second. If the folder is empty the folder is deleted
-     *
-     * @param output List of output patterns
-     * @param bases String of the image/data to substitute
-     * @param sv base dir where the data are located
-     */
-    public static void reorganize(String output[], Vector<String> bases, String sv) {
-        // Crate directories
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-            final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
-        }
-
-        // Copy all existing files
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-
-            for (int k = 0; k < bases.size(); k++) {
-                final String src = sv + File.separator + tmp.replace("*", bases.get(k));
-                final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
-                SystemOperations.moveFile(src, dest, true /* quiet */);
-            }
-        }
-
-        // check for all the folder created if empty delete it
-        for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-            final String dirStr = sv + "/" + tmp.replace("*", "_");
-            final File dir = new File(dirStr);
-            if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
-            }
-        }
-    }
-
-    /**
-     * Reorganize the data in the directories inside sv, following the file
      * patterns specified Give output[] = {data*file1, data*file2} and base =
      * "_tmp_" it create two folder data_file1 and data_file2 (* is replaced
      * with _) and inside put all the file with pattern data_tmp_1file1 .....
@@ -713,7 +646,7 @@ public class MosaicUtils {
         for (int j = 0; j < output.length; j++) {
             final String tmp = new String(output[j]);
             final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
+            SysOps.createDir(dirName);
         }
 
         // Copy all existing files
@@ -732,7 +665,7 @@ public class MosaicUtils {
                     dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k + 1) + tmp.replace("*", "");
                 }
 
-                SystemOperations.moveFile(src, dest, true /* quiet */);
+                SysOps.moveFile(src, dest, true /* quiet */);
             }
         }
 
@@ -742,7 +675,7 @@ public class MosaicUtils {
             final String dirStr = sv + "/" + tmp.replace("*", "_");
             final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
+                SysOps.removeDir(dir);
             }
         }
 
@@ -769,7 +702,7 @@ public class MosaicUtils {
         for (int j = 0; j < output.length; j++) {
             final String tmp = new String(output[j]);
             final String dirName = sv + "/" + tmp.replace("*", "_");
-            SystemOperations.createDir(dirName);
+            SysOps.createDir(dirName);
         }
 
         for (int j = 0; j < output.length; j++) {
@@ -792,7 +725,7 @@ public class MosaicUtils {
                     }
                 }
 
-                SystemOperations.moveFile(src, dest, true /* quiet */);
+                SysOps.moveFile(src, dest, true /* quiet */);
             }
         }
 
@@ -802,7 +735,7 @@ public class MosaicUtils {
             final String dirStr = sv + "/" + tmp.replace("*", "_");
             final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
-                SystemOperations.removeDir(dir);
+                SysOps.removeDir(dir);
             }
         }
     }
@@ -881,6 +814,42 @@ public class MosaicUtils {
         return null;
     }
 
+    
+    /**
+     * IJ method for parsing macro checkboxes. 
+     * Returns true if aKey is in aOptions and not in a bracketed literal (e.g., "[literal]")
+     * @param aKey name of checkbox field
+     * @param aOptions macro options
+     * @return true if exist
+     */
+    public static boolean parseCheckbox(final String aKey, final String aOptions) {
+        String s1 = aOptions;
+        String s2 = aKey + " ";
+        if (s1.startsWith(s2))
+            return true;
+        s2 = " " + s2;
+        int len1 = s1.length();
+        int len2 = s2.length();
+        boolean match, inLiteral=false;
+        char c;
+        for (int i=0; i<len1-len2+1; i++) {
+            c = s1.charAt(i);
+            if (inLiteral && c==']')
+                inLiteral = false;
+            else if (c=='[')
+                inLiteral = true;
+            if (c!=s2.charAt(0) || inLiteral || (i>1&&s1.charAt(i-1)=='='))
+                continue;
+            match = true;
+            for (int j=0; j<len2; j++) {
+                if (s2.charAt(j)!=s1.charAt(i+j))
+                {match=false; break;}
+            }
+            if (match) return true;
+        }
+        return false;
+    }
+    
     /**
      * Given an imglib2 image return the dimensions as an array of long
      *
@@ -940,23 +909,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Remove the file extension
-     *
-     * @param str String from where to remove the extension
-     * @return the String
-     */
-
-    public static String removeExtension(String str) {
-        final int idp = str.lastIndexOf(".");
-        if (idp < 0) {
-            return str;
-        }
-        else {
-            return str.substring(0, idp);
-        }
-    }
-    
-    /**
      * Return absolut path with fileName or null if info not available.
      */
     public static String getAbsolutFileName(ImagePlus aImagePlus) {
@@ -966,13 +918,13 @@ public class MosaicUtils {
     public static String getAbsolutFileName(ImagePlus aImagePlus, boolean aRemoveExtension) {
         if (aImagePlus == null) return null;
         
-        final String folder = MosaicUtils.ValidFolderFromImage(aImagePlus);
+        final String folder = ImgUtils.getImageDirectory(aImagePlus);
         String fileName = aImagePlus.getTitle();
         
         if (folder == null || fileName == null || fileName.equals("")) return null;
             
         if (aRemoveExtension) {
-            fileName = MosaicUtils.removeExtension(fileName);
+            fileName = SysOps.removeExtension(fileName);
         }
         
         return folder + File.separator + fileName;
@@ -999,82 +951,74 @@ public class MosaicUtils {
         for (int i = 0; i < outcsv.size(); i++) {
             outS[i] = outcsv.get(i);
         }
-
+        mosaic.utils.Debug.print(outcsv);
         return outS;
     }
 
     /**
-     * Stitch the CSV files all together in the directory dir/dir_p[] save the
-     * result in output_file + dir_p[] "*" are substituted by "_"
-     *
-     * @param dir_p list of directories
-     * @param dir Base
-     * @param output_file stitched file
+     * Stitch the CSV files all together in the directory aBaseDir/aDirs[] save the
+     * result in aOutputCsvFile + aDirs[] "*" are substituted by "_"
+     * @param aDirs list of directories
+     * @param aBaseDir Base
+     * @param aOutputCsvFile stitched file
+     * @param aMetaInfo metainformation for csv file
      * @param Class<T> internal data for conversion
-     * @return true if success, false otherwise
      */
-    private static <T> boolean Stitch(String dir_p[], File dir, File output_file, CsvMetaInfo ext[], Class<T> cls) {
-        boolean first = true;
-        final CSV<?> csv = new CSV<T>(cls);
+    private static <T> void Stitch(String aDirs[], File aBaseDir, File aOutputCsvFile, CsvMetaInfo aMetaInfo[], Class<T> aClazz) {
+        boolean firstFile = true;
+        final CSV<T> csv = new CSV<T>(aClazz);
 
-        for (int j = 0; j < dir_p.length; j++) {
-            final File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
-            if (fl == null) {
+        for (int j = 0; j < aDirs.length; j++) {
+            final String currentDir = aDirs[j];
+            
+            // Get absolute paths to all files in currentDir
+            final File[] currentFiles = new File(aBaseDir + File.separator + currentDir.replace("*", "_")).listFiles();
+            if (currentFiles == null) {
                 continue;
             }
-            final int nf = fl.length;
-
-            final String str[] = new String[nf];
-
-            for (int i = 1; i <= nf; i++) {
-                if (fl[i - 1].getName().endsWith(".csv")) {
-                    str[i - 1] = fl[i - 1].getAbsolutePath();
+            final String currentFilesAbsPaths[] = new String[currentFiles.length];
+            for (int i = 0; i < currentFiles.length; i++) {
+                if (currentFiles[i].getName().endsWith(".csv")) {
+                    currentFilesAbsPaths[i] = currentFiles[i].getAbsolutePath();
                 }
             }
-
-            if (ext != null) {
-                for (int i = 0; i < ext.length; i++) {
-                    csv.setMetaInformation(ext[i].parameter, ext[i].value);
+            Arrays.sort(currentFilesAbsPaths);
+            mosaic.utils.Debug.print(currentDir, currentFiles);
+            // Set metainformation for csv
+            csv.clearMetaInformation();
+            if (aMetaInfo != null) {
+                for (CsvMetaInfo cmi : aMetaInfo) {
+                    csv.setMetaInformation(cmi);
                 }
             }
-
-            if (first == true) {
-                // if it is the first time set the file preference from the
-                // first file
-                first = false;
-
-                csv.setCSVPreferenceFromFile(str[0]);
+            
+            // if it is the first time set the file preference from the first file
+            if (firstFile == true) {
+                firstFile = false;
+                csv.setCSVPreferenceFromFile(currentFilesAbsPaths[0]);
             }
 
-            csv.Stitch(str, output_file + dir_p[j]);
+            try {
+                csv.StitchAny(currentFilesAbsPaths,  aOutputCsvFile + currentDir);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        return true;
     }
 
     /**
      * Stitch the CSV in the directory
      *
-     * @param fl directory where search for files to stitch directory to stitch
-     * @param output string array that list all the outputs produced by the
-     *            plugin
+     * @param aBaseDir directory where search for files to stitch directory to stitch
+     * @param output string array that list all the outputs produced by the plugin
      * @param background Set the background param string
      * @return true if it stitch all the file success
      */
-    static public boolean StitchCSV(String fl, String[] output, String bck) {
-        CsvMetaInfo mt[] = null;
-        if (bck != null) {
-            mt = new CsvMetaInfo[1];
-            mt[0] = new CsvMetaInfo("background", bck);
-        }
-        else {
-            mt = new CsvMetaInfo[0];
-        }
-
+    static public void StitchCSV(String aBaseDir, String[] output, String aBackgroundValue) {
+        CsvMetaInfo mt[] = (aBackgroundValue != null) ? new CsvMetaInfo[] {new CsvMetaInfo("background", aBackgroundValue)} : null;
         final String[] outcsv = MosaicUtils.getCSV(output);
-        Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
-
-        return true;
+        Stitch(outcsv, new File(aBaseDir), new File(aBaseDir + File.separator + "stitch"), mt, Region3DColocRScript.class);
     }
 
     /**

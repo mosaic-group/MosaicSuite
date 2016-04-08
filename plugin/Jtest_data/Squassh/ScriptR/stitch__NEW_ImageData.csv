@@ -1,0 +1,37 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test/1 Ctrl 1.tif
+%background:/tmp/test/1 Ctrl 2.tif
+%background:/tmp/test/1 Ctrl 3.tif
+%background:/tmp/test/2 OA1.tif
+%background:/tmp/test/2 OA2.tif
+%background:/tmp/test/2 OA4.tif
+%background:/tmp/test/3 Ctrl1.tif
+%background:/tmp/test/3 Ctrl2.tif
+%background:/tmp/test/3 Ctrl3.tif
+%background:/tmp/test/4 OA1.tif
+%background:/tmp/test/4 OA3.tif
+%background:/tmp/test/4 OA4.tif
+1 Ctrl 1.tif;0;0;9;179.7777;58.0;13.6666
+1 Ctrl 1.tif;0;1;16;9.625;13.875;1.875
+1 Ctrl 2.tif;0;0;16;25.125;19.9375;3.3125
+1 Ctrl 2.tif;0;1;27;16.3333;18.4444;3.2962
+1 Ctrl 3.tif;0;0;11;77.0;36.5454;8.0
+1 Ctrl 3.tif;0;1;23;14.4347;17.826;2.826
+2 OA1.tif;0;0;13;192.6923;54.5384;6.923
+2 OA1.tif;0;1;15;46.7333;32.8;3.7333
+2 OA2.tif;0;0;8;393.5;79.875;11.625
+2 OA2.tif;0;1;10;34.4;27.8;4.7
+2 OA4.tif;0;0;12;281.5;69.1666;6.8333
+2 OA4.tif;0;1;8;15.875;17.25;1.75
+3 Ctrl1.tif;0;0;3;33.6666;25.0;3.3333
+3 Ctrl1.tif;0;1;6;24.1666;23.0;2.6666
+3 Ctrl2.tif;0;0;4;36.75;29.0;4.25
+3 Ctrl2.tif;0;1;17;15.2941;17.8823;2.4705
+3 Ctrl3.tif;0;0;11;15.8181;17.0;1.8181
+3 Ctrl3.tif;0;1;20;15.8;18.45;3.95
+4 OA1.tif;0;0;5;83.8;38.6;2.4
+4 OA1.tif;0;1;19;5.8421;10.2631;1.7368
+4 OA3.tif;0;0;6;112.1666;47.5;9.8333
+4 OA3.tif;0;1;8;15.25;17.0;3.0
+4 OA4.tif;0;0;6;27.1666;19.5;4.3333
+4 OA4.tif;0;1;9;4.8888;10.2222;1.8888

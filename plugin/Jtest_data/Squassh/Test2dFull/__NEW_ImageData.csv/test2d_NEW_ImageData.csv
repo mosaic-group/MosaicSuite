@@ -1,0 +1,3 @@
+FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
+%background:/tmp/test//test2d.tif
+test2d.tif;0;0;1;298.0;76.0;2.0

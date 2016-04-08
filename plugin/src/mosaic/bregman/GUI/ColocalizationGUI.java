@@ -1,13 +1,6 @@
 package mosaic.bregman.GUI;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-
 import java.awt.Checkbox;
 import java.awt.Font;
 import java.awt.Panel;
@@ -23,14 +16,18 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import mosaic.bregman.Analysis;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import mosaic.bregman.Mask;
+import mosaic.bregman.Parameters;
+import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.ImgUtils;
 
 
-public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
+class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
     private ImagePlus imgch1;
     private ImagePlus imgch2;
-    private int ni, nj, nz;
 
     private JSlider t1, t2;
     private JSlider tz1, tz2;// slider for z stack preview
@@ -64,15 +61,13 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     private final JLabel warning = new JLabel("");
     private int ns1, ns2; // slices position of imgaes whenlaunched
-    private final int posx, posy;
 
-    public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy) {
+    private final Parameters iParameters;
+    
+    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, Parameters aParameters) {
         imgch1 = ch1;
         imgch2 = ch2;
-
-        posx = ParentPosx + 20;
-        posy = ParentPosy + 20;
-
+        iParameters = aParameters;
     }
 
     public void run() {
@@ -86,8 +81,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         final String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
         final boolean bgroup3[] = { false, false };
 
-        bgroup3[0] = Analysis.p.usecellmaskX;
-        bgroup3[1] = Analysis.p.usecellmaskY;
+        bgroup3[0] = iParameters.usecellmaskX;
+        bgroup3[1] = iParameters.usecellmaskY;
 
         t1 = new JSlider();
         t2 = new JSlider();
@@ -103,7 +98,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
         gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
 
-        gd.addNumericField("Threshold_channel_1 (0 to 1)", Analysis.p.thresholdcellmask, 4);
+        gd.addNumericField("Threshold_channel_1 (0 to 1)", iParameters.thresholdcellmask, 4);
         final Panel p1 = new Panel();
         p1.add(l1);
         p1.add(t1);
@@ -114,7 +109,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         pz1.add(tz1);
         gd.addPanel(pz1);
 
-        gd.addNumericField("Threshold_channel_2 (0 to 1)", Analysis.p.thresholdcellmasky, 4);
+        gd.addNumericField("Threshold_channel_2 (0 to 1)", iParameters.thresholdcellmasky, 4);
 
         final Panel p2 = new Panel();
         p2.add(l2);
@@ -147,8 +142,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         t2.setMinimum(0);
         t2.setMaximum(maxslider);
 
-        t1.setValue((int) logvalue(Analysis.p.thresholdcellmask));
-        t2.setValue((int) logvalue(Analysis.p.thresholdcellmasky));
+        t1.setValue((int) logvalue(iParameters.thresholdcellmask));
+        t2.setValue((int) logvalue(iParameters.thresholdcellmasky));
 
         val1 = new Double((v1.getText()));
         val2 = new Double((v2.getText()));
@@ -187,7 +182,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             tz2.setEnabled(false);
         }
 
-        if (Analysis.p.usecellmaskX && imgch1 != null) {
+        if (iParameters.usecellmaskX && imgch1 != null) {
             maska_im1 = new ImagePlus();
             initpreviewch1(imgch1);
             previewBinaryCellMask(new Double((v1.getText())), imgch1, maska_im1, 1);
@@ -195,15 +190,13 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
         }
 
-        if (Analysis.p.usecellmaskY && imgch2 != null) {
+        if (iParameters.usecellmaskY && imgch2 != null) {
             maska_im2 = new ImagePlus();
             initpreviewch2(imgch2);
             previewBinaryCellMask(new Double((v2.getText())), imgch2, maska_im2, 2);
             init2 = true;
         }
 
-        gd.centerDialog(false);
-        gd.setLocation(posx, posy);
         gd.showDialog();
 
         if (maska_im1 != null) {
@@ -227,23 +220,18 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             return;
         }
 
-        Analysis.p.usecellmaskX = gd.getNextBoolean();
-        Analysis.p.usecellmaskY = gd.getNextBoolean();
-        Analysis.p.thresholdcellmask = gd.getNextNumber();
-        Analysis.p.thresholdcellmasky = gd.getNextNumber();
-
+        iParameters.usecellmaskX = gd.getNextBoolean();
+        iParameters.usecellmaskY = gd.getNextBoolean();
+        iParameters.thresholdcellmask = gd.getNextNumber();
+        iParameters.thresholdcellmasky = gd.getNextNumber();
     }
 
     private double expvalue(double slidervalue) {
-
         return (Math.pow(10, (slidervalue / maxslider) * logspan + logmin));
-
     }
 
     private double logvalue(double tvalue) {
-
         return (maxslider * (Math.log10(tvalue) - logmin) / logspan);
-
     }
 
     @Override
@@ -296,13 +284,10 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
                 if (maska_im2 != null) {
                     maska_im2.hide();
                 }
-                // maska_im2.close();
-                // maska_im2=null;
                 init2 = false;
             }
 
         }
-        // IJ.log("boxval to false");
         boxval = false;
     }
 
@@ -352,7 +337,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
                 }
             }
-
             fieldval = false;
         }
     }
@@ -417,108 +401,35 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             }
 
             sliderval = false;
-
         }
-
     }
 
     // find min and max values in channel 1
     private void initpreviewch1(ImagePlus img) {
-
-        ni = img.getWidth();
-        nj = img.getHeight();
-        nz = img.getNSlices();
-
-        ImageProcessor imp;
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max) {
-                        max = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min) {
-                        min = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
-
+        MinMax<Double> mm = ImgUtils.findMinMax(img);
+        min = mm.getMin();
+        max = mm.getMax();
     }
 
     // find min and max values in channel 2
     private void initpreviewch2(ImagePlus img) {
-
-        ni = img.getWidth();
-        nj = img.getHeight();
-        nz = img.getNSlices();
-
-        ImageProcessor imp;
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > max2) {
-                        max2 = imp.getPixel(i, j);
-                    }
-                    if (imp.getPixel(i, j) < min2) {
-                        min2 = imp.getPixel(i, j);
-                    }
-                }
-            }
-        }
+        MinMax<Double> mm = ImgUtils.findMinMax(img);
+        max2 = mm.getMax();
+        min2 = mm.getMin();
     }
 
     // compute and display cell mask
     private void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel) {
-
-        final int ns = img.getSlice();
-        double threshold;
-
-        ImageProcessor imp;
-
-        if (channel == 1) {
-            threshold = threshold_i * (max - min) + min;
-        }
-        else {
-            threshold = threshold_i * (max2 - min2) + min2;
-        }
-
-        final ImageStack maska_ims = new ImageStack(ni, nj);
-
-        for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
-            imp = img.getProcessor();
-            final byte[] maska_bytes = new byte[ni * nj];
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    if (imp.getPixel(i, j) > threshold) {
-                        maska_bytes[j * ni + i] = (byte) 255;
-                    }
-                    else {
-                        maska_bytes[j * ni + i] = 0;
-                    }
-
-                }
-            }
-            final ByteProcessor bp = new ByteProcessor(ni, nj);
-            bp.setPixels(maska_bytes);
-            maska_ims.addSlice("", bp);
-        }
-
-        maska_im.setStack("Cell mask channel " + channel, maska_ims);
-
-        IJ.run(maska_im, "Invert", "stack");
-        IJ.run(maska_im, "Fill Holes", "stack");
-        IJ.run(maska_im, "Open", "stack");
-        IJ.run(maska_im, "Invert", "stack");
-
+        int currentSlice = img.getSlice();
+        
+        double threshold = threshold_i * ((channel == 1) ? (max - min) + min : (max2 - min2) + min2);
+        ImagePlus mask = Mask.createBinaryCellMask(img, "Cell mask channel " + channel, threshold);
+        maska_im.setStack(mask.getStack());
+        maska_im.setTitle(mask.getTitle());
         maska_im.updateAndDraw();
-        maska_im.changes = false;
-
         maska_im.show();
-        img.setSlice(ns);
+        
+        // revert set slice
+        img.setSlice(currentSlice);
     }
 }

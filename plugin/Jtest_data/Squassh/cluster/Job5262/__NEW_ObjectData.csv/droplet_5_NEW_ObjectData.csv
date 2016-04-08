@@ -1,0 +1,4 @@
+FileName;Frame;Channel;Id;X;Y;Z;Size;Perimeter;Length;Intensity
+%background:/home/gonciarz/scratch/session1457602349301/tmp_1.tif
+tmp_1.tif;0;0;1;17.22222137451172;14.88888931274414;6.0;9.0;32.0;1.0;3744.629256154277
+tmp_1.tif;0;0;2;10.625;14.083333015441895;13.791666984558105;24.0;64.0;2.0;4109.821107706579

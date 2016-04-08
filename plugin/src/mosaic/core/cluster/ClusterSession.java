@@ -1,14 +1,6 @@
 package mosaic.core.cluster;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.io.DirectoryChooser;
-import ij.io.Opener;
-import ij.process.StackStatistics;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -17,13 +9,20 @@ import java.io.PrintWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mosaic.bregman.Analysis;
-import mosaic.bregman.GUI.ChooseGUI;
+import org.apache.log4j.Logger;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.io.DirectoryChooser;
+import ij.io.Opener;
+import ij.process.StackStatistics;
 import mosaic.core.GUI.ProgressBarWin;
+import mosaic.core.utils.ChooseGUI;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-
-import org.apache.log4j.Logger;
+import mosaic.utils.SysOps;
 
 
 /**
@@ -39,15 +38,18 @@ import org.apache.log4j.Logger;
  * @author Pietro Incardona
  */
 public class ClusterSession {
-
     private static final Logger logger = Logger.getLogger(ClusterSession.class);
-
+    
+    public static final String DefaultInputParameterName = "input";
+    public static final String DefaultSettingsFileName = SysOps.getTmpPath() + "settings.dat";
+    public static final String DefaultJsonSettingsFileName = SysOps.getTmpPath() + "settings.json";
+    
     private int nImages;
     private final ClusterProfile cp;
     private SecureShellSession ss;
     private int ns_pp = ns_pp_preferred;
     private static int ns_pp_preferred = 1;
-    private String ia_s = "filepath";
+    private String iInputParameterName = DefaultInputParameterName;
 
     ClusterSession(ClusterProfile cp_) {
         cp = cp_;
@@ -73,13 +75,15 @@ public class ClusterSession {
 
     /**
      * Set input argument
-     *
-     * @param ia_s string for the input argument
+     * @param aInputParamName string for the input argument
      */
-    public void setInputArgument(String ia_s) {
-        this.ia_s = ia_s;
+    public void setInputParameterName(String aInputParamName) {
+        iInputParameterName = aInputParamName;
     }
-
+    public String getInputParameterName() {
+        return iInputParameterName;
+    }
+    
     /**
      * Cleanup all the data you created
      */
@@ -183,25 +187,25 @@ public class ClusterSession {
         }
 
         final BatchInterface bc = cp.getBatchSystem();
-        final String tmp_dir = IJ.getDirectory("temp");
+        final String tmp_dir = SysOps.getTmpPath();
 
         // Download a working version of Fiji
         // and copy the plugins
-        if (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false) {
+        boolean hasAllThingsInstalled = isAllSoftwareInstalled(ss, cp);
+        
+        if (!hasAllThingsInstalled) {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
 
-            // Remove previously Fiji
-            final String[] commands = new String[1];
-            commands[0] = new String("rm -rf Fiji.app");
+            ss.runCommands(new String[] {"rm -rf Fiji.app"});
 
-            ss.runCommands(commands);
-
-            final String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
-                    "mkdir Mosaic_ToolSuite", "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
-
-            ss.runCommands(CommandL);
-
+            ss.runCommands(new String[] { "cd " + cp.getRunningDir(), 
+                                          "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", 
+                                          "tar -xf fiji-linux64.tar.gz", 
+                                          "cd Fiji.app", 
+                                          "cd plugins",
+                                          "mkdir Mosaic_ToolSuite", 
+                                          "cd Mosaic_ToolSuite", 
+                                          "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" });
             // Wait to install Fiji
             do {
                 try {
@@ -213,16 +217,26 @@ public class ClusterSession {
                 }
 
                 System.out.println("Checking Fiji installation");
-            } while (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                    || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false);
+            } while (!isAllSoftwareInstalled(ss, cp));
         }
 
         wp.SetStatusMessage("Interfacing with batch system...");
 
         // create the macro script
 
-        final String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n" + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir()
-                + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+        /* ------------------------------ Example output ------------------------
+           job_id = getArgument();
+           if (job_id == "" )
+              exit("No job id");
+              
+           run("Squassh","config=/home/gonciarz/scratch//session1456411696096/settings.dat filepath=/home/gonciarz/scratch//session1456411696096/tmp_"+ job_id + ".tif min=456.0 max=2940.0  " );
+         -------------------------------- */
+        File configFile = (new File(DefaultJsonSettingsFileName).exists()) ? new File(DefaultJsonSettingsFileName) : new File(DefaultSettingsFileName);
+        final String macro = new String("job_id = getArgument();\n" + 
+                                        "if (job_id == \"\" )\n" + 
+                                        "   exit(\"No job id\");\n" + 
+                                        "\n" + 
+                                        "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + configFile.getName() + " " + iInputParameterName + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 
@@ -245,7 +259,7 @@ public class ClusterSession {
 
                 final File fll[] = new File[3];
                 fll[0] = new File(tmp_dir + ss.getSession_id());
-                fll[1] = new File(tmp_dir + "settings.dat");
+                fll[1] = configFile;
                 fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
                 ss.upload(fll, null, null);
             }
@@ -309,14 +323,25 @@ public class ClusterSession {
         return true;
     }
 
+    private boolean isAllSoftwareInstalled(SecureShellSession aSession, ClusterProfile aProfile) {
+        // Check Fiji 
+        String fijiDir = aProfile.getRunningDir() + "Fiji.app";
+        boolean hasFiji = aSession.checkDirectory(fijiDir);
+        boolean hasLinuxExe = aSession.checkFile(fijiDir, "ImageJ-linux64");
+        
+        // Check Mosaic plugin (it can have one of two names).
+        String mosaicPluginDir = fijiDir + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator;
+        boolean hasPlugin = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite.jar");
+        boolean hasPluginForCluster = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite_for_cluster.jar");
+
+        return hasFiji && hasLinuxExe && (hasPluginForCluster || hasPlugin);
+    }
+
     /**
      * Get the Jobs directory in the temporal or other folder
      *
-     * @param JobID if 0 return all directory otherwise return the directory
-     *            associated to the
-     *            specified jobID
-     * @param directory where to search for Job directory (if null the temp
-     *            directory is choosen)
+     * @param JobID if 0 return all directory otherwise return the directory associated to the specified jobID
+     * @param directory where to search for Job directory (if null the temp directory is choosen)
      * @return Get all the directory string
      */
     static public String[] getJobDirectories(final int JobID, final String directory) {
@@ -386,7 +411,7 @@ public class ClusterSession {
      */
     private int CreateJobSelector(String directories[]) {
         final ChooseGUI cg = new ChooseGUI();
-        final String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
+        final String c = cg.chooseString("Job Selector", "Select a Job to visualize", directories);
         if (c == null) {
             return 0;
         }
@@ -481,6 +506,7 @@ public class ClusterSession {
 
         for (int i = 0; i < directories.length; i++) {
             final String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+            if (s == null) continue;
             final int nf = Integer.parseInt(s[1]);
             String filename = s[2];
 
@@ -490,7 +516,6 @@ public class ClusterSession {
             }
 
             MosaicUtils.reorganize(output, "tmp", filename, directories[i], nf);
-
         }
     }
 
@@ -613,9 +638,6 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
         final ProgressBarWin wp = new ProgressBarWin();
-//        wp.setFocusableWindowState(false);
-//        wp.setVisible(true);
-//        wp.setFocusableWindowState(true);
 
         // Create job array
 
@@ -829,7 +851,6 @@ public class ClusterSession {
         final ClusterSession ss = cg.getClusterSession();
 
         // Get all image processor statistics and calculate the maximum
-
         if (max == 0.0) {
             if (aImp != null) {
                 final StackStatistics stack_stats = new StackStatistics(aImp);
@@ -841,7 +862,6 @@ public class ClusterSession {
         }
 
         // Run plugin on frames
-
         if (ss.runPluginsOnFrames(aImp, command, "min=" + min + " max=" + max + " " + options, out, cg.getEstimatedTime(), sync) == false) {
             return null;
         }
@@ -929,7 +949,6 @@ public class ClusterSession {
         final ClusterSession ss = cg.getClusterSession();
 
         final MM mm = new MM();
-
         mm.min = new Float(Float.MAX_VALUE);
         mm.max = new Float(0.0);
 
@@ -941,7 +960,7 @@ public class ClusterSession {
             processFile(fl, command, options, out, cg, mm.max, mm.min);
         }
 
-        ss.runPluginsOnFrames(null, command, options, Analysis.out, cg.getEstimatedTime());
+        ss.runPluginsOnFrames(null, command, options, out, cg.getEstimatedTime());
         return ss;
     }
 

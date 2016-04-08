@@ -4,7 +4,7 @@ package mosaic.plugins;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.plugins.utils.CurvatureFilterBase;
-import mosaic.plugins.utils.ImgUtils;
+import mosaic.utils.ImgUtils;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
 /**

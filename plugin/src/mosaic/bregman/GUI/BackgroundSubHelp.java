@@ -13,21 +13,17 @@ import mosaic.core.GUI.HelpGUI;
 
 class BackgroundSubHelp extends HelpGUI {
 
-    private final JDialog frame;
-    private final JPanel panel;
-
     public BackgroundSubHelp(int x, int y) {
-        frame = new JDialog();
+        JDialog frame = new JDialog();
         frame.setTitle("Background Sub Help");
         frame.setSize(500, 220);
         frame.setLocation(x + 500, y - 50);
         frame.setModal(true);
 
-        panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(500, 220));
 
         final JPanel pref = new JPanel(new GridBagLayout());
-
         setPanel(pref);
         setHelpTitle("Background Subtraction");
         final String desc = new String("Reduce background fluorescence using the rolling ball algorithm " + "by selecting “Remove Background“ and entering the window edge-length "
@@ -36,9 +32,7 @@ class BackgroundSubHelp extends HelpGUI {
         createField("Background subtraction window size", desc, null);
 
         panel.add(pref);
-
         frame.add(panel);
-
         frame.setVisible(true);
     }
 }
