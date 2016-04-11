@@ -201,13 +201,6 @@ public class Particle {
     // ------------------------------------------------------------------------
     // CSV definitions and setters/getters used when reading Squassh output 
     // TODO: this is terrible solution, it should be handled differently 
-    public void setImage_ID(int aImageId) {
-        frame = aImageId;
-    }
-    public int getImage_ID() {
-        return frame;
-    }
-    
     public void setIntensity(double aIntensity) {
         m2 = (float) aIntensity;
     }
@@ -215,24 +208,24 @@ public class Particle {
         return m2;
     }
 
-    public void setCoord_X(double aX) {
+    public void setX(double aX) {
         iX = (float) aX;
     }
-    public double getCoord_X() {
+    public double getX() {
         return iX;
     }
 
-    public void setCoord_Y(double aY) {
+    public void setY(double aY) {
         iY = (float) aY;
     }
-    public double getCoord_Y() {
+    public double getY() {
         return iY;
     }
 
-    public void setCoord_Z(double aZ) {
+    public void setZ(double aZ) {
         iZ = (float) aZ;
     }
-    public double getCoord_Z() {
+    public double getZ() {
         return iZ;
     }
 }
