@@ -857,11 +857,11 @@ public class MyFrame {
 
                     p_ini.iX /= scaling_[0];
                     p_ini.iY /= scaling_[1];
-                    p_ini.iZ = p_ini.iZ / scaling[2] - i;
+                    if (out_a.numDimensions() > 2) p_ini.iZ = p_ini.iZ / scaling[2] - i;
 
                     p_end.iX /= scaling_[0];
                     p_end.iY /= scaling_[1];
-                    p_end.iZ = p_end.iZ / scaling_[2] - i;
+                    if (out_a.numDimensions() > 2) p_end.iZ = p_end.iZ / scaling_[2] - i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
@@ -872,11 +872,11 @@ public class MyFrame {
 
                     p_ini.iX /= scaling_[0];
                     p_ini.iY /= scaling_[1];
-                    p_ini.iZ = p_ini.iZ / scaling_[2] + i;
+                    if (out_a.numDimensions() > 2) p_ini.iZ = p_ini.iZ / scaling_[2] + i;
 
                     p_end.iX /= scaling_[0];
                     p_end.iY /= scaling_[1];
-                    p_end.iZ = p_end.iZ / scaling_[2] + i;
+                    if (out_a.numDimensions() > 2) p_end.iZ = p_end.iZ / scaling_[2] + i;
 
                     drawLine(out, p_ini, p_end, col);
                 }

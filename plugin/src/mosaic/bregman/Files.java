@@ -27,10 +27,10 @@ public class Files {
                                         "*_coloc.zip", 
                                         "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", 
                                         "*.tif",
-                                        "*_NEW_ImageData.csv", 
-                                        "*_NEW_ObjectData.csv",
-                                        "*_NEW_ImageColoc.csv",
-                                        "*_NEW_ObjectColoc.csv"};
+                                        "*_ImageData.csv", 
+                                        "*_ObjectData.csv",
+                                        "*_ImageColoc.csv",
+                                        "*_ObjectColoc.csv"};
 
     // ============= Below will be put new implementations =================
     interface BaseType {
@@ -47,10 +47,10 @@ public class Files {
         SoftMask("_soft_mask", "tiff", true, 1), 
         Colocalization("_coloc", "zip", false, 0), 
         Mask("_mask", "zip", true, 1), 
-        ImagesDataNew("_NEW_ImageData", "csv", false, 0),
-        ObjectsDataNew("_NEW_ObjectData", "csv", false, 0), 
-        ImageColocNew("_NEW_ImageColoc", "csv", false, 0),
-        ObjectsColocNew("_NEW_ObjectColoc", "csv", false, 0);
+        ImagesDataNew("_ImageData", "csv", false, 0),
+        ObjectsDataNew("_ObjectData", "csv", false, 0), 
+        ImageColocNew("_ImageColoc", "csv", false, 0),
+        ObjectsColocNew("_ObjectColoc", "csv", false, 0);
         
         private String baseName;
         private String ext;

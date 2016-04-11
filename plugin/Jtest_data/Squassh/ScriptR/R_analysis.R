@@ -4,9 +4,9 @@
 
 # Input file names
 BaseDirecotry = "/tmp/test/"
-FileObjData = "/tmp/test/stitch__NEW_ObjectData.csv"
-FileObjColoc = "/tmp/test/stitch__NEW_ObjectColoc.csv"
-FileImgColoc = "/tmp/test/stitch__NEW_ImageColoc.csv"
+FileObjData = "/tmp/test/stitch__ObjectData.csv"
+FileObjColoc = "/tmp/test/stitch__ObjectColoc.csv"
+FileImgColoc = "/tmp/test/stitch__ImageColoc.csv"
 
 # Group properties
 NumberOfGroups = 4

@@ -353,10 +353,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             if (iInputImage == null) {
                 iInputImage = new Opener().openImage(new File(background.replace("*", "1")).getAbsolutePath());
             }
-
             if (iInputImage != null) {
                 cal = iInputImage.getCalibration();
-                rescaleWith(cal, p);
+// TODO: It must be investigated if rescaling is a good idea. This method is used when particles are read from file.
+//       Segementation like Squash is puts in file not scaled (pixel-based) coordinates and scaling them is stupid.
+//       Is there any case it is needed here? (Other functionality like MSS/MSD analysis scales data on its own).
+//                rescaleWith(cal, p);
             }
         }
 
