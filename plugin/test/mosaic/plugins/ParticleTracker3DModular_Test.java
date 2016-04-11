@@ -115,13 +115,13 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           = "sequence.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"__NEW_ObjectData.csv/Traj_sequence.tif.csv", "__NEW_ObjectData.csv/Traj_sequence.tif.txt"};
+        final String[] expectedFiles     = {"__ObjectData.csv/Traj_sequence.tif.csv", "__ObjectData.csv/Traj_sequence.tif.txt"};
         final String[] referenceFiles    = {"Traj_sequence.tif.csv", "Traj_sequence.tif.txt"};
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        copyTestResources("__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
-        copyTestResources("stitch__NEW_ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__ObjectData.csv", getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
