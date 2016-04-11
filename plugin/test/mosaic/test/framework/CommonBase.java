@@ -45,6 +45,10 @@ import net.imglib2.img.Img;
  * Common stuff for MOSAIC suit testing
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
+/**
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ *
+ */
 @Ignore
 public class CommonBase extends Info {
 
@@ -97,6 +101,7 @@ public class CommonBase extends Info {
         testPlugin(aTestedPlugin, aTcDirName, aMacroOptions, aSetupString,
                 aInputFile,  aExpectedImgFiles, aReferenceImgFiles, null, null);
     }
+    
     /**
      * Tests plugin (one image input, one image output)
      * @param aTestedPlugin Tested plugin
@@ -285,7 +290,7 @@ public class CommonBase extends Info {
                     firstDiffFound = true;
                     // Produce error log with coordinates and values of first
                     // not matching location
-                    System.out.println(t1.getClass() + " vs " + t2.getClass());
+                    logger.debug(t1.getClass() + " vs " + t2.getClass());
                     String errorMsg = "Images differ. First occurence at: [";
                     for (int i = 0; i < aRefImg.numDimensions(); ++i) {
                         errorMsg += ci1.getIntPosition(i);
@@ -451,12 +456,13 @@ public class CommonBase extends Info {
      *
      */
     static public String getTestDataPath() {
-        final String path = System.getenv("MOSAIC_PLUGIN_TEST_DATA_PATH");
+        final String dataPathEnvVar = "MOSAIC_PLUGIN_TEST_DATA_PATH";
+        final String path = System.getenv(dataPathEnvVar);
 
         if (path == null || path.equals("")) {
             // Throw and stop execution of test intentionally. It is easier to
             // debug if test will stop here.
-            throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
+            throw new RuntimeException("Environment variable " + dataPathEnvVar + " is not defined! It should point to Jtest_data in plugin source.");
         }
 
         return path + SysOps.SEPARATOR;
@@ -501,6 +507,10 @@ public class CommonBase extends Info {
         SysOps.createDir(getTestTmpPath());
     }
     
+    /**
+     * Find for a job file "aName" in a parent directory "aDir". It searches through all files in subdirectories starting from "Job" name.
+     * @return found file or null otherwise
+     */
     protected File findJobFile(String aName, File aDir) {
         File[] fileList = aDir.listFiles();
         for (File f : fileList) {
@@ -518,6 +528,11 @@ public class CommonBase extends Info {
 //        assertTrue(Arrays.deepEquals(expected, result));
 //    }
     
+    
+    /**
+     * Compares 2D float arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * test is stopped (asserEquals is used)
+     */
     static protected void compareArrays(float[][] expected, float[][] result) {
         for (int i = 0; i < expected.length; ++i) {
             for (int j = 0; j < expected[0].length; ++j) {
@@ -526,6 +541,10 @@ public class CommonBase extends Info {
         }
     }
 
+    /**
+     * Compares 2D double arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * test is stopped (asserEquals is used)
+     */
     static protected void compareArrays(double[][] expected, double[][] result) {
         for (int i = 0; i < expected.length; ++i) {
             for (int j = 0; j < expected[0].length; ++j) {
@@ -534,6 +553,10 @@ public class CommonBase extends Info {
         }
     }
     
+    /**
+     * Compares 3D double arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * test is stopped (asserEquals is used)
+     */
     static protected void compareArrays(double[][][] expected, double[][][] result) {
         for (int z = 0; z < expected.length; ++z) {
             for (int i = 0; i < expected[0].length; ++i) {
@@ -543,4 +566,5 @@ public class CommonBase extends Info {
             }
         }
     }
+    
 }
