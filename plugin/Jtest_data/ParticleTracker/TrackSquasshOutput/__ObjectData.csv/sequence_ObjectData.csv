@@ -1,4 +1,4 @@
-Image_ID;Object_ID;Size;Perimeter;Length;Intensity;Coord_X;Coord_Y;Coord_Z
+Frame;Object_ID;Size;Perimeter;Length;Intensity;X;Y;Z
 %background:/private/tmp/2//sequence.tif
 0;0;25.0;20.0;3.0;245.02400539690947;225.0;91.0;0.0
 0;0;58.0;38.0;7.0;213.13089436538834;98.12068939208984;212.34483337402344;0.0
