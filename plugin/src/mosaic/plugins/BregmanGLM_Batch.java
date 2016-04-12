@@ -279,10 +279,8 @@ public class BregmanGLM_Batch implements Segmentation {
     private void runRscript(String aOutputSavePath, String aObjectsDataFile, String aObjectsColocFile, String aImagesDataFile, List<ChannelPair> aChannelPairs) {
         if (new File(aObjectsDataFile).exists() && new File(aImagesDataFile).exists()) {
             if (iParameters.save_images) {
-                // TODO: Now both channels are kept in one csv file so below stuff should be changed.
                 RScript.makeRScript(aOutputSavePath, aObjectsDataFile, aObjectsColocFile, aImagesDataFile, aChannelPairs, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
-                // TODO: Output seems to be completely wrong. Must be investigated.
                 try {
                     logger.debug("================ RSCRIPT BEGIN ====================");
                     String command = "cd " + aOutputSavePath + "; Rscript " + aOutputSavePath + File.separator + RScript.ScriptName;

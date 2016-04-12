@@ -50,6 +50,7 @@ class SegmentationGUI {
 
         gd.addMessage("Region filter", bf);
         gd.addNumericField("Remove_region_with_intensities_<", aParameters.min_region_filter_intensities, 0);
+        gd.addNumericField("Remove_region_with_size_<", aParameters.min_region_filter_size, 0, 6, "pixels");
 
         Panel p = new Panel();
         GenericGUI.addButton(p, "Patch position", new ActionListener() {
@@ -84,6 +85,7 @@ class SegmentationGUI {
         aParameters.sigma_gaussian = gd.getNextNumber();
         aParameters.zcorrec = aParameters.sigma_gaussian / gd.getNextNumber();
         aParameters.min_region_filter_intensities = gd.getNextNumber();
+        aParameters.min_region_filter_size = (int) gd.getNextNumber();
         aParameters.mode_intensity = gd.getNextChoiceIndex();
         aParameters.noise_model = gd.getNextChoiceIndex();
 

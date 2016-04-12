@@ -20,7 +20,6 @@ public class SegmentationParameters {
     final double lambdaData = 1;
     final double defaultBetaMleIn = 1.0;
     final double defaultBetaMleOut = 0.0003;
-    final int minRegionSize = 2;
 
     // General settings
     final int numOfThreads;
@@ -35,6 +34,7 @@ public class SegmentationParameters {
     final double sigmaGaussianXY;
     final double sigmaGaussianZ;
     final double minRegionIntensity;
+    final int minRegionSize;
     
     public SegmentationParameters(  int aNumOfThreads,
                                     int aInterpolation,
@@ -45,7 +45,8 @@ public class SegmentationParameters {
                                     NoiseModel aNoiseModel, 
                                     double aSigmaGaussianXY,
                                     double aSigmaGaussianZ,
-                                    double aMinRegionIntensity )
+                                    double aMinRegionIntensity,
+                                    int aMinRegionSize)
     {
         numOfThreads = aNumOfThreads;
         interpolation = aInterpolation;
@@ -58,6 +59,7 @@ public class SegmentationParameters {
         sigmaGaussianXY = aSigmaGaussianXY;
         sigmaGaussianZ = aSigmaGaussianZ;
         minRegionIntensity = aMinRegionIntensity;
+        minRegionSize = aMinRegionSize;
     }
     
     @Override
