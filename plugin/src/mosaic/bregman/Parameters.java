@@ -23,6 +23,7 @@ public class Parameters implements Serializable {
     public double sigma_gaussian = 0.8;
     public double zcorrec = 1;
     public double min_region_filter_intensities = 0.0;
+    public int min_region_filter_size = 2;
     public String patches_from_file;
 
     // Background subtracter
