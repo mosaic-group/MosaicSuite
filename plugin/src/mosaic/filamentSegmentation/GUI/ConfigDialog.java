@@ -159,7 +159,7 @@ public class ConfigDialog {
         gd.addRadioButtonGroup("Filament visualization layer: ", aLayers, 2, 1, Prefs.get(PropResultLayer, aLayers[0]));
         
         gd.addMessage("\n");
-        final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
+        final String info = "\"Automatic Optimal Filament Segmentation with Sub-pixel Accuracy using Generalized Linear Models and B-Spline Level-Sets\", Medical Image Analysis, 2016\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
         final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         final TextArea ta = new TextArea(info, 7, 40, TextArea.SCROLLBARS_NONE);
