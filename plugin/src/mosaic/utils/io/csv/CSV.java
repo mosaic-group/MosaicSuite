@@ -184,7 +184,7 @@ public class CSV<E> {
      * @param aOutputChoose - names/processors of expected output
      * @param aShouldAppend - if appends, then header and metainformation is not written
      */
-    public void Write(String aCsvFilename, List<E> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
+    public boolean Write(String aCsvFilename, List<E> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
         // Make sure that OutputChoose does not contain empty (null) values for header
         final List<String> map = new ArrayList<String>();
         final List<CellProcessor> cp = new ArrayList<CellProcessor>();
@@ -206,7 +206,7 @@ public class CSV<E> {
         final CellProcessor[] cel = cp.toArray(new CellProcessor[cp.size()]);
         final CsvColumnConfig oc = new CsvColumnConfig(mapString, cel);
 
-        writeData(aCsvFilename, aOutputData, oc, aShouldAppend);
+        return writeData(aCsvFilename, aOutputData, oc, aShouldAppend);
     }
 
     /**
@@ -379,9 +379,10 @@ public class CSV<E> {
         return aOutputChoose;
     }
 
-    private void writeData(String aCsvFilename, List<E> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
+    private boolean writeData(String aCsvFilename, List<E> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
         if (aOutputData.size() == 0) {
-            return;
+            logger.info("Nothing to write! File: [" + aCsvFilename + "] not created.");
+            return false;
         }
 
         ICsvDozerBeanWriter beanWriter = null;
@@ -414,7 +415,6 @@ public class CSV<E> {
 
             } catch (final SecurityException e) {
                 e.printStackTrace();
-                return;
             } catch (final IllegalArgumentException e) {
                 e.printStackTrace();
             }
@@ -430,6 +430,7 @@ public class CSV<E> {
                 }
             }
         }
+        return true;
     }
 
     String getMetaInformation(List<CsvMetaInfo> aContainer, String aParameter) {

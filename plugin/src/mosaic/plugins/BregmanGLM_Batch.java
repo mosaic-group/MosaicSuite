@@ -38,6 +38,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private static final String PluginName = "Squassh";
     private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.json";
     private static final String ConfigPrefix = "===> Conf: ";
+    private boolean iIsConfigReadFromArguments = false;
     
     private enum DataSource {
         IMAGE,            // image provided by Fiji/ImageJ via plugin interface 
@@ -140,7 +141,9 @@ public class BregmanGLM_Batch implements Segmentation {
         // Save parameters and run segmentation. 
         // If workDir is correct then also update it.
         if (isWorkingDirectoryCorrect) iParameters.wd = guiWorkDir;
-        saveConfig(SettingsFilepath, iParameters);
+        
+        // Save setting if they where not read from non-default place
+        if (!iIsConfigReadFromArguments) saveConfig(SettingsFilepath, iParameters);
         
         switch(runMode) {
             case LOCAL:
@@ -352,6 +355,7 @@ public class BregmanGLM_Batch implements Segmentation {
         String config = MosaicUtils.parseString("config", aArgs);
         if (config != null) {
             logger.info(ConfigPrefix + "Reading config provided in arguments [" + config + "]");
+            iIsConfigReadFromArguments = true;
         }
         else {
             config = SettingsFilepath;

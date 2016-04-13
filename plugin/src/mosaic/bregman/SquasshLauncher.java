@@ -759,8 +759,9 @@ public class SquasshLauncher {
         
         for (int ch = 0; ch < iNumOfChannels; ch++) {
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
-            csv.Write(outFileName, getObjectsData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ObjectsData.ColumnConfig, shouldAppend);
-            addSavedFile(FileType.ObjectsData, outFileName);
+            if (csv.Write(outFileName, getObjectsData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ObjectsData.ColumnConfig, shouldAppend)) {
+                addSavedFile(FileType.ObjectsData, outFileName);
+            }
         }
     }
     
@@ -796,9 +797,10 @@ public class SquasshLauncher {
         boolean shouldAppend = aCurrentFrame != 0;
         for (ChannelPair cp : iAnalysisPairs) {
             Map<Integer, RegionColoc> regionsColoc = allColocs.get(cp).regionsColoc;
-            csv.Write(outFileName, getObjectsColoc(aTitle, aCurrentFrame, cp.ch1, cp.ch2, regionsColoc), ObjectsColoc.ColumnConfig, shouldAppend);
-            shouldAppend = true;
-            addSavedFile(FileType.ObjectsColoc, outFileName);
+            if (csv.Write(outFileName, getObjectsColoc(aTitle, aCurrentFrame, cp.ch1, cp.ch2, regionsColoc), ObjectsColoc.ColumnConfig, shouldAppend)) {
+                addSavedFile(FileType.ObjectsColoc, outFileName);
+                shouldAppend = true;
+            }
         }
     }
     
@@ -832,9 +834,10 @@ public class SquasshLauncher {
         for (ChannelPair cp : iAnalysisPairs) {
             ChannelColoc resAB = allColocs.get(cp).channelColoc;
             double[] pearsonResult = new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch1], iInputImages[cp.ch2], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run(); 
-            csv.Write(outFileName, getImageColoc(resAB, pearsonResult, aTitle, aCurrentFrame, cp.ch1, cp.ch2), ImageColoc.ColumnConfig, shouldAppend);
-            shouldAppend = true;
-            addSavedFile(FileType.ImageColoc, outFileName);
+            if (csv.Write(outFileName, getImageColoc(resAB, pearsonResult, aTitle, aCurrentFrame, cp.ch1, cp.ch2), ImageColoc.ColumnConfig, shouldAppend)) {
+                shouldAppend = true;
+                addSavedFile(FileType.ImageColoc, outFileName);
+            }
         }
     }
 
@@ -862,8 +865,9 @@ public class SquasshLauncher {
         
         for (int ch = 0; ch < iNumOfChannels; ch++) {
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
-            csv.Write(outFileName, getImagesData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ImageData.ColumnConfig, shouldAppend);
-            addSavedFile(FileType.ImagesData, outFileName);
+            if (csv.Write(outFileName, getImagesData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ImageData.ColumnConfig, shouldAppend)) {
+                addSavedFile(FileType.ImagesData, outFileName);
+            }
         }
     }
 }
