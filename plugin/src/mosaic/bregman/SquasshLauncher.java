@@ -752,7 +752,7 @@ public class SquasshLauncher {
     }
     
     private void writeObjectDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
-        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsDataNew, aOutFileName);
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsData, aOutFileName);
         final CSV<ObjectsData> csv = new CSV<ObjectsData>(ObjectsData.class);
         csv.setDelimiter(';');
         csv.setMetaInformation("background", aOutputPath + aTitle);
@@ -760,7 +760,7 @@ public class SquasshLauncher {
         for (int ch = 0; ch < iNumOfChannels; ch++) {
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
             csv.Write(outFileName, getObjectsData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ObjectsData.ColumnConfig, shouldAppend);
-            addSavedFile(FileType.ObjectsDataNew, outFileName);
+            addSavedFile(FileType.ObjectsData, outFileName);
         }
     }
     
@@ -788,7 +788,7 @@ public class SquasshLauncher {
     }
     
     private void writeObjectsColocCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ChannelPair, ColocResult> allColocs) {
-        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColocNew, aOutFileName);
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ObjectsColoc, aOutFileName);
         final CSV<ObjectsColoc> csv = new CSV<ObjectsColoc>(ObjectsColoc.class);
         csv.setDelimiter(';');
         csv.setMetaInformation("background", aOutputPath + aTitle);
@@ -798,7 +798,7 @@ public class SquasshLauncher {
             Map<Integer, RegionColoc> regionsColoc = allColocs.get(cp).regionsColoc;
             csv.Write(outFileName, getObjectsColoc(aTitle, aCurrentFrame, cp.ch1, cp.ch2, regionsColoc), ObjectsColoc.ColumnConfig, shouldAppend);
             shouldAppend = true;
-            addSavedFile(FileType.ObjectsColocNew, outFileName);
+            addSavedFile(FileType.ObjectsColoc, outFileName);
         }
     }
     
@@ -823,7 +823,7 @@ public class SquasshLauncher {
     }
 
     private void writeImageColoc(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame, Map<ChannelPair, ColocResult> allColocs) {
-        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColocNew, aOutFileName);
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImageColoc, aOutFileName);
         final CSV<ImageColoc> csv = new CSV<ImageColoc>(ImageColoc.class);
         csv.setDelimiter(';');
         csv.setMetaInformation("background", aOutputPath + aTitle);
@@ -834,7 +834,7 @@ public class SquasshLauncher {
             double[] pearsonResult = new SamplePearsonCorrelationCoefficient(iInputImages[cp.ch1], iInputImages[cp.ch2], iParameters.usecellmaskX, iParameters.thresholdcellmask, iParameters.usecellmaskY, iParameters.thresholdcellmasky).run(); 
             csv.Write(outFileName, getImageColoc(resAB, pearsonResult, aTitle, aCurrentFrame, cp.ch1, cp.ch2), ImageColoc.ColumnConfig, shouldAppend);
             shouldAppend = true;
-            addSavedFile(FileType.ImageColocNew, outFileName);
+            addSavedFile(FileType.ImageColoc, outFileName);
         }
     }
 
@@ -855,7 +855,7 @@ public class SquasshLauncher {
     }
     
     private void writeImageDataCsv(String aOutputPath, String aTitle, String aOutFileName, int aCurrentFrame) {
-        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesDataNew, aOutFileName);
+        String outFileName = aOutputPath + Files.createTitleWithExt(FileType.ImagesData, aOutFileName);
         final CSV<ImageData> csv = new CSV<ImageData>(ImageData.class);
         csv.setDelimiter(';');
         csv.setMetaInformation("background", aOutputPath + aTitle);
@@ -863,7 +863,7 @@ public class SquasshLauncher {
         for (int ch = 0; ch < iNumOfChannels; ch++) {
             boolean shouldAppend = !(aCurrentFrame == 0 && ch == 0);
             csv.Write(outFileName, getImagesData(iRegionsList.get(ch), aTitle, aCurrentFrame, ch), ImageData.ColumnConfig, shouldAppend);
-            addSavedFile(FileType.ImagesDataNew, outFileName);
+            addSavedFile(FileType.ImagesData, outFileName);
         }
     }
 }

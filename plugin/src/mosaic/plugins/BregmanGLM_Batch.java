@@ -179,9 +179,9 @@ public class BregmanGLM_Batch implements Segmentation {
             Files.moveFilesToOutputDirs(savedFiles, outputSaveDir);
 
             String titleNoExt = SysOps.removeExtension(iInputImage.getTitle());
-            objectsDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsDataNew, titleNoExt);
-            objectsColocFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsColocNew, titleNoExt);
-            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImageColocNew, titleNoExt);
+            objectsDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsData, titleNoExt);
+            objectsColocFile = outputSaveDir + Files.getMovedFilePath(FileType.ObjectsColoc, titleNoExt);
+            imagesDataFile = outputSaveDir + Files.getMovedFilePath(FileType.ImageColoc, titleNoExt);
         }
         else {
             final File inputFile = new File(aPathToFileOrDir);
@@ -226,9 +226,9 @@ public class BregmanGLM_Batch implements Segmentation {
                 titlePrefix = SysOps.removeExtension(inputFile.getName());
             }
             
-            objectsDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsDataNew, titlePrefix);
-            objectsColocFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsColocNew, titlePrefix);
-            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImageColocNew, titlePrefix);
+            objectsDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsData, titlePrefix);
+            objectsColocFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsColoc, titlePrefix);
+            imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImageColoc, titlePrefix);
         }
 
         runRscript(outputSaveDir, objectsDataFile, objectsColocFile, imagesDataFile, channelPairs);
@@ -405,9 +405,9 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         String titleNoExt = SysOps.removeExtension(aImp.getTitle());
-        return new String[] { Files.getMovedFilePath(FileType.ObjectsDataNew, titleNoExt),
+        return new String[] { Files.getMovedFilePath(FileType.ObjectsData, titleNoExt),
                               // This is produced if there is a stitch operation
-                              Files.createTitleWithExt(FileType.ObjectsDataNew, "stitch_") };
+                              Files.createTitleWithExt(FileType.ObjectsData, "stitch_") };
     }
     
     /**
