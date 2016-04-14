@@ -438,24 +438,29 @@ public class ImgUtils {
     public static String getImageAbsolutePath(ImagePlus aImage) {
         if (aImage != null) {
             FileInfo fi = aImage.getOriginalFileInfo();
-            if (fi!=null) {
-                if (fi.url!=null && !fi.url.equals(""))
+            if (fi != null) {
+                if (fi.url != null && !fi.url.equals(""))
                     return fi.url;
-                else if (fi.directory!=null && fi.fileName!=null)
+                else if (fi.directory != null && fi.fileName != null)
                     return fi.directory + fi.fileName;
             }
         }
         return null;
     }
     
-    public static String getStrInfo(ImagePlus aImage) {
-        final String title = aImage.getTitle();
-        final int ni = aImage.getWidth();
-        final int nj = aImage.getHeight();
-        final int nz = aImage.getNSlices();
-        final int numOfFrames = aImage.getNFrames();
-        final int numOfChannels = aImage.getNChannels();
-        return "Image title: [" + title + "] Dims(x/y/z): "+ ni + "/" + nj + "/" + nz + " NumOfFrames: " + numOfFrames + " NumOfChannels: " + numOfChannels;
+    enum Type { GRAY8, GRAY16, GRAY32, COLOR_256, COLOR_RGB }
+    /**
+     * @return String with information of provided image (dimensions/channels/frames)
+     */
+    public static String getImageInfo(ImagePlus aImage) {
+        
+        return "Image title: [" + aImage.getTitle() + "]" +
+               " Path: [" + getImageAbsolutePath(aImage) + "] " +
+               " Type: " + Type.values()[aImage.getType()] +
+               " BitDepth: " + aImage.getBitDepth() + 
+               " Dims(x/y/z): "+ aImage.getWidth() + "/" + aImage.getHeight() + "/" + aImage.getNSlices() + 
+               " NumOfFrames: " + aImage.getNFrames() + 
+               " NumOfChannels: " + aImage.getNChannels();
     }
 }
 
