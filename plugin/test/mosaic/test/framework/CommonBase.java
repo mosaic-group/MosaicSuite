@@ -337,7 +337,6 @@ public class CommonBase extends Info {
      * @param aFileName Fully qualified image name
      * @return ImagePlus
      */
-
     protected ImagePlus loadImagePlus(String aFileName)
     {
         return IJ.openImage(aFileName);
@@ -564,6 +563,15 @@ public class CommonBase extends Info {
                     assertEquals("Elements at [" + z + "][" + i + "][" + j + "] should be same", expected[z][i][j], result[z][i][j], 0.0f);
                 }
             }
+        }
+    }
+    
+    protected void sleep(int aMilliseconds) {
+        try {
+            Thread.sleep(aMilliseconds);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
     
