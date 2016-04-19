@@ -85,7 +85,7 @@ public class SSH extends SshSession {
         int to = output.out.lastIndexOf(stopStr);
         logger.trace("Indexes: " + from + " : " + to);
         from = (from < 0) ? 0 : from  + startStr.length();
-        to =  (to < 0) ? output.out.length() : to - 1;
+        to =  (to < 0) ? output.out.length() : to;
         logger.trace("Indexes: " + from + " : " + to);
         output.out = output.out.substring(from, to);
         
