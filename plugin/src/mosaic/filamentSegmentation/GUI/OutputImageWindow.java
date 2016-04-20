@@ -104,14 +104,21 @@ public class OutputImageWindow {
         int[] pixels = (int[]) aIp.getPixels();
         int w = aIp.getWidth(), h = aIp.getHeight();
         int color = 0;
-        if (aFilamentsForOneImg.getKey() == 0) color = 255 << 8;
-        else if (aFilamentsForOneImg.getKey() == 1) color = 255 << 0;
-        else if (aFilamentsForOneImg.getKey() == 2) color = 255 << 16;
+        if (iInputImg.getStack().getProcessor(1).getNChannels() != 1) {
+            // Create best color depending on channel (which is possibly RGB)
+            if (aFilamentsForOneImg.getKey() == 0) color = 255 << 8;
+            else if (aFilamentsForOneImg.getKey() == 1) color = 255 << 0;
+            else if (aFilamentsForOneImg.getKey() == 2) color = 255 << 16;
+        } 
+        else {
+            // gold-yellow in case of gray images
+            color = (255 << 16) + (193 << 8) + 37;
+        }
         for (int i = 0; i < coordinates.x.size(); ++i) {
             int xp = (int) (coordinates.x.get(i));
             int yp = (int) (coordinates.y.get(i));
             if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1) continue;
-            pixels[yp * w + xp] = pixels[yp * w + xp] | color;
+            pixels[yp * w + xp] = color;
         }
     }
 

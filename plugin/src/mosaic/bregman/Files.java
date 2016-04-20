@@ -47,10 +47,10 @@ public class Files {
         SoftMask("_soft_mask", "tiff", true, 1), 
         Colocalization("_coloc", "zip", false, 0), 
         Mask("_mask", "zip", true, 1), 
-        ImagesDataNew("_ImageData", "csv", false, 0),
-        ObjectsDataNew("_ObjectData", "csv", false, 0), 
-        ImageColocNew("_ImageColoc", "csv", false, 0),
-        ObjectsColocNew("_ObjectColoc", "csv", false, 0);
+        ImagesData("_ImageData", "csv", false, 0),
+        ObjectsData("_ObjectData", "csv", false, 0), 
+        ImageColoc("_ImageColoc", "csv", false, 0),
+        ObjectsColoc("_ObjectColoc", "csv", false, 0);
         
         private String baseName;
         private String ext;

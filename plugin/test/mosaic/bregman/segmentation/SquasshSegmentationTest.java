@@ -32,6 +32,7 @@ public class SquasshSegmentationTest extends CommonBase {
     public void test1ctrl2() {
 //        String path = "/Users/gonciarz/Documents/MOSAIC/work/repo/MosaicSuite/plugin/Jtest_data/Squassh/ScriptR/1 Ctrl 2.tif";
 //        ImagePlus ipl = loadImagePlus(path);
+//        System.out.println(ImgUtils.getImageInfo(ipl));
 //        ImagePlus ip = setupChannel(ipl, 1, 2);
 //        double[][][] img = ImgUtils.ImgToZXYarray(ip);
 //        MinMax<Double> mm = ImgUtils.findMinMax(ip);

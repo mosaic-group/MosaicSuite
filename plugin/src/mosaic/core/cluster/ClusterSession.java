@@ -115,10 +115,6 @@ public class ClusterSession {
             dispose = true;
         }
 
-//        wp.setFocusableWindowState(false);
-//        wp.setVisible(true);
-//        wp.setFocusableWindowState(false);
-
         nImages = img.getNFrames();
         final String tmp_dir = IJ.getDirectory("temp");
 
