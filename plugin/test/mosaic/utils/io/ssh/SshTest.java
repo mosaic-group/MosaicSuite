@@ -19,11 +19,12 @@ public class SshTest extends CommonBase {
      */
     @Test
     public void mixTest() {
-        String remoteDir = "/tmp/sshTest";
+        String userName = System.getProperty("user.name");
+        String remoteDir = "/tmp/sshTest_" + userName;
         
         try {
             // Connect
-            SSH ssh = new SSH("cherryphi-1.mpi-cbg.de", System.getProperty("user.name"), null, null);
+            SSH ssh = new SSH("cherryphi-1.mpi-cbg.de", userName, null, null);
             
             // Create some test files on remote system
             assertEquals(Result.SUCCESS, ssh.executeCommands("rm -rf " + remoteDir, "mkdir -p " + remoteDir, "cd " + remoteDir, "echo \"Hello world\" > test1.txt", "mkdir subDir", "echo \"Hello world!\" > subDir/test2.txt").cmdExecutionResult);
