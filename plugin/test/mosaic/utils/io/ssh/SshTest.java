@@ -54,11 +54,4 @@ public class SshTest extends CommonBase {
             fail();
         }
     }
-    
-    @Test
-    public void test() throws JSchException { 
-        SSH ssh = new SSH("cherryphi-1.mpi-cbg.de", System.getProperty("user.name"), null, null);
-        ssh.executeCommands("cat /etc/passwd");
-        ssh.close();
-    }
 }
