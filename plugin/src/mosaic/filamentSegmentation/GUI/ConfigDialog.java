@@ -160,7 +160,7 @@ public class ConfigDialog {
         
         gd.addMessage("\n");
         final String referenceInfo = "\"Automatic optimal filament segmentation with sub-pixel accuracy using generalized linear models and B-spline level-sets\",\n"+
-                            "Med. Image Anal., 32:157–172, 2016\n\n" +
+                            "Med. Image Anal., 32:157-172, 2016\n\n" +
                             "X. Xiao, V. F. Geyer, H. Bowne-Anderson,\n" +
                             "J. Howard, and I. F. Sbalzarini.";
         final Panel panel = new Panel();
