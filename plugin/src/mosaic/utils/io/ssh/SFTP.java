@@ -16,6 +16,14 @@ import mosaic.utils.SysOps;
 
 /**
  * SFTP util based on Jsch library. Handles uploading/downloading single and multiple files and directories.
+ * 
+ * Usage:
+ * 
+ * SFTP sftp = new SFTP("cherryphi-1.mpi-cbg.de", "userName", null, null);
+ * sftp.downloadDir("/local/directory", "/directory/to/be/downloaded");
+ * sftp.close()
+ * 
+ * 
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SFTP extends SshSession {
@@ -23,11 +31,23 @@ public class SFTP extends SshSession {
     
     ChannelSftp sftp;
     
+    /**
+     * SFTP
+     * @param aHostAddress address of the host to connect to
+     * @param aUserName username to login
+     * @param aPassword password, if null it will try to use auth ssh key
+     * @param aKeyPath path to auth key, if null it will use "~/.ssh/id_rsa" by default
+     * @throws JSchException
+     */
     public SFTP(String aHostAddress, String aUserName, String aPassword, String aKeyPath) throws JSchException {
         super(aHostAddress, aUserName, aPassword, aKeyPath);
         sftp = createSftpChannel();
     }
     
+    /**
+     * @param aSession existing session to be reused
+     * @throws JSchException
+     */
     public SFTP(Session aSession) throws JSchException {
         super(aSession);
         sftp = createSftpChannel();
@@ -119,6 +139,18 @@ public class SFTP extends SshSession {
      * @param aRemoteDirectory - remote directory from where files should be downloaded
      * @return true on success
      */
+    public boolean downloadDir(String aLocalDirectory, String aRemoteDirectory) {
+        return downloadDir(new File(aLocalDirectory), new File(aRemoteDirectory));
+    }
+    
+    /**
+     * Downloads all files (including directories) from aRemoteDirectory to aLocalDirectory.
+     * Notice: directory aRemoteDirectory is not crated locally, only all files inside this directory
+     * are downloaded and structure of this files and directories is preserved.
+     * @param aLocalDirectory - directory where files should be downloaded
+     * @param aRemoteDirectory - remote directory from where files should be downloaded
+     * @return true on success
+     */
     public boolean downloadDir(File aLocalDirectory, File aRemoteDirectory) {
         logger.info("Downloading directory [" + aRemoteDirectory + "] to [" + aLocalDirectory + "]");
         try {
@@ -166,6 +198,18 @@ public class SFTP extends SshSession {
         }
         
         return true;
+    }
+    
+    /**
+     * Uploads all files (including directories) from aLocalDirectory to aRemoteDirectory.
+     * Notice: directory aLocalDirectory is not created remotely, only all files inside this directory
+     * are uploaded and structure of this files and directories is preserved.
+     * @param aLocalDirectory - directory from where files should be uploaded
+     * @param aRemoteDirectory - remote directory where files should be uploaded
+     * @return true on success
+     */
+    public boolean uploadDir(String aLocalDirectory, String aRemoteDirectory) {
+        return uploadDir(new File(aLocalDirectory), new File(aRemoteDirectory));
     }
     
     /**

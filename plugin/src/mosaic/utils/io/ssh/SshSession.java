@@ -15,6 +15,7 @@ public class SshSession {
     
     private static final int SSH_PORT = 22;
     private static final int CONNECTION_TIMEOUT_MS = 60000;
+    private static final int CONNECTION_KEEP_ALIVE_MS = 2000;
     private JSch jsch;
     Session session;
     
@@ -52,7 +53,7 @@ public class SshSession {
             session = jsch.getSession(aUserName, aHostAddress, SSH_PORT);
             session.setPassword(aPassword);
         }
-
+        session.setServerAliveInterval(CONNECTION_KEEP_ALIVE_MS);
         final java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
         session.setConfig(config);

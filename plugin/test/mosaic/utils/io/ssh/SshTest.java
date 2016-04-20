@@ -31,18 +31,19 @@ public class SshTest extends CommonBase {
             
             // Download them
             SFTP sftp = new SFTP(ssh.getSession());
-            assertTrue(sftp.downloadDir(new File(getTestTmpPath()), new File(remoteDir)));
+            assertTrue(sftp.downloadDir(getTestTmpPath(), remoteDir));
             
             // Remove remote site
             assertEquals(Result.SUCCESS, ssh.executeCommands("rm -rf " + remoteDir + "/*").cmdExecutionResult);
             
             // Upload files back
-            assertTrue(sftp.uploadDir(new File(getTestTmpPath()), new File(remoteDir)));
+            assertTrue(sftp.uploadDir(getTestTmpPath(), remoteDir));
             
             // To verify upload just count files..
             SshOutput output = ssh.executeCommands("find " + remoteDir + " | wc | awk '{print $1}'");
             assertEquals(Result.SUCCESS, output.cmdExecutionResult);
-            assertEquals("4\r\n", output.out);
+            String cleanedOutput = output.out.replaceAll("\n", "").replaceAll("\r", "");
+            assertEquals("4", cleanedOutput);
             
             // Cleanup
             sftp.close();
@@ -52,5 +53,12 @@ public class SshTest extends CommonBase {
             e.printStackTrace();
             fail();
         }
+    }
+    
+    @Test
+    public void test() throws JSchException { 
+        SSH ssh = new SSH("cherryphi-1.mpi-cbg.de", System.getProperty("user.name"), null, null);
+        ssh.executeCommands("cat /etc/passwd");
+        ssh.close();
     }
 }

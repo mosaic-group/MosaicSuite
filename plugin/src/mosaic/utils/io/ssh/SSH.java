@@ -13,6 +13,13 @@ import mosaic.utils.io.ssh.SSH.SshOutput.Result;
 /**
  * SSH util based on Jsch library. 
  * Handles command(s) execution on remote system.
+ * 
+ * Usage:
+ * 
+ *    SSH ssh = new SSH("cherryphi-1.mpi-cbg.de", System.getProperty("user.name"), null, null);
+ *    System.out.println(ssh.executeCommands("date"));
+ *    ssh.close();
+ *       
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SSH extends SshSession {
@@ -20,10 +27,22 @@ public class SSH extends SshSession {
     
     private static final int CMD_EXECUTION_TIMEOUT_MS = 10000;
 
+    /**
+     * SSH
+     * @param aHostAddress address of the host to connect to
+     * @param aUserName username to login
+     * @param aPassword password, if null it will try to use auth ssh key
+     * @param aKeyPath path to auth key, if null it will use "~/.ssh/id_rsa" by default
+     * @throws JSchException
+     */
     public SSH(String aHostAddress, String aUserName, String aPassword, String aKeyPath) throws JSchException {
         super(aHostAddress, aUserName, aPassword, aKeyPath);
     }
     
+    /**
+     * @param aSession existing session to be reused
+     * @throws JSchException
+     */
     public SSH(Session aSession) throws JSchException {
         super(aSession);
     }
@@ -45,10 +64,9 @@ public class SSH extends SshSession {
         
         @Override
         public String toString() {
-            return "Result=" + cmdExecutionResult + 
-                    " CmdErrCode=" + cmdErrorCode + 
-                    "\nOut=[\n" + out + "]" +
-                    "\nErr=[\n" + err + "]";
+            return "Result=" + cmdExecutionResult + " CmdErrCode=" + cmdErrorCode + 
+                    (out.length() != 0 ? ("\n------------- Out -------------\n" + out + "\n-------------------------------") : "") +
+                    (err.length() != 0 ? ("\n------------- Err -------------\n" + err + "\n-------------------------------") : "");
         }
     }
 
@@ -56,7 +74,7 @@ public class SSH extends SshSession {
         StringBuilder sb = new StringBuilder();
         for (String cmd : aCommands) {
             sb.append(cmd);
-            sb.append(";\n");
+            sb.append("; ");
         }
         return executeTaggedCommand(sb.toString(), session);
     }
@@ -73,21 +91,16 @@ public class SSH extends SshSession {
         
         // Add tags in begin end end of all commands
         final String startStr = "---START_CMD_OUTPUT_TAG---";
-        final String stopStr =  "---STOP_CMD_OUTPUT_TAG---";
         
-        String cmds = "echo -n \"" + startStr + "\"; " +
-                      aCommandStr +
-                      "echo -n \"" + stopStr + "\"; ";
+        String cmds = "echo -n \"" + startStr + "\"; " + aCommandStr;
         SshOutput output = executeCommand(cmds, aSshSession);
         
         // Leave only output from between tags 
         int from = output.out.indexOf(startStr);
-        int to = output.out.lastIndexOf(stopStr);
-        logger.trace("Indexes: " + from + " : " + to);
+        logger.trace("Index: " + from);
         from = (from < 0) ? 0 : from  + startStr.length();
-        to =  (to < 0) ? output.out.length() : to;
-        logger.trace("Indexes: " + from + " : " + to);
-        output.out = output.out.substring(from, to);
+        logger.trace("Index: " + from);
+        output.out = output.out.substring(from);
         
         logger.debug(output);
         
@@ -97,7 +110,7 @@ public class SSH extends SshSession {
     private SshOutput executeCommand(String command, Session session) {
         Result success = Result.ERROR;
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final ByteArrayOutputStream errout = new ByteArrayOutputStream();
+        final ByteArrayOutputStream errOut = new ByteArrayOutputStream();
         int errCode = -1234;
         
         logger.trace("Executing command: [" + command + "]");
@@ -107,7 +120,10 @@ public class SSH extends SshSession {
             channel.setCommand(command);
             channel.setOutputStream(out);
             channel.setExtOutputStream(out);
-            channel.setErrStream(errout);
+            channel.setErrStream(errOut);
+            // Setting terminal to true breaks commands execution due to connection break which is good.
+            // Unfortunately it seems that some error output goes to stdout instead of stderr. But still
+            // having advantage of auto-cleaning up is much bigger than other stuff.
             channel.setPty(true);
             channel.connect();
             
@@ -156,7 +172,7 @@ public class SSH extends SshSession {
         
         SshOutput result =  new SshOutput(success, 
                              out.toString().replaceAll(removeColorInfo, ""),
-                             errout.toString().replaceAll(removeColorInfo, ""),
+                             errOut.toString().replaceAll(removeColorInfo, ""),
                              errCode);
         logger.trace(result);
         
