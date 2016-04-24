@@ -567,4 +567,13 @@ public class CommonBase extends Info {
         }
     }
     
+    static protected void sleep(int aMilliseconds) {
+        try {
+            Thread.sleep(aMilliseconds);
+        }
+        catch (InterruptedException e) {
+            // Nothing to do
+        }
+    }
+    
 }
