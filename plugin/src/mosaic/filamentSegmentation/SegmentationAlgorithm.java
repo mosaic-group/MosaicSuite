@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ij.ImagePlus;
+import ij.process.FloatProcessor;
 import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.utils.ArrayOps;
@@ -258,7 +260,14 @@ public class SegmentationAlgorithm {
         final Matrix mk = aResultOfthresholdFuzzyVLS.iopt_MK;
         // thresholded mask
         final Matrix H_f = aResultOfthresholdFuzzyVLS.iH_f;
-
+        
+        // Show mask. Uncomment for debug purposes:
+        // --------
+        FloatProcessor floatProcessor = new FloatProcessor(iOriginalWidth, iOriginalHeight);
+        ImgUtils.YX2DarrayToImg(mk.getArrayYX(), floatProcessor, 1.0);
+        new ImagePlus("Mask", floatProcessor).show();
+        // --------
+        
         // Find all possible location of filaments
         final Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /* 8-connected */);
         final int nComp = cc.size();

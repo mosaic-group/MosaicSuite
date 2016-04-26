@@ -22,7 +22,7 @@ public class CubicSmoothingSpline {
      * @param aYvalues y-values corresponding to x-values (aXvalues nad aValues must be same size)
      * @param aSmoothingParameter - smoothing parameter in range (0, 1]. For 1 it produces exact interpolation.
      */
-    CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
         this(aXvalues, aYvalues, aSmoothingParameter, null);
     }
 
