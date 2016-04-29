@@ -94,7 +94,10 @@
             <zipgroupfileset dir="lib" includes="super-csv-dozer-2.4.0.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="jgeom-core.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="cmaes_java.jar" excludes="*.config" />
-            
+            <zipfileset src="lib/vecmath-1.5.2.jar">
+                <exclude name="META-INF/*" />
+            </zipfileset>
+
             <manifest>
                 <attribute name="Built-By" value="${name}" />
             </manifest>
