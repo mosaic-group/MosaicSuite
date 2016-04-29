@@ -5,15 +5,22 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
+import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.UndirectedGraph;
+import org.jgrapht.WeightedGraph;
+import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.alg.KruskalMinimumSpanningTree;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.graph.SimpleWeightedGraph;
 import org.junit.Test;
 
 import Skeletonize3D_.Skeletonize3D_;
@@ -39,17 +46,82 @@ import mosaic.utils.math.Matrix.MFunc;
 
 
 public class newFilamentsTest extends CommonBase {
-
+    private static final Logger logger = Logger.getLogger(newFilamentsTest.class);
     @Test
     public void testGraph() {
-        Matrix img = new Matrix(new double[][] { { 0, 1, 1, 0, 0 }, { 0, 0, 1, 1, 0 }, { 0, 1, 0, 1, 0 }, { 0, 0, 0, 1, 1 } });
-        runMst(img);
+        Matrix img = new Matrix(new double[][] { { 0, 1, 1, 0, 0 }, 
+                                                 { 0, 0, 0, 1, 0 }, 
+                                                 { 0, 1, 1, 1, 0 }, 
+                                                 { 0, 0, 0, 1, 1 } });
+        
+        List<List<Integer>> conn = findAllElementsOfObject(img, true);
+        logger.debug(conn);
+        UndirectedGraph<Vertex, DefaultEdge> g = new SimpleGraph<>(DefaultEdge.class);
 
+        for (int i = 0; i < conn.size(); ++i) {
+            int idx = conn.get(i).get(0);
+            Vertex v = new Vertex(idx);
+            g.addVertex(v);
+
+            for (int z = 1; z < conn.get(i).size(); z++) {
+                int idxz = conn.get(i).get(z);
+                Vertex vz = new Vertex(idxz);
+                g.addVertex(vz);
+                g.addEdge(v, vz);
+                logger.debug(v + "  ---  " + vz);
+            }
+        }
+
+        logger.debug("FULL: " + g);
+         KruskalMinimumSpanningTree<Vertex, DefaultEdge> mst = new KruskalMinimumSpanningTree<>(g);
+         UndirectedGraph<Vertex, DefaultEdge> gMst = new SimpleGraph<>(DefaultEdge.class);
+         for (Vertex v : g.vertexSet()) gMst.addVertex(v);
+         for (DefaultEdge e : mst.getEdgeSet()) gMst.addEdge(g.getEdgeSource(e), g.getEdgeTarget(e));
+
+         logger.debug(" MST: " + gMst);
+         gMst = g;
+         WeightedGraph<Vertex, DefaultWeightedEdge> gs = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+         for (Vertex v : gMst.vertexSet()) gs.addVertex(v);
+         for (DefaultEdge e : gMst.edgeSet()) {
+             DefaultWeightedEdge edge = gs.addEdge(gMst.getEdgeSource(e), gMst.getEdgeTarget(e));
+             gs.setEdgeWeight(edge, 1);
+         }
+         boolean done = false;
+         while (!done) {
+             done = true;
+             for (Vertex v  : gs.vertexSet()) {
+                 Set<DefaultWeightedEdge> edges = gs.edgesOf(v);
+                 logger.debug("Processing v: " + v);
+                 if (edges.size() == 2) {
+                     DefaultWeightedEdge[] e = edges.toArray(new DefaultWeightedEdge[0]);
+                     double w1 = gs.getEdgeWeight(e[0]);
+                     double w2 = gs.getEdgeWeight(e[1]);
+                     Vertex es1 = gs.getEdgeSource(e[0]);
+                     Vertex et1 = gs.getEdgeTarget(e[0]);
+                     Vertex es2 = gs.getEdgeSource(e[1]);
+                     Vertex et2 = gs.getEdgeTarget(e[1]);
+                     Vertex ns = (es1.equals(v)) ? et1 : es1;
+                     Vertex nt = (es2.equals(v)) ? et2 : es2;
+                     if (gs.getEdge(ns, nt) != null) continue;
+                     gs.removeVertex(v);
+                     DefaultWeightedEdge newEdge = gs.addEdge(ns, nt);
+                     gs.setEdgeWeight(newEdge, w1 + w2);
+                     done = false;
+                     break;
+                 }
+             }
+             
+         }
+         logger.debug(" RED: " + gs);
+         for (DefaultWeightedEdge edge : gs.edgeSet()) {
+         logger.debug(edge + " " + gs.getEdgeWeight(edge));
+         }
+         FloydWarshallShortestPaths<Vertex, DefaultWeightedEdge> paths = new FloydWarshallShortestPaths<>(gs);
     }
 
-    static public class MstResult {
+    static public class Result {
 
-        MstResult(Matrix aM, UndirectedGraph<Vertex, DefaultEdge> aG, GraphPath<Vertex, DefaultEdge> aP) {
+        Result(Matrix aM, UndirectedGraph<Vertex, DefaultEdge> aG, GraphPath<Vertex, DefaultEdge> aP) {
             m = aM;
             graph = aG;
             path = aP;
@@ -60,7 +132,7 @@ public class newFilamentsTest extends CommonBase {
         GraphPath<Vertex, DefaultEdge> path;
     }
 
-    private MstResult runMst(Matrix aImageMatrix) {
+    private Result runLongestShortestPaths(Matrix aImageMatrix) {
         List<List<Integer>> conn = findAllElementsOfObject(aImageMatrix, true);
         UndirectedGraph<Vertex, DefaultEdge> g = new SimpleGraph<>(DefaultEdge.class);
 
@@ -77,49 +149,132 @@ public class newFilamentsTest extends CommonBase {
             }
         }
 
-        // KruskalMinimumSpanningTree<Vertex, DefaultEdge> mst = new KruskalMinimumSpanningTree<>(g);
-        // UndirectedGraph<Vertex, DefaultEdge> gMst = new SimpleGraph<>(DefaultEdge.class);
-        // for (Vertex v : g.vertexSet()) gMst.addVertex(v);
-        // for (DefaultEdge e : mst.getEdgeSet()) gMst.addEdge(g.getEdgeSource(e), g.getEdgeTarget(e));
+         KruskalMinimumSpanningTree<Vertex, DefaultEdge> mst = new KruskalMinimumSpanningTree<>(g);
+         UndirectedGraph<Vertex, DefaultEdge> gMst = new SimpleGraph<>(DefaultEdge.class);
+         for (Vertex v : g.vertexSet()) gMst.addVertex(v);
+         for (DefaultEdge e : mst.getEdgeSet()) gMst.addEdge(g.getEdgeSource(e), g.getEdgeTarget(e));
 
-        UndirectedGraph<Vertex, DefaultEdge> gMst = g;
+         
+//         graphShow(g.vertexSet(), w, h, "G");
+//         graphShow(gMst.vertexSet(), w, h, "GMST");
+         
+//        UndirectedGraph<Vertex, DefaultEdge> 
+        gMst = g;
 
-        FloydWarshallShortestPaths<Vertex, DefaultEdge> paths = new FloydWarshallShortestPaths<>(gMst);
-        GraphPath<Vertex, DefaultEdge> path = findLongestPath(gMst.vertexSet().iterator().next(), paths);
+        GraphPath<Vertex, DefaultEdge> path = findPathBoosted(gMst);
+//        GraphPath<Vertex, DefaultEdge> path = findPath(gMst);
+        
         Matrix result = aImageMatrix.copy().zeros();
-        if (path == null) return new MstResult(result, null, null);
+        if (path == null) return new Result(result, null, null);
         for (DefaultEdge e : path.getEdgeList()) {
             result.set(gMst.getEdgeSource(e).x, 255);
             result.set(gMst.getEdgeTarget(e).x, 255);
         }
 
-        return new MstResult(result, gMst, path);
+        return new Result(result, gMst, path);
+    }
+    
+    private void graphShow(Set<Vertex> aVertex, int w, int h, String aTitle) {
+        
+        Matrix result = new Matrix(h, w);
+        for (Vertex v : aVertex) {
+            result.set(v.x, 255);
+        }
+        
+        matrixToImage(result, aTitle);
+    }
+    
+    private GraphPath<Vertex, DefaultEdge> findPath(UndirectedGraph<Vertex, DefaultEdge> gMst) {
+        FloydWarshallShortestPaths<Vertex, DefaultEdge> paths = new FloydWarshallShortestPaths<>(gMst);
+        GraphPath<Vertex, DefaultEdge> path = findLongestPath(gMst.vertexSet().iterator().next(), paths);
+        
+        return path;
+    }
+    
+    private GraphPath<Vertex, DefaultEdge> findPathBoosted(UndirectedGraph<Vertex, DefaultEdge> gMst) {
+        WeightedGraph<Vertex, DefaultWeightedEdge> gs = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+        for (Vertex v : gMst.vertexSet()) gs.addVertex(v);
+        for (DefaultEdge e : gMst.edgeSet()) {
+            DefaultWeightedEdge edge = gs.addEdge(gMst.getEdgeSource(e), gMst.getEdgeTarget(e));
+            gs.setEdgeWeight(edge, 1);
+        }
+        boolean done = false;
+        while (!done) {
+            done = true;
+            for (Vertex v  : gs.vertexSet()) {
+                Set<DefaultWeightedEdge> edges = gs.edgesOf(v);
+                if (edges.size() == 2) {
+                    DefaultWeightedEdge[] e = edges.toArray(new DefaultWeightedEdge[0]);
+                    double w1 = gs.getEdgeWeight(e[0]);
+                    double w2 = gs.getEdgeWeight(e[1]);
+                    Vertex es1 = gs.getEdgeSource(e[0]);
+                    Vertex et1 = gs.getEdgeTarget(e[0]);
+                    Vertex es2 = gs.getEdgeSource(e[1]);
+                    Vertex et2 = gs.getEdgeTarget(e[1]);
+                    Vertex ns = (es1.equals(v)) ? et1 : es1;
+                    Vertex nt = (es2.equals(v)) ? et2 : es2;
+                    if (gs.getEdge(ns, nt) != null) continue;
+                    gs.removeVertex(v);
+                    DefaultWeightedEdge newEdge = gs.addEdge(ns, nt);
+                    gs.setEdgeWeight(newEdge, w1 + w2);
+                    done = false;
+                    break;
+                }
+            }
+        }
+        
+//        graphShow(gs.vertexSet(), w, h, "GS");
+        
+        for (DefaultWeightedEdge edge : gs.edgeSet()) {
+            logger.debug(edge + " " + gs.getEdgeWeight(edge));
+        }
+        
+        FloydWarshallShortestPaths<Vertex, DefaultWeightedEdge> paths = new FloydWarshallShortestPaths<>(gs);
+        GraphPath<Vertex, DefaultWeightedEdge> path = findLongestPath(gs.vertexSet().iterator().next(), paths);
+        if (path == null) return null;
+        DijkstraShortestPath<Vertex, DefaultEdge> dijkstraShortestPath = new DijkstraShortestPath<>(gMst, path.getStartVertex(), path.getEndVertex());
+        
+        return dijkstraShortestPath.getPath();
     }
 
-    private GraphPath<Vertex, DefaultEdge> findLongestPath(Vertex v, FloydWarshallShortestPaths<Vertex, DefaultEdge> paths) {
-        List<GraphPath<Vertex, DefaultEdge>> sp = paths.getShortestPaths(v);
+    private <E, T extends DefaultEdge> GraphPath<E, T> findLongestPath(E v, FloydWarshallShortestPaths<E, T> paths) {
+        List<GraphPath<E, T>> sp = paths.getShortestPaths(v);
+        
         double len = 0;
-        Vertex end = null;
-        for (GraphPath<Vertex, DefaultEdge> p : sp) {
-            if (p.getWeight() > len) {
-                len = p.getWeight();
+        E end = null;
+        for (GraphPath<E, T> p : sp) {
+            double w = getPathWeight(p);
+            if (w > len) {
+                len = w;
                 end = p.getEndVertex();
             }
         }
-        List<GraphPath<Vertex, DefaultEdge>> sp2 = paths.getShortestPaths(end);
+        List<GraphPath<E, T>> sp2 = paths.getShortestPaths(end);
         len = 0;
-        Vertex end2 = null;
-        GraphPath<Vertex, DefaultEdge> plongest = null;
-        for (GraphPath<Vertex, DefaultEdge> p : sp2) {
-            if (p.getWeight() > len) {
-                len = p.getWeight();
+        E end2 = null;
+        GraphPath<E, T> plongest = null;
+        for (GraphPath<E, T> p : sp2) {
+            double w = getPathWeight(p);
+            if (w > len) {
+                len = w;
                 end2 = p.getEndVertex();
                 plongest = p;
             }
         }
-        System.out.println(len + " " + end + ":" + end2);
-        System.out.println(plongest);
+        logger.debug("Longest path from shortest: " + len + " " + end + ":" + end2);
+        logger.debug(plongest);
         return plongest;
+    }
+    
+     <E, T extends DefaultEdge> double getPathWeight(GraphPath<E, T> p) {
+        double sum = 0;
+        
+        List<T> edgeList = p.getEdgeList();
+        Graph<E, T> graph = p.getGraph();
+        
+        for (T e : edgeList) sum += graph.getEdgeWeight(e);
+        
+        return sum;
     }
 
     static class Vertex {
@@ -225,42 +380,46 @@ public class newFilamentsTest extends CommonBase {
 
         return elements;
     }
+    int w;
+    int h;
 
     @Test
     public void fil() {
         // Input file
         String input = null;
-        input = "/Users/gonciarz/test/zyx.tif";
-        input = "/Users/gonciarz/test/xyz.tif";
         input = "/Users/gonciarz/test/short.tif";
-        input = "/Users/gonciarz/test/test.tif";
-        input = "/Users/gonciarz/test/Crop_12-12.tif";
-        input = "/Users/gonciarz/test/multi.tif";
-        input = "/Users/gonciarz/test/cross.tif";
-        input = "/Users/gonciarz/test/DF_5.tif";
-        input = "/Users/gonciarz/test/Crop44.tif";
-        input = "/Users/gonciarz/test/sample.jpg";
-        input = "/Users/gonciarz/test/spiral.tif";
-        input = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/filamentsTest.tif";
-        input = "/Users/gonciarz/test/many.tif";
-        input = "/Users/gonciarz/test/maskFila.tif";
         input = "/Users/gonciarz/test/elispe.tif";
-        boolean toBeSegmented = false;
+        input = "/Users/gonciarz/test/Crop44.tif";
+        input = "/Users/gonciarz/test/DF_5.tif";
+        input = "/Users/gonciarz/test/xyz.tif";
+        input = "/Users/gonciarz/test/test.tif";
+        input = "/Users/gonciarz/test/zyx.tif";
+        input = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/filamentsTest.tif";
+        input = "/Users/gonciarz/test/cross.tif";
+        input = "/Users/gonciarz/test/multi.tif";
+        input = "/Users/gonciarz/test/spiral.tif";
+        input = "/Users/gonciarz/test/maskFila.tif";
+        input = "/Users/gonciarz/test/single.tif";
+        input = "/Users/gonciarz/test/Crop_12-12.tif";
+        input = "/Users/gonciarz/test/many.tif";
+        input = "/Users/gonciarz/test/longlong.tif";
+        input = "/Users/gonciarz/test/sample.jpg";
+        boolean toBeSegmented = true;
 
         // Load input
         ImagePlus ip4 = loadImagePlus(input);
         ip4.setTitle("INPUT");
         ip4.show();
 
-        final int w = ip4.getWidth();
-        final int h = ip4.getHeight();
+        w = ip4.getWidth();
+        h = ip4.getHeight();
 
         // Input is to be segmented or ready mask?
         ImagePlus ip1 = toBeSegmented ? runSquassh(ip4) : ip4.duplicate();
 
         // Remove holes
         ip1 = binarizeImage(ip1);
-        // ip1 = removeHoles(ip1);
+//         ip1 = removeHoles(ip1);
 
         // Run distance transfrom
         // ImagePlus dist = runDistanceTransform(ip1.duplicate());
@@ -284,30 +443,32 @@ public class newFilamentsTest extends CommonBase {
             final double[][] img2 = new double[h][w];
             ImgUtils.ImgToYX2Darray(bp.convertToFloatProcessor(), img2, 1.0);
             Matrix skelMatrix = new Matrix(img2);
-
+            logger.info("Longest...");
             // Create graph
             // Do some operations on graph
             // create image from graph
-            MstResult result = runMst(skelMatrix);
+            Result result = runLongestShortestPaths(skelMatrix);
             mm[i] = result.m;
-
+            logger.info("Splines...");
             // GENERATE SPLINES
             GraphPath<Vertex, DefaultEdge> path = result.path;
             if (path == null) continue;
             int len = path.getEdgeList().size();
-            System.out.println("LENGHT: " + len);
-            int max = 20;
+            logger.debug("LENGHT: " + len);
+            int max = len/5;
             double step = (double) len / (max);
             if (step < 1) step = 1;
             List<Integer> pts = new ArrayList<Integer>();
             pts.add(path.getStartVertex().x);
             List<DefaultEdge> edgeList = path.getEdgeList();
+            logger.debug("STEP: " + step);
             for (double currentIdx = 0; currentIdx < edgeList.size(); currentIdx += step) {
                 if (currentIdx == 0) continue;
                 pts.add(result.graph.getEdgeTarget(edgeList.get((int) currentIdx)).x);
+                
             }
             pts.add(path.getEndVertex().x);
-
+            logger.debug("NUMOF: " + pts.size());
             final List<Double> xv = new ArrayList<Double>();
             final List<Double> yv = new ArrayList<Double>();
             final List<Double> tv = new ArrayList<Double>();
@@ -325,25 +486,59 @@ public class newFilamentsTest extends CommonBase {
             final double[] yz = ConvertArray.toDouble(yv);
             final double[] tz = ConvertArray.toDouble(tv);
             mosaic.utils.Debug.print(xz, yz, tz);
-            System.out.println("INDEX: " + i);
-            double smoothing = 0.5;
-            final CubicSmoothingSpline cssX = new CubicSmoothingSpline(tz, xz, smoothing);
-            final CubicSmoothingSpline cssY = new CubicSmoothingSpline(tz, yz, smoothing);
-            // mosaic.utils.Debug.print(cssX, cssY, css);
-            CSS cssOut = new CSS();
-            cssOut.cssX = cssX;
-            cssOut.cssY = cssY;
-            css.add(cssOut);
+            logger.debug("INDEX: " + i);
+            
+            CSS cssResult = calcSplines(xz, yz, tz);
+            css.add(cssResult);
         }
 
         // Merge results and show them
         Matrix out = mergeMatrices(mm);
-        FloatProcessor floatProcessor = matrixToImage(w, h, out);
+        FloatProcessor floatProcessor = matrixToImage(out, "Matrix Image");
         ImagePlus xyz = showFilamentsOnInputImage(input, w, h, floatProcessor);
         draw(xyz, css);
         sleep(25000);
     }
 
+    private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz) {
+        double maxErr = 1;
+        CubicSmoothingSpline cssX = null;
+        CubicSmoothingSpline cssY = null;
+        if (xz.length == 2) {
+            // No fitting needed for just two points. Fit the (almost) straight regression line.
+            cssX = new CubicSmoothingSpline(tz, xz, 1e-15);
+            cssY = new CubicSmoothingSpline(tz, yz, 1e-15);
+        }else {
+            int step = 1;
+            double direction = 1;
+            double p = 0;
+            while (step < 50) {
+                p += direction * 1.0/Math.pow(2, step);
+                logger.debug("Current P: " + p + " step: " + step);
+                cssX = new CubicSmoothingSpline(tz, xz, p);
+                cssY = new CubicSmoothingSpline(tz, yz, p);
+
+                double max = 0;
+                for (int i = 0; i < tz.length; i++) {
+                    double xv = cssX.getValue(tz[i]);
+                    double yv = cssY.getValue(tz[i]);
+                    xv = Math.abs(xv - xz[i]);
+                    yv = Math.abs(yv - yz[i]);
+                    if (max < xv) max = xv; if (max < yv) max = yv;
+                    if (max > maxErr) break;
+                }
+                if (max > 0.5 * maxErr && max <= maxErr) { logger.info("FOUND!");break;};
+                direction = (max <= maxErr) ? -1 : 1;
+                step += 1;
+            }
+        }
+        CSS cssOut = new CSS();
+        cssOut.cssX = cssX;
+        cssOut.cssY = cssY;
+        
+        return cssOut;
+    }
+    
     static class CSS {
 
         CubicSmoothingSpline cssX;
@@ -364,10 +559,11 @@ public class newFilamentsTest extends CommonBase {
     static public FilamentXyCoordinates generateXyCoordinatesForFilament(final CubicSmoothingSpline cssX, final CubicSmoothingSpline cssY) {
         // Generate x,y coordinates for current filament
 
-        double start = cssX.getKnot(0) - 10;
-        double stop = cssX.getKnot(cssX.getNumberOfKNots() - 1) + 10;
+        double start = cssX.getKnot(0) - 0;
+        double stop = cssX.getKnot(cssX.getNumberOfKNots() - 1) + 0;
         mosaic.utils.Debug.print("ST/ST", start, stop);
-        final Matrix t = Matlab.linspace(start, stop, 100);
+        logger.debug("NUM OF POINTS BSPLINE: "  + cssX.getNumberOfKNots() * 2);
+        final Matrix t = Matlab.linspace(start, stop, cssX.getNumberOfKNots() * 2);
         Matrix x = t.copy().process(new MFunc() {
 
             @Override
@@ -405,7 +601,7 @@ public class newFilamentsTest extends CommonBase {
 
         // for every image take all filaments
         for (CSS css : cssd) {
-            System.out.println("Drawing....");
+            logger.debug("Drawing....");
             FilamentXyCoordinates coordinates = generateAdjustedXyCoordinatesForFilament(css);
             drawFilamentsOnOverlay(overlay, 0, coordinates);
         }
@@ -432,8 +628,8 @@ public class newFilamentsTest extends CommonBase {
         Skeletonize3D_ skel = new Skeletonize3D_();
         skel.setup("", skeleton);
         skel.run(skeleton.getProcessor());
-        ImagePlus skelImg = new ImagePlus("Skeleton", bp);
-        skelImg.show();
+//        ImagePlus skelImg = new ImagePlus("Skeleton", bp);
+//        skelImg.show();
         return bp;
     }
 
@@ -451,7 +647,7 @@ public class newFilamentsTest extends CommonBase {
         SortedSet<Double> sortedSet = new TreeSet<Double>();
         for (double d : data)
             sortedSet.add(d);
-        System.out.println(sortedSet.size() + " " + sortedSet.first() + " " + sortedSet.last());
+        logger.debug(sortedSet.size() + " " + sortedSet.first() + " " + sortedSet.last());
 
         // find max threshold
         double previous = sortedSet.first();
@@ -459,7 +655,7 @@ public class newFilamentsTest extends CommonBase {
         if (!aOnlyRegionized) for (double th : sortedSet) {
             Matrix l = Matlab.logical(m, th);
             Map<Integer, List<Integer>> c = Matlab.bwconncomp(l, true);
-            System.out.println(th + " " + c.size() + " " + c.keySet());
+            logger.debug(th + " " + c.size() + " " + c.keySet());
             if (c.size() == 1) {
                 previous = th;
                 best = l;
@@ -467,7 +663,7 @@ public class newFilamentsTest extends CommonBase {
             else
                 break;
         }
-        System.out.println("MAX th: " + previous);
+        logger.debug("MAX th: " + previous);
         return best;
     }
 
@@ -486,12 +682,11 @@ public class newFilamentsTest extends CommonBase {
         return xyz;
     }
 
-    private FloatProcessor matrixToImage(final int w, final int h, Matrix aImageMatrix) {
+    private FloatProcessor matrixToImage(Matrix aImageMatrix, String aTitle) {
         final double[][] result = aImageMatrix.getArrayYX();
-        FloatProcessor floatProcessor = new FloatProcessor(w, h);
-        ImagePlus ipout = new ImagePlus("Output", floatProcessor);
+        FloatProcessor floatProcessor = new FloatProcessor(result[0].length, result.length);
+        ImagePlus ipout = new ImagePlus(aTitle, floatProcessor);
         ImgUtils.YX2DarrayToImg(result, floatProcessor, 1.0);
-        ipout.setTitle("Matrix Image");
         ipout.show();
         return floatProcessor;
     }
@@ -506,7 +701,7 @@ public class newFilamentsTest extends CommonBase {
     private Matrix[] createSeperateMatrixForEachRegion(final Matrix aImageMatrix) {
         Matrix logical = Matlab.logical(aImageMatrix, 0);
         Map<Integer, List<Integer>> cc = Matlab.bwconncomp(logical, true);
-        System.out.println("Connected components " + cc.size());
+        logger.debug("Connected components " + cc.size());
 
         // Create sepreate matrix for each connected component
         Matrix[] mm = new Matrix[cc.size()];
