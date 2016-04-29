@@ -147,7 +147,7 @@ public class SegmentationProcessWindow {
         final boolean wasLastFrame = lastFrame == stackImPlus.getDimensions()[4];
 
         for (int i = 1; i <= stackslice.getSize(); i++) {
-            iStack.addSlice(title + i, stackslice.getProcessor(i));
+            iStack.addSlice(title, stackslice.getProcessor(i));
         }
 
         final int total = iStack.getSize();
