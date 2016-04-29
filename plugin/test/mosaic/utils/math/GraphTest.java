@@ -13,7 +13,7 @@ import mosaic.utils.math.Graph.Vertex;
 public class GraphTest {
 
     @Test
-    public void testSimplifySimipleUndirectedGraph() {
+    public void testSimplifySimipleUndirectedGraphTree() {
         int num = 6;
         Vertex[] v = new Vertex[num];
         for (int i = 0; i < v.length; i++) v[i] = new Vertex(new String(new char[]{(char) ('A' + i)}));
@@ -39,7 +39,7 @@ public class GraphTest {
     }
     
     @Test
-    public void testSimplifySimipleUndirectedGraph2() {
+    public void testSimplifySimipleUndirectedGraphLoop() {
         int num = 8;
         Vertex[] v = new Vertex[num];
         for (int i = 0; i < v.length; i++) v[i] = new Vertex(new String(new char[]{(char) ('A' + i)}));
@@ -61,9 +61,9 @@ public class GraphTest {
         WeightedGraph<Object, DefaultWeightedEdge> simpleGraph = Graph.simplifySimipleUndirectedGraph(graph);
         
         // Expected (B,C removed):
-        // A --- D --- E
-        //       |
-        //       F
+        // A --- D --- G
+        //        \   /
+        //          H
         System.out.println(simpleGraph);
         for (DefaultWeightedEdge edge : simpleGraph.edgeSet()) {
         System.out.println(edge + " " +simpleGraph.getEdgeWeight(edge));
