@@ -16,11 +16,8 @@ import org.jgrapht.UndirectedGraph;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.alg.FloydWarshallShortestPaths;
-import org.jgrapht.alg.KruskalMinimumSpanningTree;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleGraph;
-import org.jgrapht.graph.SimpleWeightedGraph;
 import org.junit.Test;
 
 import Skeletonize3D_.Skeletonize3D_;
@@ -104,20 +101,21 @@ public class newFilamentsTest extends CommonBase {
         }
         
         FloydWarshallShortestPaths<IntVertex, DefaultWeightedEdge> paths = new FloydWarshallShortestPaths<>(gs);
-        GraphPath<IntVertex, DefaultWeightedEdge> path = findLongestPath(gs.vertexSet().iterator().next(), paths);
+        GraphPath<IntVertex, DefaultWeightedEdge> path = findLongestPath(paths);
         if (path == null) return null;
         DijkstraShortestPath<IntVertex, DefaultEdge> dijkstraShortestPath = new DijkstraShortestPath<>(gMst, path.getStartVertex(), path.getEndVertex());
         
         return dijkstraShortestPath.getPath();
     }
 
-    private <E, T extends DefaultEdge> GraphPath<E, T> findLongestPath(E v, FloydWarshallShortestPaths<E, T> paths) {
+    private <E, T extends DefaultEdge> GraphPath<E, T> findLongestPath(FloydWarshallShortestPaths<E, T> paths) {
+        Graph<E, T> graph = paths.getGraph();
+        E v = graph.vertexSet().iterator().next();
         List<GraphPath<E, T>> sp = paths.getShortestPaths(v);
-        
         double len = 0;
         E end = null;
         for (GraphPath<E, T> p : sp) {
-            double w = getPathWeight(p);
+            double w = GraphUtils.getPathWeight(p);
             if (w > len) {
                 len = w;
                 end = p.getEndVertex();
@@ -128,7 +126,7 @@ public class newFilamentsTest extends CommonBase {
         E end2 = null;
         GraphPath<E, T> plongest = null;
         for (GraphPath<E, T> p : sp2) {
-            double w = getPathWeight(p);
+            double w = GraphUtils.getPathWeight(p);
             if (w > len) {
                 len = w;
                 end2 = p.getEndVertex();
@@ -140,17 +138,6 @@ public class newFilamentsTest extends CommonBase {
         return plongest;
     }
     
-     <E, T extends DefaultEdge> double getPathWeight(GraphPath<E, T> p) {
-        double sum = 0;
-        
-        List<T> edgeList = p.getEdgeList();
-        Graph<E, T> graph = p.getGraph();
-        
-        for (T e : edgeList) sum += graph.getEdgeWeight(e);
-        
-        return sum;
-    }
-
     int w;
     int h;
 

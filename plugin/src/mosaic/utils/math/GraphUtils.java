@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.WeightedGraph;
+import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.alg.KruskalMinimumSpanningTree;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -158,7 +161,40 @@ public class GraphUtils {
     }
     
     /**
+     * @param aPath
+     * @return weight of given path
+     */
+    public static <V, E extends DefaultEdge> double getPathWeight(GraphPath<V, E> aPath) {
+        double sum = 0;
+        Graph<V, E> graph = aPath.getGraph();
+        for (E e : aPath.getEdgeList()) sum += graph.getEdgeWeight(e);
+        
+        return sum;
+    }
+    
+    public static <E, T extends DefaultEdge> GraphPath<E, T> findLongestShortestPath(FloydWarshallShortestPaths<E, T> aPaths) {
+        E v = aPaths.getGraph().vertexSet().iterator().next();
+        GraphPath<E, T> longestPath = null;
+        
+        for (int i = 0; i < 2; i++) {
+            List<GraphPath<E, T>> shortestPaths = aPaths.getShortestPaths(v);
+            double len = -Double.MAX_VALUE;
+            for (GraphPath<E, T> p : shortestPaths) {
+                double w = getPathWeight(p);
+                if (w > len) {
+                    len = w;
+                    v = p.getEndVertex();
+                    longestPath = p;
+                }
+            }
+        }
+        
+        return longestPath;
+    }
+    
+    /**
      * Crates graph from matrix considering every element != 0 as a graph vertex.
+     * Vertex labels are set to be matrix indices (starting from 0)
      * @param aMatrix - input matrix
      * @param aIs8connected - connectivity
      * @return graphs created from provided matrix
