@@ -15,13 +15,22 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
-public class GraphUtils {
-    public static class StrVertex {
-        private String iLabel;
-        
-        public StrVertex(String aName) {iLabel = aName;}
 
-        public String getLabel() { return iLabel; }
+/**
+ * This class contains some high abstraction utils fo graph
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
+public class GraphUtils {
+    
+    /**
+     * Default implementation of Vertex with generic type label
+     */
+    public static class Vertex<VertexType> {
+        private VertexType iLabel;
+        
+        public Vertex(VertexType aLabel) {iLabel = aLabel;}
+
+        public VertexType getLabel() { return iLabel; }
         
         @Override
         public int hashCode() {
@@ -36,18 +45,21 @@ public class GraphUtils {
             if (this == obj) return true;
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
-            StrVertex other = (StrVertex) obj;
+            Vertex<?> other = (Vertex<?>) obj;
             if (iLabel == null) {
                 if (other.iLabel != null) return false;
             }
             else if (!iLabel.equals(other.iLabel)) return false;
             return true;
         }
-        
+
         @Override
-        public String toString() {return iLabel;}
+        public String toString() {return iLabel.toString();}
     }
     
+    /**
+     * Default implementation of Vertex with integer label.
+     */
     public static class IntVertex {
         private int iLabel;
         
@@ -151,7 +163,7 @@ public class GraphUtils {
      * @param aGraph input graph
      * @return new MST graph
      */
-    public static <V, E extends DefaultEdge> UndirectedGraph<V, E> minimumSpanningTree(UndirectedGraph<V, E> aGraph) {
+    public static <V, E extends DefaultEdge> UndirectedGraph<V, E> minimumSpanningTree(Graph<V, E> aGraph) {
         KruskalMinimumSpanningTree<V, E> mst = new KruskalMinimumSpanningTree<>(aGraph);
         UndirectedGraph<V, E> graphMst = new SimpleGraph<>(aGraph.getEdgeFactory());
         for (V v : aGraph.vertexSet()) graphMst.addVertex(v);
@@ -172,14 +184,31 @@ public class GraphUtils {
         return sum;
     }
     
-    public static <E, T extends DefaultEdge> GraphPath<E, T> findLongestShortestPath(FloydWarshallShortestPaths<E, T> aPaths) {
-        E v = aPaths.getGraph().vertexSet().iterator().next();
-        GraphPath<E, T> longestPath = null;
+    /**
+     * @param aGraph
+     * @return longest shortest path for provided graph
+     */
+    public static<V, E extends DefaultEdge> GraphPath<V, E> findLongestShortestPath(Graph<V, E> aGraph) {
+        FloydWarshallShortestPaths<V, E> paths = new FloydWarshallShortestPaths<>(aGraph);
         
+        return findLongestShortestPath(paths);
+    }
+    
+    /**
+     * @param aPaths
+     * @return longest shortest path for all paths provided
+     */
+    private static <V, E extends DefaultEdge> GraphPath<V, E> findLongestShortestPath(FloydWarshallShortestPaths<V, E> aPaths) {
+        // Take any vertex as a starting point
+        V v = aPaths.getGraph().vertexSet().iterator().next();
+        GraphPath<V, E> longestPath = null;
+        
+        // Loop twice: first time to find longest path from initial vertex, and second for finding longest path 
+        // from previously found vertex. It will be the longest path in a set.
         for (int i = 0; i < 2; i++) {
-            List<GraphPath<E, T>> shortestPaths = aPaths.getShortestPaths(v);
+            List<GraphPath<V, E>> shortestPaths = aPaths.getShortestPaths(v);
             double len = -Double.MAX_VALUE;
-            for (GraphPath<E, T> p : shortestPaths) {
+            for (GraphPath<V, E> p : shortestPaths) {
                 double w = getPathWeight(p);
                 if (w > len) {
                     len = w;

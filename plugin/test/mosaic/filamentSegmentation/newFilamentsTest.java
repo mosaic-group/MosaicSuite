@@ -15,7 +15,6 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.alg.DijkstraShortestPath;
-import org.jgrapht.alg.FloydWarshallShortestPaths;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.junit.Test;
@@ -37,6 +36,7 @@ import mosaic.test.framework.CommonBase;
 import mosaic.utils.ConvertArray;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
+import mosaic.utils.math.CubicSmoothingSpline.FittingStrategy;
 import mosaic.utils.math.GraphUtils;
 import mosaic.utils.math.GraphUtils.IntVertex;
 import mosaic.utils.math.Matlab;
@@ -48,7 +48,6 @@ public class newFilamentsTest extends CommonBase {
     private static final Logger logger = Logger.getLogger(newFilamentsTest.class);
 
     static public class Result {
-
         Result(Matrix aM, UndirectedGraph<IntVertex, DefaultEdge> aG, GraphPath<IntVertex, DefaultEdge> aP) {
             m = aM;
             graph = aG;
@@ -61,9 +60,8 @@ public class newFilamentsTest extends CommonBase {
     }
 
     private Result runLongestShortestPaths(Matrix aImageMatrix) {
-        UndirectedGraph<IntVertex, DefaultEdge> g = GraphUtils.matrixToGraph(aImageMatrix, true);
+        Graph<IntVertex, DefaultEdge> g = GraphUtils.matrixToGraph(aImageMatrix, true);
         UndirectedGraph<IntVertex, DefaultEdge> gMst = GraphUtils.minimumSpanningTree(g);
-
         GraphPath<IntVertex, DefaultEdge> path = findPathBoosted(gMst);
 
         Matrix result = aImageMatrix.copy().zeros();
@@ -75,67 +73,14 @@ public class newFilamentsTest extends CommonBase {
 
         return new Result(result, gMst, path);
     }
-
-    private void graphShow(Set<IntVertex> aVertex, int w, int h, String aTitle) {
-        
-        Matrix result = new Matrix(h, w);
-        for (IntVertex v : aVertex) {
-            result.set(v.getLabel(), 255);
-        }
-        
-        matrixToImage(result, aTitle);
-    }
-    
-    private GraphPath<IntVertex, DefaultEdge> findPath(UndirectedGraph<IntVertex, DefaultEdge> gMst) {
-        FloydWarshallShortestPaths<IntVertex, DefaultEdge> paths = new FloydWarshallShortestPaths<>(gMst);
-        GraphPath<IntVertex, DefaultEdge> path = findLongestPath(gMst.vertexSet().iterator().next(), paths);
-        
-        return path;
-    }
     
     private GraphPath<IntVertex, DefaultEdge> findPathBoosted(UndirectedGraph<IntVertex, DefaultEdge> gMst) {
         WeightedGraph<IntVertex, DefaultWeightedEdge> gs = GraphUtils.simplifySimipleUndirectedGraph(gMst);
-        
-        for (DefaultWeightedEdge edge : gs.edgeSet()) {
-            logger.debug(edge + " " + gs.getEdgeWeight(edge));
-        }
-        
-        FloydWarshallShortestPaths<IntVertex, DefaultWeightedEdge> paths = new FloydWarshallShortestPaths<>(gs);
-        GraphPath<IntVertex, DefaultWeightedEdge> path = findLongestPath(paths);
+        GraphPath<IntVertex, DefaultWeightedEdge> path = GraphUtils.findLongestShortestPath(gs);
         if (path == null) return null;
         DijkstraShortestPath<IntVertex, DefaultEdge> dijkstraShortestPath = new DijkstraShortestPath<>(gMst, path.getStartVertex(), path.getEndVertex());
         
         return dijkstraShortestPath.getPath();
-    }
-
-    private <E, T extends DefaultEdge> GraphPath<E, T> findLongestPath(FloydWarshallShortestPaths<E, T> paths) {
-        Graph<E, T> graph = paths.getGraph();
-        E v = graph.vertexSet().iterator().next();
-        List<GraphPath<E, T>> sp = paths.getShortestPaths(v);
-        double len = 0;
-        E end = null;
-        for (GraphPath<E, T> p : sp) {
-            double w = GraphUtils.getPathWeight(p);
-            if (w > len) {
-                len = w;
-                end = p.getEndVertex();
-            }
-        }
-        List<GraphPath<E, T>> sp2 = paths.getShortestPaths(end);
-        len = 0;
-        E end2 = null;
-        GraphPath<E, T> plongest = null;
-        for (GraphPath<E, T> p : sp2) {
-            double w = GraphUtils.getPathWeight(p);
-            if (w > len) {
-                len = w;
-                end2 = p.getEndVertex();
-                plongest = p;
-            }
-        }
-        logger.debug("Longest path from shortest: " + len + " " + end + ":" + end2);
-        logger.debug(plongest);
-        return plongest;
     }
     
     int w;
@@ -159,10 +104,12 @@ public class newFilamentsTest extends CommonBase {
         input = "/Users/gonciarz/test/maskFila.tif";
         input = "/Users/gonciarz/test/single.tif";
         input = "/Users/gonciarz/test/Crop_12-12.tif";
-        input = "/Users/gonciarz/test/many.tif";
+        input = "/Users/gonciarz/test/test1.tif";
         input = "/Users/gonciarz/test/sample.jpg";
+        input = "/Users/gonciarz/test/many.tif";
         input = "/Users/gonciarz/test/longlong.tif";
-        boolean toBeSegmented = true;
+        input = "/Users/gonciarz/test/test2.tif";
+        boolean toBeSegmented = false;
 
         // Load input
         ImagePlus ip4 = loadImagePlus(input);
@@ -177,7 +124,7 @@ public class newFilamentsTest extends CommonBase {
 
         // Remove holes
         ip1 = binarizeImage(ip1);
-//         ip1 = removeHoles(ip1);
+         ip1 = removeHoles(ip1);
 
         // Run distance transfrom
         // ImagePlus dist = runDistanceTransform(ip1.duplicate());
@@ -213,7 +160,7 @@ public class newFilamentsTest extends CommonBase {
             if (path == null) continue;
             int len = path.getEdgeList().size();
             logger.debug("LENGHT: " + len);
-            int max = len/5;
+            int max = len/1;
             double step = (double) len / (max);
             if (step < 1) step = 1;
             List<Integer> pts = new ArrayList<Integer>();
@@ -255,56 +202,25 @@ public class newFilamentsTest extends CommonBase {
         FloatProcessor floatProcessor = matrixToImage(out, "Matrix Image");
         ImagePlus xyz = showFilamentsOnInputImage(input, w, h, floatProcessor);
         draw(xyz, css);
+        IJ.save(xyz, "/tmp/processed.tif");
         sleep(25000);
     }
-
+    
     private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz) {
         double maxErr = 1;
-        CubicSmoothingSpline cssX = null;
-        CubicSmoothingSpline cssY = null;
-        if (xz.length == 2) {
-            // No fitting needed for just two points. Fit the (almost) straight regression line.
-            cssX = new CubicSmoothingSpline(tz, xz, 1e-15);
-            cssY = new CubicSmoothingSpline(tz, yz, 1e-15);
-        }else {
-            int step = 1;
-            double direction = 1;
-            double p = 0;
-            while (step < 50) {
-                p += direction * 1.0/Math.pow(2, step);
-                logger.debug("Current P: " + p + " step: " + step);
-                cssX = new CubicSmoothingSpline(tz, xz, p);
-                cssY = new CubicSmoothingSpline(tz, yz, p);
-
-                double max = 0;
-                for (int i = 0; i < tz.length; i++) {
-                    double xv = cssX.getValue(tz[i]);
-                    double yv = cssY.getValue(tz[i]);
-                    xv = Math.abs(xv - xz[i]);
-                    yv = Math.abs(yv - yz[i]);
-                    if (max < xv) max = xv; if (max < yv) max = yv;
-                    if (max > maxErr) break;
-                }
-                if (max > 0.5 * maxErr && max <= maxErr) { logger.info("FOUND!");break;};
-                direction = (max <= maxErr) ? -1 : 1;
-                step += 1;
-            }
-        }
         CSS cssOut = new CSS();
-        cssOut.cssX = cssX;
-        cssOut.cssY = cssY;
-        
+        cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr);
+        cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr);
+
         return cssOut;
     }
     
     static class CSS {
-
         CubicSmoothingSpline cssX;
         CubicSmoothingSpline cssY;
     }
 
     static public class FilamentXyCoordinates {
-
         public Matrix x;
         public Matrix y;
 

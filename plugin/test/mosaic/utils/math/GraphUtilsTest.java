@@ -1,7 +1,11 @@
 package mosaic.utils.math;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -10,11 +14,17 @@ import org.jgrapht.graph.SimpleGraph;
 import org.junit.Test;
 
 import mosaic.utils.math.GraphUtils.IntVertex;
-import mosaic.utils.math.GraphUtils.StrVertex;
+import mosaic.utils.math.GraphUtils.Vertex;
 
 
 public class GraphUtilsTest {
 
+    // helper class since Vertex<String> cannot be held in arrays and they are 
+    // convinient for testing ;-)
+    class StrVertex extends Vertex<String> {
+        StrVertex(String aName) {super(aName);}
+    }
+    
     @Test
     public void testSimplifySimipleUndirectedGraphTree() {
         int num = 6;
@@ -177,7 +187,7 @@ public class GraphUtilsTest {
         
         UndirectedGraph<IntVertex, DefaultEdge> graph = GraphUtils.matrixToGraph(img, true /* 8-connected */);
         
-        UndirectedGraph<IntVertex, DefaultEdge> mst = GraphUtils.minimumSpanningTree(graph);
+        Graph<IntVertex, DefaultEdge> mst = GraphUtils.minimumSpanningTree(graph);
         
         // Expected:
         // 3 --- 6 --  
@@ -199,5 +209,27 @@ public class GraphUtilsTest {
         assertNotNull(mst.getEdge(new IntVertex(10), new IntVertex(11)));
         assertNotNull(mst.getEdge(new IntVertex(11), new IntVertex(8)));
         assertNotNull(mst.getEdge(new IntVertex(8), new IntVertex(5)));
+    }
+    
+    @Test
+    public void testLongestShortestPath() {
+        // 3 --- 6 --  
+        //            \
+        //             10
+        //         /    |
+        // 5 --- 8 --- 11
+        Matrix img = new Matrix(new double[][] { 
+            { 0, 1, 1, 0 }, 
+            { 0, 0, 0, 1 }, 
+            { 0, 1, 1, 1 }});
+        
+        UndirectedGraph<IntVertex, DefaultEdge> graph = GraphUtils.matrixToGraph(img, true /* 8-connected */);
+        
+        GraphPath<IntVertex, DefaultEdge> path = GraphUtils.findLongestShortestPath(graph);
+   
+        // Expected path is: 3 - 6 - 10 - 8 - 5
+        assertEquals(4, GraphUtils.getPathWeight(path), 0.001);
+        assertEquals(new IntVertex(3), path.getStartVertex());
+        assertEquals(new IntVertex(5), path.getEndVertex());
     }
 }
