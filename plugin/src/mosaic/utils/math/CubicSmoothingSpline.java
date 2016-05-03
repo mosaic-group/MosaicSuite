@@ -75,7 +75,6 @@ public class CubicSmoothingSpline {
             resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
         }
     }
-
     
     /**
      * Creates smoothing spline. Note: Input parameters are not checked for validity!
@@ -140,8 +139,8 @@ public class CubicSmoothingSpline {
      */
     static public class Spline {
         Spline(Polynomial aPolynomial, double aShift) { equation = aPolynomial; shift = aShift; }
-        Polynomial equation;
-        double shift;
+        public Polynomial equation;
+        public double shift;
     }
     
     public Spline getSplineForValue(double aX) {

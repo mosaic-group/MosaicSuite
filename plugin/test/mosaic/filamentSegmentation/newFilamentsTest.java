@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -29,19 +28,23 @@ import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageConverter;
+import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import mosaic.bregman.segmentation.SegmentationParameters;
 import mosaic.bregman.segmentation.SquasshSegmentation;
+import mosaic.filamentSegmentation.newFilamentsTest.FilamentXyCoordinates;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.ConvertArray;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.math.CubicSmoothingSpline;
 import mosaic.utils.math.CubicSmoothingSpline.FittingStrategy;
+import mosaic.utils.math.CubicSmoothingSpline.Spline;
 import mosaic.utils.math.GraphUtils;
 import mosaic.utils.math.GraphUtils.IntVertex;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
 import mosaic.utils.math.Matrix.MFunc;
+import mosaic.utils.math.Polynomial;
 
 
 public class newFilamentsTest extends CommonBase {
@@ -92,24 +95,28 @@ public class newFilamentsTest extends CommonBase {
         String input = null;
         input = "/Users/gonciarz/test/short.tif";
         input = "/Users/gonciarz/test/elispe.tif";
-        input = "/Users/gonciarz/test/Crop44.tif";
-        input = "/Users/gonciarz/test/DF_5.tif";
-        input = "/Users/gonciarz/test/xyz.tif";
         input = "/Users/gonciarz/test/test.tif";
+        input = "/Users/gonciarz/test/xyz.tif";
         input = "/Users/gonciarz/test/zyx.tif";
         input = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/filamentsTest.tif";
         input = "/Users/gonciarz/test/cross.tif";
         input = "/Users/gonciarz/test/multi.tif";
-        input = "/Users/gonciarz/test/spiral.tif";
-        input = "/Users/gonciarz/test/maskFila.tif";
         input = "/Users/gonciarz/test/single.tif";
-        input = "/Users/gonciarz/test/Crop_12-12.tif";
         input = "/Users/gonciarz/test/test1.tif";
-        input = "/Users/gonciarz/test/sample.jpg";
-        input = "/Users/gonciarz/test/many.tif";
         input = "/Users/gonciarz/test/longlong.tif";
+        input = "/Users/gonciarz/test/grad.tif";
+        input = "/Users/gonciarz/test/many.tif";
+        input = "/Users/gonciarz/test/Crop_12-12.tif";
+        input = "/Users/gonciarz/test/maskFila.tif";
+        input = "/Users/gonciarz/test/DF_5.tif";
+        input = "/Users/gonciarz/test/50.tif";
         input = "/Users/gonciarz/test/test2.tif";
-        boolean toBeSegmented = false;
+        input = "/Users/gonciarz/test/Crop44.tif";
+        input = "/Users/gonciarz/test/v.tif";
+        input = "/Users/gonciarz/test/sample.jpg";
+        input = "/Users/gonciarz/test/spiral.tif";
+        input = "/Users/gonciarz/test/snr4.tif";
+        boolean toBeSegmented = true;
 
         // Load input
         ImagePlus ip4 = loadImagePlus(input);
@@ -118,7 +125,6 @@ public class newFilamentsTest extends CommonBase {
 
         w = ip4.getWidth();
         h = ip4.getHeight();
-
         // Input is to be segmented or ready mask?
         ImagePlus ip1 = toBeSegmented ? runSquassh(ip4) : ip4.duplicate();
 
@@ -136,6 +142,8 @@ public class newFilamentsTest extends CommonBase {
         // Find connected components
         Matrix[] mm = createSeperateMatrixForEachRegion(imgMatrix);
 
+        ImagePlus xyz1 = loadImagePlus(input);
+        
         List<CSS> css = new ArrayList<CSS>();
         // Process each connected component
         for (int i = 0; i < mm.length; i++) {
@@ -160,7 +168,7 @@ public class newFilamentsTest extends CommonBase {
             if (path == null) continue;
             int len = path.getEdgeList().size();
             logger.debug("LENGHT: " + len);
-            int max = len/1;
+            int max = len/pointsStep;
             double step = (double) len / (max);
             if (step < 1) step = 1;
             List<Integer> pts = new ArrayList<Integer>();
@@ -193,31 +201,155 @@ public class newFilamentsTest extends CommonBase {
             mosaic.utils.Debug.print(xz, yz, tz);
             logger.debug("INDEX: " + i);
             
-            CSS cssResult = calcSplines(xz, yz, tz);
+            CSS cssResult = calcSplines(xz, yz, tz, maxErr);
+            css.add(cssResult);
+            for (int steps = 0; steps < maxRefinementSteps; steps++) {
+                refine2(cssResult, ip4, xyz1, steps);
+                
+                double err = (steps < maxRefinementSteps/2) ? (20.0*steps)/maxRefinementSteps : 10;
+                System.out.println(err);
+                cssResult = calcSplines(xz, yz, tz, maxErr * err);
+//                CubicSmoothingSpline newX = new CubicSmoothingSpline(tz, xz, FittingStrategy.AverageValue, 1);
+//                CubicSmoothingSpline newY =  new CubicSmoothingSpline(tz, yz, FittingStrategy.AverageValue, 1);
+//                for (int q = 0; q < tz.length; q++) {
+//                    tz[q] = (100.0 * q)/(tz.length - 1);
+//                    xz[q] = newX.getValue(tz[q]);
+//                    yz[q] = newY.getValue(tz[q]);
+//                }
+            }
+            cssResult.color = Color.GREEN;
             css.add(cssResult);
         }
 
         // Merge results and show them
         Matrix out = mergeMatrices(mm);
-        FloatProcessor floatProcessor = matrixToImage(out, "Matrix Image");
-        ImagePlus xyz = showFilamentsOnInputImage(input, w, h, floatProcessor);
+        xyz1.setTitle("FILAMENTS");
+        xyz1.show();
+        ImagePlus xyz = xyz1;
         draw(xyz, css);
+
+        drawPerpendicularLines(css, xyz);
+        
+        
         IJ.save(xyz, "/tmp/processed.tif");
         sleep(25000);
     }
-    
-    private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz) {
-        double maxErr = 1;
+
+    private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz, double maxErr) {
         CSS cssOut = new CSS();
         cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr);
         cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr);
-
+        cssOut.x = xz;
+        cssOut.y = yz;
+        cssOut.t = tz;
         return cssOut;
+    }
+    
+    final static int maxRefinementSteps = 100;
+    final static int pointsStep = 1;
+    final static double maxErr = 1;
+    
+    private void refine2(CSS c, ImagePlus xyz, ImagePlus outImg, int step) {
+        for (int num = 0; num < c.t.length; num += 1) {
+            double t = c.t[num];
+            double x = c.cssX.getValue(t);//c.x[num];
+            double y = c.cssY.getValue(t);//c.y[num];
+            Spline sx = c.cssX.getSplineForValue(t);
+            Spline sy = c.cssY.getSplineForValue(t);
+            Polynomial dx = sx.equation.getDerivative(1);
+            Polynomial dy = sy.equation.getDerivative(1);
+
+            double dxv = dx.getValue(t - sx.shift);
+            double dyv = dy.getValue(t - sy.shift);
+
+            double alpha;
+            if (dxv == 0) alpha = Math.PI/2;
+            else if (dyv == 0) alpha = 0;
+            else alpha = Math.atan(dyv/dxv);
+            //                if (alpha < Math.PI/2) alpha += Math.PI;
+            //                if (alpha >= 3 * Math.PI/2) alpha -= Math.PI;
+            int lenght = 4;
+            double x1 = x - lenght * Math.cos(alpha - Math.PI/2);
+            double x2 = x + lenght * Math.cos(alpha - Math.PI/2);
+            double y1 = y - lenght * Math.sin(alpha - Math.PI/2);
+            double y2 = y + lenght * Math.sin(alpha - Math.PI/2);
+
+            int inter=31;
+            double dxi = (x2 - x1)/(inter - 1);
+            double dyi = (y2 - y1)/(inter - 1);
+            double sumx = 0, sumy = 0, wx = 0, wy = 0;
+            double px = x1, py = y1;
+            xyz.getProcessor().setInterpolate(true);
+            ImageProcessor.setUseBicubic(false);
+            for (int i = 0; i < inter; ++i) {
+                double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - 0.5, (float)py -0.5);
+                wx += pixelValue;
+                wy += pixelValue;
+                sumx += px * pixelValue;
+                sumy += py * pixelValue;
+                px += dxi;
+                py += dyi;
+            }
+//            mosaic.utils.Debug.print("IDX", num, step,  x, y, sumx/wx, sumy/wy, sumx, sumy, wx, wy);
+            if (wx == 0 || wy == 0) continue;
+            if (false && (step == maxRefinementSteps - 1 || step == 0)) {   
+                ImageProcessor p = outImg.getProcessor();
+                int v = step*255/maxRefinementSteps;
+                Color color = new Color(v,v,v);
+                p.setColor(color);
+                //            p.drawLine((int)x1, (int)y1, (int)x2, (int)y2);
+                if (num >= 0) {
+                    p.setColor(new Color(v,v,v));
+                    p.drawOval((int)c.x[num], (int)c.y[num], 1, 1);
+                }
+            }
+            
+            c.x[num] += (sumx/wx - x)/10;
+            c.y[num] += (sumy/wy - y)/10;
+        }
+    }
+    
+    private void drawPerpendicularLines(List<CSS> css, ImagePlus xyz) {
+        for (int idx = 0; idx < css.size(); idx ++) {
+            CSS c = css.get(idx);
+            for (int num = 0; num < c.t.length; num += 3) {
+                double x = c.x[num];
+                double y = c.y[num];
+                double t = c.t[num];
+                Spline sx = c.cssX.getSplineForValue(t);
+                Spline sy = c.cssY.getSplineForValue(t);
+                Polynomial dx = sx.equation.getDerivative(1);
+                Polynomial dy = sy.equation.getDerivative(1);
+
+                double dxv = dx.getValue(t - sx.shift);
+                double dyv = dy.getValue(t - sy.shift);
+                if (dxv != 0) continue;
+
+                double alpha;
+                if (dxv == 0) alpha = Math.PI/2;
+                else if (dyv == 0) alpha = 0;
+                else alpha = Math.atan(dyv/dxv);
+                int lenght = 3;
+                double x1 = x - lenght * Math.cos(alpha - Math.PI/2);
+                double x2 = x + lenght * Math.cos(alpha - Math.PI/2);
+                double y1 = y - lenght * Math.sin(alpha - Math.PI/2);
+                double y2 = y + lenght * Math.sin(alpha - Math.PI/2);
+                
+                xyz.setColor(Color.WHITE);
+                xyz.getProcessor().drawLine((int)x1, (int)y1, (int)x2, (int)y2);
+                xyz.setColor(Color.LIGHT_GRAY);
+            }
+        }
+        xyz.draw();
     }
     
     static class CSS {
         CubicSmoothingSpline cssX;
         CubicSmoothingSpline cssY;
+        double[] x;
+        double[] y;
+        double[] t;
+        Color color = Color.RED;
     }
 
     static public class FilamentXyCoordinates {
@@ -256,45 +388,32 @@ public class newFilamentsTest extends CommonBase {
         return new FilamentXyCoordinates(x, y);
     }
 
-    /**
-     * Generates (x,y) coordinates from given cubic smoothing spline
-     * 
-     * @param css - input spline
-     * @return
-     */
-    static public FilamentXyCoordinates generateAdjustedXyCoordinatesForFilament(final CSS css) {
-        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css.cssX, css.cssY);
-        coordinates.x.sub(0);
-        coordinates.y.sub(0);
-
-        return coordinates;
-    }
-
     private void draw(ImagePlus outImg, List<CSS> cssd) {
         Overlay overlay = new Overlay();
 
         // for every image take all filaments
         for (CSS css : cssd) {
             logger.debug("Drawing....");
-            FilamentXyCoordinates coordinates = generateAdjustedXyCoordinatesForFilament(css);
-            drawFilamentsOnOverlay(overlay, 0, coordinates);
+            final CSS css1 = css;
+            FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY);
+            drawFilamentsOnOverlay(overlay, 0, coordinates, css.color);
         }
 
         outImg.setOverlay(overlay);
     }
 
-    private void drawFilamentsOnOverlay(Overlay aOverlay, int aSliceNumber, FilamentXyCoordinates coordinates) {
+    private void drawFilamentsOnOverlay(Overlay aOverlay, int aSliceNumber, FilamentXyCoordinates coordinates, Color color) {
         Roi r = new PolygonRoi(coordinates.x.getArrayYXasFloats()[0], coordinates.y.getArrayYXasFloats()[0], Roi.POLYLINE);
         r.setPosition(aSliceNumber);
-        r.setStrokeColor(Color.RED);
-        r.setStrokeWidth(0.25);
+        r.setStrokeColor(color);
+        r.setStrokeWidth(0.1);
         aOverlay.add(r);
     }
 
     private ByteProcessor skeletonize(final int w, final int h, Matrix best) {
         byte[] maskBytes = new byte[w * h];
         for (int x = 0; x < best.getData().length; x++)
-            maskBytes[x] = best.getData()[x] > 0 ? (byte) 255 : (byte) 0;
+            maskBytes[x] = best.getData()[x] != 0 ? (byte) 255 : (byte) 0;
         final ByteProcessor bp = new ByteProcessor(w, h, maskBytes);
 
         // And skeletonize
@@ -339,21 +458,6 @@ public class newFilamentsTest extends CommonBase {
         }
         logger.debug("MAX th: " + previous);
         return best;
-    }
-
-    private ImagePlus showFilamentsOnInputImage(String input, final int w, final int h, FloatProcessor floatProcessor) {
-        ImagePlus xyz = loadImagePlus(input);
-        xyz.setTitle("FILAMENTS");
-        byte[] pixelsOut = (byte[]) xyz.getProcessor().getPixels();
-        float[] pixelsIn = (float[]) floatProcessor.getPixels();
-
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                // pixelsOut[x + y * w] = pixelsIn[x + y * w] > 0 ? (byte) 0 : pixelsOut[x + y * w];
-            }
-        }
-        xyz.show();
-        return xyz;
     }
 
     private FloatProcessor matrixToImage(Matrix aImageMatrix, String aTitle) {
@@ -427,7 +531,7 @@ public class newFilamentsTest extends CommonBase {
 
     private ImagePlus runSquassh(ImagePlus aImage) {
         double[][][] img3 = ImgUtils.ImgToZXYarray(aImage);
-        SegmentationParameters sp = new SegmentationParameters(4, 1, 0.0125, 0.0125, true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, 1, 1, 0, 5);
+        SegmentationParameters sp = new SegmentationParameters(4, 1, 0.0125, 0.0125, true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, 2, 1, 0, 5);
         ImageStatistics statistics = aImage.getStatistics();
         SquasshSegmentation ss = new SquasshSegmentation(img3, sp, statistics.histMin, statistics.histMax);
         ss.run();
