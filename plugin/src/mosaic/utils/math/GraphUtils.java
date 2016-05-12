@@ -164,8 +164,8 @@ public class GraphUtils {
      * @return new MST graph
      */
     public static <V, E extends DefaultEdge> UndirectedGraph<V, E> minimumSpanningTree(Graph<V, E> aGraph) {
-        KruskalMinimumSpanningTree<V, E> mst = new KruskalMinimumSpanningTree<>(aGraph);
-        UndirectedGraph<V, E> graphMst = new SimpleGraph<>(aGraph.getEdgeFactory());
+        KruskalMinimumSpanningTree<V, E> mst = new KruskalMinimumSpanningTree<V, E>(aGraph);
+        UndirectedGraph<V, E> graphMst = new SimpleGraph<V, E>(aGraph.getEdgeFactory());
         for (V v : aGraph.vertexSet()) graphMst.addVertex(v);
         for (E e : mst.getEdgeSet()) graphMst.addEdge(aGraph.getEdgeSource(e), aGraph.getEdgeTarget(e));
         
@@ -189,7 +189,7 @@ public class GraphUtils {
      * @return longest shortest path for provided graph
      */
     public static<V, E extends DefaultEdge> GraphPath<V, E> findLongestShortestPath(Graph<V, E> aGraph) {
-        FloydWarshallShortestPaths<V, E> paths = new FloydWarshallShortestPaths<>(aGraph);
+        FloydWarshallShortestPaths<V, E> paths = new FloydWarshallShortestPaths<V, E>(aGraph);
         
         return findLongestShortestPath(paths);
     }
@@ -230,7 +230,7 @@ public class GraphUtils {
      */
     public static UndirectedGraph<IntVertex, DefaultEdge> matrixToGraph(Matrix aMatrix, boolean aIs8connected) {
         List<List<Integer>> graphConnections = findAllElementsOfObject(aMatrix, aIs8connected);
-        UndirectedGraph<IntVertex, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+        UndirectedGraph<IntVertex, DefaultEdge> graph = new SimpleGraph<IntVertex, DefaultEdge>(DefaultEdge.class);
 
         for (int i = 0; i < graphConnections.size(); ++i) {
             int sourceVertexId = graphConnections.get(i).get(0);

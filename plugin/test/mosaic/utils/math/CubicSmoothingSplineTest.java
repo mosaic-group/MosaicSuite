@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import mosaic.utils.math.CubicSmoothingSpline.FittingStrategy;
+
 public class CubicSmoothingSplineTest {
 
     @Test
@@ -172,6 +174,25 @@ public class CubicSmoothingSplineTest {
                         "3: f(x) =  - 0.400000*x^3 + 1.20000*x^2 + 5.20000*x^1 - 3.00000\n" +
                         "--------------------------------------------------------------\n";
         assertEquals(expected, s.toString());
+    }
+    
+    @Test
+    public void testFittingStrategyMaxPoint() {
+        // f=csaps([0, 1, 2, 4], [3, 5, 11, 35], 1)
+        // y = 2 * x^2 + 3
+        final double[] inputX = new double[] {0, 1, 2, 4, 10};
+        final double[] inputY = new double[] {3, 5, 3, 15, 3};
+
+        final CubicSmoothingSpline s = new CubicSmoothingSpline(inputX, inputY, FittingStrategy.MaxSinglePointValue, 8, 1);
+
+        double sum = 0;
+        for (int i  = 0; i < inputX.length; ++i) {
+            System.out.println(s.getValue(inputX[i]));
+            if (sum < Math.abs(inputY[i] - s.getValue(inputX[i]))) sum = Math.abs(inputY[i] - s.getValue(inputX[i]));
+            
+//            assertEquals(inputY[i], s.getValue(inputX[i]), 0.00000001);
+        }
+        System.out.println("SUM ERR: " + sum );
     }
 
 }

@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class CubicSmoothingSpline {
     private final Polynomial[] iSplines;
     private final double[] iX;
-    private final double[] iY;
+    private double[] iY;
     private final double[] iWeights;
     private double iSmoothingParameter;
 
@@ -66,7 +66,7 @@ public class CubicSmoothingSpline {
                 }
             }
             
-            if (currentError > 0.5 * aMaxErrorValue && currentError <= aMaxErrorValue) break;
+            if (currentError > 0.99 * aMaxErrorValue && currentError <= aMaxErrorValue) break;
             direction = (currentError <= aMaxErrorValue) ? -1 : 1;
             step++;
             iSmoothingParameter += direction * Math.pow(2, -step);
@@ -74,6 +74,34 @@ public class CubicSmoothingSpline {
             // recalculate spline with new smoothing paramter
             resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
         }
+        System.out.println("SM / T: " + iSmoothingParameter + " " + step);
+    }
+    
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, FittingStrategy aStrategy, double aMaxErrorValue, double aMaxTolerance) {
+        this(aXvalues, aYvalues, aStrategy, aMaxErrorValue);
+        System.out.println("SM / T: " + iSmoothingParameter + " " + aMaxErrorValue + " " + aMaxTolerance);
+        iY = aYvalues.clone();
+        double[] deltaY = new double[iY.length];
+        int iter = 0 ;
+        double currentError = 0;
+        do {
+            currentError = 0;
+            for (int i = 0; i < aXvalues.length; i++) {
+                deltaY[i] = aYvalues[i] - getValue(aXvalues[i]);
+                if (Math.abs(deltaY[i]) > currentError) currentError = Math.abs(deltaY[i]);
+            }
+            
+            if (currentError < aMaxTolerance) { System.out.println("Found at: " + currentError);break; }
+            
+            for (int i = 0; i < aXvalues.length; i++) {
+                iY[i] += 2 * deltaY[i];
+            }
+            
+            // recalculate spline with new smoothing paramter
+            resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
+            iter++;
+        } while (iter < 100000); 
+        System.out.println("MAX ERR: " + currentError + " " + (iter));
     }
     
     /**
@@ -167,6 +195,10 @@ public class CubicSmoothingSpline {
             idx--;
         }
         return idx;
+    }
+    
+    public double getSmoothingParameter() { 
+        return iSmoothingParameter;
     }
     
     /**
