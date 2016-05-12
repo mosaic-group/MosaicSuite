@@ -3,8 +3,11 @@ package mosaic.core.detection;
 
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.StackWindow;
 import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
 import ij.process.Blitter;
@@ -13,12 +16,15 @@ import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import mosaic.core.utils.DilateImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.test.framework.CommonBase;
 
 
 /**
  * FeaturePointDetector detects the "real" particles in provided frames.
  */
 public class FeaturePointDetector {
+    private static final Logger logger = Logger.getLogger(FeaturePointDetector.class);
+    
     public static enum Mode { ABS_THRESHOLD_MODE, PERCENTILE_MODE }
 
     // user defined parameters and settings
@@ -71,8 +77,8 @@ public class FeaturePointDetector {
         // new StackWindow(new ImagePlus("after normalization",restored_fps));
 
         /* Image Restoration - Step 1 of the algorithm */
-        restored_fps = imageRestoration(restored_fps);
-        // new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
+//        restored_fps = imageRestoration(restored_fps);
+//        new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize()))).show();
 
         /* Estimation of the point location - Step 2 of the algorithm */
         pointLocationsEstimation(restored_fps);
@@ -117,8 +123,17 @@ public class FeaturePointDetector {
      */
     private float findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
         if (iThresholdMode == Mode.ABS_THRESHOLD_MODE) {
+//            final StackStatistics stack_stats = new StackStatistics(new ImagePlus("", ips));
+//            final float max = (float) stack_stats.max;
+//            final float min = (float) stack_stats.min;
+            
             // the percent parameter corresponds to an absolute value (not percent)
-            return absIntensityThreshold2 - iGlobalMin / (iGlobalMax - iGlobalMin);
+            float threshold = (absIntensityThreshold2 - iGlobalMin) / (iGlobalMax - iGlobalMin);
+            float threshold2 = threshold;// * (max - min) + min;
+            logger.debug("Calculated absolute threshold: " + threshold + " for params[" + absIntensityThreshold2 + ", " + iGlobalMin + ", " + iGlobalMax + "]");
+//            logger.debug("New min/max: " + min + "/" + max + " New threshold: " + threshold2);
+            
+            return threshold2;
         }
         int s, i, j, thold, width;
         width = ips.getWidth();
@@ -189,7 +204,7 @@ public class FeaturePointDetector {
             for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
                     if (ips_pixels[i * width + j] > threshold && ips_pixels[i * width + j] == ips_dilated_pixels[i * width + j]) { // check if pixel is a local maximum
-
+//                        logger.debug("Particle@: " + j +"," + i + "  value: " + ips_pixels[i * width + j]);
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
                         iParticles.add(new Particle(j + .5f, i + .5f, s, -1, 0));
@@ -197,6 +212,7 @@ public class FeaturePointDetector {
                 }
             }
         }
+        logger.debug("Number of points found: " + iParticles.size());
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
