@@ -121,6 +121,7 @@ public class newFilamentsTest extends CommonBase {
         input = "/Users/gonciarz/test/sample.jpg";
         input = "/Users/gonciarz/test/snr4.tif";
         input = "/Users/gonciarz/test/grad.tif";
+        input = "/Users/gonciarz/test/smile.tif";
         boolean toBeSegmented = true;
 
         // Load input
@@ -229,8 +230,8 @@ public class newFilamentsTest extends CommonBase {
             mosaic.utils.Debug.print("MAX/MIN", xmin, xmax, ymin, ymax);
             
             CSS cssOut = new CSS();
-            double maxQy = 0.5;//ymax/3;//(ymax-ymin)/2;
-            double maxQx = 0.5;//xmax/3;//(xmax-xmin)/2;
+            double maxQy = (ymax-ymin)/2.5;
+            double maxQx = (xmax-xmin)/2.5;
             cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, xmax, (xmin < maxQx) ? maxQx : xmin);
             cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, ymax, (ymin < maxQy) ? maxQy : ymin);
             System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
