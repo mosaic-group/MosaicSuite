@@ -1,39 +1,8 @@
 package mosaic.bregman.segmentation;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.Map.Entry;
-
-import org.jgrapht.GraphPath;
-import org.jgrapht.UndirectedGraph;
-import org.jgrapht.alg.FloydWarshallShortestPaths;
-import org.jgrapht.alg.KruskalMinimumSpanningTree;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleGraph;
 import org.junit.Test;
 
-
-import Skeletonize3D_.Skeletonize3D_;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.Overlay;
-import ij.gui.PolygonRoi;
-import ij.gui.Roi;
-import ij.plugin.filter.EDM;
-import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageConverter;
-import ij.process.ImageProcessor;
-import mosaic.filamentSegmentation.SegmentationFunctions.FilamentXyCoordinates;
 import mosaic.test.framework.CommonBase;
-import mosaic.utils.ConvertArray;
-import mosaic.utils.ImgUtils;
-import mosaic.utils.math.CubicSmoothingSpline;
-import mosaic.utils.math.Matlab;
-import mosaic.utils.math.Matrix;
 
 
 public class SquasshSegmentationTest extends CommonBase {

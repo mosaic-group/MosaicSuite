@@ -79,7 +79,7 @@ public class CubicSmoothingSpline {
     
     public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, FittingStrategy aStrategy, double aMaxErrorValue, double aMaxTolerance) {
         this(aXvalues, aYvalues, aStrategy, aMaxErrorValue);
-        System.out.println("SM / T: " + iSmoothingParameter + " " + aMaxErrorValue + " " + aMaxTolerance);
+        System.out.println("CubicSmoothing: " + iSmoothingParameter + " " + aMaxErrorValue + " " + aMaxTolerance);
         iY = aYvalues.clone();
         double[] deltaY = new double[iY.length];
         int iter = 0 ;

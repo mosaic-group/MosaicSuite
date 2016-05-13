@@ -5,10 +5,12 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.io.FileInfo;
 import ij.measure.Calibration;
+import ij.plugin.filter.EDM;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.math.Matrix;
 
 public class ImgUtils {
     /**
@@ -461,6 +463,35 @@ public class ImgUtils {
                " Dims(x/y/z): "+ aImage.getWidth() + "/" + aImage.getHeight() + "/" + aImage.getNSlices() + 
                " NumOfFrames: " + aImage.getNFrames() + 
                " NumOfChannels: " + aImage.getNChannels();
+    }
+    
+    /**
+     * Runs distance transform on provided image (this image will be changed)
+     * @param aImage input image
+     * @return input image transformed
+     */
+    public static ImagePlus runDistanceTransform(ImagePlus aImage) {
+        boolean tempBlackBackground = ij.Prefs.blackBackground;
+        ij.Prefs.blackBackground = true;
+        final EDM filtEDM = new EDM();
+        filtEDM.setup("Exact Euclidean Distance Transform (3D)", aImage);
+        filtEDM.run(aImage.getProcessor());
+        ij.Prefs.blackBackground = tempBlackBackground;
+        
+        return aImage;
+    }
+    
+    /**
+     * @param aImageMatrix matrix with image
+     * @param aTitle title of output image
+     * @return ImagePlus of Float type
+     */
+    public static ImagePlus matrixToImage(Matrix aImageMatrix, String aTitle) {
+        final double[][] result = aImageMatrix.getArrayYX();
+        FloatProcessor fp = new FloatProcessor(result[0].length, result.length);
+        ImgUtils.YX2DarrayToImg(result, fp, 1.0);
+        ImagePlus img = new ImagePlus(aTitle, fp);
+        return img;
     }
 }
 
