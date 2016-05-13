@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.jgrapht.Graph;
@@ -49,79 +47,64 @@ import mosaic.utils.math.Polynomial;
 public class newFilamentsTest extends CommonBase {
     private static final Logger logger = Logger.getLogger(newFilamentsTest.class);
 
-    static public class Result {
-        Result(Matrix aM, UndirectedGraph<IntVertex, DefaultEdge> aG, GraphPath<IntVertex, DefaultEdge> aP) {
-            m = aM;
-            graph = aG;
-            path = aP;
-        }
+    static public class PathResult {
+        PathResult(UndirectedGraph<IntVertex, DefaultEdge> aGraph, GraphPath<IntVertex, DefaultEdge> aPath) { graph = aGraph; path = aPath; }
 
-        Matrix m;
         UndirectedGraph<IntVertex, DefaultEdge> graph;
         GraphPath<IntVertex, DefaultEdge> path;
     }
 
-    private Result runLongestShortestPaths(Matrix aImageMatrix) {
+    private PathResult runLongestShortestPaths(Matrix aImageMatrix) {
         Graph<IntVertex, DefaultEdge> g = GraphUtils.matrixToGraph(aImageMatrix, true);
         UndirectedGraph<IntVertex, DefaultEdge> gMst = GraphUtils.minimumSpanningTree(g);
-        GraphPath<IntVertex, DefaultEdge> path = findPathBoosted(gMst);
-
-        Matrix result = aImageMatrix.copy().zeros();
-        if (path == null) return new Result(result, null, null);
-        for (DefaultEdge e : path.getEdgeList()) {
-            result.set(gMst.getEdgeSource(e).getLabel(), 255);
-            result.set(gMst.getEdgeTarget(e).getLabel(), 255);
+        WeightedGraph<IntVertex, DefaultWeightedEdge> gs = GraphUtils.simplifySimipleUndirectedGraph(gMst);
+        GraphPath<IntVertex, DefaultWeightedEdge> path1 = GraphUtils.findLongestShortestPath(gs);
+        GraphPath<IntVertex, DefaultEdge> path = null;
+        if (path1 != null) {
+            DijkstraShortestPath<IntVertex, DefaultEdge> dijkstraShortestPath = new DijkstraShortestPath<>(gMst, path1.getStartVertex(), path1.getEndVertex());
+            path = dijkstraShortestPath.getPath();
         }
 
-        return new Result(result, gMst, path);
+        return new PathResult(gMst, path);
     }
-
-    private GraphPath<IntVertex, DefaultEdge> findPathBoosted(UndirectedGraph<IntVertex, DefaultEdge> gMst) {
-        WeightedGraph<IntVertex, DefaultWeightedEdge> gs = GraphUtils.simplifySimipleUndirectedGraph(gMst);
-        GraphPath<IntVertex, DefaultWeightedEdge> path = GraphUtils.findLongestShortestPath(gs);
-        if (path == null) return null;
-        DijkstraShortestPath<IntVertex, DefaultEdge> dijkstraShortestPath = new DijkstraShortestPath<>(gMst, path.getStartVertex(), path.getEndVertex());
-
-        return dijkstraShortestPath.getPath();
-    }
-
-    int w;
-    int h;
 
     @Test
     public void fil() {
         // Input file
         String input = null;
-        input = "/Users/gonciarz/test/short.tif";
-        input = "/Users/gonciarz/test/elispe.tif";
         input = "/Users/gonciarz/test/test.tif";
-        input = "/Users/gonciarz/test/zyx.tif";
-        input = "/Users/gonciarz/test/maskFila.tif";
         input = "/Users/gonciarz/test/test2.tif";
-        input = "/Users/gonciarz/test/Crop_12-12.tif";
         input = "/Users/gonciarz/test/cc.tif";
-        input = "/Users/gonciarz/test/multi.tif";
-        input = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/filamentsTest.tif";
         input = "/Users/gonciarz/test/xyz.tif";
-        input = "/Users/gonciarz/test/cross.tif";
         input = "/Users/gonciarz/test/single.tif";
         input = "/Users/gonciarz/test/test1.tif";
-        input = "/Users/gonciarz/test/gradNoise.tif";
-        input = "/Users/gonciarz/test/longlong.tif";
-        input = "/Users/gonciarz/test/triangle.tif";
-        input = "/Users/gonciarz/test/256.tif";
+        input = "/Users/gonciarz/test/one.tif";
+        input = "/Users/gonciarz/test/DF_5.tif";
+        input = "/Users/gonciarz/test/v.tif";
+        input = "/Users/gonciarz/test/line.tif";
         input = "/Users/gonciarz/test/spiral.tif";
+        input = "/Users/gonciarz/test/longlong.tif";
+        input = "/Users/gonciarz/test/smile.tif";
+        input = "/Users/gonciarz/test/35_55_psf4.tif";
+        input = "/Users/gonciarz/test/triangle.tif";
+        input = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/filamentsTest.tif";
+        input = "/Users/gonciarz/test/cross.tif";
+        input = "/Users/gonciarz/test/elispe.tif";
+        input = "/Users/gonciarz/test/short.tif";
+        input = "/Users/gonciarz/test/gradNoise.tif";
         input = "/Users/gonciarz/test/smallG.tif";
         input = "/Users/gonciarz/test/grad.tif";
-        input = "/Users/gonciarz/test/one.tif";
-        input = "/Users/gonciarz/test/Crop44.tif";
-        input = "/Users/gonciarz/test/DF_5.tif";
-        input = "/Users/gonciarz/test/sample.jpg";
-        input = "/Users/gonciarz/test/35_55_psf4.tif";
-        input = "/Users/gonciarz/test/v.tif";
-        input = "/Users/gonciarz/test/smile.tif";
+        input = "/Users/gonciarz/test/maskFila.tif";
+        input = "/Users/gonciarz/test/Crop_12-12.tif";
+        input = "/Users/gonciarz/test/multi.tif";
         input = "/Users/gonciarz/test/many.tif";
+        input = "/Users/gonciarz/test/Crop44.tif";
         input = "/Users/gonciarz/test/snr4.tif";
+        input = "/Users/gonciarz/test/test.tif";
+        input = "/Users/gonciarz/test/curve.tif";
+        input = "/Users/gonciarz/test/256.tif";
+        input = "/Users/gonciarz/test/zyx.tif";
+        input = "/Users/gonciarz/test/sample.jpg";
         boolean toBeSegmented = true;
 
         // Load input
@@ -129,8 +112,8 @@ public class newFilamentsTest extends CommonBase {
         ip4.setTitle("INPUT");
         ip4.show();
 
-        w = ip4.getWidth();
-        h = ip4.getHeight();
+        int w = ip4.getWidth();
+        int h = ip4.getHeight();
         // Input is to be segmented or ready mask?
         ImagePlus ip1 = toBeSegmented ? runSquassh(ip4) : ip4.duplicate();
 
@@ -153,11 +136,9 @@ public class newFilamentsTest extends CommonBase {
         List<CSS> css = new ArrayList<CSS>();
         // Process each connected component
         for (int i = 0; i < mm.length; i++) {
-            Matrix m = mm[i];
-
-            Matrix best = thresholdRegion(m, true);
+            Matrix best = Matlab.logical(mm[i], 0);
+            
             final ByteProcessor bp = skeletonize(w, h, best);
-
             // Matrix with skeleton
             final double[][] img2 = new double[h][w];
             ImgUtils.ImgToYX2Darray(bp.convertToFloatProcessor(), img2, 0.5);
@@ -166,8 +147,7 @@ public class newFilamentsTest extends CommonBase {
             // Create graph
             // Do some operations on graph
             // create image from graph
-            Result result = runLongestShortestPaths(skelMatrix);
-            mm[i] = result.m;
+            PathResult result = runLongestShortestPaths(skelMatrix);
             logger.info("Splines...");
             // GENERATE SPLINES
             GraphPath<IntVertex, DefaultEdge> path = result.path;
@@ -215,8 +195,8 @@ public class newFilamentsTest extends CommonBase {
 
 
             CSS cssOut = new CSS();
-            cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr);
-            cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr);
+            cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr * 2, maxErr);
+            cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr * 2, maxErr);
             System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
             cssOut.x = xz;
             cssOut.y = yz;
@@ -229,41 +209,38 @@ public class newFilamentsTest extends CommonBase {
             CubicSmoothingSpline xs = cssOut.cssX;
             CubicSmoothingSpline ys = cssOut.cssY;
             ip4.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
+            ImageProcessor.setUseBicubic(false);
             double sum = 0;
-            double length = 0;
-            double xvvp = -1;
-            double yvvp = -1;
             for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
                 double tvv = xs.getKnot(ti);
                 double xvv = xs.getValue(tvv);
                 double yvv = ys.getValue(tvv);
-                if (xvvp != -1) length += Math.sqrt(Math.pow(xvvp - xvv, 2) + Math.pow(yvvp - yvv, 2));
-                xvvp = xvv; yvvp = yvv;
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv, yvv);
+                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
                 System.out.print(pixelValue + " ");
                 sum += pixelValue;
             }
             System.out.println();
             
-            System.out.println("LEN Of FILAMENT: " + length);
             double avgIntensity =  sum / xs.getNumberOfKNots();
             double boundaryValue = avgIntensity * valueOfGauss(psf);
-
-            for (double tn = 0; tn > -100; tn -= 0.005) {
+            ip1.getProcessor().setInterpolate(true);
+            ImageProcessor.setUseBicubic(false);
+            for (double tn = 0; tn > -100; tn -= 0.001) {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv, yvv);
-                if (pixelValue >= boundaryValue && ip1.getProcessor().getPixelValue((int)xvv, (int)yvv) != 0) cssOut.tMin = tn;
-                else break;
+                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+//                mosaic.utils.Debug.print(xvv, yvv, pixelValue, ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5));
+                if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
+                else {System.out.println("BREAK @ " + xvv + "," + yvv);break;}
             }
             double tMaximum = xs.getKnot(xs.getNumberOfKNots() - 1);
-            for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.005) {
+            for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.001) {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv, yvv);
-                if (pixelValue >= boundaryValue && ip1.getProcessor().getPixelValue((int)xvv, (int)yvv) != 0) cssOut.tMax = tn;
-                else break;
+                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+//                mosaic.utils.Debug.print(xvv, yvv, pixelValue, ip1.getProcessor().getInterpolatedValue(xvv -0.5, yvv -0.5));
+                if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
+                else{System.out.println("BREAK @ " + xvv + "," + yvv);break;}
             }
 
             System.out.println("========================================");
@@ -280,11 +257,11 @@ public class newFilamentsTest extends CommonBase {
     }
 
     final private static int pointsStep = 1;
-    final private static double maxErr = 0.5;
-    final private static double psf = 3;
+    final private static double maxErr = 0.625;
+    final private static double psf = 1;
     final private static double lenOfRefineLine = 3;
+    
     private void refine3(CSS c, ImagePlus xyz, ImagePlus binary) {
-        double totalErr =  0;
         c.xinit=c.x.clone();
         c.yinit=c.y.clone();
         for (int num = 0; num < c.t.length; num += 1) {
@@ -304,27 +281,30 @@ public class newFilamentsTest extends CommonBase {
             else if (dyv == 0) alpha = 0;
             else alpha = Math.atan(dyv/dxv);
 
-            double x1 = x - lenOfRefineLine * Math.cos(alpha - Math.PI/2);
-            double x2 = x + lenOfRefineLine * Math.cos(alpha - Math.PI/2);
-            double y1 = y - lenOfRefineLine * Math.sin(alpha - Math.PI/2);
-            double y2 = y + lenOfRefineLine * Math.sin(alpha - Math.PI/2);
+            double x1 = (x) - lenOfRefineLine * Math.cos(alpha - Math.PI/2);
+            double x2 = (x) + lenOfRefineLine * Math.cos(alpha - Math.PI/2);
+            double y1 = (y) - lenOfRefineLine * Math.sin(alpha - Math.PI/2);
+            double y2 = (y) + lenOfRefineLine * Math.sin(alpha - Math.PI/2);
 
             // TODO: Handle situation when two parts of regions are too close that refinement line crossing both.
-            int inter=111;
+            int inter=(int)lenOfRefineLine * 2 * 20 + 1;
             double dxi = (x2 - x1)/(inter - 1);
             double dyi = (y2 - y1)/(inter - 1);
             double sumx = 0, sumy = 0, wx = 0, wy = 0;
             double px = x1, py = y1;
             xyz.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(false);
-
-            boolean showPixel = (x > 46 && x < 48) && (y > 23 && y < 25);
+            ImageProcessor.setUseBicubic(true);
+            double shift = 0.5; // shift for bicubic interpolation making it symmetric in respect to middle of pixel.
+            
+            if (num < 30) mosaic.utils.Debug.print("NUM=0 ----------------", x, y, px, py, alpha);
             for (int i = 0; i < inter; ++i) {
-                double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - 0.5, (float)py -0.5);
-                if (binary.getProcessor().getPixelValue((int)(px - 0.5), (int)(py -0.5)) == 0) pixelValue = 0;
-                if (showPixel) mosaic.utils.Debug.print("------------------> ", (float)px - 0.5, (float)py -0.5, pixelValue);
+                // TODO: Investigate why this shift works.. 
+                mosaic.utils.Debug.print((int)(px - shift), (int)(py - shift));
+                double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - shift, (float)py - shift);
+                if (binary.getProcessor().getPixelValue((int)(px), (int)(py)) == 0) pixelValue = 0;
                 wx += pixelValue;
                 wy += pixelValue;
+                System.out.println(px + "," + py + " - " +  pixelValue);
                 sumx += px * pixelValue;
                 sumy += py * pixelValue;
                 px += dxi;
@@ -334,13 +314,8 @@ public class newFilamentsTest extends CommonBase {
 
             c.x[num] = (sumx/wx);
             c.y[num] = (sumy/wy);
-            if (showPixel) mosaic.utils.Debug.print(c.x[num], c.y[num]);
-            
-            totalErr += Math.abs((sumx/wx - x));
-            totalErr += Math.abs((sumy/wy - y));
+            if (num == 0) mosaic.utils.Debug.print("COORD: ", x, y, c.x[num], c.y[num]);
         }
-
-        mosaic.utils.Debug.print("TOTAL ERROR : ", totalErr);
     }
 
     private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz, double maxErr) {
@@ -388,7 +363,6 @@ public class newFilamentsTest extends CommonBase {
             }
         }
         xyz.draw();
-        mosaic.utils.Debug.print("CALLED ---------------------");
     }
 
     static class CSS {
@@ -416,21 +390,16 @@ public class newFilamentsTest extends CommonBase {
 
     static public FilamentXyCoordinates generateXyCoordinatesForFilament(final CubicSmoothingSpline cssX, final CubicSmoothingSpline cssY, double start, double stop) {
         // Generate x,y coordinates for current filament
-
-        //        double start = cssX.getKnot(0) - 10;
-        //        double stop = cssX.getKnot(cssX.getNumberOfKNots() - 1) + 10;
         mosaic.utils.Debug.print("ST/ST", start, stop);
         logger.debug("NUM OF POINTS BSPLINE: "  + cssX.getNumberOfKNots() * 2);
         final Matrix t = Matlab.linspace(start, stop, cssX.getNumberOfKNots() * 2);
         Matrix x = t.copy().process(new MFunc() {
-
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 return cssX.getValue(t.get(aRow, aCol));
             }
         });
         Matrix y = t.copy().process(new MFunc() {
-
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 return cssY.getValue(t.get(aRow, aCol));
@@ -471,8 +440,6 @@ public class newFilamentsTest extends CommonBase {
         r.setStrokeColor(color);
         r.setStrokeWidth(0.3);
         aOverlay.add(r);
-        
-        
     }
 
     private ByteProcessor skeletonize(final int w, final int h, Matrix best) {
@@ -486,8 +453,8 @@ public class newFilamentsTest extends CommonBase {
             Skeletonize3D_ skel = new Skeletonize3D_();
             skel.setup("", skeleton);
             skel.run(skeleton.getProcessor());
-            //        ImagePlus skelImg = new ImagePlus("Skeleton", bp);
-            //        skelImg.show();
+//            ImagePlus skelImg = new ImagePlus("Skeleton", bp);
+//            skelImg.show();
             return bp;
     }
 
@@ -498,31 +465,6 @@ public class newFilamentsTest extends CommonBase {
             pixels[i] = (pixels[i] == 0) ? (byte) 0 : (byte) 255;
         }
         return aImage;
-    }
-
-    private Matrix thresholdRegion(Matrix m, boolean aOnlyRegionized) {
-        double[] data = m.getData();
-        SortedSet<Double> sortedSet = new TreeSet<Double>();
-        for (double d : data)
-            sortedSet.add(d);
-        logger.debug(sortedSet.size() + " " + sortedSet.first() + " " + sortedSet.last());
-
-        // find max threshold
-        double previous = sortedSet.first();
-        Matrix best = Matlab.logical(m, 0);
-        if (!aOnlyRegionized) for (double th : sortedSet) {
-            Matrix l = Matlab.logical(m, th);
-            Map<Integer, List<Integer>> c = Matlab.bwconncomp(l, true);
-            logger.debug(th + " " + c.size() + " " + c.keySet());
-            if (c.size() == 1) {
-                previous = th;
-                best = l;
-            }
-            else
-                break;
-        }
-        logger.debug("MAX th: " + previous);
-        return best;
     }
 
     private Matrix[] createSeperateMatrixForEachRegion(final Matrix aImageMatrix) {
@@ -570,7 +512,7 @@ public class newFilamentsTest extends CommonBase {
 
     private ImagePlus runSquassh(ImagePlus aImage) {
         double[][][] img3 = ImgUtils.ImgToZXYarray(aImage);
-        SegmentationParameters sp = new SegmentationParameters(4, 1, 0.0125, 0.0125, true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, psf, 1, 0, 5);
+        SegmentationParameters sp = new SegmentationParameters(4, 1, 0.006125, 0.006125, true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, psf, 1, 0, 5);
         ImageStatistics statistics = aImage.getStatistics();
         SquasshSegmentation ss = new SquasshSegmentation(img3, sp, statistics.histMin, statistics.histMax);
         ss.run();
