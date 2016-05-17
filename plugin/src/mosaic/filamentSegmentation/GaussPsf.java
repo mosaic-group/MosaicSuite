@@ -2,7 +2,7 @@ package mosaic.filamentSegmentation;
 
 import mosaic.utils.math.Matrix;
 
-class GaussPsf {
+public class GaussPsf {
     private static double[][] generateKernel(int xl, int yl, double sigma) {
         final double[][] psf = new double[yl][xl];
         final double middlex = (double)(xl-1)/2;
@@ -28,7 +28,7 @@ class GaussPsf {
         return psf;
     }
 
-    static Matrix generate(int xl, int yl, double sigma) {
+    public static Matrix generate(int xl, int yl, double sigma) {
         return new Matrix(generateKernel(xl, yl, sigma));
     }
 }

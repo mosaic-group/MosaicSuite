@@ -263,9 +263,9 @@ public class SegmentationAlgorithm {
         
         // Show mask. Uncomment for debug purposes:
         // --------
-        FloatProcessor floatProcessor = new FloatProcessor(iOriginalWidth, iOriginalHeight);
-        ImgUtils.YX2DarrayToImg(mk.getArrayYX(), floatProcessor, 1.0);
-        new ImagePlus("Mask", floatProcessor).show();
+//        FloatProcessor floatProcessor = new FloatProcessor(iOriginalWidth, iOriginalHeight);
+//        ImgUtils.YX2DarrayToImg(mk.getArrayYX(), floatProcessor, 1.0);
+//        new ImagePlus("Mask", floatProcessor).show();
         // --------
         
         // Find all possible location of filaments

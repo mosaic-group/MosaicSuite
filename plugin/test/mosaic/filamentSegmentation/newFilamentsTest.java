@@ -99,12 +99,12 @@ public class newFilamentsTest extends CommonBase {
         input = "/Users/gonciarz/test/multi.tif";
         input = "/Users/gonciarz/test/many.tif";
         input = "/Users/gonciarz/test/Crop44.tif";
-        input = "/Users/gonciarz/test/snr4.tif";
         input = "/Users/gonciarz/test/test.tif";
-        input = "/Users/gonciarz/test/curve.tif";
         input = "/Users/gonciarz/test/256.tif";
         input = "/Users/gonciarz/test/zyx.tif";
+        input = "/Users/gonciarz/test/curve.tif";
         input = "/Users/gonciarz/test/sample.jpg";
+        input = "/Users/gonciarz/test/snr4.tif";
         boolean toBeSegmented = true;
 
         // Load input
@@ -193,7 +193,6 @@ public class newFilamentsTest extends CommonBase {
             // REFINE
             refine3(cssResult, ip4, ip1);
 
-
             CSS cssOut = new CSS();
             cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr * 2, maxErr);
             cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr * 2, maxErr);
@@ -209,7 +208,7 @@ public class newFilamentsTest extends CommonBase {
             CubicSmoothingSpline xs = cssOut.cssX;
             CubicSmoothingSpline ys = cssOut.cssY;
             ip4.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(false);
+            ImageProcessor.setUseBicubic(true);
             double sum = 0;
             for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
                 double tvv = xs.getKnot(ti);
@@ -224,12 +223,11 @@ public class newFilamentsTest extends CommonBase {
             double avgIntensity =  sum / xs.getNumberOfKNots();
             double boundaryValue = avgIntensity * valueOfGauss(psf);
             ip1.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(false);
+            ImageProcessor.setUseBicubic(true);
             for (double tn = 0; tn > -100; tn -= 0.001) {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
                 double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-//                mosaic.utils.Debug.print(xvv, yvv, pixelValue, ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5));
                 if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
                 else {System.out.println("BREAK @ " + xvv + "," + yvv);break;}
             }
@@ -238,12 +236,9 @@ public class newFilamentsTest extends CommonBase {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
                 double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-//                mosaic.utils.Debug.print(xvv, yvv, pixelValue, ip1.getProcessor().getInterpolatedValue(xvv -0.5, yvv -0.5));
                 if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
                 else{System.out.println("BREAK @ " + xvv + "," + yvv);break;}
             }
-
-            System.out.println("========================================");
         }
 
         // Merge results and show them
@@ -258,7 +253,7 @@ public class newFilamentsTest extends CommonBase {
 
     final private static int pointsStep = 1;
     final private static double maxErr = 0.625;
-    final private static double psf = 1;
+    final private static double psf = 2;
     final private static double lenOfRefineLine = 3;
     
     private void refine3(CSS c, ImagePlus xyz, ImagePlus binary) {
@@ -298,7 +293,6 @@ public class newFilamentsTest extends CommonBase {
             
             if (num < 30) mosaic.utils.Debug.print("NUM=0 ----------------", x, y, px, py, alpha);
             for (int i = 0; i < inter; ++i) {
-                // TODO: Investigate why this shift works.. 
                 mosaic.utils.Debug.print((int)(px - shift), (int)(py - shift));
                 double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - shift, (float)py - shift);
                 if (binary.getProcessor().getPixelValue((int)(px), (int)(py)) == 0) pixelValue = 0;
