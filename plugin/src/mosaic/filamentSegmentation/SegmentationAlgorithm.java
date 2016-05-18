@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ij.ImagePlus;
-import ij.process.FloatProcessor;
 import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.utils.ArrayOps;
