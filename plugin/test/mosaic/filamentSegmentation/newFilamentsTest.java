@@ -30,6 +30,7 @@ import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import mosaic.bregman.segmentation.SegmentationParameters;
 import mosaic.bregman.segmentation.SquasshSegmentation;
+import mosaic.plugins.FilamentSquassh;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.ConvertArray;
 import mosaic.utils.ImgUtils;
@@ -67,7 +68,18 @@ public class newFilamentsTest extends CommonBase {
 
         return new PathResult(gMst, path);
     }
-
+    @Test
+    public void fil2() {
+        String input = "/Users/gonciarz/test/one.tif";
+        FilamentSquassh fs = new FilamentSquassh();
+        ImagePlus inputImg = loadImagePlus(input);
+        inputImg.show();
+        fs.setup("", inputImg);
+        fs.run(inputImg.getProcessor());
+        fs.setup("final", inputImg);
+        sleep(4500);
+    }
+    
     @Test
     public void fil() {
         // Input file

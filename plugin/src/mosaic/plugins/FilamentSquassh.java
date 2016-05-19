@@ -57,7 +57,9 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     final private static double MaximumSplineError = 0.5;
     final private static double PSF = 2;
     final private static double LengthOfRefineLine = 5;
-    final private static int NumOfStepsBetweenFilamentDataPoints = 1;
+    final private static int NumOfStepsBetweenFilamentDataPoints = 1; // >= 1
+    
+    final private static boolean Debug = false;
     
     // Synchronized map used to collect segmentation data from all plugin threads
     //
@@ -101,6 +103,28 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         addNewFinding(aOrigImg.getSliceNumber(), aChannelNumber, filaments);
     }
     
+    @Override
+    protected boolean showDialog() {
+        // TODO: Create dialog.
+        return true;
+    }
+
+    @Override
+    protected boolean setup(String aArgs) {
+        setResultDestination(ResultOutput.NONE);
+        iProcessedImg = iInputImg.duplicate();
+        iProcessedImg.setTitle("filaments_" + iInputImg.getTitle());
+        
+        return true;
+    }
+    
+    @Override
+    protected void postprocessBeforeShow() {
+        // Show all segmentation results
+        drawFilaments(iFilamentsData);
+        showPlot(iFilamentsData);
+    }
+
     private void drawFilaments(final Map<Integer, Map<Integer, List<CSS>>> iFilamentsData) {
         Overlay overlay = new Overlay();
         iProcessedImg.setOverlay(overlay);
@@ -130,16 +154,9 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                             overlay.add(r);}
                     }
                 }
-                drawPerpendicularLines(e.getValue(), iProcessedImg, frame);
+                if (Debug) drawPerpendicularLines(e.getValue(), iProcessedImg, frame);
             }
         }
-    }
-    
-    @Override
-    protected void postprocessBeforeShow() {
-        // Show all segmentation results
-        drawFilaments(iFilamentsData);
-        showPlot(iFilamentsData);
     }
     
     protected void showPlot(final Map<Integer, Map<Integer, List<CSS>>> aFilamentsData) {
@@ -174,24 +191,121 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
             plot.show();
     }
+    
+    // ================================= Implementation ============
+    
+    public List<CSS> perfromSegmentation(ImagePlus aInputImg, boolean aSegmentFirst) {
+        // Input is to be segmented or ready mask?
+        ImagePlus segmentedImg = aSegmentFirst ? runSquassh(aInputImg) : aInputImg.duplicate();
 
-    @Override
-    protected boolean showDialog() {
-        // TODO: Create dialog.
-        return true;
+        // Remove holes in regions and put every region into seperate matrix
+        ImagePlus binarizedImg = ImgUtils.binarizeImage(segmentedImg);
+        ImagePlus regionsImg = ImgUtils.removeHoles(binarizedImg);
+        final Matrix imgMatrix = ImgUtils.imageToMatrix(regionsImg);
+        Matrix[] regionsMatrices = createSeperateMatrixForEachRegion(imgMatrix);
+    
+        List<CSS> css = new ArrayList<CSS>();
+        int height = aInputImg.getHeight();
+        // Process each connected component
+        for (int regionIdx = 0; regionIdx < regionsMatrices.length; regionIdx++) {
+            logger.debug("Processing region wiht index: " + regionIdx);
+            Matrix currentRegion = Matlab.logical(regionsMatrices[regionIdx], 0);
+            Matrix skeleton = skeletonize(currentRegion);
+            PathResult longestPath = runLongestShortestPaths(skeleton);
+
+            // Generate cubic smoothing splines for longest path
+            List<Integer> allPoints = generatePoints(longestPath);
+            if (allPoints.size() == 0) continue;
+            
+            // Generate coordinates for creating parametric splines x(t) and y(t)
+            final double[] xz = new double[allPoints.size()];
+            final double[] yz = new double[allPoints.size()];
+            final double[] tz = new double[allPoints.size()];
+            for (int t = 0; t < allPoints.size(); ++t) {
+                Integer point = allPoints.get(t);
+                // Index of a point is a absolute index of image - find coordinates
+                final int x = point / height;
+                final int y = point % height;
+                
+                // Adjust to point initially in a middle of pixel (+ 0.5)
+                xz[t] = x + 0.5;
+                yz[t] = y + 0.5;
+                
+                // Generate parametric value in range 0-100. It is much easier to fit spline into such range than for example 0-1. 
+                // In range 0-100 reaction on smoothing parameter is more linear in its range (0-1).
+                tz[t] = (100 * ((double) t) / (allPoints.size() - 1));
+            }
+    
+            CSS cssResult = calcSplines(xz, yz, tz, MaximumSplineError * 2);
+            css.add(cssResult);
+    
+            // REFINE
+            refine3(cssResult, aInputImg, regionsImg);
+    
+            CSS cssOut = new CSS();
+            cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
+            cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
+            System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
+            cssOut.x = xz;
+            cssOut.y = yz;
+            cssOut.t = tz;
+            cssOut.tMin = tz[0];
+            cssOut.tMax = tz[tz.length - 1];
+            cssOut.color = Color.GREEN;
+            css.add(cssOut);
+    
+            CubicSmoothingSpline xs = cssOut.cssX;
+            CubicSmoothingSpline ys = cssOut.cssY;
+            aInputImg.getProcessor().setInterpolate(true);
+            ImageProcessor.setUseBicubic(true);
+            double sum = 0;
+            for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
+                double tvv = xs.getKnot(ti);
+                double xvv = xs.getValue(tvv);
+                double yvv = ys.getValue(tvv);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
+                sum += pixelValue;
+            }
+            
+            double avgIntensity =  sum / xs.getNumberOfKNots();
+            double boundaryValue = avgIntensity * valueOfGaussAtStepPoint(PSF);
+            regionsImg.getProcessor().setInterpolate(true);
+            ImageProcessor.setUseBicubic(true);
+            for (double tn = 0; tn > -100; tn -= 0.001) {
+                double xvv = xs.getValue(tn);
+                double yvv = ys.getValue(tn);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
+                else {break;}
+            }
+            double tMaximum = xs.getKnot(xs.getNumberOfKNots() - 1);
+            for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.001) {
+                double xvv = xs.getValue(tn);
+                double yvv = ys.getValue(tn);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
+                else{break;}
+            }
+        }
+    
+        return css;
     }
 
-    @Override
-    protected boolean setup(String aArgs) {
-        setResultDestination(ResultOutput.NONE);
-        iProcessedImg = iInputImg.duplicate();
-        iProcessedImg.setTitle("filaments_" + iInputImg.getTitle());
-        
-        return true;
+    private List<Integer> generatePoints(PathResult longestPath) {
+        List<Integer> pts = new ArrayList<Integer>();
+        GraphPath<IntVertex, DefaultEdge> path = longestPath.path;
+        if (path != null) {
+            UndirectedGraph<IntVertex, DefaultEdge> graph = longestPath.graph;
+            List<DefaultEdge> edgeList = path.getEdgeList();
+            for (int idx = 0; idx < edgeList.size(); idx += NumOfStepsBetweenFilamentDataPoints) {
+                pts.add(graph.getEdgeSource(edgeList.get(idx)).getLabel());
+            }
+            // Make sure that very last point is also there
+            pts.add(path.getEndVertex().getLabel());
+        }
+        return pts;
     }
-    
-    // =================================
-    
+
     static public class PathResult {
         PathResult(UndirectedGraph<IntVertex, DefaultEdge> aGraph, GraphPath<IntVertex, DefaultEdge> aPath) { graph = aGraph; path = aPath; }
 
@@ -211,131 +325,6 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         }
 
         return new PathResult(gMst, path);
-    }
-
-    public List<CSS> perfromSegmentation(ImagePlus aInputImg, boolean aSegmentFirst) {
-        int width = aInputImg.getWidth();
-        int height = aInputImg.getHeight();
-        
-        // Input is to be segmented or ready mask?
-        ImagePlus ip1 = aSegmentFirst ? runSquassh(aInputImg) : aInputImg.duplicate();
-
-        // Remove holes
-        ip1 = ImgUtils.binarizeImage(ip1);
-        ip1 = ImgUtils.removeHoles(ip1);
-
-        final Matrix imgMatrix = ImgUtils.imageToMatrix(ip1);
-
-        // Find connected components
-        Matrix[] mm = createSeperateMatrixForEachRegion(imgMatrix);
-
-        List<CSS> css = new ArrayList<CSS>();
-        // Process each connected component
-        for (int i = 0; i < mm.length; i++) {
-            Matrix best = Matlab.logical(mm[i], 0);
-            
-            final ByteProcessor bp = skeletonize(width, height, best);
-            // Matrix with skeleton
-            final double[][] img2 = new double[height][width];
-            ImgUtils.ImgToYX2Darray(bp.convertToFloatProcessor(), img2, 1);
-            Matrix skelMatrix = new Matrix(img2);
-            logger.info("Longest...");
-            // Create graph
-            // Do some operations on graph
-            // create image from graph
-            PathResult result = runLongestShortestPaths(skelMatrix);
-            logger.info("Splines...");
-            // GENERATE SPLINES
-            GraphPath<IntVertex, DefaultEdge> path = result.path;
-            if (path == null) continue;
-            int len = path.getEdgeList().size();
-            logger.debug("LENGHT: " + len);
-            int max = len/NumOfStepsBetweenFilamentDataPoints;
-            double step = (double) len / (max);
-            if (step < 1) step = 1;
-            List<Integer> pts = new ArrayList<Integer>();
-            pts.add(path.getStartVertex().getLabel());
-            List<DefaultEdge> edgeList = path.getEdgeList();
-            logger.debug("STEP: " + step);
-            for (double currentIdx = 0; currentIdx < edgeList.size(); currentIdx += step) {
-                if (currentIdx == 0) continue;
-                pts.add(result.graph.getEdgeTarget(edgeList.get((int) currentIdx)).getLabel());
-
-            }
-            pts.add(path.getEndVertex().getLabel());
-            logger.debug("NUMOF: " + pts.size());
-            final List<Double> xv = new ArrayList<Double>();
-            final List<Double> yv = new ArrayList<Double>();
-            final List<Double> tv = new ArrayList<Double>();
-
-            int t = 0;
-            for (int pt : pts) {
-                final int x = pt / height;
-                final int y = pt % height;
-                xv.add(x + 0.5);
-                yv.add(y + 0.5);
-                tv.add(100 * ((double) t) / (pts.size() - 1));
-                t++;
-            }
-            final double[] xz = ConvertArray.toDouble(xv);
-            final double[] yz = ConvertArray.toDouble(yv);
-            final double[] tz = ConvertArray.toDouble(tv);
-            mosaic.utils.Debug.print(xz, yz, tz);
-            logger.debug("INDEX: " + i);
-
-            CSS cssResult = calcSplines(xz, yz, tz, MaximumSplineError * 2);
-            css.add(cssResult);
-
-            // REFINE
-            refine3(cssResult, aInputImg, ip1);
-
-            CSS cssOut = new CSS();
-            cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
-            cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
-            System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
-            cssOut.x = xz;
-            cssOut.y = yz;
-            cssOut.t = tz;
-            cssOut.tMin = tz[0];
-            cssOut.tMax = tz[tz.length - 1];
-            cssOut.color = Color.GREEN;
-            css.add(cssOut);
-
-            CubicSmoothingSpline xs = cssOut.cssX;
-            CubicSmoothingSpline ys = cssOut.cssY;
-            aInputImg.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
-            double sum = 0;
-            for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
-                double tvv = xs.getKnot(ti);
-                double xvv = xs.getValue(tvv);
-                double yvv = ys.getValue(tvv);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
-                sum += pixelValue;
-            }
-            
-            double avgIntensity =  sum / xs.getNumberOfKNots();
-            double boundaryValue = avgIntensity * valueOfGaussAtStepPoint(PSF);
-            ip1.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
-            for (double tn = 0; tn > -100; tn -= 0.001) {
-                double xvv = xs.getValue(tn);
-                double yvv = ys.getValue(tn);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
-                else {break;}
-            }
-            double tMaximum = xs.getKnot(xs.getNumberOfKNots() - 1);
-            for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.001) {
-                double xvv = xs.getValue(tn);
-                double yvv = ys.getValue(tn);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
-                else{break;}
-            }
-        }
-
-        return css;
     }
 
     private void refine3(CSS c, ImagePlus xyz, ImagePlus binary) {
@@ -489,21 +478,23 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         aOverlay.add(r);
     }
 
-    private ByteProcessor skeletonize(final int w, final int h, Matrix best) {
-        byte[] maskBytes = new byte[w * h];
-        for (int x = 0; x < best.getData().length; x++)
+    private Matrix skeletonize(Matrix best) {
+        // Create ByteProcessor image
+        byte[] maskBytes = new byte[best.size()];
+        for (int x = 0; x < best.getData().length; x++) {
             maskBytes[x] = best.getData()[x] != 0 ? (byte) 255 : (byte) 0;
-            final ByteProcessor bp = new ByteProcessor(w, h, maskBytes);
+        }
+        final ByteProcessor bp = new ByteProcessor(best.numCols(), best.numRows(), maskBytes);
 
-            // And skeletonize
-            final ImagePlus skeleton = new ImagePlus("Skeletonized", bp);
-            Skeletonize3D_ skel = new Skeletonize3D_();
-            skel.setup("", skeleton);
-            skel.run(skeleton.getProcessor());
-            return bp;
+        // And skeletonize
+        final ImagePlus skeleton = new ImagePlus("Skeletonized", bp);
+        Skeletonize3D_ skel = new Skeletonize3D_();
+        skel.setup("", skeleton);
+        skel.run(skeleton.getProcessor());
+        
+        // Return as a matrix
+        return  ImgUtils.imageToMatrix(skeleton);
     }
-
-
 
     private Matrix[] createSeperateMatrixForEachRegion(final Matrix aImageMatrix) {
         Matrix logical = Matlab.logical(aImageMatrix, 0);
