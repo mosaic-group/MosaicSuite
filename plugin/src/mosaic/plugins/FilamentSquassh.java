@@ -17,7 +17,6 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import Skeletonize3D_.Skeletonize3D_;
-import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Line;
 import ij.gui.Overlay;
@@ -96,7 +95,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
 
         // --------------- SEGMENTATION --------------------------------------------
-        List<CSS> filaments = perfromSegmentation(new ImagePlus("", aOrigImg));
+        List<CSS> filaments = perfromSegmentation(new ImagePlus("", aOrigImg), /* segment */ true);
 
         // Save results and update output image
         addNewFinding(aOrigImg.getSliceNumber(), aChannelNumber, filaments);
@@ -214,24 +213,18 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         return new PathResult(gMst, path);
     }
 
-    public List<CSS> perfromSegmentation(ImagePlus ip4) {
-        boolean toBeSegmented = true;
-
-        int w = ip4.getWidth();
-        int h = ip4.getHeight();
+    public List<CSS> perfromSegmentation(ImagePlus aInputImg, boolean aSegmentFirst) {
+        int width = aInputImg.getWidth();
+        int height = aInputImg.getHeight();
+        
         // Input is to be segmented or ready mask?
-        ImagePlus ip1 = toBeSegmented ? runSquassh(ip4) : ip4.duplicate();
+        ImagePlus ip1 = aSegmentFirst ? runSquassh(aInputImg) : aInputImg.duplicate();
 
         // Remove holes
-        ip1 = binarizeImage(ip1);
-        ip1 = removeHoles(ip1);
+        ip1 = ImgUtils.binarizeImage(ip1);
+        ip1 = ImgUtils.removeHoles(ip1);
 
-        // Run distance transfrom
-        // ImagePlus dist = runDistanceTransform(ip1.duplicate());
-        ImagePlus dist = ip1.duplicate();
-
-        // Convert to matrix
-        final Matrix imgMatrix = convertToMatrix(dist);
+        final Matrix imgMatrix = ImgUtils.imageToMatrix(ip1);
 
         // Find connected components
         Matrix[] mm = createSeperateMatrixForEachRegion(imgMatrix);
@@ -241,9 +234,9 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         for (int i = 0; i < mm.length; i++) {
             Matrix best = Matlab.logical(mm[i], 0);
             
-            final ByteProcessor bp = skeletonize(w, h, best);
+            final ByteProcessor bp = skeletonize(width, height, best);
             // Matrix with skeleton
-            final double[][] img2 = new double[h][w];
+            final double[][] img2 = new double[height][width];
             ImgUtils.ImgToYX2Darray(bp.convertToFloatProcessor(), img2, 1);
             Matrix skelMatrix = new Matrix(img2);
             logger.info("Longest...");
@@ -277,8 +270,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
             int t = 0;
             for (int pt : pts) {
-                final int x = pt / h;
-                final int y = pt % h;
+                final int x = pt / height;
+                final int y = pt % height;
                 xv.add(x + 0.5);
                 yv.add(y + 0.5);
                 tv.add(100 * ((double) t) / (pts.size() - 1));
@@ -294,7 +287,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             css.add(cssResult);
 
             // REFINE
-            refine3(cssResult, ip4, ip1);
+            refine3(cssResult, aInputImg, ip1);
 
             CSS cssOut = new CSS();
             cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
@@ -310,14 +303,14 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
             CubicSmoothingSpline xs = cssOut.cssX;
             CubicSmoothingSpline ys = cssOut.cssY;
-            ip4.getProcessor().setInterpolate(true);
+            aInputImg.getProcessor().setInterpolate(true);
             ImageProcessor.setUseBicubic(true);
             double sum = 0;
             for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
                 double tvv = xs.getKnot(ti);
                 double xvv = xs.getValue(tvv);
                 double yvv = ys.getValue(tvv);
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
                 sum += pixelValue;
             }
             
@@ -328,7 +321,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             for (double tn = 0; tn > -100; tn -= 0.001) {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
                 if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
                 else {break;}
             }
@@ -336,7 +329,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.001) {
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
-                double pixelValue = ip4.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
+                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
                 if (pixelValue >= boundaryValue && ip1.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
                 else{break;}
             }
@@ -507,61 +500,27 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             Skeletonize3D_ skel = new Skeletonize3D_();
             skel.setup("", skeleton);
             skel.run(skeleton.getProcessor());
-//            ImagePlus skelImg = new ImagePlus("Skeleton", bp);
-//            skelImg.show();
             return bp;
     }
 
-    private ImagePlus binarizeImage(ImagePlus aImage) {
-        new ImageConverter(aImage).convertToGray8();
-        byte[] pixels = (byte[]) aImage.getProcessor().getPixels();
-        for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = (pixels[i] == 0) ? (byte) 0 : (byte) 255;
-        }
-        return aImage;
-    }
+
 
     private Matrix[] createSeperateMatrixForEachRegion(final Matrix aImageMatrix) {
         Matrix logical = Matlab.logical(aImageMatrix, 0);
         Map<Integer, List<Integer>> cc = Matlab.bwconncomp(logical, true);
-        logger.debug("Connected components " + cc.size());
+        logger.debug("Number of found connected components " + cc.size());
 
         // Create sepreate matrix for each connected component
-        Matrix[] mm = new Matrix[cc.size()];
+        Matrix[] matrices = new Matrix[cc.size()];
         int idx = 0;
         for (List<Integer> p : cc.values()) {
-            Matrix m = aImageMatrix.copy().zeros();
+            Matrix m = aImageMatrix.newSameSize();
             for (int i : p)
                 m.set(i, aImageMatrix.get(i));
-            mm[idx] = m;
+            matrices[idx] = m;
             idx++;
         }
-        return mm;
-    }
-
-    private Matrix convertToMatrix(ImagePlus aIamge) {
-        FloatProcessor fp = aIamge.getProcessor().convertToFloatProcessor();
-        int w = aIamge.getWidth();
-        int h = aIamge.getHeight();
-        final double[][] img = new double[h][w];
-        ImgUtils.ImgToYX2Darray(fp, img, 1.0);
-        final Matrix imgMatrix = new Matrix(img);
-        return imgMatrix;
-    }
-
-    private ImagePlus removeHoles(ImagePlus aImage) {
-        IJ.run(aImage, "Invert", "stack");
-        // "Fill Holes" is using Prefs.blackBackground global setting. We need false here.
-        boolean tempBlackbackground = ij.Prefs.blackBackground;
-        ij.Prefs.blackBackground = false;
-        IJ.run(aImage, "Fill Holes", "stack");
-        ij.Prefs.blackBackground = tempBlackbackground;
-
-        IJ.run(aImage, "Invert", "stack");
-//        aImage.setTitle("Holes removed");
-//        aImage.resetDisplayRange();
-//        aImage.show();
-        return aImage;
+        return matrices;
     }
 
     private ImagePlus runSquassh(ImagePlus aImage) {

@@ -1,6 +1,7 @@
 package mosaic.utils;
 
 import ij.CompositeImage;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.io.FileInfo;
@@ -8,6 +9,7 @@ import ij.measure.Calibration;
 import ij.plugin.filter.EDM;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
+import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.math.Matrix;
@@ -482,6 +484,38 @@ public class ImgUtils {
     }
     
     /**
+     * Remove holes from binarized 8-bit image (background = 0, object = 255).
+     * @param aImage input image
+     * @return input image transformed
+     */
+    public static ImagePlus removeHoles(ImagePlus aImage) {
+        IJ.run(aImage, "Invert", "stack");
+        
+        // "Fill Holes" is using Prefs.blackBackground global setting. We need false here.
+        boolean tempBlackbackground = ij.Prefs.blackBackground;
+        ij.Prefs.blackBackground = false;
+        IJ.run(aImage, "Fill Holes", "stack");
+        ij.Prefs.blackBackground = tempBlackbackground;
+
+        IJ.run(aImage, "Invert", "stack");
+        return aImage;
+    }
+    
+    /**
+     * Converts image to binary (it is converted to 8-bit image with background = 0 and object = 255 values)
+     * @param aImage input image
+     * @return input image transformed
+     */
+    public static ImagePlus binarizeImage(ImagePlus aImage) {
+        new ImageConverter(aImage).convertToGray8();
+        byte[] pixels = (byte[]) aImage.getProcessor().getPixels();
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] = (pixels[i] == 0) ? (byte) 0 : (byte) 255;
+        }
+        return aImage;
+    }
+    
+    /**
      * @param aImageMatrix matrix with image
      * @param aTitle title of output image
      * @return ImagePlus of Float type
@@ -490,8 +524,19 @@ public class ImgUtils {
         final double[][] result = aImageMatrix.getArrayYX();
         FloatProcessor fp = new FloatProcessor(result[0].length, result.length);
         ImgUtils.YX2DarrayToImg(result, fp, 1.0);
-        ImagePlus img = new ImagePlus(aTitle, fp);
-        return img;
+        return new ImagePlus(aTitle, fp);
+    }
+    
+    /**
+     * Converts *current* ImageProcessor to Matrix (converting it to FloatProcessor first).
+     * @param aImage image to be converted to matrix
+     * @return output Matrix
+     */
+    public static Matrix imageToMatrix(ImagePlus aIamge) {
+        FloatProcessor fp = aIamge.getProcessor().convertToFloatProcessor();
+        final double[][] img = new double[aIamge.getHeight()][aIamge.getWidth()];
+        ImgUtils.ImgToYX2Darray(fp, img, 1.0);
+        return new Matrix(img);
     }
 }
 

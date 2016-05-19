@@ -248,7 +248,7 @@ public class newFilamentsTest extends CommonBase {
         draw(xyz, css);
         drawPerpendicularLines(css, xyz);
         IJ.save(xyz, "/tmp/processed.tif");
-        sleep(125000);
+        sleep(2500);
     }
 
     final private static int pointsStep = 1;
