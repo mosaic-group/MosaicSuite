@@ -138,13 +138,13 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 for (final CSS css : e.getValue()) {
                     logger.debug("Drawing....");
                     final CSS css1 = css;
-                    FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.tMin, css1.tMax);
-                    if (css.color != Color.RED || css.color == Color.RED && Debug) drawFilamentsOnOverlay(overlay, coordinates, css.color, frame);
+                    FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.getMinT(), css1.getMaxT());
+                    if (css.getColor() != Color.RED || css.getColor() == Color.RED && Debug) drawFilamentsOnOverlay(overlay, coordinates, css.getColor(), frame);
 
                     if (Debug) {
                         for (int i = 0 ; i < css.xt.length; i++) {
-                            if (css.color == Color.RED) {
-                                Roi r = new ij.gui.EllipseRoi(css.xinit[i]-0.1, css.yinit[i]-0.1, css.xinit[i]+0.1, css.yinit[i]+0.1, 1);
+                            if (css.getColor() == Color.RED) {
+                                Roi r = new ij.gui.EllipseRoi(css.xt[i]-0.1, css.yt[i]-0.1, css.xt[i]+0.1, css.yt[i]+0.1, 1);
                                 r.setPosition(frame);
                                 r.setStrokeColor(Color.BLACK);
                                 overlay.add(r);
@@ -175,7 +175,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 for (final List<CSS> ps : ms.values()) {
                     int count = 0;
                     for (final CSS css1 : ps) {
-                        if (css1.color == Color.RED) continue; 
+                        if (css1.getColor() == Color.RED) continue; 
                         // Mix colors - it is good for spotting changes for single filament
                         switch(count) {
                             case 0: plot.setColor(Color.BLUE);break;
@@ -188,7 +188,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                         count = (++count % 5); // Keeps all values in 0-5 range
                         
                         // Put stuff on plot
-                        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.tMin, css1.tMax);
+                        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.getMinT(), css1.getMaxT());
                         plot.addPoints(coordinates.x.getData(), coordinates.y.getData(), PlotWindow.LINE);
                     }
                 }
@@ -232,18 +232,15 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             CSS cssResult = calcSplines(xt, yt, t, 2 * MaximumSplineError);
             css.add(cssResult);
     
-            refine(cssResult, aInputImg, regionsImg);
+            CSS refined = refine(cssResult, aInputImg, regionsImg);
     
-            CSS cssOut = new CSS();
-            cssOut.cssX = new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
-            cssOut.cssY = new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
-            System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
-            cssOut.xt = xt;
-            cssOut.yt = yt;
-            cssOut.t = t;
-            cssOut.tMin = t[0];
-            cssOut.tMax = t[t.length - 1];
-            cssOut.color = Color.GREEN;
+            CSS cssOut = new CSS(
+                    new CubicSmoothingSpline(refined.t, refined.xt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
+                    new CubicSmoothingSpline(refined.t, refined.yt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
+                    refined.xt,
+                    refined.yt,
+                    refined.t);
+            cssOut.setColor(Color.GREEN);
             css.add(cssOut);
     
             CubicSmoothingSpline xs = cssOut.cssX;
@@ -267,7 +264,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
                 double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.tMin = tn;
+                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.setMinT(tn);
                 else {break;}
             }
             double tMaximum = xs.getKnot(xs.getNumberOfKNots() - 1);
@@ -275,7 +272,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 double xvv = xs.getValue(tn);
                 double yvv = ys.getValue(tn);
                 double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.tMax = tn;
+                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.setMaxT(tn);
                 else{break;}
             }
         }
@@ -336,10 +333,15 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         return new PathResult(gMst, path);
     }
 
-    private void refine(CSS c, ImagePlus xyz, ImagePlus binary) {
-        c.xinit=c.xt.clone();
-        c.yinit=c.yt.clone();
-        for (int num = 0; num < c.t.length; num += 1) {
+    
+    class RefineCoords {
+        RefineCoords(double aX1, double aY1, double aX2, double aY2) { x1 = aX1; y1 = aY1; x2 = aX2; y2 = aY2; }
+        double x1, y1, x2, y2;
+    }
+    
+    RefineCoords[] generateCoordinatesForRefineLines(CSS c) {
+        RefineCoords[] coords = new RefineCoords[c.t.length];
+        for (int num = 0; num < c.t.length; num++) {
             double t = c.t[num];
             double x = c.xt[num];
             double y = c.yt[num];
@@ -355,78 +357,69 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             if (dxv == 0) alpha = Math.PI/2;
             else if (dyv == 0) alpha = 0;
             else alpha = Math.atan(dyv/dxv);
-
-            double x1 = (x) - LengthOfRefineLine * Math.cos(alpha - Math.PI/2);
-            double x2 = (x) + LengthOfRefineLine * Math.cos(alpha - Math.PI/2);
-            double y1 = (y) - LengthOfRefineLine * Math.sin(alpha - Math.PI/2);
-            double y2 = (y) + LengthOfRefineLine * Math.sin(alpha - Math.PI/2);
-
+            RefineCoords rc = new RefineCoords(
+                    x - LengthOfRefineLine * Math.cos(alpha - Math.PI/2),
+                    y - LengthOfRefineLine * Math.sin(alpha - Math.PI/2),
+                    x + LengthOfRefineLine * Math.cos(alpha - Math.PI/2),
+                    y + LengthOfRefineLine * Math.sin(alpha - Math.PI/2)
+            );
+            coords[num] = rc;
+        }
+        return coords;
+    }
+    
+    private CSS refine(CSS c, ImagePlus xyz, ImagePlus binary) {
+        double[] newXt = c.xt.clone();
+        double[] newYt = c.yt.clone();
+        double[] newT = c.t.clone();
+        RefineCoords[] rcs = generateCoordinatesForRefineLines(c);
+        for (int num = 0; num < c.t.length; num += 1) {
             // TODO: Handle situation when two parts of regions are too close that refinement line crossing both.
             int inter=(int)LengthOfRefineLine * 2 * 20 + 1;
-            double dxi = (x2 - x1)/(inter - 1);
-            double dyi = (y2 - y1)/(inter - 1);
-            double sumx = 0, sumy = 0, wx = 0, wy = 0;
-            double px = x1, py = y1;
+            RefineCoords rc = rcs[num];
+            double dxi = (rc.x2 - rc.x1)/(inter - 1);
+            double dyi = (rc.y2 - rc.y1)/(inter - 1);
+            double sumx = 0, sumy = 0, w = 0;
+            double px = rc.x1, py = rc.y1;
             xyz.getProcessor().setInterpolate(true);
             ImageProcessor.setUseBicubic(true);
             double shift = 0.5; // shift for bicubic interpolation making it symmetric in respect to middle of pixel.
-            
             for (int i = 0; i < inter; ++i) {
                 double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - shift, (float)py - shift);
                 if (binary.getProcessor().getPixelValue((int)(px), (int)(py)) == 0) pixelValue = 0;
-                wx += pixelValue;
-                wy += pixelValue;
+                w += pixelValue;
                 sumx += px * pixelValue;
                 sumy += py * pixelValue;
                 px += dxi;
                 py += dyi;
             }
-            if (wx == 0 || wy == 0) continue;
-
-            c.xt[num] = (sumx/wx);
-            c.yt[num] = (sumy/wy);
+            if (w == 0) continue;
+            newXt[num] = (sumx/w);
+            newYt[num] = (sumy/w);
         }
+        
+        return new CSS(c.cssX, c.cssY, newXt, newYt, newT);
     }
 
     private CSS calcSplines( final double[] aXvalues, final double[] aYvalues, final double[] aTvalues, double aMaxSinglePointError) {
-        CSS cssOut = new CSS();
-        cssOut.cssX = new CubicSmoothingSpline(aTvalues, aXvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError);
-        cssOut.cssY = new CubicSmoothingSpline(aTvalues, aYvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError);
-        cssOut.xt = aXvalues;
-        cssOut.yt = aYvalues;
-        cssOut.t = aTvalues;
-        cssOut.tMin = aTvalues[0];
-        cssOut.tMax = aTvalues[aTvalues.length - 1];
-        return cssOut;
+        return new CSS(
+            new CubicSmoothingSpline(aTvalues, aXvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+            new CubicSmoothingSpline(aTvalues, aYvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+            aXvalues,
+            aYvalues,
+            aTvalues
+        );
     }
 
     private void drawPerpendicularLines(List<CSS> css, ImagePlus xyz, int aFrame) {
         Overlay overlay = xyz.getOverlay();
         for (int idx = 0; idx < css.size(); idx++) {
             CSS c = css.get(idx);
-            if (c.color != Color.RED) continue;
+            if (c.getColor() != Color.RED) continue;
+            RefineCoords[] rcs = generateCoordinatesForRefineLines(c);
             for (int num = 0; num < c.t.length; num += 1) {
-                double x = c.xinit[num];
-                double y = c.yinit[num];
-                double t = c.t[num];
-                Spline sx = c.cssX.getSplineForValue(t);
-                Spline sy = c.cssY.getSplineForValue(t);
-                Polynomial dx = sx.equation.getDerivative(1);
-                Polynomial dy = sy.equation.getDerivative(1);
-
-                double dxv = dx.getValue(t - sx.shift);
-                double dyv = dy.getValue(t - sy.shift);
-
-                double alpha;
-                if (dxv == 0) alpha = Math.PI/2;
-                else if (dyv == 0) alpha = 0;
-                else alpha = Math.atan(dyv/dxv);
-                double x1 = x - LengthOfRefineLine * Math.cos(alpha - Math.PI/2);
-                double x2 = x + LengthOfRefineLine * Math.cos(alpha - Math.PI/2);
-                double y1 = y - LengthOfRefineLine * Math.sin(alpha - Math.PI/2);
-                double y2 = y + LengthOfRefineLine * Math.sin(alpha - Math.PI/2);
-
-                Roi r = new Line(x1, y1, x2, y2);
+                RefineCoords rc = rcs[num];
+                Roi r = new Line(rc.x1, rc.y1, rc.x2, rc.y2);
                 r.setPosition(aFrame);
                 r.setStrokeColor(Color.WHITE);
                 overlay.add(r);
@@ -436,16 +429,31 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     }
 
     static class CSS {
-        CubicSmoothingSpline cssX;
-        CubicSmoothingSpline cssY;
-        double[] xt;
-        double[] yt;
-        double[] xinit;
-        double[] yinit;
-        double[] t;
-        double tMin;
-        double tMax;
-        Color color = Color.RED;
+        final CubicSmoothingSpline cssX;
+        final CubicSmoothingSpline cssY;
+        final double[] xt;
+        final double[] yt;
+        final double[] t;
+        private double tMin;
+        private double tMax;
+        private Color color = Color.RED;
+        
+        CSS(CubicSmoothingSpline aCssX, CubicSmoothingSpline aCssY, double[] aXt, double[] aYt, double[] aT) {
+            xt = aXt;
+            yt = aYt;
+            t = aT;
+            cssX = aCssX;
+            cssY = aCssY;
+            tMin = t[0];
+            tMax = t[t.length - 1];
+        }
+        
+        void setColor(Color aColor) { color = aColor; }
+        Color getColor() { return color; }
+        void setMinT(double aMin) { tMin = aMin; }
+        double getMinT() { return tMin; }
+        void setMaxT(double aMax) { tMax = aMax; }
+        double getMaxT() { return tMax; }
     }
 
     static public class FilamentXyCoordinates {
