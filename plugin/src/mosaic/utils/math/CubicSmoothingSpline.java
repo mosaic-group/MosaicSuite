@@ -74,24 +74,21 @@ public class CubicSmoothingSpline {
             // recalculate spline with new smoothing paramter
             resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
         }
-        System.out.println("SM / T: " + iSmoothingParameter + " " + step);
     }
     
     public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, FittingStrategy aStrategy, double aMaxErrorValue, double aMaxTolerance) {
         this(aXvalues, aYvalues, aStrategy, aMaxErrorValue);
-        System.out.println("CubicSmoothing: " + iSmoothingParameter + " " + aMaxErrorValue + " " + aMaxTolerance);
         iY = aYvalues.clone();
         double[] deltaY = new double[iY.length];
         int iter = 0 ;
-        double currentError = 0;
         do {
-            currentError = 0;
+            double currentError = 0;
             for (int i = 0; i < aXvalues.length; i++) {
                 deltaY[i] = aYvalues[i] - getValue(aXvalues[i]);
                 if (Math.abs(deltaY[i]) > currentError) currentError = Math.abs(deltaY[i]);
             }
             
-            if (currentError < aMaxTolerance) { System.out.println("Found at: " + currentError);break; }
+            if (currentError < aMaxTolerance) { break; }
             
             for (int i = 0; i < aXvalues.length; i++) {
                 iY[i] += 2 * deltaY[i];
@@ -101,7 +98,6 @@ public class CubicSmoothingSpline {
             resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
             iter++;
         } while (iter < 100000); 
-        System.out.println("MAX ERR: " + currentError + " " + (iter));
     }
     
     /**

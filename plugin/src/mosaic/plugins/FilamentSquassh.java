@@ -55,7 +55,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     // Segmentation parameters
     final private static double MaximumSplineError = 0.5;
     final private static double PSF = 2;
-    final private static double LengthOfRefineLine = 4.5;
+    final private static double LengthOfRefineLine = 14.5;
     final private static int NumOfStepsBetweenFilamentDataPoints = 1; // >= 1
     
     final private static boolean Debug = true;
@@ -135,37 +135,36 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
                 // and draw them one by one
                 for (final CSS css : e.getValue()) {
-                    logger.debug("Drawing....");
-                    final CSS css1 = css;
-                    FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.getMinT(), css1.getMaxT());
-                    drawFilamentsOnOverlay(overlay, coordinates, css.getColor(), frame);
+                    FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css);
+                    if (!css.debgugCss || css.debgugCss && Debug) {
+                        Roi r = new PolygonRoi(coordinates.x.getArrayYXasFloats()[0], coordinates.y.getArrayYXasFloats()[0], Roi.POLYLINE);
+                        r.setPosition(frame);
+                        r.setStrokeColor(css.getColor());
+                        r.setStrokeWidth(0.25);
+                        overlay.add(r);
+                    }
 
                     if (Debug) {
                         for (int i = 0 ; i < css.xt.length; i++) {
-                            if (css.getColor() == Color.RED) {
-                                Roi r = new ij.gui.EllipseRoi(css.xt[i]-0.1, css.yt[i]-0.1, css.xt[i]+0.1, css.yt[i]+0.1, 1);
-                                r.setPosition(frame);
-                                r.setStrokeColor(Color.BLACK);
-                                overlay.add(r);
-                            }
-                            else {
-                                Roi r = new ij.gui.EllipseRoi(css.xt[i]-0.1, css.yt[i]-0.1, css.xt[i]+0.1, css.yt[i]+0.1, 1);
-                                r.setPosition(frame);
-                                r.setStrokeColor(Color.BLUE);
+                            final double radius = 0.125;
+                            Roi r = new ij.gui.EllipseRoi(css.xt[i] - radius, css.yt[i] - radius, css.xt[i] + radius, css.yt[i] + radius, 1);
+                            r.setPosition(frame);
+                            r.setStrokeColor(Color.BLUE);
+                            if (!css.debgugCss) {
                                 r.setFillColor(Color.BLUE);
-                                overlay.add(r);
                             }
+                            overlay.add(r);
                         }
+                        drawPerpendicularLines(css, iProcessedImg, frame);
                     }
                 }
-                if (Debug) drawPerpendicularLines(e.getValue(), iProcessedImg, frame);
             }
         }
     }
     
     protected void showPlot(final Map<Integer, Map<Integer, List<CSS>>> aFilamentsData) {
             PlotWindow.noGridLines = false; // draw grid lines
-            final Plot plot = new Plot("FIL PLOT", "X", "Y");
+            final Plot plot = new Plot("Filaments Plot", "X", "Y");
             plot.setLimits(0, iInputImg.getWidth() - 1, iInputImg.getHeight() - 1, 0);
             
             // Plot data
@@ -173,8 +172,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             for (final Map<Integer, List<CSS>> ms : aFilamentsData.values()) {
                 for (final List<CSS> ps : ms.values()) {
                     int count = 0;
-                    for (final CSS css1 : ps) {
-                        if (css1.getColor() == Color.RED) continue; 
+                    for (final CSS css : ps) {
+                        if (css.getColor() == Color.RED) continue; 
                         // Mix colors - it is good for spotting changes for single filament
                         switch(count) {
                             case 0: plot.setColor(Color.BLUE);break;
@@ -187,7 +186,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                         count = (++count % 5); // Keeps all values in 0-5 range
                         
                         // Put stuff on plot
-                        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.getMinT(), css1.getMaxT());
+                        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css);
                         plot.addPoints(coordinates.x.getData(), coordinates.y.getData(), PlotWindow.LINE);
                     }
                 }
@@ -218,42 +217,48 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         for (int regionIdx = 0; regionIdx < regionsMatrices.length; regionIdx++) {
             logger.debug("Processing region wiht index: " + regionIdx);
             Matrix currentRegion = Matlab.logical(regionsMatrices[regionIdx], 0);
-            Matrix skeleton = skeletonize(currentRegion);
-            PathResult longestPath = runLongestShortestPaths(skeleton);
-
-            // Generate cubic smoothing splines for longest path
-            List<Integer> allPoints = generatePoints(longestPath);
-            if (allPoints.size() == 0) continue;
             
-            // Generate coordinates for creating parametric splines x(t) and y(t)
-            final double[] xt = new double[allPoints.size()];
-            final double[] yt = new double[allPoints.size()];
-            final double[] t = new double[allPoints.size()];
-            generateParametricCoordinates(height, allPoints, xt, yt, t);
-            double aMaxSinglePointError = 2 * MaximumSplineError;
-    
-            // Calculate first "rough" spline which fits longest shortest path in skeleton
-            CSS cssResult = new CSS(
-                new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
-                new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
-                xt,
-                yt,
-                t
-            );
-            if (Debug) css.add(cssResult);
-    
-            // Refine points on spline along refine lines
-            CSS refined = refine(cssResult, aInputImg, regionsImg);
-            refined.setColor(Color.GREEN);
-            css.add(refined);
-    
-            // Take care of "tips" of filament. Make spline longer in each direction until brightness is above of average value with given PSF
-            double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
-            refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
-            refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
+            processOneRegion(currentRegion, height, aInputImg, regionsImg, css);
         }
     
         return css;
+    }
+    
+    void processOneRegion(Matrix currentRegion, int height, ImagePlus aInputImg, ImagePlus regionsImg, List<CSS> css) {
+        Matrix skeleton = skeletonize(currentRegion);
+        PathResult longestPath = runLongestShortestPaths(skeleton);
+
+        // Generate cubic smoothing splines for longest path
+        List<Integer> allPoints = generatePoints(longestPath);
+        if (allPoints.size() == 0) return;
+        
+        // Generate coordinates for creating parametric splines x(t) and y(t)
+        final double[] xt = new double[allPoints.size()];
+        final double[] yt = new double[allPoints.size()];
+        final double[] t = new double[allPoints.size()];
+        generateParametricCoordinates(height, allPoints, xt, yt, t);
+        double aMaxSinglePointError = 2 * MaximumSplineError;
+
+        // Calculate first "rough" spline which fits longest shortest path in skeleton
+        CSS cssResult = new CSS(
+            new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+            new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+            xt,
+            yt,
+            t
+        );
+        cssResult.debgugCss = true;
+        css.add(cssResult);
+
+        // Refine points on spline along refine lines
+        CSS refined = refine(cssResult, aInputImg, regionsImg);
+        refined.setColor(Color.GREEN);
+        css.add(refined);
+
+        // Take care of "tips" of filament. Make spline longer in each direction until brightness is above of average value with given PSF
+        double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
+        refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
+        refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
     }
     
     double findT(CSS aSpline, double aInitValue, double aStep, double aBoundaryValue, ImagePlus aInputImg, ImagePlus aRegionsImg) {
@@ -377,11 +382,14 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         RefineCoords[] rcs = generateCoordinatesForRefineLines(c);
         for (int num = 0; num < c.t.length; num += 1) {
             // TODO: Handle situation when two parts of regions are too close that refinement line crossing both.
-            int inter=(int)LengthOfRefineLine * 2 * 20 + 1;
+            int inter=(int)LengthOfRefineLine * 20 + 1;
             RefineCoords rc = rcs[num];
+            double x = c.xt[num];
+            double y = c.yt[num];
             double dxi = (rc.x2 - rc.x1)/(inter - 1);
             double dyi = (rc.y2 - rc.y1)/(inter - 1);
             double sumx = 0, sumy = 0, w = 0;
+            
             double px = rc.x1, py = rc.y1;
             double shift = 0.5; // shift for bicubic interpolation making it symmetric in respect to middle of pixel.
             for (int i = 0; i < inter; ++i) {
@@ -393,6 +401,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 px += dxi;
                 py += dyi;
             }
+            
+            
             if (w == 0) continue;
             newXt[num] = (sumx/w);
             newYt[num] = (sumy/w);
@@ -406,19 +416,16 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 newT);
     }
 
-    private void drawPerpendicularLines(List<CSS> css, ImagePlus xyz, int aFrame) {
+    private void drawPerpendicularLines(CSS css, ImagePlus xyz, int aFrame) {
         Overlay overlay = xyz.getOverlay();
-        for (int idx = 0; idx < css.size(); idx++) {
-            CSS c = css.get(idx);
-            if (c.getColor() != Color.RED) continue;
-            RefineCoords[] rcs = generateCoordinatesForRefineLines(c);
-            for (int num = 0; num < c.t.length; num += 1) {
-                RefineCoords rc = rcs[num];
-                Roi r = new Line(rc.x1, rc.y1, rc.x2, rc.y2);
-                r.setPosition(aFrame);
-                r.setStrokeColor(Color.WHITE);
-                overlay.add(r);
-            }
+        if (css.getColor() != Color.RED) return;
+        RefineCoords[] rcs = generateCoordinatesForRefineLines(css);
+        for (int num = 0; num < css.t.length; num += 1) {
+            RefineCoords rc = rcs[num];
+            Roi r = new Line(rc.x1, rc.y1, rc.x2, rc.y2);
+            r.setPosition(aFrame);
+            r.setStrokeColor(Color.WHITE);
+            overlay.add(r);
         }
         xyz.draw();
     }
@@ -432,6 +439,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         private double tMin;
         private double tMax;
         private Color color = Color.RED;
+        boolean debgugCss = false;
         
         CSS(CubicSmoothingSpline aCssX, CubicSmoothingSpline aCssY, double[] aXt, double[] aYt, double[] aT) {
             xt = aXt;
@@ -461,42 +469,32 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         }
     }
 
-    static public FilamentXyCoordinates generateXyCoordinatesForFilament(final CubicSmoothingSpline cssX, final CubicSmoothingSpline cssY, double start, double stop) {
+    static public FilamentXyCoordinates generateXyCoordinatesForFilament(final CSS css) {
         // Generate x,y coordinates for current filament
-        mosaic.utils.Debug.print("ST/ST", start, stop);
-        logger.debug("NUM OF POINTS BSPLINE: "  + cssX.getNumberOfKNots() * 2);
-        final Matrix t = Matlab.linspace(start, stop, cssX.getNumberOfKNots() * 2);
+        final Matrix t = Matlab.linspace(css.getMinT(), css.getMaxT(), css.cssX.getNumberOfKNots() * 2);
         Matrix x = t.copy().process(new MFunc() {
             @Override
             public double f(double aElement, int aRow, int aCol) {
-                return cssX.getValue(t.get(aRow, aCol));
+                return css.cssX.getValue(t.get(aRow, aCol));
             }
         });
         Matrix y = t.copy().process(new MFunc() {
             @Override
             public double f(double aElement, int aRow, int aCol) {
-                return cssY.getValue(t.get(aRow, aCol));
+                return css.cssY.getValue(t.get(aRow, aCol));
             }
         });
 
         return new FilamentXyCoordinates(x, y);
     }
 
-    private void drawFilamentsOnOverlay(Overlay aOverlay, FilamentXyCoordinates coordinates, Color color, int aFrame) {
-        Roi r = new PolygonRoi(coordinates.x.getArrayYXasFloats()[0], coordinates.y.getArrayYXasFloats()[0], Roi.POLYLINE);
-        r.setPosition(aFrame);
-        r.setStrokeColor(color);
-        r.setStrokeWidth(0.3);
-        aOverlay.add(r);
-    }
-
-    private Matrix skeletonize(Matrix best) {
+    private Matrix skeletonize(Matrix aImg) {
         // Create ByteProcessor image
-        byte[] maskBytes = new byte[best.size()];
-        for (int x = 0; x < best.getData().length; x++) {
-            maskBytes[x] = best.getData()[x] != 0 ? (byte) 255 : (byte) 0;
+        byte[] maskBytes = new byte[aImg.size()];
+        for (int x = 0; x < aImg.getData().length; x++) {
+            maskBytes[x] = aImg.getData()[x] != 0 ? (byte) 255 : (byte) 0;
         }
-        final ByteProcessor bp = new ByteProcessor(best.numCols(), best.numRows(), maskBytes);
+        final ByteProcessor bp = new ByteProcessor(aImg.numCols(), aImg.numRows(), maskBytes);
 
         // And skeletonize
         final ImagePlus skeleton = new ImagePlus("Skeletonized", bp);

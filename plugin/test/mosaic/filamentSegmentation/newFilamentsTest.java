@@ -71,6 +71,10 @@ public class newFilamentsTest extends CommonBase {
     @Test
     public void fil2() {
         String input = "/Users/gonciarz/test/one.tif";
+        input = "/Users/gonciarz/test/test1.tif";
+        input = "/Users/gonciarz/test/test2.tif";
+        input = "/Users/gonciarz/test/snr4.tif";
+        input = "/Users/gonciarz/test/many.tif";
         FilamentSquassh fs = new FilamentSquassh();
         ImagePlus inputImg = loadImagePlus(input);
         inputImg.show();
