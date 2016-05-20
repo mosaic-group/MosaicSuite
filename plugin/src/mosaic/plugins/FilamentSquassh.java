@@ -55,7 +55,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     // Segmentation parameters
     final private static double MaximumSplineError = 0.5;
     final private static double PSF = 2;
-    final private static double LengthOfRefineLine = 14.5;
+    final private static double LengthOfRefineLine = 3 * PSF;
     final private static int NumOfStepsBetweenFilamentDataPoints = 1; // >= 1
     
     final private static boolean Debug = true;
@@ -237,9 +237,9 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         final double[] yt = new double[allPoints.size()];
         final double[] t = new double[allPoints.size()];
         generateParametricCoordinates(height, allPoints, xt, yt, t);
-        double aMaxSinglePointError = 2 * MaximumSplineError;
 
         // Calculate first "rough" spline which fits longest shortest path in skeleton
+        double aMaxSinglePointError = 3 * MaximumSplineError;
         CSS cssResult = new CSS(
             new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
             new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
@@ -256,9 +256,11 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         css.add(refined);
 
         // Take care of "tips" of filament. Make spline longer in each direction until brightness is above of average value with given PSF
-        double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
-        refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
-        refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
+        if (refined.cssX.getNumberOfKNots() > 1 && refined.cssY.getNumberOfKNots() > 2) {
+            double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
+            refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
+            refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
+        }
     }
     
     double findT(CSS aSpline, double aInitValue, double aStep, double aBoundaryValue, ImagePlus aInputImg, ImagePlus aRegionsImg) {
@@ -378,30 +380,43 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     private CSS refine(CSS c, ImagePlus xyz, ImagePlus binary) {
         double[] newXt = c.xt.clone();
         double[] newYt = c.yt.clone();
-        double[] newT = c.t.clone();
+        double[] newT = c.t; // This is not changed so it is not copied;
+        
         RefineCoords[] rcs = generateCoordinatesForRefineLines(c);
+        int inter=(int)LengthOfRefineLine * 20 + 1;
+        
         for (int num = 0; num < c.t.length; num += 1) {
-            // TODO: Handle situation when two parts of regions are too close that refinement line crossing both.
-            int inter=(int)LengthOfRefineLine * 20 + 1;
-            RefineCoords rc = rcs[num];
             double x = c.xt[num];
             double y = c.yt[num];
-            double dxi = (rc.x2 - rc.x1)/(inter - 1);
-            double dyi = (rc.y2 - rc.y1)/(inter - 1);
+            RefineCoords rc = rcs[num];
+            double dx1 = (rc.x1 - x)/(inter - 1);
+            double dy1 = (rc.y1 - y)/(inter - 1);
+            double dx2 = (rc.x2 - x)/(inter - 1);
+            double dy2 = (rc.y2 - y)/(inter - 1);
+
             double sumx = 0, sumy = 0, w = 0;
             
-            double px = rc.x1, py = rc.y1;
+            double px1 = x, py1 = y;
+            double px2 = x + dx2, py2 = y + dy2; // skip (x, y) - it is already calculated for px1/py1 pair
             double shift = 0.5; // shift for bicubic interpolation making it symmetric in respect to middle of pixel.
             for (int i = 0; i < inter; ++i) {
-                double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - shift, (float)py - shift);
-                if (binary.getProcessor().getPixelValue((int)(px), (int)(py)) == 0) pixelValue = 0;
-                w += pixelValue;
-                sumx += px * pixelValue;
-                sumy += py * pixelValue;
-                px += dxi;
-                py += dyi;
+                    double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px1 - shift, (float)py1 - shift);
+                    if (binary.getProcessor().getPixelValue((int)(px1), (int)(py1)) == 0) break;
+                    w += pixelValue;
+                    sumx += px1 * pixelValue;
+                    sumy += py1 * pixelValue;
+                    px1 += dx1;
+                    py1 += dy1;
             }
-            
+            for (int i = 0; i < inter; ++i) {
+                    double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px2 - shift, (float)py2 - shift);
+                    if (binary.getProcessor().getPixelValue((int)(px2), (int)(py2)) == 0) break;
+                    w += pixelValue;
+                    sumx += px2 * pixelValue;
+                    sumy += py2 * pixelValue;
+                    px2 += dx2;
+                    py2 += dy2;
+            }
             
             if (w == 0) continue;
             newXt[num] = (sumx/w);

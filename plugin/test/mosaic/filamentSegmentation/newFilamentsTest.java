@@ -75,6 +75,8 @@ public class newFilamentsTest extends CommonBase {
         input = "/Users/gonciarz/test/test2.tif";
         input = "/Users/gonciarz/test/snr4.tif";
         input = "/Users/gonciarz/test/many.tif";
+        input = "/Users/gonciarz/test/Crop44.tif";
+        input = "/Users/gonciarz/test/cc.tif";
         FilamentSquassh fs = new FilamentSquassh();
         ImagePlus inputImg = loadImagePlus(input);
         inputImg.show();
