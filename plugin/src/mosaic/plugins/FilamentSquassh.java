@@ -56,10 +56,10 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     // Segmentation parameters
     final private static double MaximumSplineError = 0.5;
     final private static double PSF = 2;
-    final private static double LengthOfRefineLine = 5;
+    final private static double LengthOfRefineLine = 4.5;
     final private static int NumOfStepsBetweenFilamentDataPoints = 1; // >= 1
     
-    final private static boolean Debug = false;
+    final private static boolean Debug = true;
     
     // Synchronized map used to collect segmentation data from all plugin threads
     //
@@ -139,19 +139,24 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                     logger.debug("Drawing....");
                     final CSS css1 = css;
                     FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.tMin, css1.tMax);
-                    drawFilamentsOnOverlay(overlay, coordinates, css.color, frame);
+                    if (css.color != Color.RED || css.color == Color.RED && Debug) drawFilamentsOnOverlay(overlay, coordinates, css.color, frame);
 
-                    for (int i = 0 ; i < css.x.length; i++) {
-                        Roi r = new ij.gui.EllipseRoi(css.x[i]-0.1, css.y[i]-0.1, css.x[i]+0.1, css.y[i]+0.1, 1);
-                        r.setPosition(frame);
-                        r.setStrokeColor(Color.BLUE);
-                        r.setFillColor(Color.BLUE);
-                        overlay.add(r);
-                        if (css.color == Color.RED) {
-                            r = new ij.gui.EllipseRoi(css.xinit[i]-0.1, css.yinit[i]-0.1, css.xinit[i]+0.1, css.yinit[i]+0.1, 1);
-                            r.setPosition(frame);
-                            r.setStrokeColor(Color.BLACK);
-                            overlay.add(r);}
+                    if (Debug) {
+                        for (int i = 0 ; i < css.xt.length; i++) {
+                            if (css.color == Color.RED) {
+                                Roi r = new ij.gui.EllipseRoi(css.xinit[i]-0.1, css.yinit[i]-0.1, css.xinit[i]+0.1, css.yinit[i]+0.1, 1);
+                                r.setPosition(frame);
+                                r.setStrokeColor(Color.BLACK);
+                                overlay.add(r);
+                            }
+                            else {
+                                Roi r = new ij.gui.EllipseRoi(css.xt[i]-0.1, css.yt[i]-0.1, css.xt[i]+0.1, css.yt[i]+0.1, 1);
+                                r.setPosition(frame);
+                                r.setStrokeColor(Color.BLUE);
+                                r.setFillColor(Color.BLUE);
+                                overlay.add(r);
+                            }
+                        }
                     }
                 }
                 if (Debug) drawPerpendicularLines(e.getValue(), iProcessedImg, frame);
@@ -218,39 +223,26 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             if (allPoints.size() == 0) continue;
             
             // Generate coordinates for creating parametric splines x(t) and y(t)
-            final double[] xz = new double[allPoints.size()];
-            final double[] yz = new double[allPoints.size()];
-            final double[] tz = new double[allPoints.size()];
-            for (int t = 0; t < allPoints.size(); ++t) {
-                Integer point = allPoints.get(t);
-                // Index of a point is a absolute index of image - find coordinates
-                final int x = point / height;
-                final int y = point % height;
-                
-                // Adjust to point initially in a middle of pixel (+ 0.5)
-                xz[t] = x + 0.5;
-                yz[t] = y + 0.5;
-                
-                // Generate parametric value in range 0-100. It is much easier to fit spline into such range than for example 0-1. 
-                // In range 0-100 reaction on smoothing parameter is more linear in its range (0-1).
-                tz[t] = (100 * ((double) t) / (allPoints.size() - 1));
-            }
+            final double[] xt = new double[allPoints.size()];
+            final double[] yt = new double[allPoints.size()];
+            final double[] t = new double[allPoints.size()];
+            generateParametricCoordinates(height, allPoints, xt, yt, t);
     
-            CSS cssResult = calcSplines(xz, yz, tz, MaximumSplineError * 2);
+            // Calculate first "rough" spline which fits longest shortest path in skeleton
+            CSS cssResult = calcSplines(xt, yt, t, 2 * MaximumSplineError);
             css.add(cssResult);
     
-            // REFINE
-            refine3(cssResult, aInputImg, regionsImg);
+            refine(cssResult, aInputImg, regionsImg);
     
             CSS cssOut = new CSS();
-            cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
-            cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
+            cssOut.cssX = new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
+            cssOut.cssY = new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError);
             System.out.println("sp: " + cssOut.cssY.getSmoothingParameter() + " " + cssOut.cssX.getSmoothingParameter());
-            cssOut.x = xz;
-            cssOut.y = yz;
-            cssOut.t = tz;
-            cssOut.tMin = tz[0];
-            cssOut.tMax = tz[tz.length - 1];
+            cssOut.xt = xt;
+            cssOut.yt = yt;
+            cssOut.t = t;
+            cssOut.tMin = t[0];
+            cssOut.tMax = t[t.length - 1];
             cssOut.color = Color.GREEN;
             css.add(cssOut);
     
@@ -291,6 +283,23 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         return css;
     }
 
+    private void generateParametricCoordinates(int height, List<Integer> allPoints, final double[] xt, final double[] yt, final double[] t) {
+        for (int i = 0; i < allPoints.size(); ++i) {
+            Integer point = allPoints.get(i);
+            // Index of a point is a absolute index of image - find coordinates
+            final int x = point / height;
+            final int y = point % height;
+            
+            // Adjust to point initially in a middle of pixel (+ 0.5)
+            xt[i] = x + 0.5;
+            yt[i] = y + 0.5;
+            
+            // Generate parametric value in range 0-100. It is much easier to fit spline into such range than for example 0-1. 
+            // In range 0-100 reaction on smoothing parameter is more linear in its range (0-1).
+            t[i] = (100 * ((double) i) / (allPoints.size() - 1));
+        }
+    }
+
     private List<Integer> generatePoints(PathResult longestPath) {
         List<Integer> pts = new ArrayList<Integer>();
         GraphPath<IntVertex, DefaultEdge> path = longestPath.path;
@@ -327,13 +336,13 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         return new PathResult(gMst, path);
     }
 
-    private void refine3(CSS c, ImagePlus xyz, ImagePlus binary) {
-        c.xinit=c.x.clone();
-        c.yinit=c.y.clone();
+    private void refine(CSS c, ImagePlus xyz, ImagePlus binary) {
+        c.xinit=c.xt.clone();
+        c.yinit=c.yt.clone();
         for (int num = 0; num < c.t.length; num += 1) {
             double t = c.t[num];
-            double x = c.x[num];//c.cssX.getValue(t);
-            double y = c.y[num];//c.cssY.getValue(t);
+            double x = c.xt[num];
+            double y = c.yt[num];
             Spline sx = c.cssX.getSplineForValue(t);
             Spline sy = c.cssY.getSplineForValue(t);
             Polynomial dx = sx.equation.getDerivative(1);
@@ -374,20 +383,20 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             }
             if (wx == 0 || wy == 0) continue;
 
-            c.x[num] = (sumx/wx);
-            c.y[num] = (sumy/wy);
+            c.xt[num] = (sumx/wx);
+            c.yt[num] = (sumy/wy);
         }
     }
 
-    private CSS calcSplines( final double[] xz, final double[] yz, final double[] tz, double maxErr) {
+    private CSS calcSplines( final double[] aXvalues, final double[] aYvalues, final double[] aTvalues, double aMaxSinglePointError) {
         CSS cssOut = new CSS();
-        cssOut.cssX = new CubicSmoothingSpline(tz, xz, FittingStrategy.MaxSinglePointValue, maxErr);
-        cssOut.cssY = new CubicSmoothingSpline(tz, yz, FittingStrategy.MaxSinglePointValue, maxErr);
-        cssOut.x = xz;
-        cssOut.y = yz;
-        cssOut.t = tz;
-        cssOut.tMin = tz[0];
-        cssOut.tMax = tz[tz.length - 1];
+        cssOut.cssX = new CubicSmoothingSpline(aTvalues, aXvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError);
+        cssOut.cssY = new CubicSmoothingSpline(aTvalues, aYvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError);
+        cssOut.xt = aXvalues;
+        cssOut.yt = aYvalues;
+        cssOut.t = aTvalues;
+        cssOut.tMin = aTvalues[0];
+        cssOut.tMax = aTvalues[aTvalues.length - 1];
         return cssOut;
     }
 
@@ -429,8 +438,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     static class CSS {
         CubicSmoothingSpline cssX;
         CubicSmoothingSpline cssY;
-        double[] x;
-        double[] y;
+        double[] xt;
+        double[] yt;
         double[] xinit;
         double[] yinit;
         double[] t;
@@ -501,15 +510,15 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         Map<Integer, List<Integer>> cc = Matlab.bwconncomp(logical, true);
         logger.debug("Number of found connected components " + cc.size());
 
-        // Create sepreate matrix for each connected component
+        // Create separate matrix for each connected component
         Matrix[] matrices = new Matrix[cc.size()];
         int idx = 0;
         for (List<Integer> p : cc.values()) {
             Matrix m = aImageMatrix.newSameSize();
-            for (int i : p)
+            for (int i : p) {
                 m.set(i, aImageMatrix.get(i));
-            matrices[idx] = m;
-            idx++;
+            }
+            matrices[idx++] = m;
         }
         return matrices;
     }
