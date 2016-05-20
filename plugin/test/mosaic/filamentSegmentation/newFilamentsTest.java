@@ -77,7 +77,7 @@ public class newFilamentsTest extends CommonBase {
         fs.setup("", inputImg);
         fs.run(inputImg.getProcessor());
         fs.setup("final", inputImg);
-        sleep(4500);
+        sleep(14500);
     }
     
     @Test

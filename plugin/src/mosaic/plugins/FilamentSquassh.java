@@ -43,7 +43,6 @@ import mosaic.utils.math.GraphUtils.IntVertex;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
 import mosaic.utils.math.Matrix.MFunc;
-import mosaic.utils.math.Polynomial;
 
 
 /**
@@ -139,7 +138,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                     logger.debug("Drawing....");
                     final CSS css1 = css;
                     FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css1.cssX, css1.cssY, css1.getMinT(), css1.getMaxT());
-                    if (css.getColor() != Color.RED || css.getColor() == Color.RED && Debug) drawFilamentsOnOverlay(overlay, coordinates, css.getColor(), frame);
+                    drawFilamentsOnOverlay(overlay, coordinates, css.getColor(), frame);
 
                     if (Debug) {
                         for (int i = 0 ; i < css.xt.length; i++) {
@@ -211,6 +210,10 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     
         List<CSS> css = new ArrayList<CSS>();
         int height = aInputImg.getHeight();
+        aInputImg.getProcessor().setInterpolate(true);
+        regionsImg.getProcessor().setInterpolate(true);
+        ImageProcessor.setUseBicubic(true);
+        
         // Process each connected component
         for (int regionIdx = 0; regionIdx < regionsMatrices.length; regionIdx++) {
             logger.debug("Processing region wiht index: " + regionIdx);
@@ -227,57 +230,59 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             final double[] yt = new double[allPoints.size()];
             final double[] t = new double[allPoints.size()];
             generateParametricCoordinates(height, allPoints, xt, yt, t);
+            double aMaxSinglePointError = 2 * MaximumSplineError;
     
             // Calculate first "rough" spline which fits longest shortest path in skeleton
-            CSS cssResult = calcSplines(xt, yt, t, 2 * MaximumSplineError);
-            css.add(cssResult);
+            CSS cssResult = new CSS(
+                new CubicSmoothingSpline(t, xt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+                new CubicSmoothingSpline(t, yt, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
+                xt,
+                yt,
+                t
+            );
+            if (Debug) css.add(cssResult);
     
+            // Refine points on spline along refine lines
             CSS refined = refine(cssResult, aInputImg, regionsImg);
+            refined.setColor(Color.GREEN);
+            css.add(refined);
     
-            CSS cssOut = new CSS(
-                    new CubicSmoothingSpline(refined.t, refined.xt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
-                    new CubicSmoothingSpline(refined.t, refined.yt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
-                    refined.xt,
-                    refined.yt,
-                    refined.t);
-            cssOut.setColor(Color.GREEN);
-            css.add(cssOut);
-    
-            CubicSmoothingSpline xs = cssOut.cssX;
-            CubicSmoothingSpline ys = cssOut.cssY;
-            aInputImg.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
-            double sum = 0;
-            for (int ti = 0; ti < xs.getNumberOfKNots(); ti++) {
-                double tvv = xs.getKnot(ti);
-                double xvv = xs.getValue(tvv);
-                double yvv = ys.getValue(tvv);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv - 0.5);
-                sum += pixelValue;
-            }
-            
-            double avgIntensity =  sum / xs.getNumberOfKNots();
-            double boundaryValue = avgIntensity * valueOfGaussAtStepPoint(PSF);
-            regionsImg.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
-            for (double tn = 0; tn > -100; tn -= 0.001) {
-                double xvv = xs.getValue(tn);
-                double yvv = ys.getValue(tn);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv - 0.5, yvv -0.5) >=128) cssOut.setMinT(tn);
-                else {break;}
-            }
-            double tMaximum = xs.getKnot(xs.getNumberOfKNots() - 1);
-            for (double tn = tMaximum; tn < tMaximum + 100 ; tn += 0.001) {
-                double xvv = xs.getValue(tn);
-                double yvv = ys.getValue(tn);
-                double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv-0.5);
-                if (pixelValue >= boundaryValue && regionsImg.getProcessor().getInterpolatedValue(xvv-0.5, yvv -0.5) >= 128) cssOut.setMaxT(tn);
-                else{break;}
-            }
+            // Take care of "tips" of filament. Make spline longer in each direction until brightness is above of average value with given PSF
+            double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
+            refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
+            refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
         }
     
         return css;
+    }
+    
+    double findT(CSS aSpline, double aInitValue, double aStep, double aBoundaryValue, ImagePlus aInputImg, ImagePlus aRegionsImg) {
+        double tmin = aInitValue;
+        double minVal = tmin;
+        while(true) {
+            double xv = aSpline.cssX.getValue(tmin);
+            double yv = aSpline.cssY.getValue(tmin);
+            // Take care about proper cubic interpolation (-0.5 to get value from middle of pixel)
+            double pixelValue = aInputImg.getProcessor().getInterpolatedValue(xv - 0.5, yv - 0.5);
+            // Check boundary value and region boundary (as 255/2 for binary image).
+            if (pixelValue >= aBoundaryValue && aRegionsImg.getProcessor().getInterpolatedValue(xv - 0.5, yv - 0.5) >= 255.0/2) minVal = tmin;
+            else break;
+            tmin += aStep;
+        }
+        return minVal;
+    }
+    
+    private double calcAverageIntensityOfSpline(CSS aSpline, ImagePlus aImage) {
+        double sum = 0;
+        for (int ti = 0; ti < aSpline.cssX.getNumberOfKNots(); ti++) {
+            double tv = aSpline.cssX.getKnot(ti);
+            double xv = aSpline.cssX.getValue(tv);
+            double yv = aSpline.cssY.getValue(tv);
+            double pixelValue = aImage.getProcessor().getInterpolatedValue(xv - 0.5, yv - 0.5);
+            sum += pixelValue;
+        }
+        
+        return sum / aSpline.cssX.getNumberOfKNots();
     }
 
     private void generateParametricCoordinates(int height, List<Integer> allPoints, final double[] xt, final double[] yt, final double[] t) {
@@ -347,23 +352,20 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             double y = c.yt[num];
             Spline sx = c.cssX.getSplineForValue(t);
             Spline sy = c.cssY.getSplineForValue(t);
-            Polynomial dx = sx.equation.getDerivative(1);
-            Polynomial dy = sy.equation.getDerivative(1);
-
-            double dxv = dx.getValue(t - sx.shift);
-            double dyv = dy.getValue(t - sy.shift);
+            double dxv = sx.equation.getDerivative(1).getValue(t - sx.shift);
+            double dyv = sy.equation.getDerivative(1).getValue(t - sy.shift);
 
             double alpha;
-            if (dxv == 0) alpha = Math.PI/2;
-            else if (dyv == 0) alpha = 0;
+            if (dxv == 0) alpha = Math.PI/2; // vertical
+            else if (dyv == 0) alpha = 0; // horizontal
             else alpha = Math.atan(dyv/dxv);
-            RefineCoords rc = new RefineCoords(
+            
+            coords[num] = new RefineCoords(
                     x - LengthOfRefineLine * Math.cos(alpha - Math.PI/2),
                     y - LengthOfRefineLine * Math.sin(alpha - Math.PI/2),
                     x + LengthOfRefineLine * Math.cos(alpha - Math.PI/2),
                     y + LengthOfRefineLine * Math.sin(alpha - Math.PI/2)
             );
-            coords[num] = rc;
         }
         return coords;
     }
@@ -381,8 +383,6 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             double dyi = (rc.y2 - rc.y1)/(inter - 1);
             double sumx = 0, sumy = 0, w = 0;
             double px = rc.x1, py = rc.y1;
-            xyz.getProcessor().setInterpolate(true);
-            ImageProcessor.setUseBicubic(true);
             double shift = 0.5; // shift for bicubic interpolation making it symmetric in respect to middle of pixel.
             for (int i = 0; i < inter; ++i) {
                 double pixelValue = xyz.getProcessor().getInterpolatedValue((float)px - shift, (float)py - shift);
@@ -398,17 +398,12 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             newYt[num] = (sumy/w);
         }
         
-        return new CSS(c.cssX, c.cssY, newXt, newYt, newT);
-    }
-
-    private CSS calcSplines( final double[] aXvalues, final double[] aYvalues, final double[] aTvalues, double aMaxSinglePointError) {
         return new CSS(
-            new CubicSmoothingSpline(aTvalues, aXvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
-            new CubicSmoothingSpline(aTvalues, aYvalues, FittingStrategy.MaxSinglePointValue, aMaxSinglePointError),
-            aXvalues,
-            aYvalues,
-            aTvalues
-        );
+                new CubicSmoothingSpline(newT, newXt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
+                new CubicSmoothingSpline(newT, newYt, FittingStrategy.MaxSinglePointValue, MaximumSplineError * 2, MaximumSplineError),
+                newXt, 
+                newYt, 
+                newT);
     }
 
     private void drawPerpendicularLines(List<CSS> css, ImagePlus xyz, int aFrame) {
