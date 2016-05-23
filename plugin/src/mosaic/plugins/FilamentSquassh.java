@@ -1,7 +1,12 @@
 package mosaic.plugins;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Panel;
+import java.awt.SystemColor;
+import java.awt.TextArea;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,13 +22,18 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import Skeletonize3D_.Skeletonize3D_;
+import ij.IJ;
 import ij.ImagePlus;
+import ij.Prefs;
+import ij.gui.GenericDialog;
 import ij.gui.Line;
 import ij.gui.Overlay;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
+import ij.macro.Interpreter;
+import ij.measure.ResultsTable;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageConverter;
@@ -46,7 +56,7 @@ import mosaic.utils.math.Matrix.MFunc;
 
 
 /**
- * Implementation of filament segmentation plugin.
+ * Implementation of filament segmentation plugin based on Squassh segmentation.
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
@@ -54,11 +64,15 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     
     // Segmentation parameters
     final private static double MaximumSplineError = 0.5;
-    final private static double PSF = 2;
-    final private static double LengthOfRefineLine = 3 * PSF;
+    final private static double LengthOfRefineLine = 5;
     final private static int NumOfStepsBetweenFilamentDataPoints = 1; // >= 1
     
-    final private static boolean Debug = true;
+    private double iPsfSize = 2;
+    private SegmentationParameters.NoiseModel iNoiseModel;
+    private double iRegularization;
+    private double iMinIntensity;
+    private boolean iIsInDebugMode = true;
+   
     
     // Synchronized map used to collect segmentation data from all plugin threads
     //
@@ -104,7 +118,17 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     
     @Override
     protected boolean showDialog() {
-        // TODO: Create dialog.
+        ConfigDialog cd = new ConfigDialog();
+        if (!cd.getConfiguration()) {
+            return false;
+        }
+        
+        iPsfSize = cd.getPsfDimension();
+        iRegularization = cd.getRegularizer();
+        iMinIntensity = cd.getMinIntensity();
+        iNoiseModel = cd.getNoiseType();
+        iIsInDebugMode = cd.isInDebugMode();
+        
         return true;
     }
 
@@ -122,6 +146,11 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         // Show all segmentation results
         drawFilaments(iFilamentsData);
         showPlot(iFilamentsData);
+        
+        if (!Interpreter.isBatchMode()) {
+            FilamentResultsTable frt = new FilamentResultsTable("Filaments segmentation results of " + iInputImg.getTitle(), iFilamentsData);
+            frt.show();
+        }
     }
 
     private void drawFilaments(final Map<Integer, Map<Integer, List<CSS>>> iFilamentsData) {
@@ -136,7 +165,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 // and draw them one by one
                 for (final CSS css : e.getValue()) {
                     FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css);
-                    if (!css.debgugCss || css.debgugCss && Debug) {
+                    if (!css.debgugCss || css.debgugCss && iIsInDebugMode) {
                         Roi r = new PolygonRoi(coordinates.x.getArrayYXasFloats()[0], coordinates.y.getArrayYXasFloats()[0], Roi.POLYLINE);
                         r.setPosition(frame);
                         r.setStrokeColor(css.getColor());
@@ -144,7 +173,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                         overlay.add(r);
                     }
 
-                    if (Debug) {
+                    if (iIsInDebugMode) {
                         for (int i = 0 ; i < css.xt.length; i++) {
                             final double radius = 0.125;
                             Roi r = new ij.gui.EllipseRoi(css.xt[i] - radius, css.yt[i] - radius, css.xt[i] + radius, css.yt[i] + radius, 1);
@@ -200,7 +229,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     public List<CSS> perfromSegmentation(ImagePlus aInputImg, boolean aSegmentFirst) {
         // Input is to be segmented or ready mask?
         ImagePlus segmentedImg = aSegmentFirst ? runSquassh(aInputImg) : aInputImg.duplicate();
-
+        if (iIsInDebugMode) { segmentedImg.setTitle("Mask"); segmentedImg.show(); }
+        
         // Remove holes in regions and put every region into seperate matrix
         ImagePlus binarizedImg = ImgUtils.binarizeImage(segmentedImg);
         ImagePlus regionsImg = ImgUtils.removeHoles(binarizedImg);
@@ -257,7 +287,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
         // Take care of "tips" of filament. Make spline longer in each direction until brightness is above of average value with given PSF
         if (refined.cssX.getNumberOfKNots() > 1 && refined.cssY.getNumberOfKNots() > 2) {
-            double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(PSF);
+            double boundaryValue = calcAverageIntensityOfSpline(refined, aInputImg) * valueOfGaussAtStepPoint(iPsfSize);
             refined.setMinT(findT(refined, refined.cssX.getKnot(0), -0.01, boundaryValue, aInputImg, regionsImg));
             refined.setMaxT(findT(refined, refined.cssX.getKnot(refined.cssX.getNumberOfKNots() - 1), 0.01, boundaryValue, aInputImg, regionsImg));
         }
@@ -503,6 +533,24 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         return new FilamentXyCoordinates(x, y);
     }
 
+    static public double calcualteFilamentLenght(final CSS aCubicSmoothingSpline) {
+        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(aCubicSmoothingSpline);
+        final Matrix x = coordinates.x;
+        final Matrix y = coordinates.y;
+        
+        double prevX = x.get(0);
+        double prevY = y.get(0);
+        double length = 0.0;
+
+        for (int i = 1; i < x.size(); ++i) {
+            length += Math.sqrt(Math.pow(x.get(i) - prevX,2) + Math.pow(y.get(i) - prevY,2));
+            prevX = x.get(i);
+            prevY = y.get(i);
+        }
+
+        return length;
+    }
+    
     private Matrix skeletonize(Matrix aImg) {
         // Create ByteProcessor image
         byte[] maskBytes = new byte[aImg.size()];
@@ -540,10 +588,10 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     }
 
     private ImagePlus runSquassh(ImagePlus aImage) {
-        double[][][] img3 = ImgUtils.ImgToZXYarray(aImage);
-        SegmentationParameters sp = new SegmentationParameters(2, 1, 0.006125, 0.006125, true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, PSF, 1, 0, 5);
+        double[][][] img = ImgUtils.ImgToZXYarray(aImage);
+        SegmentationParameters sp = new SegmentationParameters(2, 1, iRegularization, iMinIntensity, true, SegmentationParameters.IntensityMode.AUTOMATIC, iNoiseModel, iPsfSize, iPsfSize, 0, 5);
         ImageStatistics statistics = aImage.getStatistics();
-        SquasshSegmentation ss = new SquasshSegmentation(img3, sp, statistics.histMin, statistics.histMax);
+        SquasshSegmentation ss = new SquasshSegmentation(img, sp, statistics.histMin, statistics.histMax);
         ss.run();
         ImagePlus ip1 = ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(ss.iLabeledRegions), "Output");
         new ImageConverter(ip1).convertToGray8();
@@ -572,5 +620,200 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         }
         
         return value;
+    }
+    
+    public class ConfigDialog {
+        // Properties names for saving data from GUI
+        private final String PropNoiseType       = "FilamentSquassh.noiseType";
+        private final String PropPsfDimension    = "FilamentSquassh.psfDimension";
+        private final String PropRegularizer     = "FilamentSquassh.regularizer";
+        private final String PropMinIntensity  = "FilamentSquassh.minIntensity";
+        private final String PropDebugMode  = "FilamentSquassh.debugMode";
+        
+        // Segmentation parameters and settings
+        private SegmentationParameters.NoiseModel iNoiseType;
+        private double iPsfDimension;
+        private double iRegularizer;
+        private double iMinIntensityValue;
+        private boolean iDebugFlag;
+        
+        public SegmentationParameters.NoiseModel getNoiseType() {
+            return iNoiseType;
+        }
+        
+        public double getPsfDimension() {
+            return iPsfDimension;
+        }
+        
+        public double getRegularizer() {
+            return iRegularizer;
+        }
+        
+        public double getMinIntensity() {
+            return iMinIntensityValue;
+        }
+        
+        public boolean isInDebugMode() {
+            return iDebugFlag;
+        }
+        
+        public boolean getConfiguration() {
+            boolean isConfigOK = true;
+            final String[] noiseType = {"Poisson", "Gaussian"};
+
+            do {
+                // Set it for first (next) configuration loop
+                isConfigOK = true;
+                
+                // Create GUI for entering segmentation parameters
+                GenericDialog gd = createConfigWindow(noiseType);
+                if (gd.wasCanceled()) {
+                    return false;
+                }
+                
+                isConfigOK = getUserInputAndVerify(noiseType, gd);
+                
+            } while(!isConfigOK);
+            
+            return true;
+        }
+        
+        private boolean getUserInputAndVerify(final String[] aNoiseType, GenericDialog aDialog) {
+            // Read data from all fields and remember it in preferences
+            final String noise = aDialog.getNextRadioButton();
+            final double psf = aDialog.getNextNumber();
+            final double reg = aDialog.getNextNumber();
+            final double minIntensity = aDialog.getNextNumber();
+            final boolean debug = aDialog.getNextBoolean();
+            
+            // Verify input (only things that can be entered not correctly, radio buttons are always OK)
+            boolean isConfigOK = verifyInputParams(psf, reg, minIntensity);
+            
+            if (isConfigOK) {
+                // OK -> save and set all settings
+                Prefs.set(PropNoiseType, noise);
+                Prefs.set(PropPsfDimension, psf);
+                Prefs.set(PropRegularizer, reg);
+                Prefs.set(PropMinIntensity, minIntensity);
+                Prefs.set(PropDebugMode, debug);
+                
+                // Set segmentation paramters for futher use
+                iNoiseType = SegmentationParameters.NoiseModel.values()[Arrays.asList(aNoiseType).indexOf(noise)];
+                iPsfDimension = psf;
+                iRegularizer = reg / 1000; // For easier user input it has scale * 1e-3
+                iMinIntensityValue = minIntensity / 1000; // For easier user input it has scale * 1e-3
+                iDebugFlag = debug;
+            }
+            
+            return isConfigOK;
+        }
+
+        private GenericDialog createConfigWindow(final String[] aNoiseType) {
+            final GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
+            
+            gd.addRadioButtonGroup("Noise_Type: ", aNoiseType, 3, 1, Prefs.get(PropNoiseType, aNoiseType[0]));
+            gd.addNumericField("PSF(sigma)", Prefs.get(PropPsfDimension, 1), 3);
+            gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizer, 6.125), 3);
+            gd.addNumericField("Min intensity:        0.001 * ", Prefs.get(PropMinIntensity, 6.125), 3);
+       
+            gd.addMessage("\n");
+            gd.addCheckbox("Debug Mode: ", Prefs.get(PropDebugMode, false));
+            
+            gd.addMessage("\n");
+            final String referenceInfo = "Filament segmentation (powered by Squassh).\n\nKrzysztof Gonciarz\nMOSAIC Group";
+            final Panel panel = new Panel();
+            panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            final TextArea ta = new TextArea(referenceInfo, 4, 40, TextArea.SCROLLBARS_NONE);
+            ta.setBackground(SystemColor.control);
+            ta.setEditable(false);
+            ta.setFocusable(true);
+            panel.add(ta);
+            gd.addPanel(panel);
+       
+            gd.showDialog();
+            
+            return gd;
+        }
+
+        private boolean verifyInputParams(final double psf, final double reg, final double minIntensity) {
+            boolean isConfigOK = true;
+            
+            String errorMsg = "";
+            if (reg <= 0) {
+                isConfigOK = false;
+                errorMsg += "Regularizer value must be greater than  0\n";
+            }
+            if (minIntensity <= 0) {
+                isConfigOK = false;
+                errorMsg += "Min intensity value must be greater than  0\n";
+            }
+            if (psf <= 0) {
+                isConfigOK = false;
+                errorMsg += "PSF value must be greater than 0\n";
+            }
+            
+            if (!isConfigOK) {
+                // Show message to user and start again
+                IJ.error(errorMsg);
+            }
+            
+            return isConfigOK;
+        }
+    }
+    
+    
+    public class FilamentResultsTable {
+        
+        private final String iTitle;
+        private ResultsTable rs = null;
+        
+        /**
+         * @param aTitle A title for result table
+         * @param iFilamentsData input data {@link mosaic.plugins.FilamentSegmentation#iFilamentsData check here for details of aFilamentsData structure}
+         */
+        public FilamentResultsTable (String aTitle, final Map<Integer, Map<Integer, List<CSS>>> iFilamentsData) {
+            iTitle = aTitle;
+            generateResultsTableWithAllFilaments(iFilamentsData);
+        }
+        
+        /**
+         * Shows generated table. 
+         */
+        public void show() {
+            if (rs != null) rs.show(iTitle);
+        }
+        
+        private void generateResultsTableWithAllFilaments(final Map<Integer, Map<Integer, List<CSS>>> iFilamentsData) {
+            // Create result table with all filaments
+            rs = new ResultsTable();
+            for (final Integer frame : iFilamentsData.keySet()) {
+                final Map<Integer, List<CSS>> ms = iFilamentsData.get(frame);
+                for (final List<CSS> ps : ms.values()) {
+                    int count = 1;
+                    for (final CSS css : ps) {
+                        if (css.debgugCss) continue;
+                        rs.incrementCounter();
+                        rs.addValue("Frame", frame);
+                        rs.addValue("Filament no", count);
+                        rs.addValue("Lenght", calcualteFilamentLenght(css));
+                        
+                        // Find and adjust coordinates from 1..n range (used to be compatibilt wiht matlab code) 
+                        // to 0..n-1 as used for images in fiji. 
+                        // Additionally for x should point to middle of a pixel (currently segmentation 
+                        // can found only integer values on x axis).
+                        double xBegin = css.cssX.getValue(css.getMinT());
+                        double xEnd = css.cssX.getValue(css.getMaxT());
+                        double yBegin = css.cssY.getValue(css.getMinT());
+                        double yEnd = css.cssY.getValue(css.getMaxT());
+                        rs.addValue("begin x", xBegin);
+                        rs.addValue("begin y", yBegin);
+                        rs.addValue("end x", xEnd);
+                        rs.addValue("end y", yEnd);
+                        count++;
+                    }
+                }
+            }
+        }
+        
     }
 }
