@@ -1784,7 +1784,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             final int secondOrder = 1;
             rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[secondOrder]);
             rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[secondOrder]);
-            rt.setValue("Diffusion Coefficient D2", rownum, ta.getDiffusionCoefficients()[secondOrder]);
+            rt.setValue("Diffusion Coefficient D2 (m^2/s)", rownum, ta.getDiffusionCoefficients()[secondOrder]);
             rt.setValue("Pixel size", rownum, aPixelDimensions);
             rt.setValue("Time interval", rownum, aTimeInterval);
         }
