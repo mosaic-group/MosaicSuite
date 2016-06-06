@@ -63,8 +63,10 @@
             <fileset dir="." includes="src/mosaic/plugins/scripts/Rscript.r" />
             <fileset dir="." includes="src/mosaic/plugins/scripts/Stack_Overlay.py" />
 
-            <zipgroupfileset dir="lib" includes="**/*.jar" excludes="*.config" />
-            
+            <zipgroupfileset dir="lib" includes="**/*.jar" excludes="*.config,vecmath-1.5.2.jar" />
+            <zipfileset src="lib/vecmath-1.5.2.jar">
+                  <exclude name="META-INF/*" />
+            </zipfileset>           
             <manifest>
                 <attribute name="Built-By" value="${name}" />
             </manifest>
