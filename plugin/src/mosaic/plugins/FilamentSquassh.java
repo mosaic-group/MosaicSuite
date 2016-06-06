@@ -71,6 +71,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
     private SegmentationParameters.NoiseModel iNoiseModel;
     private double iRegularization;
     private double iMinIntensity;
+    private boolean iShouldRunSegmentation = true;
     private boolean iIsInDebugMode = true;
    
     
@@ -110,7 +111,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
 
         // --------------- SEGMENTATION --------------------------------------------
-        List<CSS> filaments = perfromSegmentation(new ImagePlus("", aOrigImg), /* segment */ true);
+        List<CSS> filaments = perfromSegmentation(new ImagePlus("", aOrigImg), /* segment? */ iShouldRunSegmentation);
 
         // Save results and update output image
         addNewFinding(aOrigImg.getSliceNumber(), aChannelNumber, filaments);
@@ -127,6 +128,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         iRegularization = cd.getRegularizer();
         iMinIntensity = cd.getMinIntensity();
         iNoiseModel = cd.getNoiseType();
+        iShouldRunSegmentation = cd.shouldRunSegmentation();
         iIsInDebugMode = cd.isInDebugMode();
         
         return true;
@@ -628,6 +630,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         private final String PropPsfDimension    = "FilamentSquassh.psfDimension";
         private final String PropRegularizer     = "FilamentSquassh.regularizer";
         private final String PropMinIntensity  = "FilamentSquassh.minIntensity";
+        private final String PropRunSegmentation  = "FilamentSquassh.runSegmentation";
         private final String PropDebugMode  = "FilamentSquassh.debugMode";
         
         // Segmentation parameters and settings
@@ -635,6 +638,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         private double iPsfDimension;
         private double iRegularizer;
         private double iMinIntensityValue;
+        private boolean iRunSegmentationFlag;
         private boolean iDebugFlag;
         
         public SegmentationParameters.NoiseModel getNoiseType() {
@@ -651,6 +655,10 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         
         public double getMinIntensity() {
             return iMinIntensityValue;
+        }
+        
+        public boolean shouldRunSegmentation() {
+            return iRunSegmentationFlag;
         }
         
         public boolean isInDebugMode() {
@@ -684,6 +692,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             final double psf = aDialog.getNextNumber();
             final double reg = aDialog.getNextNumber();
             final double minIntensity = aDialog.getNextNumber();
+            final boolean runSegmentation = aDialog.getNextBoolean();
             final boolean debug = aDialog.getNextBoolean();
             
             // Verify input (only things that can be entered not correctly, radio buttons are always OK)
@@ -695,6 +704,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 Prefs.set(PropPsfDimension, psf);
                 Prefs.set(PropRegularizer, reg);
                 Prefs.set(PropMinIntensity, minIntensity);
+                Prefs.set(PropRunSegmentation, runSegmentation);
                 Prefs.set(PropDebugMode, debug);
                 
                 // Set segmentation paramters for futher use
@@ -702,6 +712,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
                 iPsfDimension = psf;
                 iRegularizer = reg / 1000; // For easier user input it has scale * 1e-3
                 iMinIntensityValue = minIntensity / 1000; // For easier user input it has scale * 1e-3
+                iRunSegmentationFlag = runSegmentation;
                 iDebugFlag = debug;
             }
             
@@ -716,6 +727,8 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
             gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizer, 6.125), 3);
             gd.addNumericField("Min intensity:        0.001 * ", Prefs.get(PropMinIntensity, 6.125), 3);
        
+            gd.addMessage("\n");
+            gd.addCheckbox("Run Segmentation: ", Prefs.get(PropRunSegmentation, true));
             gd.addMessage("\n");
             gd.addCheckbox("Debug Mode: ", Prefs.get(PropDebugMode, false));
             
