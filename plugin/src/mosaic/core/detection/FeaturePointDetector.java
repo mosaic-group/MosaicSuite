@@ -3,6 +3,8 @@ package mosaic.core.detection;
 
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Measurements;
@@ -19,6 +21,8 @@ import mosaic.core.utils.MosaicUtils;
  * FeaturePointDetector detects the "real" particles in provided frames.
  */
 public class FeaturePointDetector {
+    private static final Logger logger = Logger.getLogger(FeaturePointDetector.class);
+    
     public static enum Mode { ABS_THRESHOLD_MODE, PERCENTILE_MODE }
 
     // user defined parameters and settings
@@ -117,8 +121,18 @@ public class FeaturePointDetector {
      */
     private float findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
         if (iThresholdMode == Mode.ABS_THRESHOLD_MODE) {
+            final StackStatistics stack_stats = new StackStatistics(new ImagePlus("", ips));
+            final float max = (float) stack_stats.max;
+            final float min = (float) stack_stats.min;
+
             // the percent parameter corresponds to an absolute value (not percent)
-            return absIntensityThreshold2 - iGlobalMin / (iGlobalMax - iGlobalMin);
+            float threshold = (absIntensityThreshold2 - iGlobalMin) / (iGlobalMax - iGlobalMin);
+            float threshold2 = threshold * (max - min) + min;
+            logger.debug("Calculated absolute threshold: " + threshold + " for params[" + absIntensityThreshold2 + ", " + iGlobalMin + ", " + iGlobalMax + "]");
+            logger.debug("New min/max: " + min + "/" + max + " New threshold: " + threshold2);
+            
+            // the percent parameter corresponds to an absolute value (not percent)
+            return (absIntensityThreshold2 - iGlobalMin) / (iGlobalMax - iGlobalMin);
         }
         int s, i, j, thold, width;
         width = ips.getWidth();
@@ -197,6 +211,7 @@ public class FeaturePointDetector {
                 }
             }
         }
+        logger.debug("Detected " + iParticles.size() + " particles.");
     }
 
     private void pointLocationsRefinement(ImageStack ips) {

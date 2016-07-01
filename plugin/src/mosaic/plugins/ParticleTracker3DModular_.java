@@ -1014,6 +1014,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         return radius;
     }
 
+    ImagePlus detectImg = null;
     /**
      * Detects particles in the current displayed frame according to the parameters currently set
      * Draws dots on the positions of the detected partciles on the frame and circles them
@@ -1040,7 +1041,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         preview_frame.setParticleRadius(getRadius());
         final Img<ARGBType> img_frame = preview_frame.createImage(backgroundImg, frame.getCalibration());
 
-        ImageJFunctions.wrap(img_frame, "Preview detection").show();
+        ImagePlus wrap = ImageJFunctions.wrap(img_frame, "Preview detection");
+        if (detectImg == null) detectImg = wrap;
+        else detectImg.setImage(wrap);
+        detectImg.show();
     }
 
     /**
@@ -1780,7 +1784,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             final int secondOrder = 1;
             rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[secondOrder]);
             rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[secondOrder]);
-            rt.setValue("Diffusion Coefficient D2", rownum, ta.getDiffusionCoefficients()[secondOrder]);
+            rt.setValue("Diffusion Coefficient D2 (m^2/s)", rownum, ta.getDiffusionCoefficients()[secondOrder]);
             rt.setValue("Pixel size", rownum, aPixelDimensions);
             rt.setValue("Time interval", rownum, aTimeInterval);
         }

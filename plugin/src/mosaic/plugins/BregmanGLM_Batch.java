@@ -233,7 +233,14 @@ public class BregmanGLM_Batch implements Segmentation {
             objectsColocFile = outputSaveDir + Files.createTitleWithExt(FileType.ObjectsColoc, titlePrefix);
             imagesDataFile = outputSaveDir + Files.createTitleWithExt(FileType.ImageColoc, titlePrefix);
         }
-
+        if (IJ.isWindows()) {
+            // R-script requires double backslashes for windows paths (otherwise they are considered
+            // to contain some special backslashed characters).
+            outputSaveDir = outputSaveDir.replace("\\", "\\\\");
+            objectsDataFile = objectsDataFile.replace("\\", "\\\\");
+            objectsColocFile = objectsColocFile.replace("\\", "\\\\");
+            imagesDataFile = imagesDataFile.replace("\\", "\\\\");
+        }
         runRscript(outputSaveDir, objectsDataFile, objectsColocFile, imagesDataFile, channelPairs);
     }
 
