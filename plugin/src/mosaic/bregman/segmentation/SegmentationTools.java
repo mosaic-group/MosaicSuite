@@ -137,12 +137,14 @@ class SegmentationTools {
                             sum += in[k][colIndex][rowIndex] * kernelx[mm];
                         }
                         else {
-                            if (colIndex < 0) {
-                                colIndex = -colIndex - 1;
-                            }
-                            if (colIndex > icols - 1) {
-                                colIndex = icols - (colIndex - icols) - 1;
-                            }
+                            do {
+                                if (colIndex < 0) {
+                                    colIndex = -colIndex - 1;
+                                }
+                                if (colIndex > icols - 1) {
+                                    colIndex = icols - (colIndex - icols) - 1;
+                                }
+                            } while(!(colIndex >= 0 && colIndex < icols));
                             sum += in[k][colIndex][rowIndex] * kernelx[mm];
                         }
 
@@ -172,12 +174,14 @@ class SegmentationTools {
                             sum += out[k][colIndex][rowIndex] * kernely[nn];
                         }
                         else {
-                            if (rowIndex < 0) {
-                                rowIndex = -rowIndex - 1;
-                            }
-                            if (rowIndex > irows - 1) {
-                                rowIndex = irows - (rowIndex - irows) - 1;
-                            }
+                            do {
+                                if (rowIndex < 0) {
+                                    rowIndex = -rowIndex - 1;
+                                }
+                                if (rowIndex > irows - 1) {
+                                    rowIndex = irows - (rowIndex - irows) - 1;
+                                }
+                            } while(!(rowIndex >= 0 && rowIndex < irows));
                             sum += out[k][colIndex][rowIndex] * kernely[nn];
                         }
 
@@ -209,12 +213,14 @@ class SegmentationTools {
                             sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];
                         }
                         else {
-                            if (sliceIndex < 0) {
-                                sliceIndex = Math.min(islices - 1, -sliceIndex - 1);
-                            }
-                            if (sliceIndex > islices - 1) {
-                                sliceIndex = Math.max(0, islices - (sliceIndex - islices) - 1);
-                            }
+                            do {
+                                if (sliceIndex < 0) {
+                                    sliceIndex = Math.min(islices - 1, -sliceIndex - 1);
+                                }
+                                if (sliceIndex > islices - 1) {
+                                    sliceIndex = Math.max(0, islices - (sliceIndex - islices) - 1);
+                                }
+                            } while(!(sliceIndex >= 0 && sliceIndex < islices));
                             sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];
                         }
                     }
