@@ -3,6 +3,8 @@ package mosaic.bregman.segmentation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -107,11 +109,11 @@ class AnalysePatch {
         temp3 = new double[iSizeOverZ][iSizeOverX][iSizeOverY];
 
         double[][][] mask = generateMask(iInputRegion, false);
-        
         MinMax<Double> minMax = ArrayOps.normalize(iPatch);
         iIntensityMin = minMax.getMin();
         iIntensityMax = minMax.getMax();
         iNormalizedMinObjectIntensity = (iMinObjectIntensity - iIntensityMin) / (iIntensityMax - iIntensityMin);
+        logger.debug("iNormalizedMinObjectIntensity = " +  iNormalizedMinObjectIntensity + " iMinObjectIntensity = " + iMinObjectIntensity + " patchMin = " + minMax.getMin() + " patchMax = " + minMax.getMax());
         
         iRescaledMinIntensityAll = iMinObjectIntensity / 0.99;
         
@@ -161,7 +163,7 @@ class AnalysePatch {
         while (iteration < numOfIterations && !isDone) {
             final boolean lastIteration = (iteration == numOfIterations - 1);
             isDone = solver.performIteration(lastIteration);
-            
+            if (iteration % 10 == 0) logger.debug("Iteration: " + iteration);
             if (iParameters.intensityMode == IntensityMode.AUTOMATIC && (iteration == 40 || iteration == 70)) {
                 estimateIntensity(solver.w3k);
                 solver.betaMle[0] = Math.max(0, cout);
@@ -466,18 +468,24 @@ class AnalysePatch {
     private void estimateIntensityClustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
         final Dataset data = new DefaultDataset();
         final double[] pixel = new double[1];
+        Set<Double> distinctPixelValues = new HashSet<Double>();
         for (int z = 0; z < iSizeOverZ; z++) {
             for (int i = 0; i < iSizeOverX; i++) {
                 for (int j = 0; j < iSizeOverY; j++) {
                     if (iRegionMask[z][i][j] == 1) {
                         pixel[0] = aValues[z][i][j];
                         data.add(new DenseInstance(pixel));
+                        distinctPixelValues.add(pixel[0]);
                     }
                 }
             }
         }
         
-        if (data.size() > aNumOfClasters) {
+        logger.debug("Data size = " + data.size() + ", number of distinct values in data set = " + distinctPixelValues.size());
+        // KMeans is not working correctly if data size of number of distinct values in data size is smaller than requested
+        // number of clusters.
+        if (data.size() > aNumOfClasters && distinctPixelValues.size() >= aNumOfClasters) {
+            logger.debug("Running KMeans");
             final Dataset[] dataSet = new KMeans(aNumOfClasters, 100).cluster(data);
     
             int numOfClustersFound = dataSet.length;
@@ -497,6 +505,7 @@ class AnalysePatch {
             logger.debug("Region: " + iInputRegion.iLabel + ", Cluster levels: " + Arrays.toString(levels));
         }
         else {
+            logger.debug("Data set too small or with not enough number of distinct values. Setting default values.");
             cin = 1;
             cout_front = iParameters.defaultBetaMleOut;
             cout = iParameters.defaultBetaMleOut;

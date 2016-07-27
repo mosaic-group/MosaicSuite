@@ -111,7 +111,7 @@ public class SquasshSegmentation {
         iSoftMask = iSolver.w3kbest.clone();
         computeConnectedRegions(iSolver.w3kbest);
         
-        setProgress(55);
+        setProgress(51);
     
         computeVoronoiRegions();
         final ImagePatches ipatches = new ImagePatches(iParameters, iRegionsList, iImage, iSolver.w3kbest, iGlobalMin, iGlobalMax, iParameters.lambdaRegularization, iParameters.minObjectIntensity, iPsf);
@@ -241,7 +241,8 @@ public class SquasshSegmentation {
     }
 
     private void setProgress(int aPercent) {
-        IJ.showStatus("Computing segmentation " + 54 + "%");
+        logger.debug("Segmentation progress: " + aPercent);
+        IJ.showStatus("Computing segmentation " + aPercent + "%");
         IJ.showProgress(aPercent / 100.0);
     }
     
