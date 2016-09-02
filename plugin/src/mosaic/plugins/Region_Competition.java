@@ -249,7 +249,7 @@ public class Region_Competition implements PlugInFilter {
      */
     private void initEnergies() {
         ExternalEnergy e_data;
-        ExternalEnergy e_merge;
+        ExternalEnergy e_merge = null;
         switch (settings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV();
@@ -258,24 +258,17 @@ public class Region_Competition implements PlugInFilter {
             }
             case e_PS: {
                 e_data = new E_PS(labelImage, intensityImage, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
-                e_merge = null;
                 break;
             }
             case e_DeconvolutionPC: {
                 final GeneratePSF gPsf = new GeneratePSF();
-                Img<FloatType> image_psf = null;
-                if (inputImageChosenByUser.getNSlices() == 1) {
-                    image_psf = gPsf.generate(2);
-                }
-                else {
-                    image_psf = gPsf.generate(3);
-                }
+                Img<FloatType> image_psf = gPsf.generate(inputImageChosenByUser.getNSlices() == 1 ? 2 : 3);
+                
                 // Normalize PSF to overall sum equal 1.0
                 final double Vol = MosaicUtils.volume_image(image_psf);
                 MosaicUtils.rescale_image(image_psf, (float) (1.0f / Vol));
 
                 e_data = new E_Deconvolution(intensityImage, image_psf);
-                e_merge = null;
                 break;
             }
             default: {
