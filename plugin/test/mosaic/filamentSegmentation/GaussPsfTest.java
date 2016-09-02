@@ -10,7 +10,7 @@ public class GaussPsfTest extends CommonBase {
 
     @Test
     public void testGauss3by3Matrix() {
-        // Expected values generated in Matlab
+        // Expected values generated in Matlab with 'fspecial'
         final Matrix expected = new Matrix(new double[][] {{0.0113, 0.0838, 0.0113},
                 {0.0838, 0.6193, 0.0838},
                 {0.0113, 0.0838, 0.0113}});

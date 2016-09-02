@@ -195,6 +195,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      *         true, does not mean that the command succeffuly run
      */
     boolean runCommands(String[] commands) {
+        mosaic.utils.Debug.print("SSH COMMANDS", commands);
         String cmd_list = new String();
         for (int i = 0; i < commands.length; i++) {
             cmd_list += commands[i] + "\n";

@@ -88,6 +88,13 @@ public class MatrixTest extends CommonBase {
             assertEquals(2, m.numCols());
             assertArrayEquals("Should be same", new double[][] {{1, 4}, {9, 16}, {25, 36}}, m.getArrayYX());
         }
+        {
+            Matrix input = new Matrix(3, 2, /* values from here */ 1, 2, 3, 4, 5, 6);
+            Matrix m = input.newSameSize();
+            assertEquals(3, m.numRows());
+            assertEquals(2, m.numCols());
+            assertArrayEquals("Should be zeroed", new double[][] {{0, 0}, {0, 0}, {0, 0}}, m.getArrayYX());
+        }
     }
 
     @Test
@@ -451,7 +458,7 @@ public class MatrixTest extends CommonBase {
         {
             final Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
 
-            final Matrix expected = m1.copy().zeros();
+            final Matrix expected = m1.newSameSize();
 
             assertEquals(expected, m1.sub(m1));
         }

@@ -111,5 +111,4 @@ public class SquasshSegmentationTest extends CommonBase {
 //          e.printStackTrace();
 //      }
     }
-    
 }

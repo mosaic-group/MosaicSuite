@@ -41,8 +41,10 @@ public class Settings implements Serializable {
         m_EnergyFunctional = s.m_EnergyFunctional;
         m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
         m_BalloonForceCoeff = s.m_BalloonForceCoeff;
+        
         regularizationType = s.regularizationType;
         m_CurvatureMaskRadius = s.m_CurvatureMaskRadius;
+        
         labelImageInitType = s.labelImageInitType;
         l_BoxRatio = s.l_BoxRatio;
         m_BubblesRadius = s.m_BubblesRadius;
@@ -51,9 +53,11 @@ public class Settings implements Serializable {
         l_Sigma = s.l_Sigma;
         l_Tolerance = s.l_Tolerance;
         l_RegionTolerance = s.l_RegionTolerance;
+        
         m_AllowFusion = s.m_AllowFusion;
         m_AllowFission = s.m_AllowFission;
         m_AllowHandles = s.m_AllowHandles;
+        
         m_EnergyContourLengthCoeff = s.m_EnergyContourLengthCoeff;
         m_RegionMergingThreshold = s.m_RegionMergingThreshold;
         m_MaxNbIterations = s.m_MaxNbIterations;

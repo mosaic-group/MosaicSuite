@@ -12,17 +12,101 @@ import java.util.Arrays;
 public class CubicSmoothingSpline {
     private final Polynomial[] iSplines;
     private final double[] iX;
-    private final double[] iY;
+    private double[] iY;
     private final double[] iWeights;
-    private final double iSmoothingParameter;
+    private double iSmoothingParameter;
 
+    public enum FittingStrategy {
+        /**
+         * In this strategy generated spline has every provided point in such window:
+         * maxError/2 < getValue(x[i]) - y[i] <= maxError
+         */
+        MaxSinglePointValue,
+        
+        /**
+         * In this strategy generated spline has average value of all errors for provided points is in this window:
+         * maxError/2 < sumForEvery_i(getValue(x[i]) - y[i]) / numOfPoints <= maxError
+         */
+        AverageValue
+    }
+    
+    
+    /**
+     * Creates smoothing spline. Note: Input parameters are not checked for validity!
+     * @param aXvalues Increasing numbers representing x-values
+     * @param aYvalues y-values corresponding to x-values (aXvalues nad aValues must be same size)
+     * @param aStrategy - strategy for fitting of spline
+     * @param aMaxErrorValue - maximum error value to be used in strategy
+     */
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, FittingStrategy aStrategy, double aMaxErrorValue) {
+        // In a case we have only two points provided value close to zero is chosen (it must be > 0)
+        // In any other case we start with smoothing value for first iteration of algorithm = 0.5
+        this(aXvalues, aYvalues, (aXvalues.length == 2) ? 1e-52 : 0.5, null);
+        
+        // When we dealing with only two points there is nothing more to do.
+        if (aXvalues.length == 2) return;
+        
+        int step = 1;
+        double direction = 1;
+        
+        if (aStrategy == FittingStrategy.AverageValue) { aMaxErrorValue = aMaxErrorValue * aXvalues.length; }
+        
+        // Continue till machine epsilon which is around 2^-52
+        while (step <= 52) {
+            double currentError = 0;
+            for (int i = 0; i < aXvalues.length; i++) {
+                double diff = Math.abs(getValue(aXvalues[i]) - aYvalues[i]);
+                if (aStrategy == FittingStrategy.MaxSinglePointValue) {
+                    if (currentError < diff) currentError = diff;
+                    // No need to continue if first point with diff bigger then possible error is found
+                    if (currentError > aMaxErrorValue) break;
+                }
+                else if (aStrategy == FittingStrategy.AverageValue) {
+                    currentError += diff;
+                }
+            }
+            
+            if (currentError > 0.99 * aMaxErrorValue && currentError <= aMaxErrorValue) break;
+            direction = (currentError <= aMaxErrorValue) ? -1 : 1;
+            step++;
+            iSmoothingParameter += direction * Math.pow(2, -step);
+            
+            // recalculate spline with new smoothing paramter
+            resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
+        }
+    }
+    
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, FittingStrategy aStrategy, double aMaxErrorValue, double aMaxTolerance) {
+        this(aXvalues, aYvalues, aStrategy, aMaxErrorValue);
+        iY = aYvalues.clone();
+        double[] deltaY = new double[iY.length];
+        int iter = 0 ;
+        do {
+            double currentError = 0;
+            for (int i = 0; i < aXvalues.length; i++) {
+                deltaY[i] = aYvalues[i] - getValue(aXvalues[i]);
+                if (Math.abs(deltaY[i]) > currentError) currentError = Math.abs(deltaY[i]);
+            }
+            
+            if (currentError < aMaxTolerance) { break; }
+            
+            for (int i = 0; i < aXvalues.length; i++) {
+                iY[i] += 2 * deltaY[i];
+            }
+            
+            // recalculate spline with new smoothing paramter
+            resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
+            iter++;
+        } while (iter < 100000); 
+    }
+    
     /**
      * Creates smoothing spline. Note: Input parameters are not checked for validity!
      * @param aXvalues Increasing numbers representing x-values
      * @param aYvalues y-values corresponding to x-values (aXvalues nad aValues must be same size)
      * @param aSmoothingParameter - smoothing parameter in range (0, 1]. For 1 it produces exact interpolation.
      */
-    CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
         this(aXvalues, aYvalues, aSmoothingParameter, null);
     }
 
@@ -46,8 +130,8 @@ public class CubicSmoothingSpline {
 
         iX = aXvalues;
         iY = aYvalues;
-        iSmoothingParameter = aSmoothingParameter;
         iSplines = new Polynomial[iX.length - 1];
+        iSmoothingParameter = aSmoothingParameter;
 
         resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
     }
@@ -61,6 +145,36 @@ public class CubicSmoothingSpline {
      * @return value in point aX
      */
     public double getValue(double aX) {
+        int idx = findSplineIndex(aX);
+
+        return iSplines[idx].getValue(aX - iX[idx]);
+    }
+
+    /**
+     * Gets cubic smoothing spline at given point together with shift that must be applied. Example:
+     * Spline sp = getSplineForValue(x);
+     * double valueAtX = sp.equation.getValue(x - sp.shift);
+     * 
+     * If values are outside initial x-values then boundary polynomials are used to
+     * extrapolate values. (first generated polynomial if aX < aXvalues[0] and last
+     * in opposite case).
+     * @param aX
+     * @return Spline class with data
+     */
+    static public class Spline {
+        Spline(Polynomial aPolynomial, double aShift) { equation = aPolynomial; shift = aShift; }
+        public Polynomial equation;
+        public double shift;
+    }
+    
+    public Spline getSplineForValue(double aX) {
+        int idx = findSplineIndex(aX);
+
+        return new Spline(iSplines[idx], iX[idx]);
+    }
+
+
+    private int findSplineIndex(double aX) {
         int idx = Arrays.binarySearch(iX, aX);
 
         // Handle not exact values (possible insertion points)
@@ -76,10 +190,13 @@ public class CubicSmoothingSpline {
         if (idx >= iX.length - 1) {
             idx--;
         }
-
-        return iSplines[idx].getValue(aX - iX[idx]);
+        return idx;
     }
-
+    
+    public double getSmoothingParameter() { 
+        return iSmoothingParameter;
+    }
+    
     /**
      * Returns number of knots (x values)
      */

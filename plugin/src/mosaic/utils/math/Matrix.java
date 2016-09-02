@@ -200,6 +200,15 @@ public class Matrix {
     public Matrix copy() {
         return new Matrix(this);
     }
+    
+    /**
+     * Returns copy of Matrix.
+     *
+     * @return
+     */
+    public Matrix newSameSize() {
+        return new Matrix(this.numRows(), this.numCols());
+    }
 
     /**
      * Return number of rows in matrix
