@@ -2,8 +2,14 @@ package mosaic.filamentSegmentation;
 
 import mosaic.utils.math.Matrix;
 
-class GaussPsf {
-    private static double[][] generateKernel(int xl, int yl, double sigma) {
+public class GaussPsf {
+    /**
+     * Generates psf array with coordinates [y][x]
+     * @param xl len of x direction
+     * @param yl len o y direction
+     * @param sigma sigma of Gaussian
+     */
+    public static double[][] generateKernel(int xl, int yl, double sigma) {
         final double[][] psf = new double[yl][xl];
         final double middlex = (double)(xl-1)/2;
         final double middley = (double)(yl-1)/2;
@@ -28,7 +34,7 @@ class GaussPsf {
         return psf;
     }
 
-    static Matrix generate(int xl, int yl, double sigma) {
+    public static Matrix generate(int xl, int yl, double sigma) {
         return new Matrix(generateKernel(xl, yl, sigma));
     }
 }

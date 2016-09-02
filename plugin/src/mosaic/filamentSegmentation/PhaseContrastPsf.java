@@ -26,7 +26,7 @@ class PhaseContrastPsf {
         final Matrix tmp = new Matrix(Z);
         tmp.elementMult(tmp).add(epsilon * epsilon);
 
-        final Matrix Dlt = new Matrix(Z.numRows(), Z.numCols());
+        final Matrix Dlt = Z.newSameSize();
         Dlt.fill(epsilon * (1/Math.PI)).elementDiv(tmp);
 
         // --------------------------------------------------------------------
@@ -53,12 +53,7 @@ class PhaseContrastPsf {
         double valForZero= aR*BesselJ.value(1, 2*Math.PI*aR*Math.ulp(1.0))/Math.ulp(1.0);
         final double RsubW = Math.abs(aR - aW);
         final double subValue = (aR-aW)*BesselJ.value(1,2*Math.PI*(RsubW)*Math.ulp(1.0))/Math.ulp(1.0);
-        if (aR - aW < 0) {
-            valForZero += subValue;
-        }
-        else {
-            valForZero -= subValue;
-        }
+        valForZero += (aR - aW < 0) ? subValue : -subValue;
 
         for (int i = 0; i < RZW.numRows(); ++i) {
             for (int j = 0; j < RZW.numCols(); ++j) {

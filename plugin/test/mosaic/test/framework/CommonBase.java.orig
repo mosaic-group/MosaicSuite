@@ -337,7 +337,6 @@ public class CommonBase extends Info {
      * @param aFileName Fully qualified image name
      * @return ImagePlus
      */
-
     protected ImagePlus loadImagePlus(String aFileName)
     {
         return IJ.openImage(aFileName);
@@ -567,12 +566,20 @@ public class CommonBase extends Info {
         }
     }
     
+<<<<<<< HEAD
+    protected void sleep(int aMilliseconds) {
+=======
     static protected void sleep(int aMilliseconds) {
+>>>>>>> filament
         try {
             Thread.sleep(aMilliseconds);
         }
         catch (InterruptedException e) {
+<<<<<<< HEAD
+            e.printStackTrace();
+=======
             // Nothing to do
+>>>>>>> filament
         }
     }
     
