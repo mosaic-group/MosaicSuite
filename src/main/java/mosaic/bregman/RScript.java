@@ -103,7 +103,7 @@ public class RScript {
             
             InputStream in = null;
             try {
-                in = RScript.class.getResourceAsStream("Rscript.r");
+                in = RScript.class.getClassLoader().getResourceAsStream("Rscript.r");
                 if (in == null) {
                     IJ.log("RSCRIPT generation has not succeed (cannot find Rscript.r resource)");
                 }

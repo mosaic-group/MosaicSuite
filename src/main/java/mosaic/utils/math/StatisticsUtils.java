@@ -2,7 +2,7 @@ package mosaic.utils.math;
 
 import java.util.Arrays;
 
-import edu.mines.jtk.util.Array;
+import edu.mines.jtk.util.ArrayMath;
 
 public class StatisticsUtils {
     
@@ -151,8 +151,8 @@ public class StatisticsUtils {
      * Calculates sample Pearson correlation coefficient for provided sample values
      */
     public static double samplePearsonCorrelationCoefficient(double[] aX, double[] aY) {
-        double xMean = Array.sum(aX)/aX.length;
-        double yMean = Array.sum(aY)/aY.length;
+        double xMean = ArrayMath.sum(aX)/aX.length;
+        double yMean = ArrayMath.sum(aY)/aY.length;
  
         double numerator = 0;
         double denA = 0;
