@@ -3,7 +3,7 @@ package mosaic.ia;
 
 import java.util.Vector;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
 import mosaic.utils.math.NearestNeighborTree;

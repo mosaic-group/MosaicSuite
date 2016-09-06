@@ -2,7 +2,7 @@ package mosaic.utils.nurbs;
 
 import java.util.Arrays;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import net.jgeom.nurbs.BasicNurbsSurface;
 import net.jgeom.nurbs.ControlNet;

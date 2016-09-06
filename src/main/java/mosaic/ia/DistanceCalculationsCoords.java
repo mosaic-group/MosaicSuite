@@ -1,7 +1,7 @@
 package mosaic.ia;
 
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 public class DistanceCalculationsCoords extends DistanceCalculations {
 

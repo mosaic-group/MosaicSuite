@@ -2,7 +2,7 @@ package mosaic.ia;
 
 import static org.junit.Assert.assertArrayEquals;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import org.junit.Test;
 

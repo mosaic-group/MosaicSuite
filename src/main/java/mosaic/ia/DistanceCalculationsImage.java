@@ -4,7 +4,7 @@ package mosaic.ia;
 import java.util.List;
 import java.util.Vector;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
 import ij.ImagePlus;

@@ -4,7 +4,7 @@ package mosaic.ia;
 import java.util.List;
 import java.util.Random;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;

@@ -105,6 +105,10 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scijava</groupId>
+            <artifactId>vecmath</artifactId>
+        </dependency>
 
         <!-- Version numbers provided by Fiji (pom-fiji) -->
         <dependency>

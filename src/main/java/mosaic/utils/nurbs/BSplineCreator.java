@@ -1,9 +1,9 @@
 package mosaic.utils.nurbs;
 
-import javax.vecmath.GMatrix;
-import javax.vecmath.GVector;
-import javax.vecmath.Point3d;
-import javax.vecmath.SingularMatrixException;
+import org.scijava.vecmath.Point3d;
+import org.scijava.vecmath.GMatrix;
+import org.scijava.vecmath.GVector;
+import org.scijava.vecmath.SingularMatrixException;
 
 import net.jgeom.nurbs.BasicNurbsCurve;
 import net.jgeom.nurbs.BasicNurbsSurface;

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
 import ij.ImagePlus;

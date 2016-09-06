@@ -3,8 +3,7 @@ package mosaic.utils.math;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-
+import org.scijava.vecmath.Point3d;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.EuclideanDistance;

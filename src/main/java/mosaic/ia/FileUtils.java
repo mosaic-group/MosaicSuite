@@ -4,7 +4,7 @@ package mosaic.ia;
 import java.io.File;
 import java.util.Vector;
 
-import javax.vecmath.Point3d;
+import org.scijava.vecmath.Point3d;
 
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ift.CellProcessor;
