@@ -8,7 +8,30 @@
     <artifactId>MosaicSuite</artifactId>
     <packaging>jar</packaging>
     <version>1.0.0</version>
-    <description />
+    <description>Package contains image processing algorithms developed in MOSAIC Group</description>
+    <url>http://mosaic.mpi-cbg.de/?q=downloads/imageJ</url>
+    <developers>
+        <developer>
+            <id>gonciarz</id>
+            <name>Krzysztof Gonciarz</name>
+            <url>http://imagej.net/User:Krzysztof.gonciarz</url>
+            <email>gonciarz@mpi-cbg.de</email>
+        </developer>
+        <developer>
+            <id>incardon</id>
+            <name>Pietro Incardona</name>
+            <email>incardon@mpi-cbg.de</email>
+        </developer>
+        <developer>
+            <name>Aurélien Rizk</name>
+        </developer>
+        <developer>
+            <name>Arun Shivanandan</name>
+        </developer>
+        <developer>
+            <name>Janick Cardinale</name>
+        </developer>
+    </developers>
 
     <!-- <parent> -->
     <!-- <groupId>sc.fiji</groupId> -->

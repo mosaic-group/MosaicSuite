@@ -5,22 +5,10 @@ echo "Set environment"
 # Custom script to set environment variables like FIJI path TEST path JAVA_HOME
 source ~/.bashrc_custom
 
-cd plugin
-
-export ANT_OPTS="-Xms1024m -Xmx4096m -XX:PermSize=1024m -XX:MaxPermSize=2048m"
-
-ant main
+mvn clean
+mvn package
 if [ $? -ne 0 ]
 then
-        echo "Error compiling"
+        echo "Error during building MosaicSuite package"
         exit 1
 fi
-
-ant jtest
-
-if [ $? -ne 0 ]
-then
-	echo "Error in the unit tests"
-	exit 1
-fi
-
