@@ -29,7 +29,6 @@
     </properties>
 
     <repositories>
-        <!-- NB: for project parent -->
         <repository>
             <id>imagej.public</id>
             <url>http://maven.imagej.net/content/groups/public</url>
@@ -106,7 +105,7 @@
             <version>2.0.0</version>
         </dependency>
 
-        <!-- This guys must be added to final jar (only jars with scope 'compile') -->
+        <!-- This guys must be added to final jar -->
         <dependency>
             <groupId>com.googlecode.efficient-java-matrix-library</groupId>
             <artifactId>ejml</artifactId>
