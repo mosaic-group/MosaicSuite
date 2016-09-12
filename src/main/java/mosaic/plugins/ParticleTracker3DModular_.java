@@ -1785,6 +1785,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[secondOrder]);
             rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[secondOrder]);
             rt.setValue("Diffusion Coefficient D2 (m^2/s)", rownum, ta.getDiffusionCoefficients()[secondOrder]);
+            rt.setValue("Distance (m)", rownum, ta.getDistance());
+            rt.setValue("AvgDistance (m/frame)", rownum, ta.getAvgDistance());
+            rt.setValue("Straightness", rownum, ta.getStraightness());
+            rt.setValue("Bending", rownum, ta.getBending());
+            rt.setValue("Bending (linear)", rownum, ta.getBendingLinear());
+            rt.setValue("Efficiency", rownum, ta.getEfficiency());
             rt.setValue("Pixel size", rownum, aPixelDimensions);
             rt.setValue("Time interval", rownum, aTimeInterval);
         }
@@ -1794,6 +1800,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
+            for (int i = 4; i < 12; i++) rt.setDecimalPlaces(i, 8);
             computeMssForOneTrajectory(rt, aTrajectory, aPixelDimensions, aTimeInterval);
 
             if (isGuiMode == true) {

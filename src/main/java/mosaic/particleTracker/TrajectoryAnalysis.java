@@ -1,5 +1,8 @@
 package mosaic.particleTracker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import mosaic.core.detection.Particle;
 import mosaic.utils.math.LeastSquares;
 
@@ -10,6 +13,10 @@ import mosaic.utils.math.LeastSquares;
  *  ICoS technical report, Institute of Computational Science (ICoS), ETH Zürich, 2005.
  *
  *   @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
+/**
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ *
  */
 public class TrajectoryAnalysis {
 
@@ -28,6 +35,12 @@ public class TrajectoryAnalysis {
     private double iMSSlogarithmicY0;        // y-axis intercept of MSS for logarithmic plot
     private double iDX;                      // physical length of a pixel
     private double iDT;                      // physical time interval between frames
+    private double iDistance;                // Net displacement
+    private double iAvgDistance;             // Net displacement per frame
+    private double iStraightness;            // Straighntes of movement
+    private double iBending;                 // Bending of movement
+    private double iBendingLinear;           // Bending in degrees (sum of all changes between steps)
+    private double iEfficiency;              // Movement efficiency
 
     public static final boolean SUCCESS = true;
     public static final boolean FAILURE = false;
@@ -119,9 +132,10 @@ public class TrajectoryAnalysis {
                 iMomentOrders != null && iMomentOrders.length >= 1 &&
                 iParticles != null && iParticles.length >= 6) {
 
-            return calculateMSDs() &&
-                    calculateGammasAndDiffusionCoefficients() &&
-                    calculateMSS();
+            return calculateTrajectoryMotionFeatures() &&
+                   calculateMSDs() &&
+                   calculateGammasAndDiffusionCoefficients() &&
+                   calculateMSS();
 
         }
         return FAILURE;
@@ -198,6 +212,51 @@ public class TrajectoryAnalysis {
         return iMSSlogarithmicY0;
     }
 
+    /**
+     * @return Net displacement in meters
+     */
+    public double getDistance() {
+        return iDistance;
+    }
+
+    /**
+     * @return Net displacement per one frame in meters
+     */
+    public double getAvgDistance() {
+        return iAvgDistance;
+    }
+    
+    /**
+     * @return Straightness in range [-1, 1] 
+     * @see http://mosaic.mpi-cbg.de/docs/Helmuth2007.pdf for definitions 
+     */
+    public double getStraightness() {
+        return iStraightness;
+    }
+    
+    /**
+     * @return Bending in range [-1, 1] 
+     * @see http://mosaic.mpi-cbg.de/docs/Helmuth2007.pdf for definitions 
+     */
+    public double getBending() {
+        return iBending;
+    }
+    
+    /**
+     * @return Bending as a sum off all degree changes so in reult it gives change in degrees from first to last step. 
+     */
+    public double getBendingLinear() {
+        return iBendingLinear;
+    }
+
+    /**
+     * @return Efficiency of movement in range [0, 1]
+     * @see http://mosaic.mpi-cbg.de/docs/Helmuth2007.pdf for definitions 
+     */
+    public double getEfficiency() {
+        return iEfficiency;
+    }
+    
     /**
      * Sets a physical length of a pixel in meters. (default 1.0)
      * @param aLength Length of pixel in meters.
@@ -361,6 +420,106 @@ public class TrajectoryAnalysis {
         return noOfElements == 0 ? 0 : sum/noOfElements;
     }
 
+    /**
+     * Calculates some features of trajectory basing on definitions from:
+     * J. A. Helmuth, C. J. Burckhardt, P. Koumoutsakos, U. F. Greber, and I. F. Sbalzarini. 
+     * A novel supervised trajectory segmentation algorithm identifies distinct types of human 
+     * adenovirus motion in host cells, Journal of Structural Biology, 159(3):347-358, 2007
+     * @return SUCCESS if calculations are valid
+     */
+    private boolean calculateTrajectoryMotionFeatures() {
+        final int noOfParticles = iParticles.length;
+        iAvgDistance = 0;
+        iDistance = 0;
+        if (noOfParticles < 2) {
+            // In case when it is impossible to calculate just quit
+            return SUCCESS;
+        }
+        
+        List<Double> angles = new ArrayList<Double>();
+        double prevAngl = 0;
+        boolean prevAvaiable = false;
+        double efficiencyDenominator = 0;
+        Particle pj = iParticles[0];
+        for (int i = 1; i < noOfParticles; ++i) {
+            final Particle pi = iParticles[i];
+            final double dx = (pi.iX - pj.iX);
+            final double dy = (pi.iY - pj.iY);
+            
+            double squaredDist = (dx*dx + dy*dy)*iDX*iDX;
+            efficiencyDenominator += squaredDist;
+            iDistance += Math.sqrt(squaredDist);
+            pj = pi;
+            
+            // Calculate angle change basing on deltas
+            double angle = 0;
+            boolean skip = false;
+            if (dx == 0 && dy > 0) {
+                angle = 0.5 * Math.PI;
+            }
+            else if (dx == 0 && dy < 0) {
+                angle = 1.5 * Math.PI;
+            }
+            else if (dx > 0 && dy == 0) {
+                angle = 0 * Math.PI;
+            }
+            else if (dx < 0 && dy == 0) {
+                angle = 1.0 * Math.PI;
+            }
+            else if (dx > 0 && dy > 0) {
+                angle = Math.atan(dy/dx);
+            }
+            else if (dx < 0 && dy > 0) {
+                angle = Math.PI + Math.atan(dy/dx);
+            }
+            else if (dx < 0 && dy < 0) {
+                angle = Math.PI + Math.atan(dy/dx);
+            }
+            else if (dx > 0 && dy < 0) {
+                angle = 2*Math.PI + Math.atan(dy/dx);
+            }
+            else {
+                // No move has been made comparing to last known position
+                skip = true;
+            }
+            // At that point angle will be in range 0-2pi measured from x axis in counterclockwise direction
+            if (!skip) {
+                if (prevAvaiable) {
+                    angles.add(prevAngl - angle);
+                }
+                prevAngl = angle;
+                prevAvaiable = true;
+            }
+        }
+        iAvgDistance = iDistance / (iParticles[noOfParticles - 1].getFrame() - iParticles[0].getFrame());
+        
+        // Bending, Straighness
+        double straightness = 0;
+        double bendingSin = 0;
+        double bendingDegrees = 0;
+        for (int i = 0; i < angles.size(); ++i) {
+            if (angles.get(i) < -Math.PI) angles.set(i, angles.get(i) + 2 * Math.PI);
+            else if (angles.get(i) > Math.PI) angles.set(i, angles.get(i) - 2*Math.PI);
+            straightness += Math.cos(angles.get(i));
+            bendingSin += Math.sin(angles.get(i));
+            bendingDegrees += angles.get(i);
+        }
+        iStraightness = straightness / (angles.size());
+        iBending = bendingSin / (angles.size());
+        iBendingLinear = bendingDegrees / (angles.size());
+        
+        // Efficiency
+        Particle firstP = iParticles[0];
+        final Particle lastP = iParticles[noOfParticles - 1];
+        final double dx = (lastP.iX - firstP.iX);
+        final double dy = (lastP.iY - firstP.iY);
+        double squaredDist = (dx*dx + dy*dy)*iDX*iDX;
+        
+        iEfficiency = squaredDist / ((noOfParticles - 1) * efficiencyDenominator);
+        
+        return SUCCESS;
+    }
+    
     private boolean calculateMSDs() {
         iMSDs = new double[iMomentOrders.length][iFrameShifts.length];
 
@@ -377,7 +536,7 @@ public class TrajectoryAnalysis {
 
         return SUCCESS;
     }
-
+    
     private boolean calculateGammasAndDiffusionCoefficients() {
         final LeastSquares ls = new LeastSquares();
 

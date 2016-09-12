@@ -1,12 +1,13 @@
 package mosaic.particleTracker;
 
 import static org.junit.Assert.assertEquals;
-import mosaic.core.detection.Particle;
-import mosaic.test.framework.CommonBase;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import mosaic.core.detection.Particle;
+import mosaic.test.framework.CommonBase;
 
 /**
  * This class is responsible for testing {@link TrajectoryAnalysis} class.
@@ -42,6 +43,45 @@ public class TrajectoryAnalysisTest extends CommonBase {
         assertEquals("D2 diffusion coefficient", 0.25, ta.getDiffusionCoefficients()[1], epsilon);
         assertEquals("MSD slope", 2.0, ta.getGammasLogarithmic()[1], epsilon);
         assertEquals("MSD y-axis intercept", 0.0, ta.getGammasLogarithmicY0()[1], epsilon);
+        
+        assertEquals("Track lenght", 5.0, ta.getDistance(), epsilon);
+        assertEquals("Avg step (per frame) lenght", 1.0, ta.getAvgDistance(), epsilon);
+        assertEquals("Straightness", 1.0, ta.getStraightness(), epsilon);
+        assertEquals("Bending", 0.0, ta.getBending(), epsilon);
+        assertEquals("Bending (linear)", 0.0, ta.getBendingLinear(), epsilon);
+        assertEquals("Efficiency", 1.0, ta.getEfficiency(), epsilon);
+    }
+    
+    /**
+     * Tests trajectory features calculated for zigzag movement
+     */
+    @Test
+    public void testZigZagMovement() {
+        // Create trajectory
+        final int trajectoryLen = 6;
+        final Particle[] particles = new Particle[trajectoryLen];
+        particles[0] = new Particle(0, 0, 0, 1, 0);
+        particles[1] = new Particle(1, 1, 0, 2, 0);
+        particles[2] = new Particle(0, 2, 0, 3, 0);
+        particles[3] = new Particle(1, 3, 0, 4, 0);
+        particles[4] = new Particle(0, 4, 0, 5, 0);
+        particles[5] = new Particle(1, 5, 0, 6, 0);
+        
+        // Prepare Trajectory Analysis for calculations
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
+        ta.setTimeInterval(1.0);
+        ta.setLengthOfAPixel(1.0);
+
+        // Set some tolerance on double numbers comparisons
+        assertEquals("Calculation should be successful", TrajectoryAnalysis.SUCCESS, ta.calculateAll());
+
+        final double epsilon = 0.000001;
+        assertEquals("Track lenght", 5 * Math.sqrt(2), ta.getDistance(), epsilon);
+        assertEquals("Avg step (per frame) lenght", Math.sqrt(2), ta.getAvgDistance(), epsilon);
+        assertEquals("Straightness", 6.123e-17, ta.getStraightness(), epsilon);
+        assertEquals("Bending", 0.0, ta.getBending(), epsilon);
+        assertEquals("Bending (linear)", 0.0, ta.getBendingLinear(), epsilon);
+        assertEquals("Efficiency", 0.52, ta.getEfficiency(), epsilon);
     }
 
     /**
