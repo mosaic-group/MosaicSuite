@@ -1,7 +1,0 @@
-The file GFP_stacks shows two spindle pole bodies while mitosis in yeast. The movie was recorded by Alexander Rauch at the institute of biochemistry, ETHZ.
-The file was preprocessed by a local background subtractor.
-File properties:
-pixel width = 128nm
-pixel height = 128nm
-voxel depth = 660nm
-focal planes = 7
