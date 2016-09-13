@@ -42,7 +42,7 @@
         <groupId>net.imagej</groupId>
         <artifactId>pom-imagej</artifactId>
         <version>15.7.1</version>
-<!--         <version>LATEST</version> -->
+        <!-- <version>LATEST</version> -->
         <relativePath />
     </parent>
 
@@ -210,6 +210,30 @@
                             <!-- Intentionally not 'true' - removes too much 
                                 from destination jar (like org.apache.commons.beanutils.ConvertUtils) -->
                             <minimizeJar>false</minimizeJar>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${env.FIJI_MOSAIC_PLUGIN_PATH}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>target</directory>
+                                    <includes>
+                                        <include>${project.artifactId}-${project.version}_Full.jar</include>
+                                    </includes>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
