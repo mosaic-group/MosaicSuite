@@ -233,7 +233,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         else if (iImgY != null) {
             iMaskImg = new Duplicator().run(iImgY);
             iMaskImg.show();
-            new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
+            new Macro_Runner().run("JAR:GenerateMask_.ijm");
             iMaskImg.changes = false;
             maskPane.setTitleAt(0, "Mask: <generated>");
         }

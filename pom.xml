@@ -42,6 +42,7 @@
         <groupId>net.imagej</groupId>
         <artifactId>pom-imagej</artifactId>
         <version>15.7.1</version>
+<!--         <version>LATEST</version> -->
         <relativePath />
     </parent>
 
