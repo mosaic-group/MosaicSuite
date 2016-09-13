@@ -1,0 +1,13 @@
+Branches (with "parent <- child" branch notation):
+
+developJava6 <- masterJava6 <- java16
+
+are kept for possibility to build and deliver MosaicSuite compatibile with old ImageJ1 and Fiji based on Java6.
+They are not used for current development which is kept on develop <- master branches.
+Original purpose was:
+
+developJava6 - development branch (new features and fixes)
+masterJava6 - stable branch - things to be released (tests here still require Java7)
+java16 - actuall release branch with some changes (like removed tests) that allows to build it with java6
+
+
