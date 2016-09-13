@@ -105,10 +105,8 @@ public class MaskOnSpaceMapper {
             if (!iIsSthToCrop) { 
                 return true;
             }
-            else {
-                if (iInputIterator.isInBound(iNextPointWithNoOffset.add(iPointOffset))) {
-                    return true;
-                }
+            if (iInputIterator.isInBound(iNextPointWithNoOffset.add(iPointOffset))) {
+                return true;
             }
         }
         return false;

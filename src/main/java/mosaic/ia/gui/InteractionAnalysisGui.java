@@ -217,13 +217,11 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         {
             return true;
         }
-        else {
-            System.out.println(iImgX.getWidth() + "," + iImgY.getWidth() + "," + iImgX.getHeight() + "," + iImgY.getHeight() + "," + iImgX.getStackSize() + "," + iImgY.getStackSize() + ","
-                    + imgxc.pixelDepth + "," + imgyc.pixelDepth + "," + imgxc.pixelHeight + "," + imgyc.pixelHeight + "," + imgxc.pixelWidth + "," + imgyc.pixelWidth + "," + imgxc.getUnit() + ","
-                    + imgyc.getUnit());
+        System.out.println(iImgX.getWidth() + "," + iImgY.getWidth() + "," + iImgX.getHeight() + "," + iImgY.getHeight() + "," + iImgX.getStackSize() + "," + iImgY.getStackSize() + ","
+                + imgxc.pixelDepth + "," + imgyc.pixelDepth + "," + imgxc.pixelHeight + "," + imgyc.pixelHeight + "," + imgxc.pixelWidth + "," + imgyc.pixelWidth + "," + imgxc.getUnit() + ","
+                + imgyc.getUnit());
 
-            return false;
-        }
+        return false;
     }
     
     private void generateMask() {

@@ -377,13 +377,9 @@ public class ClusterSession {
                         if (f.getAbsolutePath().equals(tmp_dir + "Job" + JobID) == true) {
                             return true;
                         }
-                        else {
-                            return false;
-                        }
+                        return false;
                     }
-                    else {
-                        return true;
-                    }
+                    return true;
                 }
                 return false;
             }

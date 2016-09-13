@@ -82,9 +82,9 @@ public class Debug { // NO_UCD (code used only for debugging)
             
             // cannot go deeper
             return;
-        } else {
-            aOutputBuffer.append("[" + (len) + "]");
         }
+        
+        aOutputBuffer.append("[" + (len) + "]");
         
         Object deepElement = Array.get(aArrayObj, 0);
         if (deepElement != null) {

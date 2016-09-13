@@ -220,10 +220,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             IJ.error("You must load an Image Sequence or Movie first");
             return DONE;
         }
-        else {
-            vFI = iInputImage.getOriginalFileInfo();
-            create_bck_image = false;
-        }
+        vFI = iInputImage.getOriginalFileInfo();
+        create_bck_image = false;
 
         // Check if there are segmentation information
         if (MosaicUtils.checkSegmentationInfo(aInputImage, null)) {
@@ -839,9 +837,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
                                     // Added by Guy Levy, 18.08.06 - A change form original implementation
                                     // If this particle is linked to a "real" particle that is already linked, stop building the trajectory
                                 }
-                                else {
-                                    break;
-                                }
+                                break;
                             }
                         }
                         if (found == -1) {
@@ -1213,10 +1209,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
                     IJ.error("One moment please ..., we are computing the image");
                     return;
                 }
-                else {
-                    IJ.error("An internal error has occurred we are not able to compute the result image");
-                    return;
-                }
+                IJ.error("An internal error has occurred we are not able to compute the result image");
+                return;
             }
 
             // if there is no image to generate the view on:

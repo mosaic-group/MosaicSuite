@@ -172,14 +172,10 @@ public class MosaicUtils {
 
             return cg.chooseFile("Choose segmentation", "Found multiple segmentations", PossibleFile);
         }
-        else {
-            if (PossibleFile.size() == 1) {
-                return PossibleFile.get(0);
-            }
-            else {
-                return null;
-            }
+        if (PossibleFile.size() == 1) {
+            return PossibleFile.get(0);
         }
+        return null;
     }
 
     /**
@@ -221,10 +217,8 @@ public class MosaicUtils {
                     if (plugin == null) {
                         return true;
                     }
-                    else {
-                        if (sg[i].getName().equals(plugin)) {
-                            return true;
-                        }
+                    if (sg[i].getName().equals(plugin)) {
+                        return true;
                     }
                 }
             }

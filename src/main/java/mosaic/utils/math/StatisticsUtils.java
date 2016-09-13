@@ -138,13 +138,12 @@ public class StatisticsUtils {
         if (intPos == size - 1) {
             return sorted[size - 1];
         }
-        else {
-            final double diff = realPos - intPos;
-            final double lower = sorted[intPos];
-            final double upper = sorted[intPos + 1];
-            // return linear interpolation based on diff value
-            return lower + diff * (upper - lower);
-        }
+        
+        final double diff = realPos - intPos;
+        final double lower = sorted[intPos];
+        final double upper = sorted[intPos + 1];
+        // return linear interpolation based on diff value
+        return lower + diff * (upper - lower);
     }
     
     /**

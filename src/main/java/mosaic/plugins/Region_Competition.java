@@ -137,9 +137,7 @@ public class Region_Competition implements PlugInFilter {
         if (inputImageChosenByUser != null && originalInputImage == null) {
             return NO_IMAGE_REQUIRED;
         } 
-        else {
-            return DOES_ALL + NO_CHANGES;
-        }
+        return DOES_ALL + NO_CHANGES;
     }
 
     @Override
@@ -155,9 +153,7 @@ public class Region_Competition implements PlugInFilter {
             // Finish - nothing to do more here...
             return;
         }
-        else {
-            runRegionCompetion();
-        }
+        runRegionCompetion();
         
         // ================= Save segmented image and statistics ==========
         //

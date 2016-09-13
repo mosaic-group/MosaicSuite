@@ -99,9 +99,7 @@ public class GenericDialogGUI  {
                           gd.actionPerformed(new ActionEvent(cancel, 0, "Cancel pressed"));
                           return;
                       }
-                      else {
-                          roi = inputImage.getRoi();
-                      }
+                      roi = inputImage.getRoi();
                       if (roi == null) {
                           IJ.showMessage("You have chosen initialization type to ROI.\nPlease add ROI region(s) to plugin input image (" + inputImage.getTitle() + ").");
                           inputImage.show();
@@ -733,9 +731,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                         if (elem.startsWith("file")) {
                             break;
                         }
-                        else {
-                            elem = "";
-                        }
+                        elem = "";
                     }
                     textArea.setText(elem);
                     ta.setText(null);

@@ -83,9 +83,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         if (ask.wasCanceled()) {
             return -1;
         }
-        else {
-            return ask.getNextNumber();
-        }
+        return ask.getNextNumber();
     }
 
     private String[] GetROI() {
@@ -107,12 +105,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         if (container instanceof JButton) {
             return (JButton) container;
         }
-        else {
-            final Component[] components = container.getComponents();
-            for (final Component component : components) {
-                if (component instanceof Container) {
-                    return getButtonSubComponent((Container) component);
-                }
+        final Component[] components = container.getComponents();
+        for (final Component component : components) {
+            if (component instanceof Container) {
+                return getButtonSubComponent((Container) component);
             }
         }
         return null;

@@ -325,32 +325,29 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
                 IJ.run("Properties...");
                 return;
             }
-            else {
-                // All provided data are correct! Get it and recalculate if
-                // needed.
+            // All provided data are correct! Get it and recalculate if
+            // needed.
 
-                pixelDimensions = width;
-                timeInterval = interval;
+            pixelDimensions = width;
+            timeInterval = interval;
 
-                // Convert dimension unit to meters
-                if (unit.equals("nm")) {
-                    pixelDimensions /= 1000000000; // convert from nm to m
-                }
-                else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
-                    pixelDimensions /= 1000000; // convert from um to m
-                }
-                else if (unit.equals("mm")) {
-                    pixelDimensions /= 1000; // convert from mm to nm
-                }
+            // Convert dimension unit to meters
+            if (unit.equals("nm")) {
+                pixelDimensions /= 1000000000; // convert from nm to m
+            }
+            else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
+                pixelDimensions /= 1000000; // convert from um to m
+            }
+            else if (unit.equals("mm")) {
+                pixelDimensions /= 1000; // convert from mm to nm
+            }
 
-                // convert time unit to seconds
-                if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
-                    timeInterval /= 1000000; // convert from us to s
-                }
-                else if (intervalUnit.equals("ms")) {
-                    timeInterval /= 1000; // convert from ms to s
-                }
-
+            // convert time unit to seconds
+            if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
+                timeInterval /= 1000000; // convert from us to s
+            }
+            else if (intervalUnit.equals("ms")) {
+                timeInterval /= 1000; // convert from ms to s
             }
         }
 

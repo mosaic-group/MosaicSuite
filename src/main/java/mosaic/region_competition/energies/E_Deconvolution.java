@@ -90,23 +90,19 @@ public class E_Deconvolution extends ExternalEnergy {
 
             return values.get((values.size() + 1) / 2 - 1);
         }
-        else {
-            final float lower = values.get(values.size() / 2 - 1);
-            final float upper = values.get(values.size() / 2);
+        final float lower = values.get(values.size() / 2 - 1);
+        final float upper = values.get(values.size() / 2);
 
-            if (Float.isInfinite(lower) || Float.isInfinite(upper)) {
-                int i = values.size() / 2;
-                for (; i >= 0; i--) {
-                    if (Float.isInfinite(values.get(i)) == false) {
-                        break;
-                    }
+        if (Float.isInfinite(lower) || Float.isInfinite(upper)) {
+            int i = values.size() / 2;
+            for (; i >= 0; i--) {
+                if (Float.isInfinite(values.get(i)) == false) {
+                    break;
                 }
-                return values.get(i);
             }
-            else {
-                return (lower + upper) / 2.0f;
-            }
+            return values.get(i);
         }
+        return (lower + upper) / 2.0f;
     }
 
     public void GenerateModelImage(LabelImage aLabelImage, HashMap<Integer, LabelStatistics> labelMap) {

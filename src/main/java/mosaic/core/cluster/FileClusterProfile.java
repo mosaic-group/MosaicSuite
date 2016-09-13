@@ -91,10 +91,7 @@ public class FileClusterProfile extends GeneralProfile {
         if (meta.replace("*", getUsername()) == null) {
             return csv.getMetaInformation("run_dir") + File.separator;
         }
-        else {
-            return meta.replace("*", getUsername()) + File.separator;
-        }
-
+        return meta.replace("*", getUsername()) + File.separator;
     }
 
     @Override
@@ -127,9 +124,7 @@ public class FileClusterProfile extends GeneralProfile {
         if (has_cp.equals("true")) {
             return true;
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**

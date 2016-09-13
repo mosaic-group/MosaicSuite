@@ -39,24 +39,20 @@ class FitFunction extends AbstractObjectiveFunction {
         if (iPotential.getType() == PotentialType.NONPARAM) {
             return true;
         }
-        else {
-            MinMaxMean mmmDistanceGrid = StatisticsUtils.getMinMaxMean(iDistancesGrid);
-            MinMaxMean mmmNNDistances = StatisticsUtils.getMinMaxMean(iNearestNeighborDistances);
-            
-            // Check if epsilon/strenght and threshold/scale have reasonable values to not overflow calculations.
-            if (x[0] >= MachineEpsilon && x[0] <= 50 && 
+        MinMaxMean mmmDistanceGrid = StatisticsUtils.getMinMaxMean(iDistancesGrid);
+        MinMaxMean mmmNNDistances = StatisticsUtils.getMinMaxMean(iNearestNeighborDistances);
+
+        // Check if epsilon/strenght and threshold/scale have reasonable values to not overflow calculations.
+        if (x[0] >= MachineEpsilon && x[0] <= 50 && 
                 x[1] >= Math.max(Math.min(mmmDistanceGrid.min, mmmNNDistances.min), MachineEpsilon) && 
                 x[1] <= Math.max(mmmDistanceGrid.max, mmmNNDistances.max)) 
-            {
-                // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
-                return true;
-            }
-            else {
-                return false;
-            }
+        {
+            // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
+            return true;
         }
+        return false;
     }
-    
+
     @Override
     public double valueOf(double[] x) {
         if (iPotential.getType() == PotentialType.NONPARAM) {

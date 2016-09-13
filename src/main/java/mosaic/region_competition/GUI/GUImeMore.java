@@ -28,9 +28,7 @@ abstract class GUImeMore {
         if (gd.wasCanceled()) {
             return;
         }
-        else {
-            process();
-        }
+        process();
     }
 
     /**

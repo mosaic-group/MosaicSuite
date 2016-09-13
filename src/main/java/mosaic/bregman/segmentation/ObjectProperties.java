@@ -95,9 +95,7 @@ class ObjectProperties implements Runnable {
         if (sz == 1) {
             return regionPerimeter2D(aRegion, aRegions);
         }
-        else {
-            return regionPerimeter3D(aRegion, aRegions);
-        }
+        return regionPerimeter3D(aRegion, aRegions);
     }
 
     private double regionPerimeter2D(Region aRegion, short[][][] aRegions) {

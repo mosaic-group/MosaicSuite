@@ -428,18 +428,16 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         if (PSF[0]< d) {
             return 0.0;
         }
-        else{
-            int v = 0;
-            while (PSF[v] > d){
-                v++;
-            }
-            final double p0 = PSF[v-1];
-            final double p1 = PSF[v];
-            final double r0 = rad[v-1];
-            final double r1 = rad[v];
-            whm = r0 + (r1-r0)/(p1-p0)*(d-p0);
-            return whm;
+        int v = 0;
+        while (PSF[v] > d){
+            v++;
         }
+        final double p0 = PSF[v-1];
+        final double p1 = PSF[v];
+        final double r0 = rad[v-1];
+        final double r1 = rad[v];
+        whm = r0 + (r1-r0)/(p1-p0)*(d-p0);
+        return whm;
     }
 
 

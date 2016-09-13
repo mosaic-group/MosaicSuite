@@ -181,9 +181,7 @@ public class Potentials {
             if (di < threshold) {
                 return -1d;
             }
-            else {
-                return 0d;
-            }
+            return 0d;
         }
 
         @Override
@@ -228,9 +226,7 @@ public class Potentials {
             if (z > 0) {
                 return -1 / (1 + z);
             }
-            else {
-                return -1 * (1 - z);
-            }
+            return -1 * (1 - z);
         }
 
         @Override
@@ -275,9 +271,7 @@ public class Potentials {
             if (z > 1) {
                 return 0;
             }
-            else {
-                return -1 * (1 - z);
-            }
+            return -1 * (1 - z);
         }
 
         @Override
@@ -372,9 +366,7 @@ public class Potentials {
             if (z > 0) {
                 return -1 * Math.pow(1 + z * z, -.5);
             }
-            else {
-                return -1;
-            }
+            return -1;
         }
 
         @Override
@@ -419,9 +411,7 @@ public class Potentials {
             if (z != 0) {
                 return 1 / (z * z);
             }
-            else {
-                return Math.sqrt(Double.MAX_VALUE); // this is a hack.
-            }
+            return Math.sqrt(Double.MAX_VALUE); // this is a hack.
         }
 
         @Override

@@ -62,12 +62,9 @@ class HypothesisTesting {
             }
             return true;
         }
-        else {
-            IJ.showMessage("Null hypothesis accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-            System.out.println("Null hypothesis: No interaction - Accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-            return false;
-        }
-
+        IJ.showMessage("Null hypothesis accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
+        System.out.println("Null hypothesis: No interaction - Accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
+        return false;
     }
 
     private void calculateT(double[] DRand, double[] T) {

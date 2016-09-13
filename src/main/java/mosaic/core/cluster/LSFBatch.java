@@ -172,9 +172,7 @@ class LSFBatch implements BatchInterface {
         if (unparse_last == true) {
             return elements[elements.length - 1];
         }
-        else {
-            return new String("");
-        }
+        return new String("");
     }
 
     private void updateJobStatus(JobStatus[] jobs, Vector<String> vt, int ja_id) {
@@ -225,13 +223,11 @@ class LSFBatch implements BatchInterface {
             if (tmp == 0) {
                 return str;
             }
-            else {
-                if (AJobID == 0) {
-                    AJobID = tmp;
-                }
-                System.out.println("get Job ID: " + AJobID);
-                return "";
+            if (AJobID == 0) {
+                AJobID = tmp;
             }
+            System.out.println("get Job ID: " + AJobID);
+            return "";
         }
         return "";
     }
