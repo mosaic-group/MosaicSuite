@@ -11,9 +11,6 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_CV extends ExternalEnergy {
 
-    public E_CV() {
-    }
-
     /**
      * Here we have the possibility to either put the current pixel
      * value to the BG, calculate the BG-mean and then calculate the
@@ -28,10 +25,10 @@ public class E_CV extends ExternalEnergy {
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int fromLabel = contourParticle.label;
         final float aValue = contourParticle.intensity;
-        final LabelStatistics to = labelMap.get(toLabel);
-        final LabelStatistics from = labelMap.get(fromLabel);
-        final double vNewToMean = (to.mean * to.count + aValue) / (to.count + 1);
-        final double energy = (aValue - vNewToMean) * (aValue - vNewToMean) - (aValue - from.mean) * (aValue - from.mean);
+        final LabelStatistics toStats = labelMap.get(toLabel);
+        final LabelStatistics fromStats = labelMap.get(fromLabel);
+        final double newToMean = (toStats.mean * toStats.count + aValue) / (toStats.count + 1);
+        final double energy = Math.pow(aValue - newToMean, 2) - Math.pow(aValue - fromStats.mean, 2);
         return new EnergyResult(energy, false);
     }
 }

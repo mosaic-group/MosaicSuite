@@ -26,21 +26,21 @@ import net.imglib2.view.Views;
 public class E_Deconvolution extends ExternalEnergy {
 
     final private Img<FloatType> DevImage;
-    private final RandomAccess<FloatType> infDevAccessIt;
+    final private RandomAccess<FloatType> infDevAccessIt;
+    final private IntensityImage iImage;
+    final private Img<FloatType> iPsf;
+    final private Point iMiddlePointPsf;
 
-    private Img<FloatType> m_PSF;
-    private final IntensityImage aDataImage;
-
-    public E_Deconvolution(IntensityImage aDI, Img<FloatType> image_psf) {
-        final int dim[] = aDI.getDimensions();
-        DevImage = new ArrayImgFactory<FloatType>().create(dim, new FloatType());
-
-        /* Create boundary strategy 0.0 outside the image */
+    public E_Deconvolution(IntensityImage aImage, Img<FloatType> aPsf) {
+        DevImage = new ArrayImgFactory<FloatType>().create(aImage.getDimensions(), new FloatType());
         infDevAccessIt = Views.extendPeriodic(DevImage).randomAccess();
-
-        m_PSF = image_psf;
-
-        aDataImage = aDI;
+        iImage = aImage;
+        iPsf = aPsf;
+        int[] psfDims = MosaicUtils.getImageIntDimensions(iPsf);
+        for (int i = 0; i < psfDims.length; ++i) {
+            psfDims[i] = psfDims[i] / 2;
+        }
+        iMiddlePointPsf = new Point(psfDims);
     }
 
     @Override
@@ -48,25 +48,20 @@ public class E_Deconvolution extends ExternalEnergy {
         final int aFromLabel = contourParticle.label;
         final float intensityDelta = (float)(labelMap.get(aToLabel).median - labelMap.get(aFromLabel).median);
         
-        final Point middle = calculateMiddlePoint();
-        final Point LowerCorner = aIndex.sub(middle);
+        final Point LowerCorner = aIndex.sub(iMiddlePointPsf);
     
-        final int loc[] = new int[m_PSF.numDimensions()];
-        final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
+        final int loc[] = new int[iPsf.numDimensions()];
+        final Cursor<FloatType> vPSF = iPsf.localizingCursor();
         double energyDifference = 0.0;
         while (vPSF.hasNext()) {
             vPSF.fwd();
             vPSF.localize(loc);
-            
-            Point pos = LowerCorner.add(new Point(loc));
-    
+            Point pos = LowerCorner.add(loc);
             infDevAccessIt.setPosition(pos.iCoords);
     
-            float vEOld = infDevAccessIt.get().get() - aDataImage.getSafe(pos);
+            float vEOld = infDevAccessIt.get().get() - iImage.getSafe(pos);
             float vENew = vEOld + intensityDelta * vPSF.get().get();
-            vEOld = vEOld * vEOld;
-            vENew = vENew * vENew;
-            energyDifference += vENew - vEOld;
+            energyDifference += vENew * vENew - vEOld * vEOld;
         }
     
         return new EnergyResult(energyDifference, false);
@@ -118,7 +113,7 @@ public class E_Deconvolution extends ExternalEnergy {
             cVModelImage.get().set((float) labelMap.get(vLabel).median);
         }
 
-        new FFTConvolution<FloatType>(DevImage, m_PSF).convolve();
+        new FFTConvolution<FloatType>(DevImage, iPsf).convolve();
 
     }
 
@@ -176,12 +171,12 @@ public class E_Deconvolution extends ExternalEnergy {
             vLabelCounter.put(vLabelAbs, vLabelCounter.get(vLabelAbs) + 1);
 
             if (vLabelAbs == 0) {
-                final float vBG = aDataImage.get(i) - (cVDevImage.get().get() - (float) vOldBG);
+                final float vBG = iImage.get(i) - (cVDevImage.get().get() - (float) vOldBG);
                 final ArrayList<Float> arr = vScalings3.get(vLabelAbs);
                 arr.add(vBG);
             }
             else {
-                final float vScale = (aDataImage.get(i) - (float) vOldBG) / (cVDevImage.get().get() - (float) vOldBG);
+                final float vScale = (iImage.get(i) - (float) vOldBG) / (cVDevImage.get().get() - (float) vOldBG);
 
                 final ArrayList<Float> arr = vScalings3.get(vLabelAbs);
                 arr.add(vScale);
@@ -229,8 +224,7 @@ public class E_Deconvolution extends ExternalEnergy {
     }
 
     public void UpdateConvolvedImage(Point aIndex, int aFromLabel, int aToLabel, HashMap<Integer, LabelStatistics> aLabelMap) {
-        Point currentPos = calculateMiddlePoint();
-        currentPos = aIndex.sub(currentPos);
+        Point currentPos = aIndex.sub(iMiddlePointPsf);
         
         if (aToLabel == 0) { 
             // ...the point is removed and set to BG To avoid the operator map::[] in the loop:
@@ -246,28 +240,15 @@ public class E_Deconvolution extends ExternalEnergy {
     }
     
     private void subtractPsfFromConvImage(Point currentPos, final float fromLabel, final float toLabel) {
-        final int loc[] = new int[m_PSF.numDimensions()];
-        final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
+        final int loc[] = new int[iPsf.numDimensions()];
+        final Cursor<FloatType> vPSF = iPsf.localizingCursor();
 
         while (vPSF.hasNext()) {
             vPSF.fwd();
-
             vPSF.localize(loc);
-            Point pos = new Point(loc);
-            pos = pos.add(currentPos);
-
+            Point pos = new Point(loc).add(currentPos);
             infDevAccessIt.setPosition(pos.iCoords);
             infDevAccessIt.get().set(infDevAccessIt.get().get() - (fromLabel - toLabel) * vPSF.get().get());
         }
-    }
-
-    private Point calculateMiddlePoint() {
-        int[] imageDims = MosaicUtils.getImageIntDimensions(m_PSF);
-        for (int i = 0; i < imageDims.length; i++) {
-            imageDims[i] = imageDims[i] / 2;
-        }
-        Point middle = new Point(imageDims);
-
-        return middle;
     }
 }

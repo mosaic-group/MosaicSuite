@@ -15,26 +15,20 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_PS extends ExternalEnergy {
 
-    private final int[] dimensions;
-    private final int bgLabel;
+    private final int iBgLabel;
 
-    private final float regionMergingThreshold;
-    private final BallMask sphere;
-    private final MaskOnSpaceMapper sphereIt;
+    private final IntensityImage iIntensityImage;
+    private final LabelImage iLabelImage;
 
-    protected final IntensityImage intensityImage;
-    protected final LabelImage labelImage;
+    private final float iRegionMergingThreshold;
+    private final MaskOnSpaceMapper iSphereIt;
     
-    public E_PS(LabelImage labelImage, IntensityImage intensityImage, int PSenergyRadius, float regionMergingThreshold) {
-        this.labelImage = labelImage;
-        this.intensityImage = intensityImage;
-        this.dimensions = labelImage.getDimensions();
-        this.bgLabel = LabelImage.BGLabel;
-
-        this.regionMergingThreshold = regionMergingThreshold;
-        final int rad = PSenergyRadius;
-        sphere = new BallMask(rad, labelImage.getNumOfDimensions());
-        sphereIt = new MaskOnSpaceMapper(sphere, dimensions);
+    public E_PS(LabelImage aLabelImage, IntensityImage aIntensityImage, int aPsEnergyRadius, float aRegionMergingThreshold) {
+        iBgLabel = LabelImage.BGLabel;
+        iIntensityImage = aIntensityImage;
+        iLabelImage = aLabelImage;
+        iRegionMergingThreshold = aRegionMergingThreshold;
+        iSphereIt = new MaskOnSpaceMapper(new BallMask(aPsEnergyRadius, iLabelImage.getNumOfDimensions()), iLabelImage.getDimensions());
     }
 
     /**
@@ -48,82 +42,74 @@ public class E_PS extends ExternalEnergy {
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
-        final double value = contourParticle.intensity;
-        final int fromLabel = contourParticle.label;
+    public EnergyResult CalculateEnergyDifference(Point aContourPoint, ContourParticle aContourParticle, int aToLabel, HashMap<Integer, LabelStatistics> aLabelStats) {
+        final double value = aContourParticle.intensity;
+        final int fromLabel = aContourParticle.label;
 
-        // read out the size of the mask
-        // vRegion is the size of our temporary window
+        iSphereIt.setMiddlePoint(aContourPoint);
 
-        sphereIt.setMiddlePoint(contourPoint);
+        double sumFrom = -value; // we ignore the value of the center point
+        double sumSquaredFrom = -value * value; // ignore the value of the center point.
+        int cntFrom = -1;
+        
+        double sumTo = 0;
+        double sumSquaredTo = 0.0;
+        int cntTo = 0;
 
-        // vOffset is basically the difference of the center and the start of the window
-
-        double vSumFrom = -value; // we ignore the value of the center point
-        double vSumTo = 0;
-        double vSumOfSqFrom = -value * value; // ignore the value of the center point.
-        double vSumOfSqTo = 0.0;
-        int vNFrom = -1;
-        int vNTo = 0;
-
-        while (sphereIt.hasNext()) {
-            final int labelIdx = sphereIt.next();
-
-            final int dataIdx = labelIdx;
-            final int absLabel = labelImage.getLabelAbs(labelIdx);
+        while (iSphereIt.hasNext()) {
+            final int labelIdx = iSphereIt.next();
+            final int absLabel = iLabelImage.getLabelAbs(labelIdx);
+            
             if (absLabel == fromLabel) {
-                final double data = intensityImage.get(dataIdx);
-                vSumFrom += data;
-                vSumOfSqFrom += data * data;
-                vNFrom++;
+                final double data = iIntensityImage.get(labelIdx);
+                sumFrom += data;
+                sumSquaredFrom += data * data;
+                cntFrom++;
             }
-            else if (absLabel == toLabel) {
-                final double data = intensityImage.get(dataIdx);
-                vSumTo += data;
-                vSumOfSqTo += data * data;
-                vNTo++;
+            else if (absLabel == aToLabel) {
+                final double data = iIntensityImage.get(labelIdx);
+                sumTo += data;
+                sumSquaredTo += data * data;
+                cntTo++;
             }
         }
 
-        double vMeanTo;
-        double vVarTo;
-        double vMeanFrom;
-        double vVarFrom;
-        if (vNTo == 0) // this should only happen with the BG label
-        {
-            final LabelStatistics info = labelMap.get(toLabel);
-            vMeanTo = info.mean;
-            vVarTo = info.var;
+        double meanTo;
+        double varTo;
+        if (cntTo == 0) {
+            // this 'if' should only happen with the BG label
+            final LabelStatistics info = aLabelStats.get(aToLabel);
+            meanTo = info.mean;
+            varTo = info.var;
         }
         else {
-            vMeanTo = vSumTo / vNTo;
-            // vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo - 1);
-            vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo);
+            meanTo = sumTo / cntTo;
+            varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo);
+            // varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo - 1);
         }
 
-        if (vNFrom == 0) {
-            final LabelStatistics info = labelMap.get(fromLabel);
-            vMeanFrom = info.mean;
-            vVarFrom = info.var;
+        double meanFrom;
+        double varFrom;
+        if (cntFrom == 0) {
+            final LabelStatistics info = aLabelStats.get(fromLabel);
+            meanFrom = info.mean;
+            varFrom = info.var;
         }
         else {
-            vMeanFrom = vSumFrom / vNFrom;
-            vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom);
+            meanFrom = sumFrom / cntFrom;
+            varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom);
+            // varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom - 1);
         }
 
-        // double vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom - 1);
-
-        boolean vMerge = false;
-
-        if (fromLabel != bgLabel && toLabel != bgLabel) {
-            final double e = E_KLMergingCriterion.CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo);
-            if (e < regionMergingThreshold) {
-                vMerge = true;
+        boolean shouldMerge = false;
+        if (fromLabel != iBgLabel && aToLabel != iBgLabel) {
+            if (E_KLMergingCriterion.calc(meanFrom, meanTo, varFrom, varTo, cntFrom, cntTo) < iRegionMergingThreshold) {
+                shouldMerge = true;
             }
         }
 
-        final double vEnergyDiff = (value - vMeanTo) * (value - vMeanTo) - (value - vMeanFrom) * (value - vMeanFrom);
+        final double energyDiff = Math.pow(value - meanTo, 2) - Math.pow(value - meanFrom, 2);
 
-        return new EnergyResult(vEnergyDiff, vMerge);// <Double, Boolean>(vEnergyDiff, vMerge);
+        return new EnergyResult(energyDiff, shouldMerge);
     }
 }

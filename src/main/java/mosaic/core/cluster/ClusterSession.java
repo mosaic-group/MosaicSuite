@@ -329,8 +329,9 @@ public class ClusterSession {
         String mosaicPluginDir = fijiDir + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator;
         boolean hasPlugin = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite.jar");
         boolean hasPluginForCluster = aSession.checkFile(mosaicPluginDir, "Mosaic_ToolSuite_for_cluster.jar");
-
-        return hasFiji && hasLinuxExe && (hasPluginForCluster || hasPlugin);
+        boolean hasPluginMavenized = aSession.checkFile(mosaicPluginDir, "MosaicSuite-");
+        
+        return hasFiji && hasLinuxExe && (hasPluginForCluster || hasPlugin || hasPluginMavenized);
     }
 
     /**

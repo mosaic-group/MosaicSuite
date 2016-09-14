@@ -55,6 +55,19 @@ public class Point {
     }
 
     /**
+     * Add a coordinates to a Point
+     * @param aCoords of Point to add
+     * @return returns new Point
+     */
+    public Point add(int... aCoords) {
+        final Point result = new Point(iCoords.clone());
+        for (int i = 0; i < iCoords.length; i++) {
+            result.iCoords[i] += aCoords[i];
+        }
+        return result;
+    }
+    
+    /**
      * Add a Point to a Point
      * @param aPoint Point to add
      * @return returns new Point
