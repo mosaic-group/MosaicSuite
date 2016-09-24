@@ -3,7 +3,7 @@ from java.awt import Color, GridLayout
 from javax.swing import JPanel, JComboBox, JLabel, JFrame, JScrollPane, JColorChooser, JButton, JSeparator, SwingConstants, SpinnerNumberModel, JSpinner, BorderFactory, JCheckBox
 from net.miginfocom.swing import MigLayout
 
-from ij import IJ, WindowManager, ImagePlus, ImageStack
+from ij import IJ, WindowManager, ImagePlus, ImageStack, VirtualStack
 from ij.process import Blitter
 from script.imglib.math import Multiply, Difference, Subtract, Xor, Add, Or, Min
 from script.imglib.color import Red, Green, Blue, RGBA
@@ -183,4 +183,3 @@ class OverlayVirtualStack(VirtualStack):
 
 stackOverlay = StackOverlay()
 
-print "Done."
