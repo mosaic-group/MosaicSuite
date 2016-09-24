@@ -32,17 +32,17 @@
         </developer>
     </developers>
 
-    <!-- <parent> -->
-    <!-- <groupId>sc.fiji</groupId> -->
-    <!-- <artifactId>pom-fiji</artifactId> -->
-    <!-- <version>24.1.0</version> -->
-    <!-- <relativePath /> -->
-    <!-- </parent> -->
+<!--     <parent> -->
+<!--     <groupId>sc.fiji</groupId> -->
+<!--     <artifactId>pom-fiji</artifactId> -->
+<!--     <version>24.1.0</version> -->
+<!--     <relativePath /> -->
+<!--     </parent> -->
     <parent>
         <groupId>net.imagej</groupId>
         <artifactId>pom-imagej</artifactId>
         <version>15.7.1</version>
-        <!-- <version>LATEST</version> -->
+<!--         <version>LATEST</version> -->
         <relativePath />
     </parent>
 
@@ -114,8 +114,12 @@
             <artifactId>scijava-common</artifactId>
         </dependency>
 
-
         <!-- Version numbers provided by Fiji (pom-fiji) -->
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>bij</artifactId>
+            <version>0.1.0</version>
+        </dependency>
         <dependency>
             <groupId>nz.ac.waikato.cms.weka</groupId>
             <artifactId>weka-dev</artifactId>

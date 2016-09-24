@@ -540,6 +540,20 @@ public class CommonBase extends Info {
             }
         }
     }
+    
+    /**
+     * Compares 3D float arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * test is stopped (asserEquals is used)
+     */
+    static protected void compareArrays(float[][][] expected, float[][][] result, float epsilon) {
+        for (int z = 0; z < expected.length; ++z) {
+            for (int i = 0; i < expected[0].length; ++i) {
+                for (int j = 0; j < expected[0][0].length; ++j) {
+                    assertEquals("Elements at [" + z + "][" + i + "][" + j + "] should be same", expected[z][i][j], result[z][i][j], epsilon);
+                }
+            }
+        }
+    }
 
     /**
      * Compares 2D double arrays with nice output of diff element (if such is found). When arrays diff execution of

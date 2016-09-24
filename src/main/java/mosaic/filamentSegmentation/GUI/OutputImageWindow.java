@@ -31,7 +31,7 @@ public class OutputImageWindow {
      */
     public OutputImageWindow(ImagePlus aInputImg, String aTitle) {
         iInputImg = aInputImg;
-        iOutputColorImg = ImgUtils.createNewEmptyImgPlus(iInputImg, aTitle, 1, 1, true);     
+        iOutputColorImg = ImgUtils.createNewEmptyImgPlus(iInputImg, aTitle, 1, 1, ImgUtils.OutputType.RGB);     
     }
     
     /**

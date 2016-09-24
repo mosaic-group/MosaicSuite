@@ -29,9 +29,10 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     /**
      * UPDATE_ORIGINAL - updates source image with processed data
      * GENERATE_NEW - crates new image with same parameters (type, number of slices...) as original one
+     * NEW_BY_PLUGIN - plugin generate new image with same parameters as original one
      * NONE - do nothing, plugin itself should generate and update output image
      */
-    protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NONE}
+    protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NEW_BY_PLUGIN, NONE}
     ResultOutput iResultOutput = ResultOutput.GENERATE_NEW;
 
     /*
@@ -113,7 +114,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
                 iProcessedImg = iInputImg;
             }
             else if (iResultOutput == ResultOutput.GENERATE_NEW){
-                iProcessedImg = ImgUtils.createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY, false);
+                iProcessedImg = ImgUtils.createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY, ImgUtils.OutputType.ORIGINAL);
                 updateFlags(NO_CHANGES);
             } else {
                 updateFlags(NO_CHANGES);

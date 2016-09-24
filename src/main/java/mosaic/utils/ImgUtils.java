@@ -320,6 +320,7 @@ public class ImgUtils {
         }
     }
 
+    public static enum OutputType {ORIGINAL, RGB, FLOAT}
     /**
      * Generates new empty (in terms of image data) ImagePlus basing on original provided one. Generated one, has all properties
      * of input one - like same structure (noOfSlices/dimensions etc.), same calibration, composite, hyperstack settings.
@@ -330,7 +331,7 @@ public class ImgUtils {
      * @param convertToRgb - should output ImagePlus be RGB regardless of input?
      * @return
      */
-    static public ImagePlus createNewEmptyImgPlus(final ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
+    static public ImagePlus createNewEmptyImgPlus(final ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, OutputType aType) {
         final int nSlices = aOrigIp.getStackSize();
         final int w=aOrigIp.getWidth();
         final int h=aOrigIp.getHeight();
@@ -345,8 +346,19 @@ public class ImgUtils {
         for (int i = 1; i <= nSlices; i++) {
             ImageProcessor ip1 = origStack.getProcessor(i);
             final String label = origStack.getSliceLabel(i);
-            ImageProcessor ip2 =  (!convertToRgb) ? ip1.createProcessor(newWidth, newHeight)
-                                                  : new ColorProcessor(newWidth, newHeight);
+            ImageProcessor ip2;
+            switch (aType) {
+                case RGB: 
+                    ip2 = new ColorProcessor(newWidth, newHeight);
+                    break;
+                case FLOAT:
+                    ip2 = new FloatProcessor(newWidth, newHeight);
+                    break;
+                case ORIGINAL:
+                    // Intentionally no 'break' here
+                default:
+                    ip2 = ip1.createProcessor(newWidth, newHeight);
+            }
             if (ip2 != null) {
                 copyStack.addSlice(label, ip2);
             }
@@ -363,7 +375,7 @@ public class ImgUtils {
         final int[] dim = aOrigIp.getDimensions();
         copyIp.setDimensions(dim[2], dim[3], dim[4]);
 
-        if (aOrigIp.isComposite() && !(convertToRgb && copyIp.getStackSize() > 1)) {
+        if (aOrigIp.isComposite() && !(aType == OutputType.RGB && copyIp.getStackSize() > 1)) {
             copyIp = new CompositeImage(copyIp, ((CompositeImage)aOrigIp).getMode());
             ((CompositeImage)copyIp).copyLuts(aOrigIp);
         }

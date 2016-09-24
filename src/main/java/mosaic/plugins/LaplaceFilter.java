@@ -1,5 +1,8 @@
 package mosaic.plugins;
 
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
 import ij.process.FloatProcessor;
 import mosaic.plugins.utils.PlugInFloatBase;
 import mosaic.utils.ImgUtils;
@@ -31,12 +34,38 @@ public class LaplaceFilter extends PlugInFloatBase { // NO_UCD
     }
 
     @Override
+    protected void postprocessBeforeShow() {
+        iProcessedImg.resetDisplayRange();
+    }
+    
+    @Override
     protected boolean showDialog() {
         return true;
     }
 
     @Override
     protected boolean setup(String aArgs) {
+        // Regardless on input output will be always float image, generate one with same geometry.
+        setResultDestination(ResultOutput.NEW_BY_PLUGIN);
+        iProcessedImg = ImgUtils.createNewEmptyImgPlus(iInputImg, "laplace_" + iInputImg.getTitle(), 1, 1, ImgUtils.OutputType.FLOAT);
         return true;
+    }
+    
+    public static void main(String[] args) {
+        // set the plugins.dir property to make the plugin appear in the Plugins menu
+        Class<?> clazz = LaplaceFilter.class;
+        String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
+        String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
+        System.setProperty("plugins.dir", pluginsDir);
+
+        // start ImageJ
+        new ImageJ();
+
+        // open the Clown sample
+        ImagePlus image = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
+        image.show();
+
+        // run the plugin
+        IJ.runPlugIn(clazz.getName(), "");
     }
 }
