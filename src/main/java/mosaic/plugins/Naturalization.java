@@ -580,7 +580,11 @@ public class Naturalization extends PlugIn8bitBase
         text.setText("<html>Y. Gong and I. F. Sbalzarini. Image enhancement by gradient distribution specification. In Proc. ACCV, <br>"
                 + "12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration,<br>"
                 + "pages w7–p3, Singapore, November 2014.<br><br>"
-                + "Y. Gong and I. F. Sbalzarini, Gradient Distributions Priors for Biomedical Image Processing, 2014<br><a href=\"http://arxiv.org/abs/1408.3300\">http://arxiv.org/abs/1408.3300</a></html>");
+                + "Y. Gong and I. F. Sbalzarini, Gradient Distributions Priors for Biomedical Image Processing, 2014<br><a href=\"http://arxiv.org/abs/1408.3300\">http://arxiv.org/abs/1408.3300</a><br><br>"
+                + "Y. Gong and I. F. Sbalzarini. A Natural-Scene Gradient Distribution Prior and its Application in Light-Microscopy Image Processing.<br>"
+                + "IEEE Journal of Selected Topics in Signal Processing, Vol.10, No.1, February 2016, pages 99-114<br>"
+                + "ISSN: 1932-4553, DOI: 10.1109/JSTSP.2015.2506122<br><br>"
+                + "</html>");
         text.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         text.setEditable(false);
         msg.add(text);

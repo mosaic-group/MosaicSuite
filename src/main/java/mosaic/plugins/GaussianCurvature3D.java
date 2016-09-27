@@ -61,10 +61,17 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
         gd.addNumericField("Number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
 
         gd.addMessage("\n");
-        final String info = "Y. Gong and I. F. Sbalzarini\n\n\"Image enhancement by gradient distribution specification.\"\nIn Proc. ACCV, 12th Asian Conference on Computer Vision,\nWorkshop on Emerging Topics in Image Enhancement and Restoration,\npages w7–p3, Singapore, November 2014.";
+        final String referenceInfo = "\n" +
+                                     "@phdthesis{gong:phd, \n" + 
+                                     "  title={Spectrally regularized surfaces}, \n" + 
+                                     "  author={Gong, Yuanhao}, \n" + 
+                                     "  year={2015}, \n" + 
+                                     "  school={ETH Zurich, Nr. 22616},\n" + 
+                                     "  note={http://dx.doi.org/10.3929/ethz-a-010438292}}\n" +
+                                     "\n";
         final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        final TextArea ta = new TextArea(info, 7,  57, TextArea.SCROLLBARS_NONE);
+        final TextArea ta = new TextArea(referenceInfo, 8,  50, TextArea.SCROLLBARS_NONE);
         ta.setBackground(SystemColor.control);
         ta.setEditable(false);
         ta.setFocusable(true);
