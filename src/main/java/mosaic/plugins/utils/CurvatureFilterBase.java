@@ -1,5 +1,10 @@
 package mosaic.plugins.utils;
 
+import java.awt.FlowLayout;
+import java.awt.Panel;
+import java.awt.SystemColor;
+import java.awt.TextArea;
+
 import ij.gui.GenericDialog;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 import mosaic.variationalCurvatureFilters.FilterKernel;
@@ -68,6 +73,32 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
         }
         gd.addNumericField("Number of iterations: ", 10, 0);
 
+        gd.addMessage("\n");
+        final String referenceInfo = "\n" +
+                                     "@phdthesis{gong:phd, \n" + 
+                                     "  title={Spectrally regularized surfaces}, \n" + 
+                                     "  author={Gong, Yuanhao}, \n" + 
+                                     "  year={2015}, \n" + 
+                                     "  school={ETH Zurich, Nr. 22616},\n" + 
+                                     "  note={http://dx.doi.org/10.3929/ethz-a-010438292}}\n" +
+                                     "\n";
+        final Panel panel = new Panel();
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        final TextArea ta = new TextArea(referenceInfo, 8, 50, TextArea.SCROLLBARS_NONE);
+        ta.setBackground(SystemColor.control);
+        ta.setEditable(false);
+        ta.setFocusable(true);
+        panel.add(ta);
+        gd.addPanel(panel);
+        
+        /*
+         * @phdthesis{gong:phd, 
+  title={Spectrally regularized surfaces}, 
+  author={Gong, Yuanhao}, 
+  year={2015}, 
+  school={ETH Zurich, Nr. 22616},
+  note={http://dx.doi.org/10.3929/ethz-a-010438292}}
+         */
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
