@@ -5,15 +5,17 @@ import ij.IJ;
 
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 
 
 public class ParticleLinkerBestOnePerm implements ParticleLinker {
+    private static final Logger logger = Logger.getLogger(ParticleLinkerBestOnePerm.class);
 
     /**
-     * Second phase of the algorithm - <br>
-     * Identifies points corresponding to the
+     * Second phase of the algorithm - Identifies points corresponding to the
      * same physical particle in subsequent frames and links the positions into trajectories <br>
      * The length of the particles next array will be reset here according to the current linkrange <br>
      * Adapted from Ingo Oppermann implementation <br>
@@ -22,82 +24,48 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
      */
     @Override
     public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
-        int frames_number = frames.length;
-        int m, i, j, nop, nop_next, n;
-        int ok, prev, x = 0, y = 0, curr_linkrange;
-        /** The association matirx g */
-        boolean[][] g;
-        /**
-         * g_x stores the index of the currently associated particle, and vice versa.
-         * It is another representation for the association matrix g.
-         */
-        int[] g_x, g_y;
-        /**
-         * okv is a helper vector in the initialization phase. It keeps track of the empty columns
-         * in g.
-         */
-        boolean[] okv;
-        double min, z;
-        float max_cost;
-        /** The cost matrix - TODO: it is quite sparse and one should take advantage of that. */
-        float[][] cost;
-        Vector<Particle> p1, p2;
-
+        final int numOfFrames = frames.length;
+        
         // set the length of the particles next array according to the linkrange
         // it is done now since link range can be modified after first run
-        for (int fr = 0; fr < frames.length; fr++) {
+        for (int fr = 0; fr < numOfFrames; fr++) {
             for (int pr = 0; pr < frames[fr].getParticles().size(); pr++) {
                 frames[fr].getParticles().elementAt(pr).next = new int[l.linkrange];
             }
         }
-        curr_linkrange = l.linkrange;
+        
+        int currLinkRange = (numOfFrames <= l.linkrange) ? (numOfFrames - 1) : l.linkrange;
 
-        /* If the linkrange is too big, set it the right value */
-        if (frames_number < (curr_linkrange + 1)) {
-            curr_linkrange = frames_number - 1;
-        }
-
-        // max_cost = displacement * displacement;
-
-        for (m = 0; m < frames_number - curr_linkrange; m++) {
+        for (int m = 0; m < numOfFrames - currLinkRange; m++) {
             IJ.showStatus("Linking Frame " + (m + 1));
-            nop = frames[m].getParticles().size();
-            for (i = 0; i < nop; i++) {
+            logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames);
+            int nop = frames[m].getParticles().size();
+            for (int i = 0; i < nop; i++) {
                 frames[m].getParticles().elementAt(i).special = false;
-                for (n = 0; n < l.linkrange; n++) {
+                for (int n = 0; n < l.linkrange; n++) {
                     frames[m].getParticles().elementAt(i).next[n] = -1;
                 }
             }
 
-            for (n = 0; n < curr_linkrange; n++) {
-                max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
-
-                nop_next = frames[m + (n + 1)].getParticles().size();
+            for (int n = 0; n < currLinkRange; n++) {
+                float max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
+                int nop_next = frames[m + (n + 1)].getParticles().size();
 
                 /* Set up the cost matrix */
-                cost = new float[nop + 1][nop_next + 1];
+                float[][] cost = new float[nop + 1][nop_next + 1];
 
-                /* Set up the relation matrix */
-                g = new boolean[nop + 1][nop_next + 1];
-                g_x = new int[nop_next + 1];
-                g_y = new int[nop + 1];
+                // The association/relation matrix g
+                boolean[][] g = new boolean[nop + 1][nop_next + 1];
+                // g_x stores the index of the currently associated particle, and vice versa. It is another representation for the association matrix g.
+                int[] g_x = new int[nop_next + 1];
+                int[] g_y = new int[nop + 1];
 
-                okv = new boolean[nop_next + 1];
-                for (i = 0; i < okv.length; i++) {
-                    okv[i] = true;
-                }
-
-                /* Set g to zero - not necessary */
-                // for (i = 0; i< g.length; i++) g[i] = false;
-
-                p1 = frames[m].getParticles();
-                p2 = frames[m + (n + 1)].getParticles();
-                // p1 = frames[m].particles;
-                // p2 = frames[m + (n + 1)].particles;
+                Vector<Particle> p1 = frames[m].getParticles();
+                Vector<Particle> p2 = frames[m + (n + 1)].getParticles();
 
                 /* Fill in the costs */
-                for (i = 0; i < nop; i++) {
-                    for (j = 0; j < nop_next; j++) {
+                for (int i = 0; i < nop; i++) {
+                    for (int j = 0; j < nop_next; j++) {
                         final float distance_sq = (p1.elementAt(i).iX - p2.elementAt(j).iX) * (p1.elementAt(i).iX - p2.elementAt(j).iX) + (p1.elementAt(i).iY - p2.elementAt(j).iY)
                                 * (p1.elementAt(i).iY - p2.elementAt(j).iY) + (p1.elementAt(i).iZ - p2.elementAt(j).iZ) * (p1.elementAt(i).iZ - p2.elementAt(j).iZ);
 
@@ -117,7 +85,6 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                         }
                         else if (l.straight_line == true && p1.elementAt(i).distance >= 0.0) {
                             // Calculate the module
-
                             final float l1_m = p1.elementAt(i).linkModule();
 
                             final float lx1 = p1.elementAt(i).lx / l1_m;
@@ -136,29 +103,35 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                                 lz2 /= l2_m;
 
                                 final float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
-
                                 cost[i][j] += (cos_phi - 1) * (cos_phi - 1) * l.displacement * l.displacement;
                             }
                         }
                     }
                 }
 
-                for (i = 0; i < nop + 1; i++) {
+                for (int i = 0; i < nop + 1; i++) {
                     cost[i][nop_next] = max_cost;
                 }
-                for (j = 0; j < nop_next + 1; j++) {
+                for (int j = 0; j < nop_next + 1; j++) {
                     cost[nop][j] = max_cost;
                 }
                 cost[nop][nop_next] = 0.0f;
 
                 /* Initialize the relation matrix */
-                /* Initialize the relation matrix */
-                for (i = 0; i < nop; i++) { // Loop over the x-axis
-                    IJ.showStatus("Linking Frame " + (m + 1) + ": Initializing Relation matrix");
+                IJ.showStatus("Linking Frame " + (m + 1) + ": Initializing Relation matrix");
+                logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames + " - Initializing Relation matrix");
+                
+                // okv is a helper vector in the initialization phase. It keeps track of the empty columns in g.
+                boolean[] okv = new boolean[nop_next + 1];
+                for (int i = 0; i < okv.length; i++) {
+                    okv[i] = true;
+                }
+                
+                for (int i = 0; i < nop; i++) { // Loop over the x-axis
                     IJ.showProgress(i, nop);
-                    min = max_cost;
-                    prev = -1;
-                    for (j = 0; j < nop_next; j++) { // Loop over the y-axis without the dummy
+                    double min = max_cost;
+                    int prev = -1;
+                    for (int j = 0; j < nop_next; j++) { // Loop over the y-axis without the dummy
 
                         /* Let's see if we can use this coordinate */
                         if (okv[j] && min > cost[i][j]) {
@@ -187,9 +160,9 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                 }
 
                 /* Look for columns that are zero */
-                for (j = 0; j < nop_next; j++) {
-                    ok = 1;
-                    for (i = 0; i < nop + 1; i++) {
+                for (int j = 0; j < nop_next; j++) {
+                    int ok = 1;
+                    for (int i = 0; i < nop + 1; i++) {
                         if (g[i][j]) {
                             ok = 0;
                         }
@@ -200,20 +173,14 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                 }
 
                 /* Build xv and yv, a speedup for g */
-                for (i = 0; i < nop + 1; i++) {
+                for (int i = 0; i < nop + 1; i++) {
                     // for (j = 0; j < nop_next+1; j++) {
-                    for (j = 0; j < nop_next + 1; j++) {
+                    for (int j = 0; j < nop_next + 1; j++) {
                         if (g[i][j]) {
                             g_x[j] = i;
                             g_y[i] = j;
                         }
                     }
-                    /*
-                     * if (g[i][nop_next]) {
-                     * xv[nop_next] = i;
-                     * yv[i] = nop_next;
-                     * }
-                     */
                 }
                 g_x[nop_next] = nop;
                 g_y[nop] = nop_next;
@@ -222,40 +189,42 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
 
                 /* Now the relation matrix needs to be optimized */
                 IJ.showStatus("Linking Frame " + (m + 1) + ": Optimizing Relation matrix");
-                min = -1.0;
-                while (min < 0.0) {
+                logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames + " - Optimizing Relation matrix");
+                
+                double min = -1.0;
+                
+                // Stopping condition variables. If optimization does not proceed (minimum value is not changed over MaximumNumberOfSameMins times)
+                // optimization is stopped. Number of maximum same min-values is currently chosen without investigation and just set to number of particles
+                // but values like 10 works as good as it. (It is not clear if after some iterations value can be changed).
+                final int MaximumNumberOfSameMinValues = nop;
+                double lastMin = min;
+                int countSameMinValues = 0;
+                
+                while (min < 0.0 && countSameMinValues < MaximumNumberOfSameMinValues) {
                     min = 0.0;
                     int prev_i = 0, prev_j = 0, prev_x = 0, prev_y = 0;
-                    for (i = 0; i < nop + 1; i++) {
-                        for (j = 0; j < nop_next + 1; j++) {
+                    for (int i = 0; i < nop + 1; i++) {
+                        for (int j = 0; j < nop_next + 1; j++) {
                             if (i == nop && j == nop_next) {
                                 continue;
                             }
 
                             if (g[i][j] == false && cost[i][j] <= max_cost) {
-                                /* Calculate the reduced cost */
+                                // Calculate the reduced cost
 
-                                // Look along the x-axis, including
-                                // the dummy particles
-                                x = g_x[j];
+                                // Look along the x-axis, including the dummy particles
+                                int x = g_x[j];
 
-                                // Look along the y-axis, including
-                                // the dummy particles
-                                y = g_y[i];
+                                // Look along the y-axis, including the dummy particles
+                                int y = g_y[i];
 
-                                /* z is the reduced cost */
-                                z = cost[i][j] + cost[x][y] - cost[i][y] - cost[x][j];
+                                // z is the reduced cost
+                                double z = cost[i][j] + cost[x][y] - cost[i][y] - cost[x][j];
 
                                 if (z > -1.0e-10) {
                                     z = 0.0;
                                 }
                                 if (z < min) {
-
-                                    // if ((i == 11 || x == 11) && m == 88)
-                                    // {
-                                    // int debug = 0;
-                                    // debug++;
-                                    // }
                                     min = z;
 
                                     prev_i = i;
@@ -281,11 +250,20 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                         g_x[nop_next] = nop;
                         g_y[nop] = nop_next;
                     }
+                    
+                    if (lastMin == min) {
+                        countSameMinValues++;
+                    }
+                    else {
+                        lastMin = min;
+                        countSameMinValues = 0;
+                    }
                 }
+                logger.debug("Done.");
 
                 /* After optimization, the particles needs to be linked */
-                for (i = 0; i < nop; i++) {
-                    for (j = 0; j < nop_next; j++) {
+                for (int i = 0; i < nop; i++) {
+                    for (int j = 0; j < nop_next; j++) {
                         if (g[i][j] == true) {
                             p1.elementAt(i).next[n] = j;
 
@@ -297,7 +275,6 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                                 p2.elementAt(j).lz = (p2.elementAt(j).iZ - p1.elementAt(i).iZ) / (n + 1);
 
                                 // We do not use distance is just to indicate that the particle has a link vector
-
                                 p2.elementAt(j).distance = 1.0f;
                             }
                             else if (l.straight_line == true) {
@@ -338,16 +315,16 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                 }
             }
 
-            if (m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1) {
-                curr_linkrange--;
+            if (m == (numOfFrames - currLinkRange - 1) && currLinkRange > 1) {
+                currLinkRange--;
             }
         }
 
         /* At the last frame all trajectories end */
-        for (i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
-            frames[frames_number - 1].getParticles().elementAt(i).special = false;
-            for (n = 0; n < l.linkrange; n++) {
-                frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
+        for (int i = 0; i < frames[numOfFrames - 1].getParticles().size(); i++) {
+            frames[numOfFrames - 1].getParticles().elementAt(i).special = false;
+            for (int n = 0; n < l.linkrange; n++) {
+                frames[numOfFrames - 1].getParticles().elementAt(i).next[n] = -1;
             }
         }
 

@@ -534,6 +534,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
                     // Detect feature points in this frame
                     IJ.showStatus("Detecting Particles in Frame " + (frame_i + 1) + "/" + frames_number);
+                    logger.debug("Detecting particles in frame: " + (frame_i + 1) + "/" + frames_number);
                     Vector<Particle> detectedParticles = detector.featurePointDetection(current_frame.getOriginalImageStack());
                     current_frame.setParticles(detectedParticles);
                 }
