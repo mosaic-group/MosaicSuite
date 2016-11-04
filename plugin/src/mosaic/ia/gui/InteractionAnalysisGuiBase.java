@@ -37,7 +37,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
     protected JFormattedTextField  kernelWeightQ;
     protected JFormattedTextField  kernelWeightP;
     protected JButton calculateDistances;
-    protected JComboBox<String> potentialComboBox;
+    protected JComboBox potentialComboBox;
     protected JFormattedTextField reRuns;
     protected JLabel numOfsupportPointsLabel, smoothnessLabel;
     protected JFormattedTextField numOfSupportPoints, smoothness;
@@ -137,7 +137,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         
         final JLabel lblPotentialEstimation = new JLabel("Potential estimation");
         
-        potentialComboBox = new JComboBox<String>(potentials);
+        potentialComboBox = new JComboBox(potentials);
         potentialComboBox.setSelectedIndex(1);
         potentialComboBox.addActionListener(this);
         

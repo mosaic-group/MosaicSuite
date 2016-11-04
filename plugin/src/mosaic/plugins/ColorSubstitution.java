@@ -10,7 +10,7 @@ import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD
 {
@@ -50,7 +50,7 @@ public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD
         final double col_from = gd.getNextNumber();
         final double col_to = gd.getNextNumber();
 
-        substitute(imp,col_from,col_to);
+        this.<UnsignedByteType> substitute(imp,col_from,col_to);
 
         return DONE;
     }

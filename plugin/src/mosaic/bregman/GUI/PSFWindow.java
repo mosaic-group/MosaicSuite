@@ -41,7 +41,7 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
     private final JFormattedTextField Vpix_xy = new JFormattedTextField(nf);
     private final JFormattedTextField Vpix_z = new JFormattedTextField(nf);
 
-    private final JComboBox<String> micr = new JComboBox<String>(items);
+    private final JComboBox micr = new JComboBox(items);
     private final JButton estimate = new JButton("Compute PSF");
 
     private final JLabel ref = new JLabel("<html>" + "<div align=\"justify\">" + "Gaussian PSF approximation." + "<br>" + "<br>"

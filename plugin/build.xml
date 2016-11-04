@@ -51,7 +51,7 @@
         </echo>
     </target>
 
-    <target name="ImageJ" depends="" description="Generate the distribution">
+    <target name="ImageJ" depends="clean,build,compress" description="Generate the distribution">
         <echo>
             Building the .jar file.
         </echo>

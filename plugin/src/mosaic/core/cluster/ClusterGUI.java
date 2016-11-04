@@ -89,7 +89,7 @@ public class ClusterGUI extends JDialog {
 
         //
 
-        final JComboBox<String> comboBox_1 = new JComboBox<String>(CBcp);
+        final JComboBox comboBox_1 = new JComboBox(CBcp);
         comboBox_1.setSelectedIndex(cp.length - 1);
         comboBox_1.addActionListener(new ActionListener() {
 

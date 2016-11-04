@@ -153,10 +153,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter {
         final Object test_o = test;
 
         if (test_o instanceof UnsignedByteType) {
-            return (BinMapper1d<T>) this.<UnsignedByteType>createIntegerMapper(256);
+            return (BinMapper1d<T>) (BinMapper1d<?>) this.<UnsignedByteType>createIntegerMapper(256);
         }
         else if (test_o instanceof ShortType) {
-            return (BinMapper1d<T>) this.<ShortType>createIntegerMapper(65536);
+            return (BinMapper1d<T>) (BinMapper1d<?>) this.<ShortType>createIntegerMapper(65536);
         }
         else if (test_o instanceof FloatType) {
             return new Real1dBinMapper<T>(min,max,65536,true);

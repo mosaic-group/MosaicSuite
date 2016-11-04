@@ -151,7 +151,7 @@ public class Naturalization extends PlugIn8bitBase
 
         final float Nf = findNaturalizationFactor(image_orig, Theta, T2_prior);
         result[0] = Nf;
-        final Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t);
+        final Img<T> image_result = this.<S,T> naturalizeImage(image_orig, Nf, cls_t);
 
         return image_result;
     }
