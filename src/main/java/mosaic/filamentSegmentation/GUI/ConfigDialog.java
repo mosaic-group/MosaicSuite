@@ -150,7 +150,7 @@ public class ConfigDialog {
    
         gd.addRadioButtonGroup("Subpixel_sampling: ", aSubPixel, 1, 3, Prefs.get(PropSubpixel, aSubPixel[0]));
    
-        gd.addRadioButtonGroup("Scale of level set mask (% of input image): ", aScales, 5, 1, Prefs.get(PropScale, aScales[1]));
+        gd.addRadioButtonGroup("Scale of level set mask (% of input image): ", aScales, 1, 5, Prefs.get(PropScale, aScales[1]));
    
         gd.addMessage("");
         gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizerTerm, 0.1), 3);
@@ -165,7 +165,7 @@ public class ConfigDialog {
                             "J. Howard, and I. F. Sbalzarini.";
         final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        final TextArea ta = new TextArea(referenceInfo, 7, 40, TextArea.SCROLLBARS_NONE);
+        final TextArea ta = new TextArea(referenceInfo, 6, 55, TextArea.SCROLLBARS_NONE);
         ta.setBackground(SystemColor.control);
         ta.setEditable(false);
         ta.setFocusable(true);
