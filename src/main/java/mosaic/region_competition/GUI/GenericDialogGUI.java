@@ -211,16 +211,16 @@ public class GenericDialogGUI  {
         // Parameter opener Buttons
         p = new Panel();
 
-        b = new Button("Wizard");
-        b.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final RCWWin w = new RCWWin();
-                w.start(settings);
-            }
-        });
-        p.add(b);
+//        b = new Button("Wizard");
+//        b.addActionListener(new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                final RCWWin w = new RCWWin();
+//                w.start(settings);
+//            }
+//        });
+//        p.add(b);
 
         b = new Button("Reset");
         b.addActionListener(new ActionListener() {
