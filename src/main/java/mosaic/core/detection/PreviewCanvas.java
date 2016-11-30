@@ -1,12 +1,12 @@
 package mosaic.core.detection;
 
 
-import ij.ImagePlus;
-import ij.gui.ImageCanvas;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Vector;
+
+import ij.ImagePlus;
+import ij.gui.ImageCanvas;
 
 
 /**
@@ -20,13 +20,6 @@ public class PreviewCanvas extends ImageCanvas {
     private int magnificationFactor = 1;
     private int preview_slice_calculated;
     private int radius;
-
- // TODO: This variable is never created but used later in code. To be investigated.
-    private final Vector<double[]> shifts = null;
-    // TODO: This variable is never created but used later in code. To be investigated.
-    private final Vector<double[]> shiftPositions = null;
-    // TODO: This variable is never created but used later in code. To be investigated.
-    private final Vector<Particle> particlesShiftedToDisplay = null;
 
     /**
      * Constructor. <br>
@@ -70,11 +63,6 @@ public class PreviewCanvas extends ImageCanvas {
             if (preview_frame != null) {
                 particlesToDisplay = preview_frame.getParticles();
                 circleParticles(g, particlesToDisplay);
-                if (shifts != null) {
-                    g.setColor(Color.PINK);
-                    paintShiftArrows(g, shifts, shiftPositions);
-                    circleParticles(g, particlesShiftedToDisplay);
-                }
             }
         }
     }
@@ -92,7 +80,6 @@ public class PreviewCanvas extends ImageCanvas {
         }
 
         // get the slice number
-
         final int c_slice = this.imp.getCurrentSlice() % imp.getNSlices();
 
         this.magnificationFactor = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
@@ -118,32 +105,5 @@ public class PreviewCanvas extends ImageCanvas {
      */
     private int getFrameNumberFromSlice(int sliceIndex) {
         return (sliceIndex - 1) / imp.getNSlices() + 1;
-    }
-
-    /**
-     * Inner class method <br>
-     * Invoked from the <code>paint</code> overwritten method <br>
-     * draws an arrow from detected particle directly of the given <code>Graphics</code>
-     * 
-     * @param g
-     */
-    private void paintShiftArrows(Graphics g, Vector<double[]> shifts, Vector<double[]> shiftPositions) {
-        if (shifts == null || g == null) {
-            return;
-        }
-        // System.out.println("Shifts " +shifts.size());
-        this.magnificationFactor = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
-        // go over all the detected particle
-        for (int i = 0; i < shifts.size(); i++) {
-            // draw a dot at the detected particle position (oval of height and width of 0)
-            // the members x, y of the Particle object are opposite to the screen X and Y axis
-            // The x-axis points top-down and the y-axis is oriented left-right in the image plane.
-            g.drawLine(this.screenXD(shiftPositions.get(i)[1]), this.screenYD(shiftPositions.get(i)[0]), this.screenXD(shiftPositions.get(i)[1] + shifts.get(i)[1] * 20),
-                    this.screenYD(shiftPositions.get(i)[0] + shifts.get(i)[0] * 20));
-            g.drawLine(this.screenXD(shiftPositions.get(i)[1]), this.screenYD(shiftPositions.get(i)[0]), this.screenXD(shiftPositions.get(i)[1]),
-                    this.screenYD(shiftPositions.get(i)[0] + shifts.get(i)[0] * 20));
-            g.drawLine(this.screenXD(shiftPositions.get(i)[1]), this.screenYD(shiftPositions.get(i)[0]), this.screenXD(shiftPositions.get(i)[1] + shifts.get(i)[1] * 20),
-                    this.screenYD(shiftPositions.get(i)[0]));
-        }
     }
 }
