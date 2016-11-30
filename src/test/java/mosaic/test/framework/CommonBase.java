@@ -529,7 +529,7 @@ public class CommonBase extends Info {
 //    }
     
     /**
-     * Compares 2D float arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * Compares 2D boolean arrays with nice output of diff element (if such is found). When arrays diff execution of
      * test is stopped (asserEquals is used)
      */
     static protected void compareArrays(boolean[][] expected, boolean[][] result) {
