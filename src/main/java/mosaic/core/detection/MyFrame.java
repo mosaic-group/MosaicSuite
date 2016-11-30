@@ -1040,20 +1040,20 @@ public class MyFrame {
                 lines.clear();
                 lines_jmp.clear();
 
-                if (frame + start_frame >= tr.get(t).start_frame && frame + start_frame <= tr.get(t).stop_frame) {
+                if (frame + start_frame >= tr.get(t).getStartFrame() && frame + start_frame <= tr.get(t).getStopFrame()) {
                     // select the nearest particle to the frame
                     int j = 0;
 
-                    for (j = 0; j < tr.get(t).existing_particles.length; j++) {
-                        if (tr.get(t).existing_particles[j].getFrame() <= frame + start_frame
-                                && (j + 1 >= tr.get(t).existing_particles.length || tr.get(t).existing_particles[j + 1].getFrame() > frame + start_frame)) {
+                    for (j = 0; j < tr.get(t).iParticles.length; j++) {
+                        if (tr.get(t).iParticles[j].getFrame() <= frame + start_frame
+                                && (j + 1 >= tr.get(t).iParticles.length || tr.get(t).iParticles[j + 1].getFrame() > frame + start_frame)) {
                             break;
                         }
                     }
 
                     // Particle to draw
 
-                    final Particle p = new Particle(tr.get(t).existing_particles[j]);
+                    final Particle p = new Particle(tr.get(t).iParticles[j]);
                     if (focus != null) {
                         p.translate(focus);
                     }
@@ -1063,7 +1063,7 @@ public class MyFrame {
                     // is tested)
 
                     if (typ == DrawType.NEXT) {
-                        if (j + 1 < tr.get(t).existing_particles.length) {
+                        if (j + 1 < tr.get(t).iParticles.length) {
                             crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
@@ -1073,7 +1073,7 @@ public class MyFrame {
                         }
                     }
                     else if (typ == DrawType.PREV_NEXT) {
-                        if (j + 1 < tr.get(t).existing_particles.length) {
+                        if (j + 1 < tr.get(t).iParticles.length) {
                             crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                         if (j - 1 >= 0) {
@@ -1091,7 +1091,7 @@ public class MyFrame {
                         for (int i = j + 1; i >= 1; i--) {
                             createNewLine3(tr, focus, myFrame, lines, lines_jmp, t, i);
                         }
-                        if (j + 1 < tr.get(t).existing_particles.length) {
+                        if (j + 1 < tr.get(t).iParticles.length) {
                             crateNewLine(tr, focus, myFrame, lines, lines_jmp, t, j);
                         }
                     }
@@ -1124,13 +1124,13 @@ public class MyFrame {
     }
 
     private static void createNewLine3(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
-        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j - 1]));
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).iParticles[j]), new Particle(tr.get(t).iParticles[j - 1]));
         if (focus != null) {
             l1.translate(focus);
         }
 
         // Check if it is a jump
-        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+        final boolean jump = (tr.get(t).iParticles[j].getFrame() - tr.get(t).iParticles[j - 1].getFrame() != 1);
 
         if (jump == false) {
             lines.add(l1);
@@ -1141,13 +1141,13 @@ public class MyFrame {
     }
 
     private static void createNewLine2(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
-        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).iParticles[j]), new Particle(tr.get(t).iParticles[j + 1]));
         if (focus != null) {
             l1.translate(focus);
         }
 
         // Check if it is a jump
-        final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+        final boolean jump = (tr.get(t).iParticles[j].getFrame() - tr.get(t).iParticles[j - 1].getFrame() != 1);
 
         if (jump == false) {
             lines.add(l1);
@@ -1158,13 +1158,13 @@ public class MyFrame {
     }
 
     private static void crateNewLine(Vector<Trajectory> tr, Rectangle focus, final MyFrame myFrame, final Vector<pParticle> lines, final Vector<pParticle> lines_jmp, int t, int j) {
-        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+        final pParticle l1 = myFrame.new pParticle(new Particle(tr.get(t).iParticles[j]), new Particle(tr.get(t).iParticles[j + 1]));
         if (focus != null) {
             l1.translate(focus);
         }
 
         // Check if it is a jump
-        final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+        final boolean jump = (tr.get(t).iParticles[j + 1].getFrame() - tr.get(t).iParticles[j].getFrame() != 1);
 
         if (jump == false) {
             lines.add(l1);

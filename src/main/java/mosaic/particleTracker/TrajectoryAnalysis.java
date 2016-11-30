@@ -49,7 +49,7 @@ public class TrajectoryAnalysis {
      * @param aTrajectory Trajectory to be analyzed
      */
     public TrajectoryAnalysis(final Trajectory aTrajectory) {
-        this(aTrajectory != null ? aTrajectory.existing_particles : null);
+        this(aTrajectory != null ? aTrajectory.iParticles : null);
     }
 
     /**

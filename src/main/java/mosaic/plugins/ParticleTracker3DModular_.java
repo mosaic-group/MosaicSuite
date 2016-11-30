@@ -906,7 +906,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final Iterator<Trajectory> iter = iTrajectories.iterator();
         while (iter.hasNext()) {
             final Trajectory curr_traj = iter.next();
-            traj_info.append("%% Trajectory " + curr_traj.serial_number + "\n");
+            traj_info.append("%% Trajectory " + curr_traj.iSerialNumber + "\n");
 
             // Uncomment these lines if you want to add trajectory analysis to final report:
             // -----------------------------------------------------------------------------
@@ -1025,7 +1025,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final Iterator<Trajectory> iter = iTrajectories.iterator();
         while (iter.hasNext()) {
             final Trajectory curr_traj = iter.next();
-            if (curr_traj.length <= min_length_to_display || (idToShow != 0 && curr_traj.serial_number != idToShow)) {
+            if (curr_traj.getLength() <= min_length_to_display || (idToShow != 0 && curr_traj.iSerialNumber != idToShow)) {
                 curr_traj.to_display = false;
             }
             else {
@@ -1267,8 +1267,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             min[i] = 0;
             max[i] = img.dimension(i);
         }
-        min[img.numDimensions() - 1] = traj.start_frame;
-        max[img.numDimensions() - 1] = traj.stop_frame;
+        min[img.numDimensions() - 1] = traj.getStartFrame();
+        max[img.numDimensions() - 1] = traj.getStopFrame();
 
         final FinalInterval in = new FinalInterval(min, max);
 
@@ -1278,7 +1278,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final Vector<Trajectory> vt = new Vector<Trajectory>();
         vt.add(traj);
         final Calibration cal = iInputImage.getCalibration();
-        MyFrame.updateImage(focus_view, traj.focus_area.getBounds(), traj.start_frame, vt, cal, DrawType.TRAJECTORY_HISTORY, getRadius());
+        MyFrame.updateImage(focus_view, traj.focus_area.getBounds(), traj.getStartFrame(), vt, cal, DrawType.TRAJECTORY_HISTORY, getRadius());
 
         final ImagePlus imp = ImageJFunctions.show(focus_view);
         imp.setTitle(new_title);
@@ -1674,11 +1674,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
     private void putOneTrajectoryIntoResultsTable(final ResultsTable rt, final Trajectory curr_traj) {
         int rownum;
-        final Particle[] pts = curr_traj.existing_particles;
+        final Particle[] pts = curr_traj.iParticles;
         for (final Particle p : pts) {
             rt.incrementCounter();
             rownum = rt.getCounter() - 1;
-            rt.setValue("Trajectory", rownum, curr_traj.serial_number);
+            rt.setValue("Trajectory", rownum, curr_traj.iSerialNumber);
             addParticleInfo(rt, rownum, p);
         }
     }
@@ -1718,8 +1718,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
             rt.incrementCounter();
             final int rownum = rt.getCounter() - 1;
-            rt.setValue("Trajectory", rownum, currentTrajectory.serial_number);
-            rt.setValue("Trajectory length", rownum, currentTrajectory.length);
+            rt.setValue("Trajectory", rownum, currentTrajectory.iSerialNumber);
+            rt.setValue("Trajectory length", rownum, currentTrajectory.getLength());
             rt.setValue("MSS: slope", rownum, ta.getMSSlinear());
             rt.setValue("MSS: y-axis intercept", rownum, ta.getMSSlinearY0());
             // second element in 'gammas' array is an order=2 (MSD)

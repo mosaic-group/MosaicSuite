@@ -100,7 +100,7 @@ public class TrajectoriesReportXML {
     }
 
     private void addTrajectory(Element aParent, Trajectory aTrajectory) {
-        final Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.serial_number);
+        final Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.iSerialNumber);
 
         generateTrajectoryAnalysis(traj, aTrajectory);
         generateTrajectoryData(traj, aTrajectory);
@@ -109,7 +109,7 @@ public class TrajectoriesReportXML {
     private void generateTrajectoryData(Element aParent, Trajectory aTrajectory) {
         final Element trajData = addElement(aParent, "TrajectoryData");
 
-        for (final Particle p : aTrajectory.existing_particles) {
+        for (final Particle p : aTrajectory.iParticles) {
             final Element frame = addElementWithAttr(trajData, "Frame", "number", p.getFrame());
 
             final Element coordinates = addElement(frame, "Coordinates");

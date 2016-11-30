@@ -394,11 +394,11 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
                 while (iter.hasNext()) {
                     final Trajectory traj = iter.next();
                     // for each trajectory - go over all particles
-                    for (int i = 0; i < traj.existing_particles.length; i++) {
+                    for (int i = 0; i < traj.iParticles.length; i++) {
                         // if a particle in the trajectory is within the ROI
                         // print traj information to screen and go to next trajectory
-                        if (user_roi.getBounds().contains(traj.existing_particles[i].iY, traj.existing_particles[i].iX) && traj.to_display) {
-                            text_panel.appendLine("%% Trajectory " + traj.serial_number);
+                        if (user_roi.getBounds().contains(traj.iParticles[i].iY, traj.iParticles[i].iX) && traj.to_display) {
+                            text_panel.appendLine("%% Trajectory " + traj.iSerialNumber);
                             text_panel.append(particleTracker3DModular.trajectoryHeader());
                             text_panel.append(traj.toString());
                             break;
@@ -433,7 +433,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             final Trajectory traj = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
             text_panel.selectAll();
             text_panel.clearSelection();
-            text_panel.appendLine("%% Trajectory " + traj.serial_number);
+            text_panel.appendLine("%% Trajectory " + traj.iSerialNumber);
             text_panel.append(particleTracker3DModular.trajectoryHeader());
             text_panel.append(traj.toString());
             return;
