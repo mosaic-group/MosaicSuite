@@ -1,7 +1,5 @@
 ImageJ
 build
-buildTest
 clean
 compress
-jtest
 main

@@ -23,27 +23,7 @@
     <property name="name" value="Mosaic" />
     <property name="jarfilename" value="Mosaic_ToolSuite" />
 
-    <target name="jtest" depends="buildTest">
-        <junit printsummary="yes" haltonfailure="yes">
-            <classpath>
-                <pathelement location="bin" />    
-                <fileset dir="lib">
-                    <include name="*.jar" />
-                </fileset>
-                <fileset dir="lib/bio-formats">
-                    <include name="*.jar" />
-                </fileset>
-            </classpath>    
-            <batchtest>
-                <fileset dir="${test}">
-                    <include name="**/*Test*" />
-                </fileset>
-            </batchtest>
-            <formatter type="brief" usefile="false"/>
-        </junit>
-    </target>   
-
-    <target name="main" depends="clean,build,compress,buildTest" description="Main target">
+    <target name="main" depends="clean,build,compress" description="Main target">
         <echo>
             Clean, compile and compressing the .jar file.
 
@@ -145,17 +125,5 @@
                     <compilerarg line="-Xmaxwarns 10000" /> 
         </javac>
     </target>
-     <target name="buildTest" depends="build">
-        <mkdir dir="${build}" />
-        <javac debug="true" includeantruntime="false" srcdir="test/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.7" target="1.7">
-                    <compilerarg value="-Xlint:all" />
-                    <compilerarg value="-Xlint:-path" />
-                    <compilerarg value="-proc:none" />
-                    <compilerarg value="-Xlint:-options"/>
-            	    <compilerarg value="-Werror" />
-                    <compilerarg line="-Xmaxwarns 10000" /> 
-        </javac>
-    </target>
-    
 </project>
 
