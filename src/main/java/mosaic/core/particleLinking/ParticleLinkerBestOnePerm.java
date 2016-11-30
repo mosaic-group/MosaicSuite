@@ -1,333 +1,326 @@
 package mosaic.core.particleLinking;
 
 
-import ij.IJ;
-
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
-import mosaic.core.detection.MyFrame;
+import ij.IJ;
 import mosaic.core.detection.Particle;
 
 
+/**
+ * Second phase of the algorithm - Identifies points corresponding to the same physical particle in subsequent frames. 
+ * Adapted from Ingo Oppermann implementation.
+ * Refactored by Janick Cardinale, ETHZ, 1.6.2012
+ * Optimized with ideas from Mark Kittisopikul, UT Southwestern
+ * Refactored by Krzysztof Gonciarz
+ */
 public class ParticleLinkerBestOnePerm implements ParticleLinker {
     private static final Logger logger = Logger.getLogger(ParticleLinkerBestOnePerm.class);
 
-    /**
-     * Second phase of the algorithm - Identifies points corresponding to the
-     * same physical particle in subsequent frames and links the positions into trajectories <br>
-     * The length of the particles next array will be reset here according to the current linkrange <br>
-     * Adapted from Ingo Oppermann implementation <br>
-     * Refactored by Janick Cardinale, ETHZ, 1.6.2012 <br>
-     * Optimized with ideas from Mark Kittisopikul, UT Southwestern
-     */
     @Override
-    public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
-        final int numOfFrames = frames.length;
-        
-        // set the length of the particles next array according to the linkrange
-        // it is done now since link range can be modified after first run
-        for (int fr = 0; fr < numOfFrames; fr++) {
-            for (int pr = 0; pr < frames[fr].getParticles().size(); pr++) {
-                frames[fr].getParticles().elementAt(pr).next = new int[l.linkrange];
-            }
-        }
-        
-        int currLinkRange = (numOfFrames <= l.linkrange) ? (numOfFrames - 1) : l.linkrange;
+    public boolean linkParticles(List<Vector<Particle>> aParticles, LinkerOptions aLinkOpts) {
+        logger.info("Linking options:" + " maxDisplacement: " + aLinkOpts.maxDisplacement + ", linkRange: " + aLinkOpts.linkRange + 
+                    ", straightLine: " + aLinkOpts.straightLine + 
+                    ", minSquaredDisplacementForAngleCalculation: " + aLinkOpts.minSquaredDisplacementForAngleCalculation + 
+                    ", force: " + aLinkOpts.force + 
+                    ", lSpace: " + aLinkOpts.lSpace + ", lFeature: " + aLinkOpts.lFeature + ", lDynamic: " + aLinkOpts.lDynamic);
 
-        for (int m = 0; m < numOfFrames - currLinkRange; m++) {
-            IJ.showStatus("Linking Frame " + (m + 1));
-            logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames);
-            int nop = frames[m].getParticles().size();
-            for (int i = 0; i < nop; i++) {
-                frames[m].getParticles().elementAt(i).special = false;
-                for (int n = 0; n < l.linkrange; n++) {
-                    frames[m].getParticles().elementAt(i).next[n] = -1;
-                }
-            }
+        final int NumOfFrames = aParticles.size();
+        final int LinkRange = aLinkOpts.linkRange;
+       
+        for (int currFrame = 0; currFrame < NumOfFrames; ++currFrame) {
+            int currLinkRange = (currFrame < NumOfFrames - LinkRange) ? LinkRange : NumOfFrames - currFrame - 1;
+            logInfo("----- Linking Frame " + (currFrame + 1) + "/" + NumOfFrames + " linkRange: " + currLinkRange + " ----------------------");
 
-            for (int n = 0; n < currLinkRange; n++) {
-                float max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
-                int nop_next = frames[m + (n + 1)].getParticles().size();
+            Vector<Particle> p1 = aParticles.get(currFrame);
+            int numOfParticles = p1.size();
+            initParticlesLinkData(LinkRange, p1);
 
-                /* Set up the cost matrix */
-                float[][] cost = new float[nop + 1][nop_next + 1];
+            for (int currLinkLevel = 1; currLinkLevel <= currLinkRange; ++currLinkLevel) {
+                Vector<Particle> p2 = aParticles.get(currFrame + currLinkLevel);
+                int numOfLinkParticles = p2.size();
 
-                // The association/relation matrix g
-                boolean[][] g = new boolean[nop + 1][nop_next + 1];
-                // g_x stores the index of the currently associated particle, and vice versa. It is another representation for the association matrix g.
-                int[] g_x = new int[nop_next + 1];
-                int[] g_y = new int[nop + 1];
+                final float maxCost = (float) Math.pow(currLinkLevel * aLinkOpts.maxDisplacement, 2);
+               
+                // --------------------------------------------------------------------------------
+                logInfo("Initializing cost matrix: " + (currFrame + 1) + "/" + NumOfFrames + " with frame: " + (currFrame + currLinkLevel + 1));
+                float[][] cost = initCostMatrix(aLinkOpts, p1, p2, currLinkLevel, maxCost);
 
-                Vector<Particle> p1 = frames[m].getParticles();
-                Vector<Particle> p2 = frames[m + (n + 1)].getParticles();
+                // --------------------------------------------------------------------------------
+                logInfo("Initializing Relation matrix: " + (currFrame + 1) + "/" + NumOfFrames);
+               
+                // The association/relation matrix g, rows representing particles from current frame and columns particles 
+                // from the next frame, 'true' means that particles are connected/linked
+                boolean[][] g = initRelationMatrix(numOfParticles, numOfLinkParticles, maxCost, cost);
 
-                /* Fill in the costs */
-                for (int i = 0; i < nop; i++) {
-                    for (int j = 0; j < nop_next; j++) {
-                        final float distance_sq = (p1.elementAt(i).iX - p2.elementAt(j).iX) * (p1.elementAt(i).iX - p2.elementAt(j).iX) + (p1.elementAt(i).iY - p2.elementAt(j).iY)
-                                * (p1.elementAt(i).iY - p2.elementAt(j).iY) + (p1.elementAt(i).iZ - p2.elementAt(j).iZ) * (p1.elementAt(i).iZ - p2.elementAt(j).iZ);
-
-                        cost[i][j] = (float) (distance_sq * l.l_s + l.l_f
-                                * Math.cbrt(((p1.elementAt(i).m0 - p2.elementAt(j).m0) * (p1.elementAt(i).m0 - p2.elementAt(j).m0)) + (p1.elementAt(i).m2 - p2.elementAt(j).m2)
-                                        * (p1.elementAt(i).m2 - p2.elementAt(j).m2)));
-
-                        if (l.force == true) {
-                            if (p1.elementAt(i).distance >= 0.0) {
-                                final float lx = (p2.elementAt(j).iX - p1.elementAt(i).iX) / (n + 1) - p1.elementAt(i).lx;
-                                final float ly = (p2.elementAt(j).iY - p1.elementAt(i).iY) / (n + 1) - p1.elementAt(i).ly;
-                                final float lz = (p2.elementAt(j).iZ - p1.elementAt(i).iZ) / (n + 1) - p1.elementAt(i).lz;
-
-                                final float f_magn_sq = lx * lx + ly * ly + lz * lz;
-                                cost[i][j] += l.l_d * f_magn_sq;
-                            }
-                        }
-                        else if (l.straight_line == true && p1.elementAt(i).distance >= 0.0) {
-                            // Calculate the module
-                            final float l1_m = p1.elementAt(i).linkModule();
-
-                            final float lx1 = p1.elementAt(i).lx / l1_m;
-                            final float ly1 = p1.elementAt(i).ly / l1_m;
-                            final float lz1 = p1.elementAt(i).lz / l1_m;
-
-                            float lx2 = (p2.elementAt(j).iX - p1.elementAt(i).iX + p1.elementAt(i).lxa);
-                            float ly2 = (p2.elementAt(j).iY - p1.elementAt(i).iY + p1.elementAt(i).lya);
-                            float lz2 = (p2.elementAt(j).iZ - p1.elementAt(i).iZ + p1.elementAt(i).lza);
-
-                            final float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
-
-                            if (l2_m >= l.r_sq) {
-                                lx2 /= l2_m;
-                                ly2 /= l2_m;
-                                lz2 /= l2_m;
-
-                                final float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
-                                cost[i][j] += (cos_phi - 1) * (cos_phi - 1) * l.displacement * l.displacement;
-                            }
-                        }
-                    }
-                }
-
-                for (int i = 0; i < nop + 1; i++) {
-                    cost[i][nop_next] = max_cost;
-                }
-                for (int j = 0; j < nop_next + 1; j++) {
-                    cost[nop][j] = max_cost;
-                }
-                cost[nop][nop_next] = 0.0f;
-
-                /* Initialize the relation matrix */
-                IJ.showStatus("Linking Frame " + (m + 1) + ": Initializing Relation matrix");
-                logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames + " - Initializing Relation matrix");
-                
-                // okv is a helper vector in the initialization phase. It keeps track of the empty columns in g.
-                boolean[] okv = new boolean[nop_next + 1];
-                for (int i = 0; i < okv.length; i++) {
-                    okv[i] = true;
-                }
-                
-                for (int i = 0; i < nop; i++) { // Loop over the x-axis
-                    IJ.showProgress(i, nop);
-                    double min = max_cost;
-                    int prev = -1;
-                    for (int j = 0; j < nop_next; j++) { // Loop over the y-axis without the dummy
-
-                        /* Let's see if we can use this coordinate */
-                        if (okv[j] && min > cost[i][j]) {
-                            min = cost[i][j];
-                            if (prev >= 0) {
-                                okv[prev] = true;
-                                g[i][prev] = false;
-                            }
-
-                            okv[j] = false;
-                            g[i][j] = true;
-
-                            prev = j;
-                        }
-                    }
-
-                    /* Check if we have a dummy particle */
-                    if (min == max_cost) {
-                        if (prev >= 0) {
-                            okv[prev] = true;
-                            g[i][prev] = false;
-                        }
-                        g[i][nop_next] = true;
-                        okv[nop_next] = false;
-                    }
-                }
-
-                /* Look for columns that are zero */
-                for (int j = 0; j < nop_next; j++) {
-                    int ok = 1;
-                    for (int i = 0; i < nop + 1; i++) {
-                        if (g[i][j]) {
-                            ok = 0;
-                        }
-                    }
-                    if (ok == 1) {
-                        g[nop][j] = true;
-                    }
-                }
-
-                /* Build xv and yv, a speedup for g */
-                for (int i = 0; i < nop + 1; i++) {
-                    // for (j = 0; j < nop_next+1; j++) {
-                    for (int j = 0; j < nop_next + 1; j++) {
-                        if (g[i][j]) {
-                            g_x[j] = i;
-                            g_y[i] = j;
-                        }
-                    }
-                }
-                g_x[nop_next] = nop;
-                g_y[nop] = nop_next;
-
-                /* The relation matrix is initilized */
-
-                /* Now the relation matrix needs to be optimized */
-                IJ.showStatus("Linking Frame " + (m + 1) + ": Optimizing Relation matrix");
-                logger.debug("Linking Frame: " + (m + 1) + "/" + numOfFrames + " - Optimizing Relation matrix");
-                
-                double min = -1.0;
-                
-                // Stopping condition variables. If optimization does not proceed (minimum value is not changed over MaximumNumberOfSameMins times)
-                // optimization is stopped. Number of maximum same min-values is currently chosen without investigation and just set to number of particles
-                // but values like 10 works as good as it. (It is not clear if after some iterations value can be changed).
-                final int MaximumNumberOfSameMinValues = nop;
-                double lastMin = min;
-                int countSameMinValues = 0;
-                
-                while (min < 0.0 && countSameMinValues < MaximumNumberOfSameMinValues) {
-                    min = 0.0;
-                    int prev_i = 0, prev_j = 0, prev_x = 0, prev_y = 0;
-                    for (int i = 0; i < nop + 1; i++) {
-                        for (int j = 0; j < nop_next + 1; j++) {
-                            if (i == nop && j == nop_next) {
-                                continue;
-                            }
-
-                            if (g[i][j] == false && cost[i][j] <= max_cost) {
-                                // Calculate the reduced cost
-
-                                // Look along the x-axis, including the dummy particles
-                                int x = g_x[j];
-
-                                // Look along the y-axis, including the dummy particles
-                                int y = g_y[i];
-
-                                // z is the reduced cost
-                                double z = cost[i][j] + cost[x][y] - cost[i][y] - cost[x][j];
-
-                                if (z > -1.0e-10) {
-                                    z = 0.0;
-                                }
-                                if (z < min) {
-                                    min = z;
-
-                                    prev_i = i;
-                                    prev_j = j;
-                                    prev_x = x;
-                                    prev_y = y;
-                                }
-                            }
-                        }
-                    }
-
-                    if (min < 0.0) {
-                        g[prev_i][prev_j] = true;
-                        g_x[prev_j] = prev_i;
-                        g_y[prev_i] = prev_j;
-                        g[prev_x][prev_y] = true;
-                        g_x[prev_y] = prev_x;
-                        g_y[prev_x] = prev_y;
-                        g[prev_i][prev_y] = false;
-                        g[prev_x][prev_j] = false;
-
-                        // ensure the dummies still map to each other
-                        g_x[nop_next] = nop;
-                        g_y[nop] = nop_next;
-                    }
-                    
-                    if (lastMin == min) {
-                        countSameMinValues++;
-                    }
-                    else {
-                        lastMin = min;
-                        countSameMinValues = 0;
-                    }
-                }
-                logger.debug("Done.");
-
-                /* After optimization, the particles needs to be linked */
-                for (int i = 0; i < nop; i++) {
-                    for (int j = 0; j < nop_next; j++) {
-                        if (g[i][j] == true) {
-                            p1.elementAt(i).next[n] = j;
-
-                            // Calculate the square distance and store the normalized linking vector
-
-                            if (l.force == true) {
-                                p2.elementAt(j).lx = (p2.elementAt(j).iX - p1.elementAt(i).iX) / (n + 1);
-                                p2.elementAt(j).ly = (p2.elementAt(j).iY - p1.elementAt(i).iY) / (n + 1);
-                                p2.elementAt(j).lz = (p2.elementAt(j).iZ - p1.elementAt(i).iZ) / (n + 1);
-
-                                // We do not use distance is just to indicate that the particle has a link vector
-                                p2.elementAt(j).distance = 1.0f;
-                            }
-                            else if (l.straight_line == true) {
-                                final float distance_sq = (float) Math.sqrt((p1.elementAt(i).iX - p2.elementAt(j).iX) * (p1.elementAt(i).iX - p2.elementAt(j).iX) + (p1.elementAt(i).iY - p2.elementAt(j).iY)
-                                        * (p1.elementAt(i).iY - p2.elementAt(j).iY) + (p1.elementAt(i).iZ - p2.elementAt(j).iZ) * (p1.elementAt(i).iZ - p2.elementAt(j).iZ));
-
-                                if (distance_sq >= l.r_sq) {
-                                    p2.elementAt(j).lx = (p2.elementAt(j).iX - p1.elementAt(i).iX) + p1.elementAt(i).lxa;
-                                    p2.elementAt(j).ly = (p2.elementAt(j).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
-                                    p2.elementAt(j).lz = (p2.elementAt(j).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
-                                }
-                                else {
-                                    // Propagate the previous link vector
-
-                                    p2.elementAt(j).lx = p1.elementAt(i).lx;
-                                    p2.elementAt(j).ly = p1.elementAt(i).ly;
-                                    p2.elementAt(j).lz = p1.elementAt(i).lz;
-
-                                    p2.elementAt(j).lxa += (p2.elementAt(j).iX - p1.elementAt(i).iX) + p1.elementAt(i).lxa;
-                                    p2.elementAt(j).lya += (p2.elementAt(j).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
-                                    p2.elementAt(j).lza += (p2.elementAt(j).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
-
-                                    if (p2.elementAt(j).linkModuleASq() >= l.r_sq) {
-                                        p2.elementAt(j).lx = p2.elementAt(j).lxa;
-                                        p2.elementAt(j).ly = p2.elementAt(j).lya;
-                                        p2.elementAt(j).lz = p2.elementAt(j).lza;
-
-                                        p2.elementAt(j).lxa = 0;
-                                        p2.elementAt(j).lya = 0;
-                                        p2.elementAt(j).lza = 0;
-                                    }
-                                }
-
-                                p2.elementAt(j).distance = (float) Math.sqrt(distance_sq);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (m == (numOfFrames - currLinkRange - 1) && currLinkRange > 1) {
-                currLinkRange--;
-            }
-        }
-
-        /* At the last frame all trajectories end */
-        for (int i = 0; i < frames[numOfFrames - 1].getParticles().size(); i++) {
-            frames[numOfFrames - 1].getParticles().elementAt(i).special = false;
-            for (int n = 0; n < l.linkrange; n++) {
-                frames[numOfFrames - 1].getParticles().elementAt(i).next[n] = -1;
+                // gX/gY stores the index of the currently associated particle (column/row wise) 
+                int[][] helperVectors = initHelperVectors(numOfParticles, numOfLinkParticles, g);
+                int[] gX = helperVectors[0];
+                int[] gY = helperVectors[1];
+               
+                // --------------------------------------------------------------------------------
+                logInfo("Optimizing Relation matrix: " + (currFrame + 1) + "/" + NumOfFrames);
+                optimizeRelationMatrix(numOfParticles, numOfLinkParticles, maxCost, cost, g, gX, gY);
+               
+                // --------------------------------------------------------------------------------
+                logInfo("Linking particles: " + (currFrame + 1) + "/" + NumOfFrames);
+                linkParticles(aLinkOpts, p1, p2, currLinkLevel, gY, numOfParticles, numOfLinkParticles);
             }
         }
 
         return true;
+    }
+
+    private void linkParticles(LinkerOptions aLinkOpts, Vector<Particle> p1, Vector<Particle> p2, int aLinkLevel, int[] gY, int aNumOfParticles, int aNumOfLinkParticles) {
+        for (int i = 0; i < aNumOfParticles; ++i) {
+            int j = gY[i];
+            if (j != aNumOfLinkParticles) { // if not linked to dummy particle
+                Particle pA = p1.elementAt(i);
+                Particle pB = p2.elementAt(j);
+
+                pA.next[aLinkLevel - 1] = j; // levels are in range 1..LinkRange
+
+                if (aLinkOpts.force == true) {
+                    // Store the normalized linking vector
+                    pB.lx = (pB.iX - pA.iX) / aLinkLevel;
+                    pB.ly = (pB.iY - pA.iY) / aLinkLevel;
+                    pB.lz = (pB.iZ - pA.iZ) / aLinkLevel;
+
+                    // We do not use distance is just to indicate that the particle has a link vector
+                    pB.distance = 1.0f;
+                }
+                else if (aLinkOpts.straightLine == true) {
+                    float distanceSq = (pA.iX - pB.iX) * (pA.iX - pB.iX) + (pA.iY - pB.iY) * (pA.iY - pB.iY) + (pA.iZ - pB.iZ) * (pA.iZ - pB.iZ);
+                    if (distanceSq >= aLinkOpts.minSquaredDisplacementForAngleCalculation) {
+                        pB.lx = (pB.iX - pA.iX) + pA.lxa;
+                        pB.ly = (pB.iY - pA.iY) + pA.lya;
+                        pB.lz = (pB.iZ - pA.iZ) + pA.lza;
+                    }
+                    else {
+                        // Propagate the previous link vector
+                        pB.lx = pA.lx;
+                        pB.ly = pA.ly;
+                        pB.lz = pA.lz;
+
+                        pB.lxa += (pB.iX - pA.iX) + pA.lxa;
+                        pB.lya += (pB.iY - pA.iY) + pA.lya;
+                        pB.lza += (pB.iZ - pA.iZ) + pA.lza;
+
+                        if (pB.linkModuleASq() >= aLinkOpts.minSquaredDisplacementForAngleCalculation) {
+                            pB.lx = pB.lxa;
+                            pB.ly = pB.lya;
+                            pB.lz = pB.lza;
+
+                            pB.lxa = 0;
+                            pB.lya = 0;
+                            pB.lza = 0;
+                        }
+                    }
+                    pB.distance = (float) Math.sqrt(distanceSq);
+                }
+            }
+        }
+    }
+
+    public void optimizeRelationMatrix(int aNumOfParticles, int aNumOfLinkParticles, final float aMaxCost, float[][] aCostMatrix, boolean[][] g, int[] gX, int[] gY) {
+        while (true) {
+            double minDeltaCost = 0.0;
+            int iOld = -1, jOld = -1, xOld = -1, yOld = -1;
+            
+            // Find the best possible optimization in current loop
+            for (int i = 0; i < aNumOfParticles + 1; ++i) {
+                for (int j = 0; j < aNumOfLinkParticles + 1; ++j) {
+                    if (i == aNumOfParticles && j == aNumOfLinkParticles) { // if dummy2dummy skip
+                        continue;
+                    }
+                    // For every not assigned (i, j) check if cost of (i, y) and (x, j) is bigger than possible 
+                    // (i, j) and (x, y) -> if yes, switch
+                    if (g[i][j] == false && aCostMatrix[i][j] <= aMaxCost) {
+                        int x = gX[j];
+                        int y = gY[i];
+
+                        // Calculate the reduced cost of switching links as z = (new cost) - (old cost)
+                        double newDeltaCost = (aCostMatrix[i][j] + aCostMatrix[x][y]) - (aCostMatrix[i][y] + aCostMatrix[x][j]);
+                        
+                        if (newDeltaCost < minDeltaCost) {
+                            minDeltaCost = newDeltaCost;
+                            iOld = i;
+                            jOld = j;
+                            xOld = x;
+                            yOld = y;
+                        }
+                    }
+                }
+            }
+            
+            // If optimization is found apply it.
+            if (minDeltaCost < 0.0) {
+                // relink to new minimized cost
+                g[iOld][yOld] = false;
+                g[xOld][jOld] = false;
+                g[iOld][jOld] = true;
+                g[xOld][yOld] = true;
+                gY[iOld] = jOld;
+                gX[jOld] = iOld;
+                gY[xOld] = yOld;
+                gX[yOld] = xOld;
+                // ensure the dummies still map to each other
+                gX[aNumOfLinkParticles] = aNumOfParticles;
+                gY[aNumOfParticles] = aNumOfLinkParticles;
+            }
+            
+            // If there are no possible optimizations break loop.
+            if (minDeltaCost >= 0) break;
+        }
+    }
+
+    /**
+     * Create cost matrix with one additional row (representing 'link from' dummy particle) and one more column
+     * (representing 'link to' dummy particle).
+     * @return cost matrix
+     */
+    private float[][] initCostMatrix(LinkerOptions aLinkOpts, Vector<Particle> p1, Vector<Particle> p2, int aLinkLevel, final float aMaxCost) {
+        int numOfParticles = p1.size();
+        int numOfLinkParticles = p2.size();
+        float[][] cost = new float[numOfParticles + 1][numOfLinkParticles + 1];
+                
+        // Fill in the costs
+        for (int i = 0; i < numOfParticles; ++i) {
+            for (int j = 0; j < numOfLinkParticles; ++j) {
+                Particle pA = p1.elementAt(i);
+                Particle pB = p2.elementAt(j);
+                
+                float distanceSq = (pA.iX - pB.iX) * (pA.iX - pB.iX) + (pA.iY - pB.iY) * (pA.iY - pB.iY) + (pA.iZ - pB.iZ) * (pA.iZ - pB.iZ);
+                float momentsDist = (float) Math.cbrt((pA.m0 - pB.m0) * (pA.m0 - pB.m0) + (pA.m2 - pB.m2) * (pA.m2 - pB.m2));
+                cost[i][j] = distanceSq * aLinkOpts.lSpace + momentsDist * aLinkOpts.lFeature;
+
+                if (aLinkOpts.force == true && pA.distance >= 0.0) {
+                    final float lx = (pB.iX - pA.iX) / aLinkLevel - pA.lx;
+                    final float ly = (pB.iY - pA.iY) / aLinkLevel - pA.ly;
+                    final float lz = (pB.iZ - pA.iZ) / aLinkLevel - pA.lz;
+
+                    final float dynamicCost = lx * lx + ly * ly + lz * lz;
+                    cost[i][j] += aLinkOpts.lDynamic * dynamicCost;
+                }
+                else if (aLinkOpts.straightLine == true && pA.distance >= 0.0) {
+                    float lx2 = (pB.iX - pA.iX + pA.lxa);
+                    float ly2 = (pB.iY - pA.iY + pA.lya);
+                    float lz2 = (pB.iZ - pA.iZ + pA.lza);
+                    final float l2_m = lx2 * lx2 + ly2 * ly2 + lz2 * lz2;
+
+                    if (l2_m >= aLinkOpts.minSquaredDisplacementForAngleCalculation) {
+                        final float l1_m = pA.linkModule();                                
+                        final float lx1 = pA.lx / l1_m;
+                        final float ly1 = pA.ly / l1_m;
+                        final float lz1 = pA.lz / l1_m;
+                        
+                        lx2 /= l2_m;
+                        ly2 /= l2_m;
+                        lz2 /= l2_m;
+
+                        final float cosPhi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
+                        cost[i][j] += (cosPhi - 1) * (cosPhi - 1) * aLinkOpts.maxDisplacement * aLinkOpts.maxDisplacement;
+                    }
+                }
+            }
+        }
+        // Last column of cost matrix
+        for (int i = 0; i < numOfParticles; ++i) {
+            cost[i][numOfLinkParticles] = aMaxCost;
+        }
+        // Last row of cost matrix
+        for (int i = 0; i < numOfLinkParticles; ++i) {
+            cost[numOfParticles][i] = aMaxCost;
+        }
+        // right/low corner of cost matrix - make dummy particles always linking to each other
+        cost[numOfParticles][numOfLinkParticles] = 0.0f;
+        
+        return cost;
+    }
+
+    private void initParticlesLinkData(final int aLinkRange, Vector<Particle> aParticles) {
+        int numOfParticles = aParticles.size();
+        for (int i = 0; i < numOfParticles; ++i) {
+            Particle p = aParticles.elementAt(i);
+            p.special = false;
+            p.next = new int[aLinkRange];
+            for (int n = 0; n < aLinkRange; ++n) {
+                p.next[n] = -1;
+            }
+        }
+    }
+
+    private int[][] initHelperVectors(int aNumOfParticles, int aNumOfLinkParticles, boolean[][] g) {
+        int[] gX = new int[aNumOfLinkParticles + 1];
+        int[] gY = new int[aNumOfParticles + 1];
+        
+        for (int i = 0; i < aNumOfParticles + 1; ++i) {
+            for (int j = 0; j < aNumOfLinkParticles + 1; ++j) {
+                if (g[i][j]) {
+                    gX[j] = i;
+                    gY[i] = j;
+                }
+            }
+        }
+        // Link dummy to dummy
+        gX[aNumOfLinkParticles] = aNumOfParticles;
+        gY[aNumOfParticles] = aNumOfLinkParticles;
+        
+        return new int[][] {gX, gY};
+    }
+
+    private boolean[][] initRelationMatrix(int aNumOfParticles, int aNumOfLinkParticles, final float aMaxCost, float[][] aCostMatrix) {
+        boolean[][] g = new boolean[aNumOfParticles + 1][aNumOfLinkParticles + 1];    
+        boolean[] isColumnAssigned = new boolean[aNumOfLinkParticles + 1];
+        
+        for (int i = 0; i < aNumOfParticles; ++i) { // Loop over the y-axis without the dummy
+            IJ.showProgress(i, aNumOfParticles);
+            double min = aMaxCost;
+            int prev = -1;
+            for (int j = 0; j < aNumOfLinkParticles; ++j) { // Loop over the x-axis without the dummy
+                if (!isColumnAssigned[j] && aCostMatrix[i][j] < min) {
+                    min = aCostMatrix[i][j];
+                    if (prev >= 0) {
+                        isColumnAssigned[prev] = false;
+                        g[i][prev] = false;
+                    }
+                    isColumnAssigned[j] = true;
+                    g[i][j] = true;
+                    prev = j;
+                }
+            }
+
+            // Link it to dummy particle if nothing better found.
+            if (min == aMaxCost) {
+                g[i][aNumOfLinkParticles] = true;
+                isColumnAssigned[aNumOfLinkParticles] = true;
+            }
+        }
+
+        // Look for columns that are zero and link them to 'from' dummy particle
+        for (int j = 0; j < aNumOfLinkParticles; ++j) {
+            boolean isLinked = false;
+            for (int i = 0; i < aNumOfParticles + 1; ++i) {
+                if (g[i][j]) {
+                    isLinked = true;
+                    break;
+                }
+            }
+            if (!isLinked) {
+                // Link dummy particle to it
+                g[aNumOfParticles][j] = true;
+            }
+        }
+        g[aNumOfParticles][aNumOfLinkParticles] = true; // link dummy to dummy
+        
+        return g;
+    }
+
+    private void logInfo(String aLogStr) {
+        IJ.showStatus(aLogStr);
+        logger.info(aLogStr);
     }
 }

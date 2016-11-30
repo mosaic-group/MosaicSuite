@@ -1,7 +1,10 @@
 package mosaic.core.particleLinking;
 
 
-import mosaic.core.detection.MyFrame;
+import java.util.List;
+import java.util.Vector;
+
+import mosaic.core.detection.Particle;
 
 
 public interface ParticleLinker {
@@ -12,6 +15,6 @@ public interface ParticleLinker {
      * same physical particle in subsequent frames and links the positions into trajectories <br>
      * The length of the particles next array will be reset here according to the current linkrange
      */
-    public boolean linkParticles(MyFrame[] frames, linkerOptions l);
+    public boolean linkParticles(List<Vector<Particle>> aParticles, LinkerOptions aLinkerOptions);
 
 }

@@ -199,10 +199,10 @@ public class MyFrame {
             }
 
             if (particle_info.length == 2) {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number));
             }
             else {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number));
             }
 
             if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null
@@ -346,12 +346,17 @@ public class MyFrame {
             sb.append(", ");
             sb.append(nf.format(this.particles.elementAt(j).iZ));
             sb.append(")\n");
-            for (int k = 0; k < linkrange; k++) {
-                sb.append("%\t\tlinked to particle ");
-                sb.append(this.particles.elementAt(j).next[k]);
-                sb.append(" in frame ");
-                sb.append((this.frame_number + k + 1));
-                sb.append("\n");
+            if (particles.elementAt(j).next != null) {
+                for (int k = 0; k < linkrange; k++) {
+                    sb.append("%\t\tlinked to particle ");
+                    sb.append(this.particles.elementAt(j).next[k]);
+                    sb.append(" in frame ");
+                    sb.append((this.frame_number + k + 1));
+                    sb.append("\n");
+                }
+            }
+            else {
+                sb.append("%\t\thas empty link container\n");
             }
         }
         return sb;

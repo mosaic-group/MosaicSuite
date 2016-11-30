@@ -100,8 +100,8 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         panel.add(filter_length);
         panel.add(numberOfParticlesLabel);
         String drawString = ShowParticles;
-        System.out.println("INIT STATE: " + particleTracker3DModular.all_traj.get(0).drawParticle());
-        if (particleTracker3DModular.all_traj.get(0).drawParticle()) {
+        System.out.println("INIT STATE: " + particleTracker3DModular.iTrajectories.get(0).drawParticle());
+        if (particleTracker3DModular.iTrajectories.get(0).drawParticle()) {
             drawString = HideParticles;
         }
         drawParticles = new Button(drawString);
@@ -168,7 +168,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         /* Reset selected trajectory */
         if (particleTracker3DModular.chosen_traj != -1) {
             final Vector<Trajectory> v = new Vector<Trajectory>();
-            v.add(particleTracker3DModular.all_traj.get(particleTracker3DModular.chosen_traj));
+            v.add(particleTracker3DModular.iTrajectories.get(particleTracker3DModular.chosen_traj));
 
             final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
 
@@ -185,7 +185,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         final int offscreenY = this.ic.offScreenY(y);
 
         boolean trajectory_clicked = false;
-        final Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
+        final Iterator<Trajectory> iter = particleTracker3DModular.iTrajectories.iterator();
 
         /* Get pixel color */
         if (this.imp == null) {
@@ -229,14 +229,14 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
             if (e.getClickCount() == 2) {
                 // "double-click"
                 // Set the ROI to the trajectory focus_area
-                IJ.getImage().setRoi((particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj)).focus_area);
+                IJ.getImage().setRoi((particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).focus_area);
                 // focus on Trajectory (ROI)
                 particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj, particleTracker3DModular.magnification_factor);
             }
             else {
                 // single-click - mark the selected trajectory by setting the ROI to the
                 // trajectory mouse_selection_area
-                this.imp.setRoi((particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj)).mouse_selection_area);
+                this.imp.setRoi((particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).mouse_selection_area);
             }
         }
         else {

@@ -26,7 +26,7 @@ public class TrajectoryAnalysisTest extends CommonBase {
         final int trajectoryLen = 6;
         final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
-            particles[i] = new Particle(i + 1, 0, 0, i, 0);
+            particles[i] = new Particle(i + 1, 0, 0, i);
         }
 
         // Prepare Trajectory Analysis for calculations
@@ -60,12 +60,12 @@ public class TrajectoryAnalysisTest extends CommonBase {
         // Create trajectory
         final int trajectoryLen = 6;
         final Particle[] particles = new Particle[trajectoryLen];
-        particles[0] = new Particle(0, 0, 0, 1, 0);
-        particles[1] = new Particle(1, 1, 0, 2, 0);
-        particles[2] = new Particle(0, 2, 0, 3, 0);
-        particles[3] = new Particle(1, 3, 0, 4, 0);
-        particles[4] = new Particle(0, 4, 0, 5, 0);
-        particles[5] = new Particle(1, 5, 0, 6, 0);
+        particles[0] = new Particle(0, 0, 0, 1);
+        particles[1] = new Particle(1, 1, 0, 2);
+        particles[2] = new Particle(0, 2, 0, 3);
+        particles[3] = new Particle(1, 3, 0, 4);
+        particles[4] = new Particle(0, 4, 0, 5);
+        particles[5] = new Particle(1, 5, 0, 6);
         
         // Prepare Trajectory Analysis for calculations
         final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
@@ -95,7 +95,7 @@ public class TrajectoryAnalysisTest extends CommonBase {
         final int trajectoryLen = 6;
         final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
-            particles[i] = new Particle(i + 1, 0, 0, i*2, 0);
+            particles[i] = new Particle(i + 1, 0, 0, i*2);
         }
 
         // Prepare Trajectory Analysis for calculations
@@ -118,7 +118,7 @@ public class TrajectoryAnalysisTest extends CommonBase {
         final int trajectoryLen = 5;
         final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
-            particles[i] = new Particle(i + 1, 0, 0, i, 0);
+            particles[i] = new Particle(i + 1, 0, 0, i);
         }
 
         // Prepare Trajectory Analysis for calculations
@@ -142,7 +142,7 @@ public class TrajectoryAnalysisTest extends CommonBase {
         final int trajectoryLen = 0;
         final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
-            particles[i] = new Particle(i + 1, 0, 0, i, 0);
+            particles[i] = new Particle(i + 1, 0, 0, i);
         }
 
         // Prepare Trajectory Analysis for calculations

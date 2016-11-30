@@ -1,11 +1,10 @@
 package mosaic.core.particleLinking;
 
 
-import ij.IJ;
-
+import java.util.List;
 import java.util.Vector;
 
-import mosaic.core.detection.MyFrame;
+import ij.IJ;
 import mosaic.core.detection.Particle;
 
 
@@ -19,11 +18,11 @@ public class ParticleLinkerHun implements ParticleLinker {
      * Hungarian Pietro Incardona
      */
 
-    private float cost_link(Particle p1, Particle p2, linkerOptions l, int n, double max_cost) {
+    private float cost_link(Particle p1, Particle p2, LinkerOptions l, int n, double max_cost) {
         double cost = 0.0;
         final float distance_sq = (p1.iX - p2.iX) * (p1.iX - p2.iX) + (p1.iY - p2.iY) * (p1.iY - p2.iY) + (p1.iZ - p2.iZ) * (p1.iZ - p2.iZ);
 
-        cost = (float) (distance_sq * l.l_s + l.l_f * Math.cbrt(((p1.m0 - p2.m0) * (p1.m0 - p2.m0)) + (p1.m2 - p2.m2) * (p1.m2 - p2.m2)));
+        cost = (float) (distance_sq * l.lSpace + l.lFeature * Math.cbrt(((p1.m0 - p2.m0) * (p1.m0 - p2.m0)) + (p1.m2 - p2.m2) * (p1.m2 - p2.m2)));
 
         if (l.force == true) {
             if (p1.distance >= 0.0) {
@@ -32,7 +31,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                 final float lz = (p2.iZ - p1.iZ) / (n + 1) - p1.lz;
 
                 final float f_magn_sq = lx * lx + ly * ly + lz * lz;
-                cost += l.l_d * f_magn_sq;
+                cost += l.lDynamic * f_magn_sq;
             }
             else {
                 // This is a fresh particle we have no idea where is going
@@ -40,7 +39,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                 cost += max_cost / 3.0;
             }
         }
-        else if (l.straight_line == true && p1.distance >= 0.0) {
+        else if (l.straightLine == true && p1.distance >= 0.0) {
             // Calculate the module
 
             final float l1_m = p1.linkModule();
@@ -55,26 +54,26 @@ public class ParticleLinkerHun implements ParticleLinker {
 
             final float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
 
-            if (l2_m >= l.r_sq) {
+            if (l2_m >= l.minSquaredDisplacementForAngleCalculation) {
                 lx2 /= l2_m;
                 ly2 /= l2_m;
                 lz2 /= l2_m;
 
                 final float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
 
-                cost += (cos_phi - 1) * (cos_phi - 1) * l.displacement * l.displacement;
+                cost += (cos_phi - 1) * (cos_phi - 1) * l.maxDisplacement * l.maxDisplacement;
             }
         }
         return (float) cost;
     }
 
     @Override
-    public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
-        int frames_number = frames.length;
+    public boolean linkParticles(List<Vector<Particle>> aParticles, LinkerOptions l) {
+        int frames_number = aParticles.size();
         int m, i, j, nop, nop_next, n;
         int curr_linkrange;
 
-        if (l.linkrange > 1) {
+        if (l.linkRange > 1) {
             IJ.error("Error Hungarian linker for now does not support link range > 1");
             return false;
         }
@@ -90,12 +89,12 @@ public class ParticleLinkerHun implements ParticleLinker {
 
         // set the length of the particles next array according to the linkrange
         // it is done now since link range can be modified after first run
-        for (int fr = 0; fr < frames.length; fr++) {
-            for (int pr = 0; pr < frames[fr].getParticles().size(); pr++) {
-                frames[fr].getParticles().elementAt(pr).next = new int[l.linkrange];
+        for (int fr = 0; fr < frames_number; fr++) {
+            for (int pr = 0; pr < aParticles.get(fr).size(); pr++) {
+                aParticles.get(fr).elementAt(pr).next = new int[l.linkRange];
             }
         }
-        curr_linkrange = l.linkrange;
+        curr_linkrange = l.linkRange;
 
         /* If the linkrange is too big, set it the right value */
         if (frames_number < (curr_linkrange + 1)) {
@@ -106,18 +105,18 @@ public class ParticleLinkerHun implements ParticleLinker {
 
         for (m = 0; m < frames_number - curr_linkrange; m++) {
             IJ.showStatus("Linking Frame " + (m + 1));
-            nop = frames[m].getParticles().size();
+            nop = aParticles.get(m).size();
             for (i = 0; i < nop; i++) {
-                frames[m].getParticles().elementAt(i).special = false;
-                for (n = 0; n < l.linkrange; n++) {
-                    frames[m].getParticles().elementAt(i).next[n] = -1;
+                aParticles.get(m).elementAt(i).special = false;
+                for (n = 0; n < l.linkRange; n++) {
+                    aParticles.get(m).elementAt(i).next[n] = -1;
                 }
             }
 
             for (n = 0; n < curr_linkrange; n++) {
-                max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
+                max_cost = (n + 1) * l.maxDisplacement * (n + 1) * l.maxDisplacement;
 
-                nop_next = frames[m + (n + 1)].getParticles().size();
+                nop_next = aParticles.get(m + (n + 1)).size();
 
                 okv = new boolean[nop_next + 1];
                 for (i = 0; i < okv.length; i++) {
@@ -127,8 +126,8 @@ public class ParticleLinkerHun implements ParticleLinker {
                 /* Set g to zero - not necessary */
                 // for (i = 0; i< g.length; i++) g[i] = false;
 
-                p1 = frames[m].getParticles();
-                p2 = frames[m + (n + 1)].getParticles();
+                p1 = aParticles.get(m);
+                p2 = aParticles.get(m + (n + 1));
                 // p1 = frames[m].particles;
                 // p2 = frames[m + (n + 1)].particles
 
@@ -161,8 +160,8 @@ public class ParticleLinkerHun implements ParticleLinker {
                         continue;
                     }
 
-                    p1 = frames[m].getParticles();
-                    p2 = frames[m + 1].getParticles();
+                    p1 = aParticles.get(m);
+                    p2 = aParticles.get(m + 1);
 
                     if (cost_link(p1.elementAt(i), p2.elementAt(mac[i]), l, 0, max_cost) >= max_cost) {
                         continue;
@@ -189,12 +188,12 @@ public class ParticleLinkerHun implements ParticleLinker {
 
                         p2.elementAt(mac[i]).distance = 1.0f;
                     }
-                    else if (l.straight_line == true) {
+                    else if (l.straightLine == true) {
                         final float distance_sq = (float) Math.sqrt((p1.elementAt(i).iX - p2.elementAt(mac[i]).iX) * (p1.elementAt(i).iX - p2.elementAt(mac[i]).iX)
                                 + (p1.elementAt(i).iY - p2.elementAt(mac[i]).iY) * (p1.elementAt(i).iY - p2.elementAt(mac[i]).iY) + (p1.elementAt(i).iZ - p2.elementAt(mac[i]).iZ)
                                 * (p1.elementAt(i).iZ - p2.elementAt(mac[i]).iZ));
 
-                        if (distance_sq >= l.r_sq) {
+                        if (distance_sq >= l.minSquaredDisplacementForAngleCalculation) {
                             p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).iX - p1.elementAt(i).iX) + p1.elementAt(i).lxa;
                             p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
                             p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
@@ -210,7 +209,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                             p2.elementAt(mac[i]).lya += (p2.elementAt(mac[i]).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
                             p2.elementAt(mac[i]).lza += (p2.elementAt(mac[i]).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
 
-                            if (p2.elementAt(mac[i]).linkModuleASq() >= l.r_sq) {
+                            if (p2.elementAt(mac[i]).linkModuleASq() >= l.minSquaredDisplacementForAngleCalculation) {
                                 p2.elementAt(mac[i]).lx = p2.elementAt(mac[i]).lxa;
                                 p2.elementAt(mac[i]).ly = p2.elementAt(mac[i]).lya;
                                 p2.elementAt(mac[i]).lz = p2.elementAt(mac[i]).lza;
@@ -232,10 +231,10 @@ public class ParticleLinkerHun implements ParticleLinker {
         }
 
         /* At the last frame all trajectories end */
-        for (i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
-            frames[frames_number - 1].getParticles().elementAt(i).special = false;
-            for (n = 0; n < l.linkrange; n++) {
-                frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
+        for (i = 0; i < aParticles.get(frames_number - 1).size(); i++) {
+            aParticles.get(frames_number - 1).elementAt(i).special = false;
+            for (n = 0; n < l.linkRange; n++) {
+                aParticles.get(frames_number - 1).elementAt(i).next[n] = -1;
             }
         }
 

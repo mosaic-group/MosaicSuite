@@ -206,7 +206,7 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1, 0));
+                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1));
                     }
                 }
             }

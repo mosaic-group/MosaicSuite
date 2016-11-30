@@ -76,7 +76,7 @@ public class TrajectoriesReportXML {
         addElementWithAttr(conf, "CutoffRadius", "value", iTracker.getCutoffRadius());
         addElementWithAttr(conf, "Threshold", "mode", iTracker.getThresholdMode(), "value", iTracker.getThresholdValue());
         addElementWithAttr(conf, "Displacement", "value", iTracker.displacement);
-        addElementWithAttr(conf, "Linkrange", "value", iTracker.linkrange);
+        addElementWithAttr(conf, "Linkrange", "value", iTracker.iLinkRange);
     }
 
     private void generateFramesInfo(Element aParent) {
@@ -93,7 +93,7 @@ public class TrajectoriesReportXML {
     private void generateTrajectoriesInfo(Element aParent) {
         final Element traj = addElement(aParent, "Trajectories");
 
-        final Iterator<Trajectory> iter = iTracker.all_traj.iterator();
+        final Iterator<Trajectory> iter = iTracker.iTrajectories.iterator();
         while (iter.hasNext()) {
             addTrajectory(traj, iter.next());
         }

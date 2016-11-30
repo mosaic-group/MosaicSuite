@@ -528,6 +528,17 @@ public class CommonBase extends Info {
 //        assertTrue(Arrays.deepEquals(expected, result));
 //    }
     
+    /**
+     * Compares 2D float arrays with nice output of diff element (if such is found). When arrays diff execution of
+     * test is stopped (asserEquals is used)
+     */
+    static protected void compareArrays(boolean[][] expected, boolean[][] result) {
+        for (int i = 0; i < expected.length; ++i) {
+            for (int j = 0; j < expected[0].length; ++j) {
+                assertEquals("Elements at [" + i + "][" + j + "] should be same", expected[i][j], result[i][j]);
+            }
+        }
+    }
     
     /**
      * Compares 2D float arrays with nice output of diff element (if such is found). When arrays diff execution of

@@ -49,12 +49,19 @@ public class Trajectory {
      * 
      * @param particles the array containing all the particles defining this Trajectory
      */
-    public Trajectory(Particle[] particles, ImagePlus originalImp) {
-        this.original_imp = originalImp;
-        this.existing_particles = particles;
+    public Trajectory(Particle[] particles, int aSerialNum, ImagePlus originalImp) {
+        original_imp = originalImp;
+        existing_particles = particles;
+        serial_number = aSerialNum;
         // the length is the last trajectory frame - the first frame (first frame can be 0)
-        this.length = this.existing_particles[this.existing_particles.length - 1].getFrame() - this.existing_particles[0].getFrame() + 1;
+        start_frame = existing_particles[0].getFrame();
+        stop_frame = existing_particles[this.existing_particles.length - 1].getFrame();
+        length = stop_frame - start_frame + 1;
         color = Color.red; // default
+        
+        setFocusArea();
+        setMouseSelectionArea();
+        populateGaps();
     }
 
     /**

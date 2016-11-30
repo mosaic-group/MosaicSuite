@@ -389,7 +389,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             if (source == traj_in_area_info) {
                 text_panel.selectAll();
                 text_panel.clearSelection();
-                final Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
+                final Iterator<Trajectory> iter = particleTracker3DModular.iTrajectories.iterator();
                 // iterate of all trajectories
                 while (iter.hasNext()) {
                     final Trajectory traj = iter.next();
@@ -430,7 +430,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == trajectory_info) {
             // user selects trajectory according to serial number (starts with 1)
             // but all_traj Vector starts from 0 so (chosen_traj-1)
-            final Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory traj = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
             text_panel.selectAll();
             text_panel.clearSelection();
             text_panel.appendLine("%% Trajectory " + traj.serial_number);
@@ -440,7 +440,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == transfer_traj) {
-            final Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory traj = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
             particleTracker3DModular.transferSelectedTrajectoriesToResultTable(traj).show("Results");
             return;
         }
@@ -459,15 +459,15 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /* option to relink the deteced particles with new parameters */
         if (source == relink_particles) {
             final GenericDialog relink_dialog = new GenericDialog("Select new linking parameters");
-            relink_dialog.addNumericField("Link Range", particleTracker3DModular.linkrange, 0);
+            relink_dialog.addNumericField("Link Range", particleTracker3DModular.iLinkRange, 0);
             relink_dialog.addNumericField("Displacement", particleTracker3DModular.displacement, 2);
             relink_dialog.showDialog();
             if (relink_dialog.wasCanceled()) {
                 return;
             }
-            particleTracker3DModular.linkrange = (int) relink_dialog.getNextNumber();
+            particleTracker3DModular.iLinkRange = (int) relink_dialog.getNextNumber();
             particleTracker3DModular.displacement = relink_dialog.getNextNumber();
-            particleTracker3DModular.all_traj = null;
+            particleTracker3DModular.iTrajectories = null;
 
             /* link the particles found */
             IJ.showStatus("Linking Particles");
@@ -479,6 +479,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             /* generate trajectories */
             IJ.showStatus("Generating Trajectories");
             particleTracker3DModular.generateTrajectories();
+            particleTracker3DModular.assignColorsToTrajectories();
 
             configuration_panel.selectAll();
             configuration_panel.clearSelection();
@@ -488,7 +489,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             text_panel.selectAll();
             text_panel.clearSelection();
             text_panel.appendLine("Relinking DONE!");
-            text_panel.appendLine("Found " + particleTracker3DModular.number_of_trajectories + " Trajectories");
+            text_panel.appendLine("Found " + particleTracker3DModular.iTrajectories.size() + " Trajectories");
             return;
         }
         /* transfer segmented particle coordinates to ImageJ results window */
@@ -503,7 +504,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             return;
         }
         if (source == mssTrajectoryResultButton) {
-            final Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory trajectory = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
             particleTracker3DModular.mssTrajectoryResultsToTable(trajectory, pixelDimensions, timeInterval);
             return;
         }
@@ -514,7 +515,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == mssButton) {
-            final Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory trajectory = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
             new TrajectoryAnalysisPlot(trajectory, pixelDimensions, timeInterval);
             return;
         }

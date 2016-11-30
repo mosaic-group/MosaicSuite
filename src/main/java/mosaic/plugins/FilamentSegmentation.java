@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
 import ij.macro.Interpreter;
 import ij.process.FloatProcessor;
