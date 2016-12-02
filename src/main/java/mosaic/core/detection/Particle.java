@@ -29,6 +29,7 @@ public class Particle {
     public boolean special = true; // a flag that is used while detecting and linking particles
     public float distance = -1;
     public int[] next = null; // array that holds in position i the next particle number in frame i
+    public boolean isLinked = false;
     public float lx, ly, lz; // previous Linking x,y,z
     public float lxa, lya, lza; // accumulation link
     
@@ -72,13 +73,6 @@ public class Particle {
     public Particle() {}
 
     /**
-     * @return the square of the accumulated linking vector
-     */
-    public float linkModuleASq() {
-        return lxa * lxa + lya * lya + lza * lza;
-    }
-
-    /**
      * @param rectangle of the focus area
      */
     void translate(Rectangle focus) {
@@ -86,13 +80,6 @@ public class Particle {
         iY = iY - focus.y;
     }
     
-    /**
-     * @return the module of the linking vector
-     */
-    public float linkModule() {
-        return (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-    }
-
     /**
      * Set particle link range
      * @param aLinkRange

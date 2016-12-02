@@ -3,7 +3,7 @@ package mosaic.plugins;
 import org.junit.Assert;
 import org.junit.Test;
 
-import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
+import mosaic.core.particleLinking.ParticleLinkerGreedy;
 import mosaic.test.framework.CommonBase;
 
 
@@ -36,7 +36,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         int[] gXExpected = {1, 0, 2};
         int[] gYExpected = {1, 0, 2};
 
-        ParticleLinkerBestOnePerm linker = new ParticleLinkerBestOnePerm();
+        ParticleLinkerGreedy linker = new ParticleLinkerGreedy();
         linker.optimizeRelationMatrix(2, 2, 400f, cost, g, gX, gY);
 
         // After all arrays should be same as input
@@ -64,7 +64,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         int[] gXExpected = {0, 1, 2};
         int[] gYExpected = {0, 1, 2};
 
-        ParticleLinkerBestOnePerm linker = new ParticleLinkerBestOnePerm();
+        ParticleLinkerGreedy linker = new ParticleLinkerGreedy();
         linker.optimizeRelationMatrix(2, 2, 400f, cost, g, gX, gY);
 
         // After all arrays should be same as input
@@ -105,9 +105,8 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "threeFramesVirusMovie.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_threeFramesVirusMovie.tif.txt", "Traj_threeFramesVirusMovie.tif.csv"};
-        final String[] referenceFiles    = {"threeFramesVirusMovieMssMsd.xml", "threeFramesVirusMovieReport.txt", "threeFramesVirusMovieTrajectories.csv"};
-
+        final String[] expectedFiles     = {"report.xml", "Traj_threeFramesVirusMovie.tif.csv"};
+        final String[] referenceFiles    = {"threeFramesVirusMovieMssMsd.xml", "threeFramesVirusMovieTrajectories.csv"};
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
 
@@ -124,7 +123,53 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
         final String setupString         = "run";
-        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=straight";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=Brownian";
+        final String inputFile           =  "ArtificialTest.tif";
+        final String[] expectedImgFiles  = {};
+        final String[] referenceImgFiles = {};
+        final String[] expectedFiles     = {"report.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
+        final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv"};
+
+        // Create tested plugIn
+        final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
+
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testSixFramesDynamicsConstantVelocity()  {
+        // Define test data
+        final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
+        final String setupString         = "run";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=[Constant velocity]";
+        final String inputFile           =  "ArtificialTest.tif";
+        final String[] expectedImgFiles  = {};
+        final String[] referenceImgFiles = {};
+        final String[] expectedFiles     = {"report.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
+        final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv"};
+
+        // Create tested plugIn
+        final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
+
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }   
+    
+    @Test
+    public void testSixFramesDynamicsStraight()  {
+        // Define test data
+        final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
+        final String setupString         = "run";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=[Straight lines]";
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};

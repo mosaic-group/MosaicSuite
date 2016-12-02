@@ -51,8 +51,8 @@ import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.particleLinking.ParticleLinker;
-import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
-import mosaic.core.particleLinking.ParticleLinkerHun;
+import mosaic.core.particleLinking.ParticleLinkerGreedy;
+import mosaic.core.particleLinking.ParticleLinkerHungarian;
 import mosaic.core.particleLinking.LinkerOptions;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
@@ -205,7 +205,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         iInputImage = aInputImage;
 
         // Setup detection/linking things
-        iParticleLinker = new ParticleLinkerBestOnePerm();
+        iParticleLinker = new ParticleLinkerGreedy();
 
         if (iInputImage == null && !only_detect) {
             if (IJ.showMessageWithCancel("Text Files Mode", "Do you want to load particles positions from text files?")) {
@@ -1847,10 +1847,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         final String dm = gd.getNextChoice();
 
         if (dm.equals("Greedy")) {
-            iParticleLinker = new ParticleLinkerBestOnePerm();
+            iParticleLinker = new ParticleLinkerGreedy();
         }
         else {
-            iParticleLinker = new ParticleLinkerHun();
+            iParticleLinker = new ParticleLinkerHungarian();
         }
     }
 }
