@@ -27,9 +27,8 @@ public class Particle {
     
     // linking stuff
     public boolean special = true; // a flag that is used while detecting and linking particles
-    public float distance = -1;
     public int[] next = null; // array that holds in position i the next particle number in frame i
-    public boolean isLinked = false;
+    public float distance = -1;
     public float lx, ly, lz; // previous Linking x,y,z
     public float lxa, lya, lza; // accumulation link
     
@@ -80,14 +79,6 @@ public class Particle {
         iY = iY - focus.y;
     }
     
-    /**
-     * Set particle link range
-     * @param aLinkRange
-     */
-    void setLinkRange(int linkrange) {
-        next = new int[linkrange];
-    }
-
     @Override
     public String toString() {
         return toStringBuffer().toString();

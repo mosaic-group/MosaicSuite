@@ -83,13 +83,9 @@ public class MyFrame {
      * @param aLinkRange linking range
      */
 
-    public MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
+    public MyFrame(Vector<Particle> p, int frame) {
         this.frame_number = frame;
         this.particles = p;
-
-        for (int i = 0; i < this.particles.size(); i++) {
-            this.particles.get(i).setLinkRange(aLinkrange);
-        }
     }
 
     /**
@@ -410,7 +406,6 @@ public class MyFrame {
         this.particles = particles;
         
         for (int i = particles.size() - 1; i >= 0; i--) {
-            particles.elementAt(i).setLinkRange(linkrange);
             particles.elementAt(i).setFrame(frame_number);
         }
         
@@ -447,7 +442,7 @@ public class MyFrame {
      * @param p Vector of particles
      * @param linkrange for linking
      */
-    public static MyFrame[] createFrames(Vector<Particle> p, int linkrange) {
+    public static MyFrame[] createFrames(Vector<Particle> p) {
         // Create the frames array
 
         if (p.size() == 0) {
@@ -466,7 +461,7 @@ public class MyFrame {
             }
             part_frame.add(p.get(i));
 
-            f[j] = new MyFrame(part_frame, j, linkrange);
+            f[j] = new MyFrame(part_frame, j);
 
             i++;
             j++;

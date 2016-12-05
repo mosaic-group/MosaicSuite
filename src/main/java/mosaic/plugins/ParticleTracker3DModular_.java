@@ -50,10 +50,10 @@ import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
+import mosaic.core.particleLinking.LinkerOptions;
 import mosaic.core.particleLinking.ParticleLinker;
 import mosaic.core.particleLinking.ParticleLinkerGreedy;
 import mosaic.core.particleLinking.ParticleLinkerHungarian;
-import mosaic.core.particleLinking.LinkerOptions;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -373,7 +373,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             cal.pixelWidth = 1.0f;
             rescaleWith(cal, p);
         }
-        return MyFrame.createFrames(p, iLinkRange);
+        return MyFrame.createFrames(p);
     }
 
     /**
@@ -833,6 +833,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
                     iTrajectories.add(new Trajectory(currTrajectory.toArray(new Particle[0]), 
                                                      iTrajectories.size() + 1, // serial number
                                                      iInputImage));
+                    for (Particle pp : currTrajectory) {
+                        System.out.print(pp.iX + "," + pp.iY + "  ");
+                    }
+                    System.out.println();
                 }
             }
         }

@@ -46,8 +46,7 @@ public class ParticleLinkerGreedy extends ParticleLinker {
                 Particle pA = p1.elementAt(i);
                 Particle pB = p2.elementAt(j);
 
-                if (!pA.isLinked) pA.next[aLinkLevel - 1] = j; // levels are in range 1..LinkRange
-                pA.isLinked = true;
+                pA.next[aLinkLevel - 1] = j; // levels are in range 1..LinkRange
                 handleCostFeatures(pA, pB, aLinkOpts, aLinkLevel);
             }
         }

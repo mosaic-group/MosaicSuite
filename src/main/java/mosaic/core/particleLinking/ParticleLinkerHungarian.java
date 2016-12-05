@@ -17,7 +17,9 @@ public class ParticleLinkerHungarian extends ParticleLinker {
         // --------------------------------------------------------------------------------
         logInfo("Initializing cost: " + (currFrame + 1) + "/" + NumOfFrames + " with frame: " + (currFrame + currLinkLevel + 1));
         int n = numOfParticles > numOfLinkParticles ? numOfParticles : numOfLinkParticles;
-        n = n + 1;
+        // Extend graph by number of input particles to allow it to not link to output particles
+        // in case to big cost (dummy particles)
+        n +=  numOfParticles;
         final BipartiteMatcher bm = new BipartiteMatcher(n);
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
@@ -30,7 +32,6 @@ public class ParticleLinkerHungarian extends ParticleLinker {
                 }
             }
         }
-        bm.setWeight(n-1, n-1, 1);
         
         // --------------------------------------------------------------------------------
         logInfo("Optimizing: " + (currFrame + 1) + "/" + NumOfFrames);
@@ -39,18 +40,11 @@ public class ParticleLinkerHungarian extends ParticleLinker {
         // --------------------------------------------------------------------------------
         logInfo("Linking particles: " + (currFrame + 1) + "/" + NumOfFrames);
         for (int i = 0; i < numOfParticles; ++i) {
-            if (matchingResult[i] < numOfLinkParticles && matchingResult[i] >= 0) { // if not linked to dummy particle
-
+            // if not linked to dummy particle
+            if (matchingResult[i] < numOfLinkParticles && matchingResult[i] >= 0) {
                 Particle pA = p1.elementAt(i);
                 Particle pB = p2.elementAt(matchingResult[i]);
-                if (linkCost(pA, pB, aLinkOpts, currLinkLevel) >= maxCost) {
-                    continue;
-                }
-                
-                if (!pA.isLinked) 
-                    pA.next[currLinkLevel - 1] = matchingResult[i]; // levels are in range 1..LinkRange
-                pA.isLinked = true;
-                
+                pA.next[currLinkLevel - 1] = matchingResult[i]; // levels are in range 1..LinkRange
                 handleCostFeatures(pA, pB, aLinkOpts, currLinkLevel); 
             }
         }
@@ -59,5 +53,5 @@ public class ParticleLinkerHungarian extends ParticleLinker {
     private void logInfo(String aLogStr) {
         IJ.showStatus(aLogStr);
         logger.info(aLogStr);
-    }    
+    }
 }

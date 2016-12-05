@@ -57,7 +57,7 @@ public abstract class ParticleLinker {
     
     protected abstract void link(Vector<Particle> p1, Vector<Particle> p2, LinkerOptions aLinkOpts, int currFrame, final int NumOfFrames, int numOfParticles, int numOfLinkParticles, int currLinkLevel, final float maxCost);
     
-    protected float linkCost(Particle pA, Particle pB, LinkerOptions aLinkOpts, int aLinkLevel) {
+    public float linkCost(Particle pA, Particle pB, LinkerOptions aLinkOpts, int aLinkLevel) {
         float dx = pB.iX - pA.iX;
         float dy = pB.iY - pA.iY;
         float dz = pB.iZ - pA.iZ;
@@ -150,7 +150,6 @@ public abstract class ParticleLinker {
     protected void initParticlesLinkData(final int aLinkRange, Vector<Particle> aParticles) {
         for (Particle p : aParticles) {
             p.special = false;
-            p.isLinked = false;
             p.next = new int[aLinkRange];
             for (int n = 0; n < aLinkRange; ++n) {
                 p.next[n] = -1;
