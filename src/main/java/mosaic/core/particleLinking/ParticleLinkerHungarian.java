@@ -13,12 +13,11 @@ public class ParticleLinkerHungarian extends ParticleLinker {
     private static final Logger logger = Logger.getLogger(ParticleLinkerHungarian.class);
     
     @Override
-    protected void link(Vector<Particle> p1, Vector<Particle> p2, LinkerOptions aLinkOpts, int currFrame, final int NumOfFrames, int numOfParticles, int numOfLinkParticles, int currLinkLevel, final float maxCost) {
+    protected void link(Vector<Particle> p1, Vector<Particle> p2, LinkerOptions aLinkOpts, int currFrame, int NumOfFrames, int numOfParticles, int numOfLinkParticles, int currLinkLevel, float maxCost) {
         // --------------------------------------------------------------------------------
         logInfo("Initializing cost: " + (currFrame + 1) + "/" + NumOfFrames + " with frame: " + (currFrame + currLinkLevel + 1));
         int n = numOfParticles > numOfLinkParticles ? numOfParticles : numOfLinkParticles;
-        // Extend graph by number of input particles to allow it to not link to output particles
-        // in case to big cost (dummy particles)
+        // Extend graph by number of input particles to allow it to not link to output particles in case to big cost (dummy particles)
         n +=  numOfParticles;
         final BipartiteMatcher bm = new BipartiteMatcher(n);
         for (int i = 0; i < n; ++i) {
