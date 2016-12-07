@@ -63,8 +63,8 @@ public abstract class ParticleLinker {
         float dz = pB.iZ - pA.iZ;
         float distanceSq = dx*dx + dy*dy + dz*dz;
         
-        float dm0 = pA.m0 - pB.m0;
-        float dm2 = pA.m2 - pB.m2;
+        float dm0 = pB.m0 - pA.m0;
+        float dm2 = pB.m2 - pA.m2;
         float momentsDist = (float) Math.cbrt(dm0 * dm0 + dm2 * dm2);
         
         float linkCost = distanceSq * aLinkOpts.lSpace + momentsDist * aLinkOpts.lFeature;

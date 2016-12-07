@@ -135,8 +135,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     public Vector<Trajectory> iTrajectories;
     
     /* user defined parameters for linking */
-    public int iLinkRange = 2; // default
-    public double displacement = 10.0; // default
+    public int iLinkRange = 2;
+    public double displacement = 10.0;
+    private boolean force;
+    private boolean straight_line;
+    protected float l_s = 1.0f; 
+    protected float l_f = 1.0f;
+    protected float l_d = 1.0f;
+    private ParticleLinker iParticleLinker;
     
     /* results display and file */
     public int magnification_factor = 4;
@@ -149,17 +155,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     private String file_sel;
 
     private String background;
-    private boolean force;
-    private boolean straight_line;
-    protected float l_s = 1.0f; 
-    protected float l_f = 1.0f;
-    protected float l_d = 1.0f;
     private ImageStack stack;
     private int iNumOfFrames;
     private int slices_number;
     
     private FeaturePointDetector detector;
-    private ParticleLinker iParticleLinker;
     protected NonBlockingGenericDialog gd;
     private PreviewCanvas preview_canvas = null;
     
@@ -781,91 +781,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             iNumOfFrames = iInputImage.getNFrames(); // ??maybe not necessary
         }
         return true;
-    }
-
-    /**
-     * Generates <code>Trajectory</code> objects.
-     */
-    public void generateTrajectories() {
-        iTrajectories = new Vector<Trajectory>();
-        
-        // Preallocate space for building trajectories.
-        final Vector<Particle> currTrajectory = new Vector<Particle>(iNumOfFrames);
-
-        for (int currFrameNum = 0; currFrameNum < iNumOfFrames; ++currFrameNum) {
-            Vector<Particle> particles = iFrames[currFrameNum].getParticles();
-            for (Particle p : particles) {
-                if (!p.special) {
-                    currTrajectory.clear();
-                    
-                    int currTrajFrameNum = currFrameNum;
-                    while (true) {
-                        p.special = true;
-                        currTrajectory.add(p);
-                        
-                        // ---------- find first not dummy particle that this particle is linked to, if not found go to next particle
-                        boolean isNextParticleFound = false;
-                        for (int n = 1; n <= iLinkRange; ++n) {
-                            if (p.next[n - 1] != -1) {
-                                Vector<Particle> p2 = iFrames[currTrajFrameNum + n].getParticles();
-                                Particle linkedParticle = p2.elementAt(p.next[n - 1]);
-                                // If this particle is linked to a "real" particle that was already linked break the trajectory
-                                if (!linkedParticle.special) {
-                                    p = linkedParticle;
-                                    currTrajFrameNum += n;
-                                    isNextParticleFound = true;
-                                }
-                                break;
-                            }
-                        }
-                        if (!isNextParticleFound) {
-                            // no more particles found for that trajectory
-                            break;
-                        }
-                    }
-                    
-                    if (currTrajectory.size() <= 1) {
-                        // Trajectory has not been found for that particle - skip to next particle
-                        continue;
-                    }
-
-                    // Create the current trajectory
-                    iTrajectories.add(new Trajectory(currTrajectory.toArray(new Particle[0]), 
-                                                     iTrajectories.size() + 1, // serial number
-                                                     iInputImage));
-                    for (Particle pp : currTrajectory) {
-                        System.out.print(pp.iX + "," + pp.iY + "  ");
-                    }
-                    System.out.println();
-                }
-            }
-        }
-    }
-
-    public void assignColorsToTrajectories() {
-        int len = iTrajectories.size();
-        final Vector<Color> vI = generateColors(len);
-        for (int s = 0; s < len; s++) {
-            iTrajectories.elementAt(s).color = vI.elementAt(s);
-        }
-    }
-
-    private Vector<Color> generateColors(int aNumOfColors) {
-        if (aNumOfColors < 1) return null;
-        
-        final Vector<Color> colors = new Vector<Color>(aNumOfColors);
-        
-        int base = 257; // R = 0 G = 1 B = 1
-        int step = (256*256*256 - 1 - base) / aNumOfColors;
-        step = (step > 0) ? step : 1;
-        
-        for (int s = 0; s < aNumOfColors; ++s) {
-            base += step;
-            colors.add(new Color(base));
-        }
-        Collections.shuffle(colors);
-        
-        return colors;
     }
 
     /**
@@ -1790,9 +1705,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         else if (detector.getThresholdMode() == Mode.ABS_THRESHOLD_MODE) {
             return "Absolute";
         }
-        else {
-            return "Unknown";
-        }
+        return "Unknown";
     }
 
     public String getThresholdValue() {
@@ -1802,9 +1715,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         else if (detector.getThresholdMode() == Mode.ABS_THRESHOLD_MODE) {
             return "" + detector.getAbsIntensityThreshold();
         }
-        else {
-            return "0";
-        }
+        return "0";
     }
 
     public int getWidth() {
@@ -1848,13 +1759,105 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         l_s = (float) 1.0;
         l_f = (float) gd.getNextNumber();
         l_d = (float) gd.getNextNumber();
-        final String dm = gd.getNextChoice();
+        final String linkerString = gd.getNextChoice();
 
-        if (dm.equals("Greedy")) {
+        if (linkerString.equals("Greedy")) {
             iParticleLinker = new ParticleLinkerGreedy();
         }
         else {
             iParticleLinker = new ParticleLinkerHungarian();
         }
+    }
+    
+    // ========================================== CLEANED UP ==============================================================
+    
+    /**
+     * Generated trajectories from previously linked particles.
+     */
+    public void generateTrajectories() {
+        iTrajectories = new Vector<Trajectory>();
+        
+        // Preallocate space for building trajectories.
+        final Vector<Particle> currTrajectory = new Vector<Particle>(iNumOfFrames);
+
+        for (int currFrameNum = 0; currFrameNum < iNumOfFrames; ++currFrameNum) {
+            Vector<Particle> particles = iFrames[currFrameNum].getParticles();
+            for (Particle p : particles) {
+                if (!p.special) {
+                    currTrajectory.clear();
+                    
+                    int currTrajFrameNum = currFrameNum;
+                    while (true) {
+                        p.special = true;
+                        currTrajectory.add(p);
+                        
+                        // ---------- find first not dummy particle that this particle is linked to, if not found go to next particle
+                        boolean isNextParticleFound = false;
+                        for (int n = 1; n <= iLinkRange; ++n) {
+                            if (p.next[n - 1] != -1) {
+                                Vector<Particle> p2 = iFrames[currTrajFrameNum + n].getParticles();
+                                Particle linkedParticle = p2.elementAt(p.next[n - 1]);
+                                // If this particle is linked to a "real" particle that was already linked break the trajectory
+                                if (!linkedParticle.special) {
+                                    p = linkedParticle;
+                                    currTrajFrameNum += n;
+                                    isNextParticleFound = true;
+                                }
+                                break;
+                            }
+                        }
+                        if (!isNextParticleFound) {
+                            // no more particles found for that trajectory
+                            break;
+                        }
+                    }
+                    
+                    if (currTrajectory.size() <= 1) {
+                        // Trajectory has not been found for that particle - skip to next particle
+                        continue;
+                    }
+
+                    // Create the current trajectory
+                    iTrajectories.add(new Trajectory(currTrajectory.toArray(new Particle[0]), 
+                                                     iTrajectories.size() + 1, // serial number
+                                                     iInputImage));
+                }
+            }
+        }
+    }
+
+    
+    /**
+     * Assignees randomly generated colors to trajectories. 
+     */
+    public void assignColorsToTrajectories() {
+        int len = iTrajectories.size();
+        final Vector<Color> vI = generateColors(len);
+        for (int s = 0; s < len; s++) {
+            iTrajectories.elementAt(s).color = vI.elementAt(s);
+        }
+    }
+
+    /**
+     * Generates random colors.
+     * @param aNumOfColors - Number of colors to be generated.
+     * @return generated colors (randomly shuffled).
+     */
+    private Vector<Color> generateColors(int aNumOfColors) {
+        if (aNumOfColors < 1) return null;
+        
+        final Vector<Color> colors = new Vector<Color>(aNumOfColors);
+        
+        int base = 257; // R = 0 G = 1 B = 1
+        int step = (256*256*256 - 1 - base) / aNumOfColors;
+        step = (step > 0) ? step : 1;
+        
+        for (int s = 0; s < aNumOfColors; ++s) {
+            base += step;
+            colors.add(new Color(base));
+        }
+        Collections.shuffle(colors);
+        
+        return colors;
     }
 }
