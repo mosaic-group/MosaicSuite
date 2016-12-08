@@ -481,6 +481,8 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             particleTracker3DModular.generateTrajectories();
             particleTracker3DModular.assignColorsToTrajectories();
 
+            particleTracker3DModular.out = particleTracker3DModular.createHyperStackFromFrames();
+            
             configuration_panel.selectAll();
             configuration_panel.clearSelection();
             configuration_panel.append(particleTracker3DModular.getConfiguration().toString());

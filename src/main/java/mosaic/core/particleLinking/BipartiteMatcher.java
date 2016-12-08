@@ -364,7 +364,6 @@ class BipartiteMatcher {
 
     private double[] u;
     private double[] v;
-
     private double[] pi;
 
     private final List<Integer> eligibleS = new ArrayList<Integer>();

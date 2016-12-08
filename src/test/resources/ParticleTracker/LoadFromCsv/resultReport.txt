@@ -18,16 +18,28 @@ null%	Particles after non-particle discrimination (1 particles):
 % Trajectory linking (verbose output):
 % Frame 0
 %	Particle 0 (13.310000, 12.923000, 0.000000)
+%		linked to particle 0 in frame 1
+%		linked to particle 0 in frame 2
 % Frame 1
 %	Particle 0 (13.455000, 12.993000, 0.000000)
+%		linked to particle 0 in frame 2
+%		linked to particle 0 in frame 3
 % Frame 2
 %	Particle 0 (13.409000, 13.117000, 0.000000)
+%		linked to particle 0 in frame 3
+%		linked to particle 0 in frame 4
 % Frame 3
 %	Particle 0 (13.804000, 13.222000, 0.000000)
+%		linked to particle 0 in frame 4
+%		linked to particle 0 in frame 5
 % Frame 4
 %	Particle 0 (14.299000, 12.958000, 0.000000)
+%		linked to particle 0 in frame 5
+%		linked to particle -1 in frame 6
 % Frame 5
 %	Particle 0 (14.302000, 13.096000, 0.000000)
+%		linked to particle -1 in frame 6
+%		linked to particle -1 in frame 7
 
 %% Trajectories:
 %%	 1st column: frame number

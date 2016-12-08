@@ -373,9 +373,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             cal.pixelWidth = 1.0f;
             rescaleWith(cal, p);
         }
-        return MyFrame.createFrames(p);
+        return createFrames(p);
     }
-
+    
     /**
      * Initializes some members needed before going to previews on the user param dialog.
      */
@@ -491,7 +491,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             iFrames = convertIntoFrames(p);
             // It can happen that the segmentation algorithm produce double output on the CSV
             for (int i = 0; i < iFrames.length; i++) {
-                iFrames[i].removeDoubleParticles();
+                iFrames[i].removeDuplicatedParticles();
             }
 
             iNumOfFrames = iFrames.length;
@@ -536,19 +536,20 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
                 else {
                     // sequence of images mode:
                     // construct each frame from the corresponding image
-                    current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, iLinkRange);
+                    ImageStack frameStack = MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number);
+                    current_frame = new MyFrame(frame_i);
 
                     // Detect feature points in this frame
                     IJ.showStatus("Detecting Particles in Frame " + (frame_i + 1) + "/" + iNumOfFrames);
                     logger.debug("Detecting particles in frame: " + (frame_i + 1) + "/" + iNumOfFrames);
-                    Vector<Particle> detectedParticles = detector.featurePointDetection(current_frame.getOriginalImageStack());
+                    Vector<Particle> detectedParticles = detector.featurePointDetection(frameStack);
                     current_frame.setParticles(detectedParticles);
                 }
-                if (current_frame.frame_number >= iFrames.length) {
-                    IJ.showMessage("Error, frame " + current_frame.frame_number + "  is out of range, enumeration must not have hole, and must start from 0");
+                if (current_frame.iFrameNumber >= iFrames.length) {
+                    IJ.showMessage("Error, frame " + current_frame.iFrameNumber + "  is out of range, enumeration must not have hole, and must start from 0");
                     return false;
                 }
-                iFrames[current_frame.frame_number] = current_frame;
+                iFrames[current_frame.iFrameNumber] = current_frame;
             } // for
 
             // Here check that all frames are created
@@ -864,19 +865,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         }
     }
 
-    /**
-     * Get the radius of the particles
-     * @return the radius of the particles, return -1 if this parameter is not set (like segmented data)
-     */
-    public int getRadius() {
-        int radius = -1;
-        if (detector != null) {
-            radius = detector.getRadius();
-        }
-
-        return radius;
-    }
-
     ImagePlus detectImg = null;
     /**
      * Detects particles in the current displayed frame according to the parameters currently set
@@ -895,9 +883,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         final ImagePlus frame = MosaicUtils.getImageFrame(iInputImage, iInputImage.getFrame());
 
-        final MyFrame preview_frame = new MyFrame(frame.getStack(), iInputImage.getFrame(), iLinkRange);
+        ImageStack frameStack = frame.getStack();
+        final MyFrame preview_frame = new MyFrame(iInputImage.getFrame());
 
-        Vector<Particle> detectedParticles = detector.featurePointDetection(preview_frame.getOriginalImageStack());
+        Vector<Particle> detectedParticles = detector.featurePointDetection(frameStack);
         preview_frame.setParticles(detectedParticles);
         final Img<FloatType> backgroundImg = ImagePlusAdapter.convertFloat(frame);
 
@@ -941,9 +930,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         }
         
         int passed_traj = 0;
-        final Iterator<Trajectory> iter = iTrajectories.iterator();
-        while (iter.hasNext()) {
-            final Trajectory curr_traj = iter.next();
+        for (Trajectory curr_traj : iTrajectories) {
             if (curr_traj.getLength() <= min_length_to_display || (idToShow != 0 && curr_traj.iSerialNumber != idToShow)) {
                 curr_traj.to_display = false;
             }
@@ -957,10 +944,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     }
 
     public void setDrawingParticle(boolean showParticles) {
-        final Iterator<Trajectory> iter = iTrajectories.iterator();
-        while (iter.hasNext()) {
-            final Trajectory curr_traj = iter.next();
-            curr_traj.showParticles = showParticles;
+        for (Trajectory t : iTrajectories) {
+            t.showParticles = showParticles;
         }
     }
     
@@ -969,9 +954,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
      * setting the <code>to_display</code> param of each trajectory to true
      */
     public void resetTrajectoriesFilter() {
-        final Iterator<Trajectory> iter = iTrajectories.iterator();
-        while (iter.hasNext()) {
-            (iter.next()).to_display = true;
+        for (Trajectory t : iTrajectories) {
+            t.to_display = true;
         }
     }
 
@@ -1760,16 +1744,53 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         l_f = (float) gd.getNextNumber();
         l_d = (float) gd.getNextNumber();
         final String linkerString = gd.getNextChoice();
-
-        if (linkerString.equals("Greedy")) {
-            iParticleLinker = new ParticleLinkerGreedy();
-        }
-        else {
-            iParticleLinker = new ParticleLinkerHungarian();
-        }
+        iParticleLinker = linkerString.equals("Greedy") ? new ParticleLinkerGreedy() : new ParticleLinkerHungarian();
     }
     
     // ========================================== CLEANED UP ==============================================================
+    
+    /**
+     * Get the radius of the particles
+     * @return the radius of the particles, return -1 if this parameter is not set (like segmented data)
+     */
+    public int getRadius() {
+        return (detector != null) ? detector.getRadius() : -1;
+    }
+    
+    /**
+     * Create a set of frames from a vector of particles
+     * @param aParticles - input particles
+     */
+    private static MyFrame[] createFrames(Vector<Particle> aParticles) {
+        int numOfParticles = aParticles.size();
+        if (numOfParticles == 0) {
+            return new MyFrame[0];
+        }
+        
+        final int numOfFrames = aParticles.get(numOfParticles - 1).getFrame() + 1;
+        final MyFrame[] frames = new MyFrame[numOfFrames];
+        
+        int lastFrameNum = -1;
+        for (int i = 0; i < numOfParticles;) {
+            // Find all particles belonging to one frame
+            final Vector<Particle> particlesInOneFrame = new Vector<Particle>();
+            int currFrameNum = aParticles.get(i).getFrame();
+            do {
+                particlesInOneFrame.add(aParticles.get(i++));
+            } while (i < numOfParticles && aParticles.get(i).getFrame() == currFrameNum);
+            
+            // Add possibly missing frames (in case where there is no particle(s) in some frames)
+            for (int f = lastFrameNum + 1; f < currFrameNum; ++f) {
+                frames[f] = new MyFrame(new Vector<Particle>(), f); 
+            }
+            
+            // Update current frame
+            frames[currFrameNum] = new MyFrame(particlesInOneFrame, currFrameNum);
+            lastFrameNum = currFrameNum;
+        }
+
+        return frames;
+    }
     
     /**
      * Generated trajectories from previously linked particles.
@@ -1825,7 +1846,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             }
         }
     }
-
     
     /**
      * Assignees randomly generated colors to trajectories. 
