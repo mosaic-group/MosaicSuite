@@ -52,6 +52,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
     private final Label area_label;
     private final Label all_label;
     private final MenuItem mag_factor, relink_particles;
+    public int magnification_factor = 4;
 
     /**
      * Constructor.
@@ -292,7 +293,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == view_static) {
             // a new view is requested so reset the filter and generate a NEW view
             particleTracker3DModular.resetTrajectoriesFilter();
-            particleTracker3DModular.generateView(null, particleTracker3DModular.out);
+            particleTracker3DModular.generateView(null, particleTracker3DModular.iTrajImg);
             return;
         }
 
@@ -382,7 +383,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
 
             /* create area focus view */
             if (source == area_focus) {
-                particleTracker3DModular.generateAreaFocusView(particleTracker3DModular.magnification_factor);
+                particleTracker3DModular.generateAreaFocusView(magnification_factor);
                 return;
             }
             /* display (on the text_panel) info about trajectories that are in the selected area */
@@ -423,7 +424,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == trajectory_focus) {
             // user selects trajectory according to serial number (starts with 1)
             // but all_traj Vector starts from 0 so (chosen_traj-1)
-            particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj, particleTracker3DModular.magnification_factor);
+            particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj);
             return;
         }
         /* display (on the text_panel) info about the selected Trajectory */
@@ -448,12 +449,12 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == mag_factor) {
             final String[] mag_choices = { "1", "2", "4", "6", "8", "10" };
             final GenericDialog mag_dialog = new GenericDialog("Select Magnification Factor");
-            mag_dialog.addChoice("Magnification factor", mag_choices, "" + particleTracker3DModular.magnification_factor);
+            mag_dialog.addChoice("Magnification factor", mag_choices, "" + magnification_factor);
             mag_dialog.showDialog();
             if (mag_dialog.wasCanceled()) {
                 return;
             }
-            particleTracker3DModular.magnification_factor = Integer.parseInt(mag_dialog.getNextChoice());
+            magnification_factor = Integer.parseInt(mag_dialog.getNextChoice());
             return;
         }
         /* option to relink the deteced particles with new parameters */
@@ -481,7 +482,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             particleTracker3DModular.generateTrajectories();
             particleTracker3DModular.assignColorsToTrajectories();
 
-            particleTracker3DModular.out = particleTracker3DModular.createHyperStackFromFrames();
+            particleTracker3DModular.iTrajImg = particleTracker3DModular.createHyperStackFromFrames();
             
             configuration_panel.selectAll();
             configuration_panel.clearSelection();
@@ -496,13 +497,13 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
         /* transfer segmented particle coordinates to ImageJ results window */
         if (source == transfer_particles) {
-            particleTracker3DModular.transferParticlesToResultsTable(); // version 1.4 20101115
+            particleTracker3DModular.generateResultsTableWithParticles().show("Results");
             return;
         }
 
         /* transfer trajectory coordinates to ImageJ results window */
         if (source == transfer_trajs) {
-            particleTracker3DModular.transferTrajectoriesToResultTable().show("Results");
+            particleTracker3DModular.generateResultsTableWithTrajectories().show("Results");
             return;
         }
         if (source == mssTrajectoryResultButton) {

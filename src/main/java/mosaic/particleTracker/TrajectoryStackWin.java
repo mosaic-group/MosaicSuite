@@ -231,7 +231,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
                 // Set the ROI to the trajectory focus_area
                 IJ.getImage().setRoi((particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).focus_area);
                 // focus on Trajectory (ROI)
-                particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj, particleTracker3DModular.magnification_factor);
+                particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj);
             }
             else {
                 // single-click - mark the selected trajectory by setting the ROI to the

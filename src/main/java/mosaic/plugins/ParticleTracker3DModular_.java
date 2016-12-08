@@ -92,7 +92,7 @@ import net.imglib2.view.Views;
  * Feature point tracking and trajectory analysis for video imaging in cell biology. <br>
  * J. Struct. Biol., 151(2), 2005.
  * <p>
- * Any publications that made use of this plugin should cite the above reference. <br>
+ * Any privateations that made use of this plugin should cite the above reference. <br>
  * This helps to ensure the financial support of our project at ETH and will
  * enable us to provide further updates and support. <br>
  * Thanks for your help!
@@ -127,7 +127,7 @@ import net.imglib2.view.Views;
 public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface {
     private static final Logger logger = Logger.getLogger(ParticleTracker3DModular_.class);
     
-    public Img<ARGBType> out;
+    public Img<ARGBType> iTrajImg;
     public ImagePlus iInputImage;
     public String resultFilesTitle;
     public MyFrame[] iFrames;
@@ -138,13 +138,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     public double displacement = 10.0;
     private boolean force;
     private boolean straight_line;
-    protected float l_s = 1.0f; 
-    protected float l_f = 1.0f;
-    protected float l_d = 1.0f;
+    private float l_s = 1.0f; 
+    private float l_f = 1.0f;
+    private float l_d = 1.0f;
     private ParticleLinker iParticleLinker;
     
     /* results display and file */
-    public int magnification_factor = 4;
     public int chosen_traj = -1;
     public ResultsWindow results_window;
     
@@ -176,16 +175,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     private boolean frames_processed = false;
     
     /**
-     * This method sets up the plugin filter for use. <br>
-     * It is called by ImageJ upon selection of the plugin from the menus and the returned value is
-     * used to call the <code>run(ImageProcessor ip)</code> method. <br>
-     * The <code>arg</code> is a string passed as an argument to the plugin, can also be an empty string. <br>
      * Different commands from the plugin menu call the same plugin class with a different argument.
      * <ul>
      * <li>"" (empty String) - the plugin will work in regular full default mode
      * <li>"only_detect" - the plugin will work in detector only mode and unlike the regular mode will allow input of only one image
      * </ul>
-     * The argument <code>imp</code> is passed by ImageJ - the currently active image is passed.
      * 
      * @param aInputArgs A string command that determines the mode of this plugin - can be empty
      * @param aInputImage The ImagePlus that is the original input image sequence -
@@ -326,7 +320,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             IJ.showStatus("Creating trajectory image ...");
             creating_traj_image = true;
 
-            out = createHyperStackFromFrames();
+            iTrajImg = createHyperStackFromFrames();
         }
     }
 
@@ -471,11 +465,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                     if (current_frame.getParticles() == null) {
                         return false;
                     }
-
                 }
                 else {
-                    // sequence of images mode:
-                    // construct each frame from the corresponding image
+                    // sequence of images mode: construct each frame from the corresponding image
                     ImageStack frameStack = MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number);
                     current_frame = new MyFrame(frame_i);
 
@@ -493,7 +485,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             } // for
 
             // Here check that all frames are created
-            for (int i = 0; i < iFrames.length; i++) {
+            for (int i = 0; i < iFrames.length; ++i) {
                 if (iFrames[i] == null) {
                     IJ.showMessage("Error, frame: " + i + " does not exist");
                     return false;
@@ -694,7 +686,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         this.iLinkRange = (int) gd.getNextNumber();
         this.displacement = gd.getNextNumber();
 
-
         final String dm = gd.getNextChoice();
 
         if (dm.equals("Brownian")) {
@@ -763,25 +754,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
         traj_info.append("\n");
 
-        final Iterator<Trajectory> iter = iTrajectories.iterator();
-        while (iter.hasNext()) {
-            final Trajectory curr_traj = iter.next();
+        for (Trajectory curr_traj : iTrajectories) {
             traj_info.append("%% Trajectory " + curr_traj.iSerialNumber + "\n");
-
-            // Uncomment these lines if you want to add trajectory analysis to final report:
-            // -----------------------------------------------------------------------------
-            // TrajectoryAnalysis ta = new TrajectoryAnalysis(curr_traj);
-            // ta.setLengthOfAPixel(pixelDimensions);
-            // ta.setTimeInterval(timeInterval);
-            // if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
-            // traj_info.append("%% MSS(slope): " + String.format("%4.3f", ta.getMSSlinear()) +
-            // " MSD(slope): " + String.format("%4.3f", ta.getGammasLogarithmic()[1]) + "\n");
-            // }
-            // else {
-            // traj_info.append("%% Calculating MSS/MSD not possible for this trajectory.\n");
-            // }
-            // -----------------------------------------------------------------------------
-
             traj_info.append(trajectoryHeader());
             traj_info.append(curr_traj.toStringBuffer());
         }
@@ -796,7 +770,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
         MosaicUtils.write2File(vFI.directory, "Traj_" + resultFilesTitle + ".txt", getFullReport().toString());
         if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
-        final ResultsTable rt = transferTrajectoriesToResultTable();
+        final ResultsTable rt = generateResultsTableWithTrajectories();
         try {
             rt.saveAs(new File(vFI.directory, "Traj_" + resultFilesTitle + ".csv").getAbsolutePath());
         }
@@ -837,50 +811,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         if (detectImg == null) detectImg = wrap;
         else detectImg.setImage(wrap);
         detectImg.show();
-    }
-
-    /**
-     * Displays a dialog for filtering trajectories according to minimum length
-     * <br>
-     * The <code>to_display</code> parameter of all trajectories will be set according to their length
-     * and the user choice.
-     * <br>
-     * Trajectories with shorter or equal length then given by the user will be set to false.
-     * For the rest, it will be set the true.
-     * <br>
-     * Displays a text line on the result windows text panel with the number of trajectories after filter
-     * 
-     * @return true if user gave an input and false if the user cancelled the operation
-     */
-    public boolean filterTrajectories() {
-        final GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
-        // default is not to filter any trajectories (min length of zero)
-        fod.addNumericField("Only keep trajectories longer than", 0, 0, 10, "frames");
-        fod.addNumericField("Show only trajectory with ID:", 0, 0, 10, " (0 means - show All)");
-
-        fod.showDialog();
-        if (fod.wasCanceled()) {
-            return false;
-        }
-        final int min_length_to_display = (int) fod.getNextNumber();
-        int idToShow = (int) fod.getNextNumber();
-        if (idToShow < 0 || idToShow > iTrajectories.size()) {
-            IJ.showMessage("ID of trajectory to filter is not valid. All trajectories will be displayed");
-            idToShow = 0;
-        }
-        
-        int passed_traj = 0;
-        for (Trajectory curr_traj : iTrajectories) {
-            if (curr_traj.getLength() <= min_length_to_display || (idToShow != 0 && curr_traj.iSerialNumber != idToShow)) {
-                curr_traj.to_display = false;
-            }
-            else {
-                curr_traj.to_display = true;
-                passed_traj++;
-            }
-        }
-        results_window.text_panel.appendLine(passed_traj + " trajectories remained after filter");
-        return true;
     }
 
     public void setDrawingParticle(boolean showParticles) {
@@ -1089,7 +1019,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @see StackConverter#convertToRGB()
      * @see Trajectory#animate(int)
      */
-    public void generateTrajFocusView(int trajectory_index, int magnification) {
+    public void generateTrajFocusView(int trajectory_index) {
+        int magnification = results_window.magnification_factor;
         // create a title
         final String new_title = "[Trajectory number " + (trajectory_index + 1) + "]";
 
@@ -1386,7 +1317,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         // do preview
         this.preview();
         preview_canvas.repaint();
-        return;
     }
 
     @Override
@@ -1399,71 +1329,55 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             saveDetected(iFrames);
         }
         preview_canvas.repaint();
-        return;
     }
 
-    public void saveDetected(MyFrame[] frames) {
+    private void saveDetected(MyFrame[] frames) {
         final SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
         if (sd.getDirectory() == null || sd.getFileName() == null) {
             return;
         }
 
         // for each frame - save the detected particles
-        for (int i = 0; i < frames.length; i++) {
-            if (!MosaicUtils.write2File(sd.getDirectory(), sd.getFileName() + "_" + i, frames[i].frameDetectedParticlesForSave(false).toString())) {
-                IJ.log("Problem occured while writing to file.");
+        for (MyFrame f : frames) {
+            String fileName = sd.getFileName() + "_" + f.iFrameNumber;
+            if (!MosaicUtils.write2File(sd.getDirectory(), fileName, f.frameDetectedParticlesForSave(false).toString())) {
+                IJ.log("Problem occured while writing to file. Directory: [" + sd.getDirectory() + "] File: [" + fileName + "]");
                 return;
             }
         }
-
-        return;
     }
     
     /**
-     * Extracts spot segmentation results <br>
-     * and show in in ImageJ static Results Table
-     * <br>
-     * Invoked by clicking button in ParticleTracker Results Window.
-     * 
-     * @author Kota Miura <a href="http://cmci.embl.de">cmci.embl.de</a>
-     * @see ResultsWindow
+     * Generate ResultsTable with all detected particles.
      */
-    public void transferParticlesToResultsTable() {
+    public ResultsTable generateResultsTableWithParticles() {
         final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
-            int rownum = 0;
-            for (int i = 0; i < iFrames.length; i++) {
-                final Vector<Particle> particles = iFrames[i].getParticles();
-                for (final Particle p : particles) {
+            for (MyFrame f : iFrames) {
+                for (final Particle p : f.getParticles()) {
                     rt.incrementCounter();
-                    rownum = rt.getCounter() - 1;
+                    int rownum = rt.getCounter() - 1;
                     addParticleInfo(rt, rownum, p);
                 }
             }
-            rt.show("Results");
         }
+        
+        return rt;
     }
 
     /**
-     * Extracts tracking results <br>
-     * and show in in ImageJ static Results Table
-     * <br>
-     * Invoked by clicking button in ParticleTracker Results Window.
-     * 
-     * @author Kota Miura <a href="http://cmci.embl.de">cmci.embl.de</a>
-     * @see ResultsWindow
+     * Generate ResultsTable with all trajectories.
      */
-    public ResultsTable transferTrajectoriesToResultTable() {
+    public ResultsTable generateResultsTableWithTrajectories() {
         final ResultsTable rt = getResultsTable();
+        
         if (rt != null) {
-            final Iterator<Trajectory> iter = iTrajectories.iterator();
-            while (iter.hasNext()) {
-                final Trajectory curr_traj = iter.next();
+            for (Trajectory curr_traj : iTrajectories) {
                 putOneTrajectoryIntoResultsTable(rt, curr_traj);
-
             }
         }
+        
         return rt;
     }
 
@@ -1480,11 +1394,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     }
 
     private void putOneTrajectoryIntoResultsTable(final ResultsTable rt, final Trajectory curr_traj) {
-        int rownum;
-        final Particle[] pts = curr_traj.iParticles;
-        for (final Particle p : pts) {
+        for (final Particle p : curr_traj.iParticles) {
             rt.incrementCounter();
-            rownum = rt.getCounter() - 1;
+            int rownum = rt.getCounter() - 1;
             rt.setValue("Trajectory", rownum, curr_traj.iSerialNumber);
             addParticleInfo(rt, rownum, p);
         }
@@ -1578,10 +1490,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         return rt;
     }
 
-    public int getLinkRange() {
-        return iLinkRange;
-    }
-
     public double getCutoffRadius() {
         return detector.getCutoff();
     }
@@ -1630,7 +1538,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         return iNumOfFrames;
     }
 
-    void createLinkFactorDialog() {
+    protected void createLinkFactorDialog() {
         final GenericDialog gd = new GenericDialog("Link factor");
 
         gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
@@ -1838,4 +1746,39 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         
         return colors;
     }
+    
+    /**
+     * Filters trajectories basing on length and ID of trajectory (via GUI).
+     * @return false if cancelled by user, true otherwise
+     */
+    public boolean filterTrajectories() {
+        final GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
+        fod.addNumericField("Only keep trajectories longer than", 0, 0, 10, "frames (0 means - showAll)");
+        fod.addNumericField("Show only trajectory with ID:", 0, 0, 10, " (0 means - show All)");
+        fod.showDialog();
+        if (fod.wasCanceled()) {
+            return false;
+        }
+        
+        int minTrajectoryLength = (int) fod.getNextNumber();
+        int idToShow = (int) fod.getNextNumber();
+        if (idToShow < 0 || idToShow > iTrajectories.size()) {
+            IJ.showMessage("ID of trajectory to filter is not valid. All trajectories will be displayed");
+            idToShow = 0;
+        }
+        
+        int numOfVisibleTrajs = 0;
+        for (Trajectory t : iTrajectories) {
+            if (t.getLength() <= minTrajectoryLength || (idToShow != 0 && t.iSerialNumber != idToShow)) {
+                t.to_display = false;
+            }
+            else {
+                t.to_display = true;
+                numOfVisibleTrajs++;
+            }
+        }
+        results_window.text_panel.appendLine(numOfVisibleTrajs + " trajectories remained after filter");
+        
+        return true;
+    }    
 }
