@@ -44,7 +44,7 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
      * @param aTimeInterval Time interval between frames used to calculate trajectory analysis.
      */
     TrajectoryAnalysisPlot(Trajectory aTrajectory, double aPixelDim, double aTimeInterval) {
-        this(aTrajectory.existing_particles, aPixelDim, aTimeInterval);
+        this(aTrajectory.iParticles, aPixelDim, aTimeInterval);
     }
 
     /**

@@ -76,7 +76,7 @@ public class TrajectoriesReportXML {
         addElementWithAttr(conf, "CutoffRadius", "value", iTracker.getCutoffRadius());
         addElementWithAttr(conf, "Threshold", "mode", iTracker.getThresholdMode(), "value", iTracker.getThresholdValue());
         addElementWithAttr(conf, "Displacement", "value", iTracker.displacement);
-        addElementWithAttr(conf, "Linkrange", "value", iTracker.linkrange);
+        addElementWithAttr(conf, "Linkrange", "value", iTracker.iLinkRange);
     }
 
     private void generateFramesInfo(Element aParent) {
@@ -93,14 +93,14 @@ public class TrajectoriesReportXML {
     private void generateTrajectoriesInfo(Element aParent) {
         final Element traj = addElement(aParent, "Trajectories");
 
-        final Iterator<Trajectory> iter = iTracker.all_traj.iterator();
+        final Iterator<Trajectory> iter = iTracker.iTrajectories.iterator();
         while (iter.hasNext()) {
             addTrajectory(traj, iter.next());
         }
     }
 
     private void addTrajectory(Element aParent, Trajectory aTrajectory) {
-        final Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.serial_number);
+        final Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.iSerialNumber);
 
         generateTrajectoryAnalysis(traj, aTrajectory);
         generateTrajectoryData(traj, aTrajectory);
@@ -109,7 +109,7 @@ public class TrajectoriesReportXML {
     private void generateTrajectoryData(Element aParent, Trajectory aTrajectory) {
         final Element trajData = addElement(aParent, "TrajectoryData");
 
-        for (final Particle p : aTrajectory.existing_particles) {
+        for (final Particle p : aTrajectory.iParticles) {
             final Element frame = addElementWithAttr(trajData, "Frame", "number", p.getFrame());
 
             final Element coordinates = addElement(frame, "Coordinates");

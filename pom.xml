@@ -6,7 +6,7 @@
     <name>MosacSuite ImageJ/Fiji plugin</name>
     <artifactId>MosaicSuite</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
     <description>Package contains image processing algorithms developed in MOSAIC Group</description>
     <url>http://mosaic.mpi-cbg.de/?q=downloads/imageJ</url>
     <developers>
@@ -166,6 +166,11 @@
             <groupId>net.sf.supercsv</groupId>
             <artifactId>super-csv</artifactId>
             <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.dozer</groupId>
+            <artifactId>dozer</artifactId>
+            <version>5.5.1</version>
         </dependency>
         <dependency>
             <groupId>net.sf.supercsv</groupId>

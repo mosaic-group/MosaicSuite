@@ -47,7 +47,6 @@ import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.wizard.RCWWin;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
@@ -211,16 +210,16 @@ public class GenericDialogGUI  {
         // Parameter opener Buttons
         p = new Panel();
 
-        b = new Button("Wizard");
-        b.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final RCWWin w = new RCWWin();
-                w.start(settings);
-            }
-        });
-        p.add(b);
+//        b = new Button("Wizard");
+//        b.addActionListener(new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                final RCWWin w = new RCWWin();
+//                w.start(settings);
+//            }
+//        });
+//        p.add(b);
 
         b = new Button("Reset");
         b.addActionListener(new ActionListener() {

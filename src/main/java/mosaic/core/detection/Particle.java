@@ -9,9 +9,6 @@ import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 
-/**
- * Defines a particle
- */
 public class Particle {
 
     public float iX, iY, iZ;
@@ -20,19 +17,21 @@ public class Particle {
     public float m2 = 0; 
     public float m3 = 0;
     public float m4 = 0;
-    public float nonParticleDiscriminationScore = 0;
     
-    // detection/linking stuff
-    public float distance = -1;
-    public boolean special = true; // a flag that is used while detecting and linking particles
-    private int frame = 0; // the number of the frame this particle belongs to (can be 0)
+    // detection stuff
     float original_x = 0; // the originally given coordinates - not to be changed
     float original_y = 0;
     float original_z = 0;
-    public int[] next; // array that holds in position i the next particle number in frame i
+    private int frame = 0; // the number of the frame this particle belongs to (can be 0)
+    public float nonParticleDiscriminationScore = 0;
+    
+    // linking stuff
+    public boolean special = true; // a flag that is used while detecting and linking particles
+    public int[] next = null; // array that holds in position i the next particle number in frame i
+    public float distance = -1;
     public float lx, ly, lz; // previous Linking x,y,z
     public float lxa, lya, lza; // accumulation link
-
+    
     /**
      * Create a particle from another particle
      * @param aParticle Particle
@@ -56,7 +55,7 @@ public class Particle {
      * @param aFrameNumber - the number of the frame this particle belongs to
      * @param aLinkRange linking range
      */
-    public Particle(float aX, float aY, float aZ, int aFrameNumber, int aLinkRange) {
+    public Particle(float aX, float aY, float aZ, int aFrameNumber) {
         iX = aX;
         original_x = aX;
         iY = aY;
@@ -65,20 +64,12 @@ public class Particle {
         original_z = aZ;
         
         frame = aFrameNumber;
-        next = new int[aLinkRange];
     }
     
     /**
      * Create a default particle (needed currently by CSV, accessed via reflection)
      */
     public Particle() {}
-
-    /**
-     * @return the square of the accumulated linking vector
-     */
-    public float linkModuleASq() {
-        return lxa * lxa + lya * lya + lza * lza;
-    }
 
     /**
      * @param rectangle of the focus area
@@ -88,21 +79,6 @@ public class Particle {
         iY = iY - focus.y;
     }
     
-    /**
-     * @return the module of the linking vector
-     */
-    public float linkModule() {
-        return (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-    }
-
-    /**
-     * Set particle link range
-     * @param aLinkRange
-     */
-    void setLinkRange(int linkrange) {
-        next = new int[linkrange];
-    }
-
     @Override
     public String toString() {
         return toStringBuffer().toString();

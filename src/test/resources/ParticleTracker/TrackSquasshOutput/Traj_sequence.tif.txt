@@ -125,123 +125,471 @@ null%	Particles after non-particle discrimination (41 particles):
 % Trajectory linking (verbose output):
 % Frame 0
 %	Particle 0 (225.000000, 91.000000, 0.000000)
+%		linked to particle 0 in frame 1
+%		linked to particle 0 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 1 (98.120689, 212.344833, 0.000000)
+%		linked to particle 5 in frame 1
+%		linked to particle 9 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 2 (12.648648, 268.702698, 0.000000)
+%		linked to particle 13 in frame 1
+%		linked to particle 17 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 3 (142.682922, 49.878048, 0.000000)
+%		linked to particle 8 in frame 1
+%		linked to particle 11 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 4 (90.483147, 104.831459, 0.000000)
+%		linked to particle 1 in frame 1
+%		linked to particle 1 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 5 (150.394730, 113.131577, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle 3 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 6 (54.108696, 135.630432, 0.000000)
+%		linked to particle 2 in frame 1
+%		linked to particle 6 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 7 (92.713570, 140.781403, 0.000000)
+%		linked to particle 3 in frame 1
+%		linked to particle 5 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 8 (140.179489, 72.282051, 0.000000)
+%		linked to particle 11 in frame 1
+%		linked to particle 15 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 9 (74.000000, 213.774200, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle 14 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 10 (81.949997, 244.100006, 0.000000)
+%		linked to particle 15 in frame 1
+%		linked to particle 19 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 11 (191.972977, 195.567566, 0.000000)
+%		linked to particle 14 in frame 1
+%		linked to particle 16 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 12 (227.399994, 166.199997, 0.000000)
+%		linked to particle 9 in frame 1
+%		linked to particle 24 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 13 (186.750000, 217.666672, 0.000000)
+%		linked to particle 12 in frame 1
+%		linked to particle 12 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 14 (194.636368, 127.090912, 0.000000)
+%		linked to particle 18 in frame 1
+%		linked to particle 21 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 15 (142.916672, 161.666672, 0.000000)
+%		linked to particle 16 in frame 1
+%		linked to particle 13 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 16 (58.500000, 68.000000, 0.000000)
+%		linked to particle 19 in frame 1
+%		linked to particle 20 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 17 (217.000000, 21.400000, 0.000000)
+%		linked to particle 21 in frame 1
+%		linked to particle 23 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 18 (99.303574, 40.285713, 0.000000)
+%		linked to particle 17 in frame 1
+%		linked to particle 18 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 19 (73.625000, 166.718750, 0.000000)
+%		linked to particle 4 in frame 1
+%		linked to particle 8 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 20 (180.689651, 205.827591, 0.000000)
+%		linked to particle 22 in frame 1
+%		linked to particle 25 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 21 (181.615387, 254.076920, 0.000000)
+%		linked to particle 20 in frame 1
+%		linked to particle 22 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 22 (130.931824, 160.272720, 0.000000)
+%		linked to particle 25 in frame 1
+%		linked to particle 27 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 23 (185.866669, 233.666672, 0.000000)
+%		linked to particle 24 in frame 1
+%		linked to particle 28 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 24 (167.036179, 83.312500, 0.000000)
+%		linked to particle 26 in frame 1
+%		linked to particle 33 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 25 (67.879997, 248.800003, 0.000000)
+%		linked to particle 23 in frame 1
+%		linked to particle 26 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 26 (3.538461, 0.307692, 0.000000)
+%		linked to particle 31 in frame 1
+%		linked to particle 30 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 27 (118.599998, 128.800003, 0.000000)
+%		linked to particle 29 in frame 1
+%		linked to particle 34 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 28 (115.875000, 262.875000, 0.000000)
+%		linked to particle 36 in frame 1
+%		linked to particle 39 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 29 (216.500000, 168.000000, 0.000000)
+%		linked to particle 35 in frame 1
+%		linked to particle 29 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 30 (136.875000, 85.875000, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle -1 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 31 (185.500000, 273.500000, 0.000000)
+%		linked to particle 33 in frame 1
+%		linked to particle 35 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 32 (70.968750, 83.093750, 0.000000)
+%		linked to particle 32 in frame 1
+%		linked to particle 31 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 33 (67.000000, 93.000000, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle 40 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 34 (70.000000, 98.000000, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle -1 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 35 (65.861115, 152.416672, 0.000000)
+%		linked to particle -1 in frame 1
+%		linked to particle 7 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 36 (57.090908, 102.931816, 0.000000)
+%		linked to particle 28 in frame 1
+%		linked to particle 32 in frame 2
+%		linked to particle -1 in frame 3
 %	Particle 37 (123.000000, 135.363632, 0.000000)
+%		linked to particle 34 in frame 1
+%		linked to particle 38 in frame 2
+%		linked to particle -1 in frame 3
 % Frame 1
 %	Particle 0 (224.782608, 91.130432, 0.000000)
+%		linked to particle 0 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 1 (89.623238, 104.623238, 0.000000)
+%		linked to particle 1 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 2 (53.599998, 136.431580, 0.000000)
+%		linked to particle 6 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 3 (92.048935, 141.595749, 0.000000)
+%		linked to particle 5 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 4 (71.290321, 164.451614, 0.000000)
+%		linked to particle 8 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 5 (97.283585, 211.134323, 0.000000)
+%		linked to particle 9 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 6 (76.814812, 226.592590, 0.000000)
+%		linked to particle 14 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 7 (17.566668, 264.166656, 0.000000)
+%		linked to particle 10 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 8 (142.794876, 49.128204, 0.000000)
+%		linked to particle 11 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 9 (227.583328, 165.000000, 0.000000)
+%		linked to particle 24 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 10 (148.428574, 104.257141, 0.000000)
+%		linked to particle -1 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 11 (139.444443, 73.703705, 0.000000)
+%		linked to particle 15 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 12 (186.333328, 218.333328, 0.000000)
+%		linked to particle 12 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 13 (8.846154, 272.192322, 0.000000)
+%		linked to particle 17 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 14 (191.916672, 195.638885, 0.000000)
+%		linked to particle 16 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 15 (85.187500, 242.625000, 0.000000)
+%		linked to particle 19 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 16 (141.421051, 164.894730, 0.000000)
+%		linked to particle 13 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 17 (99.369568, 39.630436, 0.000000)
+%		linked to particle 18 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 18 (195.000000, 127.625000, 0.000000)
+%		linked to particle 21 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 19 (59.954544, 69.000000, 0.000000)
+%		linked to particle 20 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 20 (182.666672, 252.666672, 0.000000)
+%		linked to particle 22 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 21 (216.000000, 21.625000, 0.000000)
+%		linked to particle 23 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 22 (181.125000, 206.166672, 0.000000)
+%		linked to particle 25 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 23 (68.391304, 249.086960, 0.000000)
+%		linked to particle 26 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 24 (186.928574, 233.857147, 0.000000)
+%		linked to particle 28 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 25 (130.818176, 158.227280, 0.000000)
+%		linked to particle 27 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 26 (168.270096, 85.652733, 0.000000)
+%		linked to particle -1 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 27 (132.895233, 113.352379, 0.000000)
+%		linked to particle 4 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 28 (57.571430, 102.928574, 0.000000)
+%		linked to particle 32 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 29 (116.000000, 132.500000, 0.000000)
+%		linked to particle 34 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 30 (0.000000, 0.000000, 0.000000)
+%		linked to particle 30 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 31 (6.750000, 0.250000, 0.000000)
+%		linked to particle -1 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 32 (71.812500, 84.625000, 0.000000)
+%		linked to particle 31 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 33 (185.500000, 273.000000, 0.000000)
+%		linked to particle 35 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 34 (122.521736, 136.347824, 0.000000)
+%		linked to particle 38 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 35 (217.000000, 168.833328, 0.000000)
+%		linked to particle 29 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 %	Particle 36 (115.875000, 263.250000, 0.000000)
+%		linked to particle 39 in frame 2
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
 % Frame 2
 %	Particle 0 (224.750000, 91.541664, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 1 (89.796700, 104.395607, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 2 (165.552628, 102.763161, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 3 (148.373627, 113.692307, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 4 (135.142853, 115.928574, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 5 (90.408554, 141.958694, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 6 (53.263157, 134.250000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 7 (52.500000, 144.500000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 8 (71.156250, 164.625000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 9 (96.078430, 212.725494, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 10 (24.945946, 258.702698, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 11 (142.500000, 49.705883, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 12 (188.250000, 214.850006, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 13 (140.684204, 166.789474, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 14 (76.285713, 233.371429, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 15 (138.914291, 72.199997, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 16 (191.973679, 195.973679, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 17 (7.416667, 273.166656, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 18 (98.954544, 39.772728, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 19 (88.642860, 239.714279, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 20 (61.666668, 71.916664, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 21 (194.272720, 128.090912, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 22 (181.888885, 252.222229, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 23 (216.272720, 21.000000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 24 (228.000000, 164.000000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 25 (181.272720, 206.954544, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 26 (69.533333, 249.333328, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 27 (129.544113, 156.691177, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 28 (187.285721, 233.500000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 29 (218.199997, 168.800003, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 30 (2.923077, 0.384615, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 31 (70.956520, 85.478264, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 32 (57.073170, 105.243904, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 33 (164.800003, 75.680000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 34 (119.000000, 124.250000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 35 (185.294113, 272.882355, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 36 (185.800003, 0.400000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 37 (123.571426, 147.714279, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 38 (122.156250, 134.750000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 39 (116.000000, 264.000000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 %	Particle 40 (54.916668, 97.750000, 0.000000)
+%		linked to particle -1 in frame 3
+%		linked to particle -1 in frame 4
+%		linked to particle -1 in frame 5
 
 %% Trajectories:
 %%	 1st column: frame number

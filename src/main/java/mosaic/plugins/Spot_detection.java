@@ -38,13 +38,13 @@ public class Spot_detection implements PlugInFilter // NO_UCD
         // Detect points in all frames
         for (int frameIdx = 0; frameIdx < numOfFrames; ++frameIdx) {
             final ImageStack subStack = MosaicUtils.GetSubStackInFloat(iOriginalImp.getStack(), (frameIdx) * numOfSlices + 1, (frameIdx + 1) * numOfSlices);
-            final MyFrame frame = new MyFrame(subStack, frameIdx, 1);
+            final MyFrame frame = new MyFrame(frameIdx);
 
             // Detect feature points in current frame
             IJ.showStatus("Detecting Particles in Frame " + (frameIdx + 1) + "/" + numOfFrames);
-            Vector<Particle> detectedParticles = iDetector.featurePointDetection(frame.getOriginalImageStack());
+            Vector<Particle> detectedParticles = iDetector.featurePointDetection(subStack);
             frame.setParticles(detectedParticles);
-            frames[frame.frame_number] = frame;
+            frames[frame.iFrameNumber] = frame;
         }
 
         // Fill container with all found particles and set m0 for each.

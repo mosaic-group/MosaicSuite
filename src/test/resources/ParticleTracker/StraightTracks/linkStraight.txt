@@ -1,0 +1,124 @@
+% Configuration:
+% 	Kernel radius: 1
+% 	Cutoff radius: 0.0
+% 	Absolute threshold: 1.0
+% 	Displacement : 13.0
+% 	Linkrange    : 1
+% Frames information:
+% 	Width : 111 pixel
+% 	Height: 111 pixel
+% 	Depth: 1 slices
+% 	Global minimum: 0.0
+% 	Global maximum: 111.0
+
+%	Per frame information (verbose output):
+% Frame 0:
+%	2 particles found
+%	Detected particle positions:
+%		10.500000 30.500000 0.000000
+%		30.500000 50.500000 0.000000
+%	Particles after position refinement:
+%		10.500000 30.500000 0.000000
+%		30.500000 50.500000 0.000000
+%	Particles after non-particle discrimination (2 particles):
+%		10.500000 30.500000 0.000000
+%		30.500000 50.500000 0.000000
+% Frame 1:
+%	2 particles found
+%	Detected particle positions:
+%		20.500000 30.500000 0.000000
+%		30.500000 40.500000 0.000000
+%	Particles after position refinement:
+%		20.500000 30.500000 0.000000
+%		30.500000 40.500000 0.000000
+%	Particles after non-particle discrimination (2 particles):
+%		20.500000 30.500000 0.000000
+%		30.500000 40.500000 0.000000
+% Frame 2:
+%	2 particles found
+%	Detected particle positions:
+%		30.500000 30.500000 0.000000
+%		30.500000 32.500000 0.000000
+%	Particles after position refinement:
+%		30.500000 30.677412 0.000000
+%		30.500000 32.322586 0.000000
+%	Particles after non-particle discrimination (2 particles):
+%		30.500000 30.677412 0.000000
+%		30.500000 32.322586 0.000000
+% Frame 3:
+%	2 particles found
+%	Detected particle positions:
+%		30.500000 20.500000 0.000000
+%		40.500000 30.500000 0.000000
+%	Particles after position refinement:
+%		30.500000 20.500000 0.000000
+%		40.500000 30.500000 0.000000
+%	Particles after non-particle discrimination (2 particles):
+%		30.500000 20.500000 0.000000
+%		40.500000 30.500000 0.000000
+% Frame 4:
+%	2 particles found
+%	Detected particle positions:
+%		30.500000 10.500000 0.000000
+%		50.500000 30.500000 0.000000
+%	Particles after position refinement:
+%		30.500000 10.500000 0.000000
+%		50.500000 30.500000 0.000000
+%	Particles after non-particle discrimination (2 particles):
+%		30.500000 10.500000 0.000000
+%		50.500000 30.500000 0.000000
+% Trajectory linking (verbose output):
+% Frame 0
+%	Particle 0 (10.500000, 30.500000, 0.000000)
+%		linked to particle 0 in frame 1
+%	Particle 1 (30.500000, 50.500000, 0.000000)
+%		linked to particle 1 in frame 1
+% Frame 1
+%	Particle 0 (20.500000, 30.500000, 0.000000)
+%		linked to particle 0 in frame 2
+%	Particle 1 (30.500000, 40.500000, 0.000000)
+%		linked to particle 1 in frame 2
+% Frame 2
+%	Particle 0 (30.500000, 30.677412, 0.000000)
+%		linked to particle 1 in frame 3
+%	Particle 1 (30.500000, 32.322586, 0.000000)
+%		linked to particle 0 in frame 3
+% Frame 3
+%	Particle 0 (30.500000, 20.500000, 0.000000)
+%		linked to particle 0 in frame 4
+%	Particle 1 (40.500000, 30.500000, 0.000000)
+%		linked to particle 1 in frame 4
+% Frame 4
+%	Particle 0 (30.500000, 10.500000, 0.000000)
+%		linked to particle -1 in frame 5
+%	Particle 1 (50.500000, 30.500000, 0.000000)
+%		linked to particle -1 in frame 5
+
+%% Trajectories:
+%%	 1st column: frame number
+%%	 2nd column: x coordinate top-down(pixel)
+%%	 3rd column: y coordinate left-right(pixel)
+%%	 4th column: z coordinate bottom-top(pixel)
+%%	 4th column: zero-order intensity moment m0
+%%	 5th column: first-order intensity moment m1
+%%	 6th column: second-order intensity moment m2
+%%	 7th column: second-order intensity moment m3
+%%	 8th column: second-order intensity moment m4
+%%	 9th column: non-particle discrimination score
+
+%% Trajectory 1
+%% frame x (pixel)     y (pixel)    z (pixel)      m0         m1           m2           m3           m4           s 
+0 10.500000 30.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+1 20.500000 30.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+2 30.500000 30.677412 0.000000 0.182311 0.645376 0.645376 0.645376 0.645376 15.915494
+3 40.500000 30.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+4 50.500000 30.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+
+%% Trajectory 2
+%% frame x (pixel)     y (pixel)    z (pixel)      m0         m1           m2           m3           m4           s 
+0 30.500000 50.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+1 30.500000 40.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+2 30.500000 32.322586 0.000000 0.182311 0.645376 0.645376 0.645376 0.645376 15.915494
+3 30.500000 20.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+4 30.500000 10.500000 0.000000 0.186100 0.609969 0.609969 0.609969 0.609969 15.915494
+
