@@ -36,7 +36,6 @@ import ij.io.Opener;
 import ij.io.SaveDialog;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
-import ij.measure.Measurements;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
@@ -125,7 +124,7 @@ import net.imglib2.view.Views;
  *         add Dynamic model in the linker, new 3D/2D visualization system, CSV reading format, for Region based tracking
  */
 
-public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface {
+public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface {
     private static final Logger logger = Logger.getLogger(ParticleTracker3DModular_.class);
     
     public Img<ARGBType> out;
@@ -150,8 +149,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     public ResultsWindow results_window;
     
     // file input
-    private int f_size = 0;
-    private double f_intensity = 0.0;
     private String file_sel;
 
     private String background;
@@ -400,62 +397,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         }
     }
 
-    private void featureFilteringStage() {
-        final GenericDialog gd = new GenericDialog("Filter");
-
-        gd.addMessage("Filter particle");
-
-        gd.addNumericField("Size bigger (m0)", 0.0, 1);
-        gd.addNumericField("Intensity bigger (m2)", 0.0, 3);
-
-        gd.showDialog();
-
-        if (gd.wasCanceled() == false) {
-            f_size = (int) gd.getNextNumber();
-            f_intensity = gd.getNextNumber();
-        }
-    }
-
-    /**
-     * Rescale the particle according to the spacing and filter it by
-     * size and intensity
-     *
-     * @param cal spacing
-     * @param iParams Particle vector
-     */
-    private void rescaleWith(Calibration cal, Vector<Particle> vp) {
-        // ask for feature filtering stage
-        featureFilteringStage();
-
-        // Convert to a List
-        final List<Particle> pl = new ArrayList<Particle>();
-        for (int i = 0; i < vp.size(); i++) {
-            pl.add(vp.get(i));
-        }
-
-        // rescale and filter
-        Iterator<Particle> i = pl.iterator();
-        while (i.hasNext()) {
-            final Particle p = i.next();
-
-            if (p.m0 >= f_size && p.m2 > f_intensity) {
-                p.iX *= cal.pixelWidth;
-                p.iY *= cal.pixelHeight;
-                p.iZ *= cal.pixelDepth;
-            }
-            else {
-                i.remove();
-            }
-        }
-
-        // clear the vector and recreate it
-        vp.clear();
-        i = pl.iterator();
-        while (i.hasNext()) {
-            vp.add(i.next());
-        }
-    }
-
     /**
      * Iterates through all frames(ImageProcessors or text files). <br>
      * Creates a <code>MyFrame</code> object for each frame according to the input. <br>
@@ -524,8 +465,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
                         continue;
                     }
 
-                    // text_files_mode:
-                    // construct each frame from the corresponding text file
+                    // text_files_mode: construct each frame from the corresponding text file
                     IJ.showStatus("Reading Particles from file " + files_list[file_index] + "(" + (frame_i) + "/" + files_list.length + ")");
                     current_frame = new MyFrame(files_dir + files_list[file_index]);
                     if (current_frame.getParticles() == null) {
@@ -1230,7 +1170,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         IJ.selectWindow(roi_image_id);
 
         IJ.selectWindow(duplicated_imp.getID());
-
     }
 
     /**
@@ -1252,57 +1191,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         return list;
     }
 
-    public int[] getParticlesRange() {
-        int vMax[] = new int[3];
-
-        /* find the max coordinates for each coordinate */
-        for (int i = 0; i < iFrames.length; i++) {
-            for (int p = 0; p < iFrames[i].getParticles().size(); p++) {
-                final Particle vParticle = iFrames[i].getParticles().elementAt(p);
-                if (vParticle.iX > vMax[0]) {
-                    vMax[0] = (int) Math.ceil(vParticle.iX);
-                }
-                if (vParticle.iY > vMax[1]) {
-                    vMax[1] = (int) Math.ceil(vParticle.iY);
-                }
-                if (vParticle.iZ > vMax[2]) {
-                    vMax[2] = (int) Math.ceil(vParticle.iZ);
-                }
-            }
-        }
-
-        // is 2D
-        if (vMax[2] == 0.0) {
-            final int vMax_t[] = new int[2];
-            vMax_t[0] = vMax[0];
-            vMax_t[1] = vMax[1];
-            vMax = vMax_t;
-        }
-
-        return vMax;
-    }
-
     /**
      * Create an image stack or hyperstack from frames
-     * @return
      */
     public Img<ARGBType> createHyperStackFromFrames() {
         return createHyperStackFromFrames(background);
     }
     
     private Img<ARGBType> createHyperStackFromFrames(String aBackgroundFilename) {
-        int[] vMax = null;
-        Img<ARGBType> out_f = null;
-        Img<ARGBType> out_fs = null;
-
-        vMax = getParticlesRange();
-
+        int[] vMax = getParticlesRange();
         for (int i = 0; i < vMax.length; i++) {
             vMax[i] += 1;
         }
 
         // Create time Image
-
+        Img<ARGBType> out_fs = null;
         if (text_files_mode == true) {
             if (aBackgroundFilename == null) {
                 final long vMaxp1[] = new long[vMax.length + 1];
@@ -1373,6 +1276,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         }
 
         /* for each frame we have to add a stack to the image */
+        Img<ARGBType> out_f = null;
         for (int i = 0; i < iFrames.length; i++) {
             IJ.showStatus("Creating frame " + (i + 1));
             if (text_files_mode == true) {
@@ -1748,6 +1652,60 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     }
     
     // ========================================== CLEANED UP ==============================================================
+    
+    /**
+     * Rescale and filter particles
+     * @param aCalibration
+     * @param aParticles 
+     */
+    private void rescaleWith(Calibration aCalibration, Vector<Particle> aParticles) {
+        int size = 0;
+        double intensity = 0.0;
+        
+        // ----- Ask user for filtering input
+        final GenericDialog gd = new GenericDialog("Filter particles");
+        
+        gd.addNumericField("Size (m0) >=", 0.0, 1);
+        gd.addNumericField("Intensity (m2) >=", 0.0, 3);
+        
+        gd.showDialog();
+        if (gd.wasCanceled() == false) {
+            size = (int) gd.getNextNumber();
+            intensity = gd.getNextNumber();
+        }
+
+        // ----- Filter
+        for (int i = aParticles.size()  - 1; i >= 0; --i) {
+            final Particle p = aParticles.get(i);
+
+            if (p.m0 >= size && p.m2 > intensity) {
+                p.iX *= aCalibration.pixelWidth;
+                p.iY *= aCalibration.pixelHeight;
+                p.iZ *= aCalibration.pixelDepth;
+            }
+            else {
+                aParticles.remove(i);
+            }
+        }
+    }
+    
+    /**
+     * @return coordinates of maximum x,y(,z) from all particles
+     */
+    private int[] getParticlesRange() {
+        // find the max coordinates for each coordinate
+        int x = 0, y = 0, z = 0;
+        for (final MyFrame f : iFrames) {
+            for (final Particle p : f.getParticles()) {
+                if (p.iX > x) x = (int) Math.ceil(p.iX);
+                if (p.iY > y) y = (int) Math.ceil(p.iY);
+                if (p.iZ > z) z = (int) Math.ceil(p.iZ);
+            }
+        }
+
+        // create 2D or 3D coordinates
+        return (z == 0) ? new int[] {x, y} : new int[] {x, y, z};
+    }
     
     /**
      * Get the radius of the particles
