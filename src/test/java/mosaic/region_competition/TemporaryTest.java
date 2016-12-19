@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ij.IJ;
@@ -25,12 +26,12 @@ import net.imglib2.type.numeric.real.FloatType;
  * Temporary file to keep some tests/examples of libraries used during DRS implementation.
  * TODO: This file is to be removed at the end of implementation. 
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
- *
  */
 public class TemporaryTest extends CommonBase {
     private static final Logger logger = Logger.getLogger(TemporaryTest.class);
 
     @Test
+    @Ignore
     public void genSobel3DviaImglib2() {
         ImagePlus imp = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/tutorials/advanced-imglib2/images/t1-head.tif");
         imp.setStack(imp.getImageStack().convertToFloat());
@@ -40,6 +41,7 @@ public class TemporaryTest extends CommonBase {
     }
 
     @Test
+    @Ignore
     public void genSobel3viaVolume() {
         ImagePlus img = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/tutorials/advanced-imglib2/images/t1-head.tif");
         img.setStack(img.getImageStack().convertToFloat());
@@ -54,6 +56,7 @@ public class TemporaryTest extends CommonBase {
     }
 
     @Test
+    @Ignore
     public void genSobel2D() throws InterruptedException {
         ImagePlus img = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
         img.setStack(img.getImageStack().convertToFloat());
@@ -73,6 +76,7 @@ public class TemporaryTest extends CommonBase {
     }
 
     @Test
+    @Ignore
     public void test() {
         Rng rng = new Rng();
         for (int i = 0; i < 3; ++i) {
@@ -96,6 +100,7 @@ public class TemporaryTest extends CommonBase {
 
 
     @Test
+    @Ignore
     public void testDistributionFromSobel() throws InterruptedException {
         ImagePlus img = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/testInputs/BikesgraySobel.tif");
 
@@ -108,11 +113,11 @@ public class TemporaryTest extends CommonBase {
     /**
      * Generates enumerated distribution from provided image.
      */
-    EnumeratedDistribution<Integer> generateImgDistribution(ImagePlus img) {
+    EnumeratedDistribution<Integer> generateImgDistribution(ImagePlus aImg) {
         int index = 0;
         List<Pair<Integer, Double>> pmf = new ArrayList<>();
-        if (img.getNSlices() > 1) {
-            ImageStack is = img.getImageStack();
+        if (aImg.getNSlices() > 1) {
+            ImageStack is = aImg.getImageStack();
             for (int i = 1; i < is.size(); i++) {
                 float[] pixels = (float[])is.getPixels(i);
                 for (int x = 0; x < pixels.length; x++) {
@@ -121,7 +126,7 @@ public class TemporaryTest extends CommonBase {
             }
         }
         else {
-            float[] pixels = (float[])img.getProcessor().getPixels();
+            float[] pixels = (float[])aImg.getProcessor().getPixels();
             for (int x = 0; x < pixels.length; x++) {
                 pmf.add(new Pair<Integer, Double>(index++, (double) pixels[x]));
             }

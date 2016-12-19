@@ -41,7 +41,8 @@
     <parent>
         <groupId>net.imagej</groupId>
         <artifactId>pom-imagej</artifactId>
-        <version>15.7.1</version>
+<!--         <version>15.7.1</version> -->
+        <version>16.0.0</version>
 <!--         <version>LATEST</version> -->
         <relativePath />
     </parent>
@@ -182,6 +183,12 @@
             <artifactId>super-csv</artifactId>
             <version>2.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>        
         <dependency>
             <groupId>net.sf.dozer</groupId>
             <artifactId>dozer</artifactId>
