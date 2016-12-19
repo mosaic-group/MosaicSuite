@@ -2,7 +2,7 @@ package mosaic.region_competition.GUI;
 
 
 import ij.gui.GenericDialog;
-import mosaic.region_competition.Settings;
+import mosaic.region_competition.RC.Settings;
 
 
 abstract class GUImeMore {

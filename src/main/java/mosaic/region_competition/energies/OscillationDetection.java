@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import mosaic.region_competition.ContourParticle;
+import mosaic.region_competition.RC.ContourParticle;
 
 
 public class OscillationDetection {

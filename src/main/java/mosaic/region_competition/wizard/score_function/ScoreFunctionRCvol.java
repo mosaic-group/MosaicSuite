@@ -11,8 +11,8 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.region_competition.LabelStatistics;
-import mosaic.region_competition.Settings;
+import mosaic.region_competition.RC.LabelStatistics;
+import mosaic.region_competition.RC.Settings;
 
 
 // Score function try to find out the best segmentation with PC on all area selected

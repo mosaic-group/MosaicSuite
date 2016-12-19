@@ -4,8 +4,8 @@ package mosaic.region_competition.energies;
 import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
-import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelStatistics;
+import mosaic.region_competition.RC.ContourParticle;
+import mosaic.region_competition.RC.LabelStatistics;
 
 
 public abstract class Energy {

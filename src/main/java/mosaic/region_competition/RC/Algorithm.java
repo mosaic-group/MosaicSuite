@@ -1,4 +1,4 @@
-package mosaic.region_competition;
+package mosaic.region_competition.RC;
 
 
 import static mosaic.core.imageUtils.images.LabelImage.BGLabel;

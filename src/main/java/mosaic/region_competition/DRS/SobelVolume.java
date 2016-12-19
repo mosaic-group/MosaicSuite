@@ -1,8 +1,11 @@
-package mosaic.region_competition;
+package mosaic.region_competition.DRS;
 
+import ij.ImagePlus;
 import volume.Kernel;
 import volume.Kernel2D;
 import volume.Kernel3D;
+import volume.Sobel;
+import volume.Sobel3D;
 import volume.VolumeFloat;
 
 /**
@@ -11,17 +14,38 @@ Class responsible for calculating Sobel filter for 2D/3D images.
 public class SobelVolume extends VolumeFloat
 {
     private static final long serialVersionUID = 1L;
-
-    public SobelVolume(int width, int height, int depth) {
-        super(width, height, depth, 1.0, 1.0, 1.0);
+    private VolumeFloat iVolume;
+    
+    public SobelVolume(ImagePlus aImage) {
+        super(aImage.getWidth(), aImage.getHeight(), aImage.getNSlices(), 1.0, 1.0, 1.0);
+        iVolume = new VolumeFloat(aImage.getWidth(), aImage.getHeight(), aImage.getNSlices());
+        iVolume.load(aImage.getImageStack(), 0);
     }
     
-    public void sobel2D(VolumeFloat aVolume, Kernel2D aKernel) {
-        int depthoffset = InitParams(aVolume, aKernel);
+    public void sobel2D() {
+        /*
+         * Faster implementation of volume-based approach:
+         * 
+         * VolumeFloat v = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+         * v.load(img.getImageStack(), 0);
+         * VolumeFloat dx = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+         * VolumeFloat dy = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+         * Kernel2D k = new Sobel();
+         * dx.convolvex(v, k);
+         * dy.convolvey(v, k);
+         * dx.mul(dx);
+         * dy.mul(dy);
+         * dx.add(dy);
+         * dx.sqrt();
+         * float[][][] volumeImg = dx.getVolume();
+         * ImageStack imageStack = dx.getImageStack();
+         */
+        Kernel2D aKernel = new Sobel();
+        int depthoffset = InitParams(iVolume, aKernel);
         if (depthoffset < 0) return;
         
         // Alias things for easier use
-        float[][][] volume = aVolume.v;
+        float[][][] volume = iVolume.v;
         double[][] kernel = aKernel.k;
         int kernelWidth = aKernel.halfwidth;
         
@@ -55,12 +79,30 @@ public class SobelVolume extends VolumeFloat
         }
     }
 
-    public void sobel3D(VolumeFloat aVolume, Kernel3D aKernel) {
-        int depthoffset = InitParams(aVolume, aKernel);
+    public void sobel3D() {
+//      Implementation using original VolumeFloat does not work since valid(x,y) is used instead valid(x,y,z):
+//      
+//      VolumeFloat dx = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+//      VolumeFloat dy = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+//      VolumeFloat dz = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+//      Kernel3D k = new Sobel3D();
+//      dx.convolvex(v, k);
+//      dy.convolvey(v, k);
+//      dz.convolvez(v, k);
+//      dx.mul(dx);
+//      dy.mul(dy);
+//      dz.mul(dz);
+//      dx.add(dy);
+//      dx.add(dz);
+//      dx.sqrt();
+//        
+        Kernel3D aKernel = new Sobel3D();
+        
+        int depthoffset = InitParams(iVolume, aKernel);
         if (depthoffset < 0) return;
         
         // Alias things for easier use
-        float[][][] volume = aVolume.v;
+        float[][][] volume = iVolume.v;
         double[][][] kernel = aKernel.k;
         int kernelWidth = aKernel.halfwidth;
         

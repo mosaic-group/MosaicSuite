@@ -5,9 +5,9 @@ import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelStatistics;
-import mosaic.region_competition.Settings;
+import mosaic.region_competition.RC.ContourParticle;
+import mosaic.region_competition.RC.LabelStatistics;
+import mosaic.region_competition.RC.Settings;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import mosaic.region_competition.energies.Energy.InternalEnergy;

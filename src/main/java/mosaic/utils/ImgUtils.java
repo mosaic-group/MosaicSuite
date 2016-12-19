@@ -13,6 +13,8 @@ import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.math.Matrix;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.RealType;
 
 public class ImgUtils {
     /**
@@ -388,6 +390,17 @@ public class ImgUtils {
         return copyIp;
     }
 
+    /**
+     * @param aImg - input image
+     * @return new and empty image with same size/type as input image
+     */
+    public static <T extends RealType< T >> Img<T> createNewEmpty(Img<T> aImg) {
+        int numDimensions = aImg.numDimensions();
+        long[] dims = new long[numDimensions];
+        aImg.dimensions(dims);
+        return aImg.factory().create(dims, aImg.firstElement().copy());
+    }
+    
     public static MinMax<Double> findMinMax(ImagePlus img) {
         int ni = img.getWidth();
         int nj = img.getHeight();
@@ -477,6 +490,19 @@ public class ImgUtils {
                " Dims(x/y/z): "+ aImage.getWidth() + "/" + aImage.getHeight() + "/" + aImage.getNSlices() + 
                " NumOfFrames: " + aImage.getNFrames() + 
                " NumOfChannels: " + aImage.getNChannels();
+    }
+    
+    /**
+     * @return String with information of provided image (dimensions/type/bitdepth)
+     */
+    public static <T extends RealType< T >> String getImageInfo(Img<T> img1) {
+        String str = "Type: " + img1.firstElement().getClass().getName();
+        str += " BitDepth: " + img1.firstElement().getBitsPerPixel();
+        str += " Dims:";
+        int numDimensions = img1.numDimensions();
+        for (int i = 0; i < numDimensions; ++i)
+            str += img1.dimension(i) + ((i == numDimensions - 1) ? "" : "/");
+        return str;
     }
     
     /**

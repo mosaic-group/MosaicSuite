@@ -5,8 +5,8 @@ import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelStatistics;
+import mosaic.region_competition.RC.ContourParticle;
+import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 

@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.region_competition.LabelStatistics;
+import mosaic.region_competition.RC.LabelStatistics;
 
 public abstract class ScoreFunctionBase implements ScoreFunction {
     public int createStatistics(LabelImage lirc, IntensityImage intensityImage, HashMap<Integer, LabelStatistics> labelMap) {

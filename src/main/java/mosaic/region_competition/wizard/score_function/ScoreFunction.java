@@ -2,7 +2,7 @@ package mosaic.region_competition.wizard.score_function;
 
 
 import ij.ImagePlus;
-import mosaic.region_competition.Settings;
+import mosaic.region_competition.RC.Settings;
 import fr.inria.optimization.cmaes.fitness.IObjectiveFunction;
 
 

@@ -47,7 +47,7 @@ public class SquasshSegmentation {
     
     public SquasshSegmentation(double[][][] aInputImg, SegmentationParameters aParameters, double aGlobalMin, double aGlobalMax) {
         logger.debug(aParameters);
-        logger.debug("Input Image dimensions:" + Debug.getArrayDims(aInputImg));
+        logger.debug("Input Image dimensions (z/x/y):" + Debug.getArrayDims(aInputImg));
         logger.debug("Global min/max: " + aGlobalMin + " / " + aGlobalMax);
         
         iParameters = aParameters;
@@ -97,6 +97,7 @@ public class SquasshSegmentation {
             final boolean lastIteration = (iteration == numOfIterations - 1);
             isDone = iSolver.performIteration(lastIteration);
             if (iParameters.debug) iAllMasks.add(ConvertArray.toFloat(iSolver.w3k));
+            // Will progress  from 0 to 50 percent for step one.
             setProgress((50 * iteration)/(numOfIterations - 1));
             iteration++;
         }

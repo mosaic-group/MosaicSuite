@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import ij.measure.ResultsTable;
-import mosaic.region_competition.LabelStatistics;
+import mosaic.region_competition.RC.LabelStatistics;
 
 /**
  * StatisticsTable class for handling output of LabelInformation

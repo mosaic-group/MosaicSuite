@@ -24,7 +24,7 @@ import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.io.Opener;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.region_competition.Settings;
+import mosaic.region_competition.RC.Settings;
 
 
 class RCProgressWin extends JFrame implements MouseListener {
