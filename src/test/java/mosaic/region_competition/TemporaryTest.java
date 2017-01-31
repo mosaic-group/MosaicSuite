@@ -98,7 +98,6 @@ public class TemporaryTest extends CommonBase {
         mosaic.utils.Debug.print(drng.getPmf()); 
     }
 
-
     @Test
     @Ignore
     public void testDistributionFromSobel() throws InterruptedException {
