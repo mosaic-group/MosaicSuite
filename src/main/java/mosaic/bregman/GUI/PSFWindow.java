@@ -19,11 +19,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.apache.log4j.Logger;
+
 import ij.gui.GenericDialog;
+import mosaic.bregman.SquasshLauncher;
 
 
 class PSFWindow implements ActionListener, PropertyChangeListener {
-
+    private static final Logger logger = Logger.getLogger(PSFWindow.class);
+    
     private double lem, lex, NA, n, pinhole, pix_xy, pix_z;
     private final JDialog frame;
     private final JPanel panel;
@@ -243,10 +247,13 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
                 sz = 1000 * psf.axial_WFFM();
                 sx = 1000 * psf.lateral_WFFM();
             }
-
-            final TextField tx = (TextField) gd.getNumericFields().elementAt(3);// field x
-            final TextField tz = (TextField) gd.getNumericFields().elementAt(4);// filed z
-
+            // TODO: references for those fields should be passed from main window since 
+            //       changing GUI might invalidate indices used in elementAt
+            final TextField tx = (TextField) gd.getNumericFields().elementAt(4);// field sigma xy
+            final TextField tz = (TextField) gd.getNumericFields().elementAt(5);// filed sigma z
+            
+            logger.debug("Calculated sigmas xy / z: "+ (sx / pix_xy) + " / " + (sz / pix_z) + " with pixel size xy/z: " + pix_xy + " / " + pix_z);
+            
             tx.setText(String.format(Locale.US, "%.2f", sx / pix_xy));
             tz.setText(String.format(Locale.US, "%.2f", sz / pix_z));
 
