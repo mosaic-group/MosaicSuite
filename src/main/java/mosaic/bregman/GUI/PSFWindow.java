@@ -22,7 +22,6 @@ import javax.swing.SwingConstants;
 import org.apache.log4j.Logger;
 
 import ij.gui.GenericDialog;
-import mosaic.bregman.SquasshLauncher;
 
 
 class PSFWindow implements ActionListener, PropertyChangeListener {
@@ -261,10 +260,8 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
                     + String.format(Locale.US, "%.2f", sz) + " nm" + "<br>" + "(" + String.format(Locale.US, "%.3f", sx / pix_xy) + ", " + String.format(Locale.US, "%.3f", sz / pix_z) + " in pixels)"
                     + "</div>" + "</html>");
         }
-
-        if (source == micr) {
+        else if (source == micr) {
             final String selected = (String) micr.getSelectedItem();
-            // System.out.println("Selected: "+selected);
             if (selected == items[1]) {
                 // widefield
                 confocal = false;
