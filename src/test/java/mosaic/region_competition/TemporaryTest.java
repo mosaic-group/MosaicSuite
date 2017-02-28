@@ -1,7 +1,11 @@
 package mosaic.region_competition;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
@@ -166,4 +170,331 @@ public class TemporaryTest extends CommonBase {
         
         return new Plot("Probability distribution", "Values", "Prob", xv, yv);
     }
+    
+    public class Bin {
+        private final int iCapacity;
+        private int iSum = 0;
+        private List<Integer> iNumbers = new ArrayList<Integer>();
+        
+        Bin(int aCapacity) {iCapacity = aCapacity;}
+        
+        Bin add(int aElement) {
+            if (iSum + aElement <= iCapacity) {
+                iNumbers.add(aElement); 
+                iSum += aElement; 
+                return this;
+            }
+            throw new RuntimeException("Capacity! " + aElement);
+        }
+        List<Integer> getElements() { return iNumbers; }
+        int getCapacity() { return iCapacity; }
+        int getUsedCapacity() { return iSum; }
+        int getRemainingCapacity() { return iCapacity - iSum; }
+        
+        @Override
+        public String toString() { return "Bin: " + iNumbers; }
+    }
+    
+    List<Integer> getNumsFromBins(List<Bin> aBins) {
+        List<Integer> nums = new ArrayList<>();
+        for (Bin b : aBins) nums.addAll(b.getElements());
+        Collections.sort(nums);
+        Collections.reverse(nums);
+        return nums;
+    }
+    
+    public List<Bin> generateSolutions(int aBinCapacity, int maxVal, int aNumOfBins) {
+        final Random rnd = new Random();
+        List<Bin> bins = new ArrayList<>(aNumOfBins);
+        for (int b = 0; b < aNumOfBins; ++b) {
+            Bin bin = new Bin(aBinCapacity);
+            int sum = 0;
+            while (sum < aBinCapacity) {
+                int range = maxVal <= (aBinCapacity - sum) ? maxVal : aBinCapacity - sum;
+                int e = rnd.nextInt(range) + 1;
+                sum += e;
+                bin.add(e);
+            }
+            bins.add(bin);
+        }
+        return bins;
+    }
+
+    List<Bin> bestFitDecreasing(int aNumbers[], int aCapacity){
+        List<Bin> bins = new ArrayList<>();
+
+        for (int n : aNumbers) {
+            // Search bin with minimum remaining capacity but still able to hold new element
+            Bin bin = null;
+            int min = aCapacity;
+            for (Bin b : bins) {
+                int rc = b.getRemainingCapacity();
+                if (rc >= n && rc < min) {
+                    bin = b;
+                    min = rc;
+                    if (rc == n) break;
+                }
+            }
+            // If not proper bin found -> create new
+            if (bin == null) {
+                bin = new Bin(aCapacity);
+                bins.add(bin);
+            }
+            
+            bin.add(n);
+        }
+        return bins;
+    }
+    
+    @Test
+//    @Ignore
+    public void packStuff() {
+        int capa = 37;
+        int num = 7;
+        int iters = 1;
+//        List<List<Integer>> err = new ArrayList<>();
+        for (int it = 0; it < iters; ++it) {
+            List<Bin> bins = generateSolutions(capa, capa/3, num);
+            List<Integer> nums = getNumsFromBins(bins);
+            int a[] = new int[nums.size()];
+            int n = 0; for (int i : nums) a[n++] = i;
+//            a = new int [] {80, 15, 14, 5, 4, 1,};
+//            capa = 100;
+            List<Bin> result = bestFitDecreasing(a, capa);
+//            a = new int[] { 4, 4, 4, 3, 2, 2, 2, 1}; capa = 12;
+//            a = new int[] {3, 2, 1, 1, 1, 1, 1, 1}; capa = 9;
+//            a = new int[] {3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1}; capa = 9;
+            a = new int[] {3, 2, 2, 1, 1}; capa = 8;
+//            a = new int[] {3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; capa = 9;
+//            a = new int[] {5, 4, 3, 3, 3, 2}; capa = 14;
+            fitStuff(a, capa);
+            System.out.println("BINS: " + result.size() + " " + nums.size() + " EL: " + nums + " " + result);
+            //a = new int [] {100, 98, 96, 93, 91, 87, 81, 59, 58, 55, 50, 43, 22, 21, 20, 15, 14, 10, 8, 6, 5, 4, 3, 1, 0};
+            //capa = 100;
+            
+//            if (result.size() != num) {
+//                if (err.contains(nums)) continue;
+//                err.add(nums);
+//                System.out.println("ERRROR!!!!!!!!!");
+//                System.out.println(bins);
+//                System.out.println(nums);
+//                System.out.println("BINS: " + result.size() + " EL: " + a.length + " " + result);
+////                break;
+//            }
+        }
+    }
+    
+    List<Bin> fitStuff(int aNumbers[], int aCapacity){
+        List<Bin> bins = new ArrayList<>();
+
+        List<List<Integer>> sets = new ArrayList<>();
+        Set<List<Integer>> subsol = new HashSet<>();
+        
+//        findAll(aNumbers, 1, aNumbers.length - 1, aNumbers[0], aCapacity, "", sets, new ArrayList<>());
+//        System.out.println("SETS1: " + sets.size() + " " + sets);
+//        System.out.println();
+//        sets.clear();
+////        
+//        findMaxDescend(aNumbers, 1, aNumbers.length - 1, aNumbers[0], aCapacity, "", sets, new ArrayList<>());
+//        System.out.println("SETS2: " + sets.size() + " " + sets);
+//        System.out.println();
+//        sets.clear();
+        
+        findOpt(aNumbers, 1, aNumbers[0], aCapacity, "", sets, new ArrayList<>(), subsol);
+        System.out.println("SETS3: " + sets.size() + " " + sets);
+        System.out.println("SUBS:  " + subsol.size() + " " + subsol);
+        sets.clear();
+        subsol.clear();
+        System.out.println();
+        
+        find(aNumbers, 1, aNumbers[0], aCapacity, "", sets, new ArrayList<>(), subsol);
+        System.out.println("SETS4: " + sets.size() + " " + sets);
+        System.out.println("SUBS:  " +subsol.size() + " " + subsol);
+        System.out.println();
+        
+        
+        return bins;
+    }
+    
+    void findOpt(int aNumbers[], int idx, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol, Set<List<Integer>> subsol) {
+        List<Integer> letsRock = new ArrayList<Integer>();
+        int cnt = 1;
+        int prev = aNumbers[0];
+        for (int i = 1; i < aNumbers.length; ++i) {
+            if (aNumbers[i] == prev) {
+                ++cnt;
+            }
+            else {
+                letsRock.add(cnt);
+                letsRock.add(prev);
+                cnt = 1;
+                prev = aNumbers[i];
+            }
+        }
+        letsRock.add(cnt);
+        letsRock.add(prev);
+        
+        int nums[] = new int[letsRock.size()/2];
+        int cardinality[] = new int[letsRock.size()/2];
+        
+        for (int i = 0; i < letsRock.size()/2; ++i) {
+            cardinality[i] = letsRock.get(i*2);
+            nums[i] = letsRock.get(i*2 + 1);
+        }
+        
+        System.out.println(letsRock);
+        mosaic.utils.Debug.print(nums);
+        mosaic.utils.Debug.print(cardinality);
+        findOpt3(nums, cardinality, idx, sum, cap, str, sets, oneSol, subsol);
+    }
+    
+    void findOpt3(int aNumbers[], int aCard[], int idx, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol, Set<List<Integer>> subsol) {
+        boolean wentDeeper = false;
+        int myInd = 0;
+        for (int i = 0; i < aNumbers.length; ++i) {
+            if (str.equals("")) System.out.println("--- " + i + "/" + aNumbers.length);
+            int added = aCard[i];
+            for (int j = aCard[i]; j >= 0; --j) {
+                myInd++;
+                System.out.println(str + i + "   "+ added + " of " + aNumbers[i] + "  idx="+idx + "    " + myInd) ;
+                if (myInd <= idx) continue;
+                if (added * aNumbers[i] <= cap - sum) {
+                    wentDeeper = true;
+                    int nextIdx = 0; for (int k = 0; k <= i; ++k) nextIdx += aCard[k];
+                    for (int k = 0; k < added; ++k) oneSol.add(aNumbers[i]);
+                    findOpt3(aNumbers, aCard, nextIdx, sum + added * aNumbers[i], cap, str + "     ", sets, oneSol, subsol);
+                    for (int k = 0; k < added - 1; ++k) oneSol.remove(oneSol.size() - 1);
+                }
+                added--;
+            }
+        }
+        if (!wentDeeper) {
+//            System.out.println(oneSol);
+            if (!subsol.contains(oneSol)) { 
+                sets.add(new ArrayList<Integer>(oneSol));
+                for (int i = 0; i <= oneSol.size() - 1; ++i) {
+                    ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(i, oneSol.size()) );
+                    if (!subsol.add(sublist)) break;
+                }
+              for (int i = 0; i <= oneSol.size() - 1; ++i) {
+                  ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(0, i + 1) );
+                  subsol.add(sublist);
+//                  if (!subsol.add(sublist)) break;
+              }
+            }
+        }
+    }
+    
+    void findOpt2(int aNumbers[], int aCard[], int idx, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol, Set<List<Integer>> subsol) {
+        boolean wentDeeper = false;
+        int myInd = 0;
+        for (int i = 0; i < aNumbers.length; ++i) {
+            if (str.equals("")) System.out.println("--- " + i + "/" + aNumbers.length);
+            int added = 1;
+            for (int j = 0; j < aCard[i]; ++j) {
+                myInd++;
+//                System.out.println(str + i + "   "+ j + " of " + aNumbers[i] + "  idx="+idx + "    " + myInd) ;
+                if (myInd <= idx) continue;
+                if (added * aNumbers[i] <= cap - sum) {
+                    oneSol.add(aNumbers[i]);
+                    wentDeeper = true;
+                    int nextIdx = 0; for (int k = 0; k <= i; ++k) nextIdx += aCard[k];
+//                    System.out.println(nextIdx);
+                    findOpt2(aNumbers, aCard, nextIdx, sum + added * aNumbers[i], cap, str + "     ", sets, oneSol, subsol);
+                    added++;
+                }
+            }
+            for (int k = 0; k < added - 1; ++k) {oneSol.remove(oneSol.size() - 1);}
+        }
+        if (!wentDeeper) {
+            if (!subsol.contains(oneSol)) { 
+                sets.add(new ArrayList<Integer>(oneSol));
+                for (int i = 0; i <= oneSol.size() - 1; ++i) {
+                    ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(i, oneSol.size()) );
+                    if (!subsol.add(sublist)) break;
+                }
+              for (int i = 0; i <= oneSol.size() - 1; ++i) {
+                  ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(0, i + 1) );
+                  subsol.add(sublist);
+//                  if (!subsol.add(sublist)) break;
+              }
+            }
+        }
+    }
+    
+    void find(int aNumbers[], int idx, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol, Set<List<Integer>> subsol) {
+        boolean wentDeeper = false;
+        for (int i = idx; i < aNumbers.length; ++i) {
+            if (str.equals("")) System.out.println("--- " + i + "/" + aNumbers.length);
+            if (aNumbers[i] <= cap - sum) {
+                oneSol.add(aNumbers[i]);
+                wentDeeper = true;
+                find(aNumbers, i + 1, sum + aNumbers[i], cap, str + "     ", sets, oneSol, subsol);
+                oneSol.remove(oneSol.size() - 1);
+            }
+        }
+        if (!wentDeeper) {
+            if (!subsol.contains(oneSol)) {
+//                System.out.println(oneSol);
+                sets.add(new ArrayList<Integer>(oneSol));
+                for (int i = 0; i <= oneSol.size() - 1; ++i) {
+                    ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(i, oneSol.size()) );
+                    if (!subsol.add(sublist)) break;
+                }
+//                for (int i = 0; i <= oneSol.size() - 1; ++i) {
+//                    ArrayList<Integer> sublist = new ArrayList<>( oneSol.subList(0, i + 1) );
+//                    subsol.add(sublist);
+////                    if (!subsol.add(sublist)) break;
+//                }
+            }
+        }
+    }
+    
+    void findMaxDescend(int aNumbers[], int idx, int idx2, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol) {
+        boolean wentDeeper = false;
+        for (int i = idx; i <= idx2; ++i) {
+            if (aNumbers[i] <= cap - sum) {
+                oneSol.add(aNumbers[i]);
+                wentDeeper = true;
+                findMaxDescend(aNumbers, i + 1, idx2, sum + aNumbers[i], cap, str + "     ", sets, oneSol);
+                oneSol.remove(oneSol.size() - 1);
+            }
+        }
+        if (!wentDeeper) {
+            sets.add(new ArrayList<Integer>(oneSol));
+        }
+    }
+    
+    void findAll(int aNumbers[], int idx, int idx2, int sum, int cap, String str, List<List<Integer>> sets, List<Integer> oneSol) {
+        for (int i = idx; i <= idx2; ++i) {
+            if (aNumbers[i] <= cap - sum) {
+                oneSol.add(aNumbers[i]);
+                sets.add(new ArrayList<Integer>(oneSol));
+                findAll(aNumbers, i + 1, idx2, sum + aNumbers[i], cap, str + "     ", sets, oneSol);
+                oneSol.remove(oneSol.size() - 1);
+            }
+            else {
+            }
+        }
+    }
+
+// Recursive all solutions in python:
+//    
+//    boxSizes, itemSizes = [5, 3, 6], [1, 2, 2, 3, 5]
+//
+//            def recurse(boxes, itemIndex, solution, itemsUsed):
+//                global itemSizes
+//                if itemsUsed == len(itemSizes):
+//                    print solution
+//                    return
+//                for i in range(len(boxes)):
+//                    for j in range(itemIndex, len(itemSizes)):
+//                        if boxes[i] - itemSizes[j] >= 0:
+//                            boxes[i] -= itemSizes[j]
+//                            solution[i].append(itemSizes[j])
+//                            recurse(boxes, j + 1, solution, itemsUsed + 1)
+//                            solution[i].pop()
+//                            boxes[i] += itemSizes[j]
+//
+//            recurse(boxSizes, 0, [[] for i in range(len(boxSizes))], 0)
 }

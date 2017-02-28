@@ -30,9 +30,9 @@ import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
 
-public class Algorithm {
+public class AlgorithmRC {
 
-    private static final Logger logger = Logger.getLogger(Algorithm.class);
+    private static final Logger logger = Logger.getLogger(AlgorithmRC.class);
 
     // Input for Algorithm
     private final LabelImage iLabelImage;
@@ -91,7 +91,7 @@ public class Algorithm {
         }
     }
 
-    public Algorithm(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, Settings aSettings) {
+    public AlgorithmRC(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, Settings aSettings) {
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
         iImageModel = aModel;

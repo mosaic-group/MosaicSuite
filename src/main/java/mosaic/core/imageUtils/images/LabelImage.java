@@ -1,6 +1,7 @@
 package mosaic.core.imageUtils.images;
 
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -24,7 +25,7 @@ import mosaic.core.imageUtils.FloodFill;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.region_competition.utils.IntConverter;
+import mosaic.utils.ConvertArray;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.IntegerType;
@@ -36,7 +37,7 @@ import net.imglib2.type.numeric.IntegerType;
 public class LabelImage extends BaseImage
 {
     public static final int BGLabel = 0;
-    protected static final int ForbiddenLabel = Integer.MAX_VALUE;
+    private static final int ForbiddenLabel = Integer.MAX_VALUE;
     
     private int[] iDataLabel;
 
@@ -445,7 +446,7 @@ public class LabelImage extends BaseImage
      * LabelImage loaded from file
      */
     public void initWithImg(ImagePlus aImagePlus) {
-        iDataLabel = IntConverter.toIntArray(aImagePlus);
+        iDataLabel = toIntArray(aImagePlus);
         initBoundary();
     }
 
@@ -522,10 +523,90 @@ public class LabelImage extends BaseImage
     }
     
     /**
+     * @param aInputArr - input int[] array
+     * @param aUseAbsValue - Math.abs() the array
+     * @param aBorderRemove - Short.MAX_VALUE to Zero
+     * @param aClampValues- values > Short.MAX_VALUE to Short.MAX_VALUE (same for MIN_VALUE)
+     * @return short[] array with wanted operations executed
+     */
+    private static short[] intToShort(int[] aInputArr, boolean aUseAbsValue, boolean aBorderRemove, boolean aClampValues) {
+        final int len = aInputArr.length;
+        final short[] shorts = new short[len];
+
+        for (int i = 0; i < len; ++i) {
+            int val = aUseAbsValue ? Math.abs(aInputArr[i]) : aInputArr[i];
+            if (aClampValues) {
+                if (val > Short.MAX_VALUE) {
+                    val = Short.MAX_VALUE;
+                }
+                else if (val < Short.MIN_VALUE) {
+                    val = Short.MIN_VALUE;
+                }
+            }
+            if (aBorderRemove && val == Short.MAX_VALUE) val = 0;
+            shorts[i] = (short) val;
+        }
+
+        return shorts;
+    }
+    
+    /**
      * Converts LabelImage to a stack of ShortProcessors
      */
     public ImageStack getShortStack(boolean clean) {
-        return IntConverter.intArrayToShortStack(iDataLabel, getWidth(), getHeight(), getNumOfSlices(), clean);
+        int w = getWidth();
+        int h = getHeight();
+        final short shortData[] = intToShort(iDataLabel, clean, clean, clean);
+        final int area = w * h;
+        
+        final ImageStack stack = new ImageStack(w, h);
+        for (int i = 0; i < getNumOfSlices(); ++i) {
+            stack.addSlice("", Arrays.copyOfRange(shortData, i * area, (i + 1) * area));
+        }
+        
+        return stack;
+    }
+    
+    public static int[] toIntArray(ImagePlus imagePlus) {
+        final ImageStack stack = imagePlus.getStack();
+        final int imgArea = imagePlus.getWidth() * imagePlus.getHeight();
+        final int numOfSlices = stack.getSize();
+        
+        int[] result = new int[numOfSlices * imgArea];
+        for (int i = 0; i < numOfSlices; ++i) {
+            int[] intArray = getIntArray(stack.getProcessor(i + 1));
+            for (int j = 0; j < imgArea; ++j) {
+                result[i * imgArea + j] = intArray[j];
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Converts pixels from provided ImageProcessor to int[] array.
+     */
+    private static int[] getIntArray(ImageProcessor aImgProcessor) {
+        int[] intArray = null;
+        
+        final Object pixels = aImgProcessor.getPixels();
+        if (pixels instanceof int[]) {
+            intArray = ((int[]) pixels).clone();
+        }
+        else if (pixels instanceof float[]) {
+            intArray = ConvertArray.toInt((float[]) pixels);
+        }
+        else if (pixels instanceof byte[]) {
+            intArray = ConvertArray.toInt((byte[]) pixels);
+        }
+        else if (pixels instanceof short[]) {
+            intArray = ConvertArray.toInt((short[]) pixels);
+        }
+        else {
+            throw new RuntimeException("Not supported conversion");
+        }
+        
+        return intArray;
     }
 
     /**

@@ -1,8 +1,15 @@
 package mosaic.core.imageUtils.images;
 
 
+import java.util.Arrays;
+
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
+import ij.plugin.GroupedZProjector;
+import ij.plugin.ZProjector;
+import ij.process.FloatProcessor;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.utils.MosaicUtils;
 
@@ -123,5 +130,67 @@ public class IntensityImage extends BaseImage {
         if (dims.length > 2) dims[2] = aImage.getStackSize();
 
         return dims;
+    }
+    
+    /**
+     * Shows LabelImage
+     */
+    public ImagePlus show(String aTitle, int aMaxValue) {
+        final ImagePlus imp = convert(aTitle, aMaxValue);
+        imp.show();
+        return imp;
+    }
+    
+    /**
+     * Returns representation of LableImage as a ImagePlus. In case of 3D data all pixels are projected along z-axis to
+     * its maximum.
+     * @param aClean it true all values are: absolute, in +/- short range and Short.MAX_VALUE is set to 0
+     */
+    private ImagePlus getImagePlus() {
+        return new GroupedZProjector().groupZProject(new ImagePlus("Projection stack ", getFloatStack()), 
+                                                     ZProjector.MAX_METHOD, 
+                                                     getNumOfSlices());
+    }
+    
+    /**
+     * Converts LabelImage to ImagePlus (ShortProcessor)
+     */
+    public ImagePlus convert(String aTitle, int aMaxValue) {
+        final String title = "ResultWindow " + aTitle;
+        final ImagePlus imp;
+        
+        if (getNumOfDimensions() == 3) {
+            imp = new ImagePlus(title, getFloatStack());
+        }
+        else {
+            // convert it to absolute shorts
+            final float[] floatArr = (float[]) getImagePlus().getProcessor().getPixels();
+            for (int i = 0; i < floatArr.length; ++i) {
+                floatArr[i] = Math.abs(floatArr[i]);
+            }
+            
+            // Create ImagePlus with data
+            final FloatProcessor shortProc = new FloatProcessor(getWidth(), getHeight(), floatArr, null);
+            imp = new ImagePlus(WindowManager.getUniqueName(title), shortProc);
+            IJ.setMinAndMax(imp, 0, aMaxValue);
+            IJ.run(imp, "3-3-2 RGB", null);
+        }
+        return imp;
+    }
+    
+    /**
+     * Converts LabelImage to a stack of ShortProcessors
+     */
+    private ImageStack getFloatStack() {
+        int w = getWidth();
+        int h = getHeight();
+        final int area = w * h;
+        
+        final ImageStack stack = new ImageStack(w, h);
+        for (int i = 0; i < getNumOfSlices(); ++i) {
+            stack.addSlice("", Arrays.copyOfRange(iDataIntensity, i * area, (i + 1) * area));
+        }
+        
+        return stack;
     }
 }

@@ -4,7 +4,11 @@ import java.io.File;
 
 import org.junit.Test;
 
+import ij.ImagePlus;
+import ij.Macro;
+import ij.WindowManager;
 import ij.macro.Interpreter;
+import ij.plugin.filter.PlugInFilterRunner;
 import mosaic.test.framework.CommonBase;
 
 
@@ -206,6 +210,32 @@ public class Region_CompetitionTest extends CommonBase {
             String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
             compareCsvFiles(refFile, testFile);
         }
+    }
+    
+    // TODO: Temporary stuff for running in DRS mode.
+    // run("Region Competition", "inputimage=1thing.tif labelimage=[] keep_frames show_and_save_statistics segmentation=[Discrete Region Sampling]");
+    @Test
+    public void testTwoBarsDRS()  {
         
+        // Define test data
+        final String tcDirName           = "Region_Competition/fusionCheck/";
+        final String setupString         = "run";
+        final String macroOptions        = "show_and_save_statistics segmentation=[Discrete Region Sampling]";
+        final String inputFile           = "1thing.tif";
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        
+        tcPath = getTestDataPath() + tcDirName;
+        String aInputFile = inputFile;
+        copyTestResources(aInputFile, tcPath, tmpPath);
+        Thread.currentThread().setName("Run$_" + plugin.getClass().getSimpleName());
+        Macro.setOptions(Thread.currentThread(), macroOptions);
+        final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
+        WindowManager.setTempCurrentImage(ip);
+        new PlugInFilterRunner(plugin, "pluginTest", setupString);
+        
+        sleep(10000);
     }
 }

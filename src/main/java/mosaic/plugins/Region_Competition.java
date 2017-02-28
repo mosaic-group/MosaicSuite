@@ -17,11 +17,12 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GenericDialogGUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
-import mosaic.region_competition.RC.Algorithm;
+import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.RC.ClusterModeRC;
 import mosaic.region_competition.RC.Settings;
 import mosaic.region_competition.energies.E_CV;
@@ -65,6 +66,10 @@ public class Region_Competition implements PlugInFilter {
     public enum RegularizationType {
         Sphere_Regularization, Approximative, None,
     }
+    
+    public static enum SegmentationType {
+        RC, DRS
+    }
 
     // Output file names
     private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
@@ -75,6 +80,7 @@ public class Region_Competition implements PlugInFilter {
     private boolean normalize_ip = true;
     private boolean showGUI = true;
     private boolean useCluster = false;
+    private SegmentationType segmentationType = SegmentationType.RC;
     
     // Get some more settings and images from dialog
     private boolean showAndSaveStatistics; 
@@ -87,7 +93,6 @@ public class Region_Competition implements PlugInFilter {
     private ImagePlus inputLabelImageChosenByUser; 
     
     // Algorithm and its input stuff
-    protected Algorithm algorithm;
     private LabelImage labelImage;
     private IntensityImage intensityImage;
     private ImageModel imageModel;
@@ -120,12 +125,14 @@ public class Region_Competition implements PlugInFilter {
         inputImageChosenByUser = userDialog.getInputImage();
         if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
         useCluster = userDialog.useCluster();
+        segmentationType = userDialog.getSegmentationType();
         
         logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
         logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
         logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
                     ", showAllFrames: " + showAllFrames + 
                     ", useCluster: " + useCluster +
+                    ", segmentationType: " + segmentationType +
                     ", showGui: " + showGUI);
         logger.debug("Settings:\n" + Debug.getJsonString(settings));
         
@@ -153,14 +160,29 @@ public class Region_Competition implements PlugInFilter {
             // Finish - nothing to do more here...
             return;
         }
-        runRegionCompetion();
         
-        // ================= Save segmented image and statistics ==========
+        switch (segmentationType) {
+            case RC:
+                runRegionCompetion();
+                break;
+            case DRS:
+                runDiscreteRegionSampling();
+                break;
+            default:
+                new RuntimeException("Uknown SegmentationType: [" + segmentationType + "]");
+                break;
+        }
+        
+        // ================= Save segmented image =========================
         //
-        String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
+        saveSegmentedImage();
         
-        saveSegmentedImage(absoluteFileNameNoExt);
-        saveStatistics(absoluteFileNameNoExt);
+        final boolean headless_check = GraphicsEnvironment.isHeadless();
+        if (headless_check == false) {
+            final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
+            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
+            MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
+        }
     }
     
     /**
@@ -170,8 +192,9 @@ public class Region_Competition implements PlugInFilter {
         return new JsonDataFile<Settings>();
     }
 
-    private void saveStatistics(String absoluteFileNameNoExt) {
+    private void saveStatistics(AlgorithmRC algorithm) {
         if (showAndSaveStatistics) {
+            String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
             if (absoluteFileNameNoExt == null) {
                 logger.error("Cannot save segmentation statistics. Filename for saving not available!");
                 return;
@@ -185,17 +208,12 @@ public class Region_Competition implements PlugInFilter {
             if (showGUI) {
                 statisticsTable.show("statistics");
             }
-    
-            final boolean headless_check = GraphicsEnvironment.isHeadless();
-            if (headless_check == false) {
-                final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
-                final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
-                MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
-            }
         }
     }
 
-    private void saveSegmentedImage(String absoluteFileNameNoExt) {
+    private void saveSegmentedImage() {
+        String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
+        logger.debug("Absolute file name: " + absoluteFileNameNoExt);
         if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
                 outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
         }
@@ -385,7 +403,7 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings);
+        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, settings);
         
         boolean isDone = false;
         int iteration = 0;
@@ -410,6 +428,7 @@ public class Region_Competition implements PlugInFilter {
         labelImage.show("", algorithm.getBiggestLabel());
         
         iController.close();
+        saveStatistics(algorithm);
     }
 
     /**
@@ -419,5 +438,42 @@ public class Region_Competition implements PlugInFilter {
         labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
         labelImg.initBoundary();
         labelImg.connectedComponents();
+    }
+    
+    private void runDiscreteRegionSampling() {
+        initInputImage();
+        initLabelImage();
+        initEnergies();
+        initStack();
+        
+        Controller iController = new Controller(/* aShowWindow */ showGUI);
+
+        // Run segmentation
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, imageModel, new mosaic.region_competition.DRS.Settings());
+        
+        boolean isDone = false;
+        int iteration = 0;
+        while (iteration < settings.m_MaxNbIterations && !isDone) {
+            // Perform one iteration of RC
+            ++iteration;
+            IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
+            IJ.showProgress(iteration, settings.m_MaxNbIterations);
+            isDone = algorithm.performIteration();
+            
+            // Check if we should pause for a moment or if simulation is not aborted by user
+            // If aborted pretend that we have finished segmentation (isDone=true)
+            isDone = iController.hasAborted() ? true : isDone;
+
+            // Add slice with iteration output
+            stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
+        }
+        IJ.showProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+
+        // Do some post process stuff
+        stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
+        labelImage.show("LabelDRS", algorithm.getBiggestLabel());
+        intensityImage.show("IntenDRS", algorithm.getBiggestLabel());
+        
+        iController.close();
     }
 }

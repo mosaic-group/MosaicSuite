@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -43,9 +44,11 @@ import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
 import ij.io.FileInfo;
 import ij.io.Opener;
+import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
+import mosaic.plugins.Region_Competition.SegmentationType;
 import mosaic.region_competition.RC.Settings;
 
 /**
@@ -142,6 +145,9 @@ public class GenericDialogGUI  {
     private boolean keepAllFrames = true; // keep result of last segmentation iteratior?
     private boolean useCluster = false;
 
+    private String segmentationTypes[] = {"Region Competition", "Discrete Region Sampling"};
+    private SegmentationType iSegmentationType = SegmentationType.RC;
+    
     static final String TextDefaultInputImage = "Input Image: \n\n" + "Drop image here,\n" + "insert Path to file,\n" + "or press Button below";
     static final String TextDefaultLabelImage = "Drop Label Image here, or insert Path to file";
 
@@ -233,6 +239,9 @@ public class GenericDialogGUI  {
 
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 
+        
+        gd.addRadioButtonGroup("Segmentation Type: ", segmentationTypes, 1, segmentationTypes.length, segmentationTypes[0]);
+        
         gd.addCheckbox("Process on computer cluster", false);
 
         final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "J. Cardinale, G. Paul, and I. F. Sbalzarini. Discrete region competition<br>"
@@ -547,6 +556,8 @@ public class GenericDialogGUI  {
         showNormalized = gd.getNextBoolean();
         showAndSaveStatistics = gd.getNextBoolean();
 
+        iSegmentationType = Region_Competition.SegmentationType.values()[Arrays.asList(segmentationTypes).indexOf(gd.getNextRadioButton())];
+        
         useCluster = gd.getNextBoolean();
         
         return true;
@@ -569,6 +580,10 @@ public class GenericDialogGUI  {
 
     public boolean showAllFrames() {
         return this.keepAllFrames;
+    }
+    
+    public SegmentationType getSegmentationType() {
+        return iSegmentationType;
     }
 
     public boolean showAndSaveStatistics() {
