@@ -236,6 +236,6 @@ public class Region_CompetitionTest extends CommonBase {
         WindowManager.setTempCurrentImage(ip);
         new PlugInFilterRunner(plugin, "pluginTest", setupString);
         
-        sleep(10000);
+        sleep(15000);
     }
 }

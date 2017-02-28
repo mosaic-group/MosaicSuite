@@ -14,19 +14,22 @@ public class AlgorithmDRS {
     // Input for Algorithm
     private final LabelImage iLabelImage;
     private final IntensityImage iIntensityImage;
+    private final IntensityImage iEdgeImage;
     private final ImageModel iImageModel;
     private final Settings iSettings;
 
-    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, Settings aSettings) {
+    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, Settings aSettings) {
         logger.debug("DRS algorithm created");
         
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
+        iEdgeImage = aEdgeImage;
         iImageModel = aModel;
         iSettings = aSettings;
         
         logger.debug(mosaic.utils.Debug.getString(iIntensityImage.getDimensions()));
         logger.debug(mosaic.utils.Debug.getString(iLabelImage.getDimensions()));
+        logger.debug(mosaic.utils.Debug.getString(iEdgeImage.getDimensions()));
         logger.debug(mosaic.utils.Debug.getString(iImageModel.toString()));
         logger.debug(mosaic.utils.Debug.getString(iSettings.toString()));
         
@@ -39,6 +42,8 @@ public class AlgorithmDRS {
 
     public boolean performIteration() {
         boolean convergence = true;
+        
+        // TODO: real job strats here
         
         return convergence;
     }

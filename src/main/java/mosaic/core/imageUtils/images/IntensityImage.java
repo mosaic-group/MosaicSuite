@@ -144,8 +144,7 @@ public class IntensityImage extends BaseImage {
     /**
      * Returns representation of LableImage as a ImagePlus. In case of 3D data all pixels are projected along z-axis to
      * its maximum.
-     * @param aClean it true all values are: absolute, in +/- short range and Short.MAX_VALUE is set to 0
-     */
+      */
     private ImagePlus getImagePlus() {
         return new GroupedZProjector().groupZProject(new ImagePlus("Projection stack ", getFloatStack()), 
                                                      ZProjector.MAX_METHOD, 
@@ -163,17 +162,13 @@ public class IntensityImage extends BaseImage {
             imp = new ImagePlus(title, getFloatStack());
         }
         else {
-            // convert it to absolute shorts
             final float[] floatArr = (float[]) getImagePlus().getProcessor().getPixels();
-            for (int i = 0; i < floatArr.length; ++i) {
-                floatArr[i] = Math.abs(floatArr[i]);
-            }
             
             // Create ImagePlus with data
             final FloatProcessor shortProc = new FloatProcessor(getWidth(), getHeight(), floatArr, null);
             imp = new ImagePlus(WindowManager.getUniqueName(title), shortProc);
             IJ.setMinAndMax(imp, 0, aMaxValue);
-            IJ.run(imp, "3-3-2 RGB", null);
+            IJ.run(imp, "Grays", null);
         }
         return imp;
     }

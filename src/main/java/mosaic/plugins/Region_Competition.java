@@ -13,11 +13,13 @@ import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.DRS.AlgorithmDRS;
+import mosaic.region_competition.DRS.SobelVolume;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GenericDialogGUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
@@ -445,11 +447,12 @@ public class Region_Competition implements PlugInFilter {
         initLabelImage();
         initEnergies();
         initStack();
+        IntensityImage edgeImage = initEdgeImage();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, imageModel, new mosaic.region_competition.DRS.Settings());
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, new mosaic.region_competition.DRS.Settings());
         
         boolean isDone = false;
         int iteration = 0;
@@ -471,9 +474,27 @@ public class Region_Competition implements PlugInFilter {
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
+        iController.close();
+        
         labelImage.show("LabelDRS", algorithm.getBiggestLabel());
         intensityImage.show("IntenDRS", algorithm.getBiggestLabel());
+        edgeImage.show("EdgeDRS", 1);
         
-        iController.close();
+    }
+
+    private IntensityImage initEdgeImage() {
+        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().convertToFloat());
+        SobelVolume sobelVolume = new SobelVolume(sobelInput);
+        if (inputImageChosenByUser.getNSlices() == 1) { 
+            sobelVolume.sobel2D();
+        }
+        else {
+            sobelVolume.sobel3D();
+        }
+        ImagePlus sobelIp = new ImagePlus("XXXX", sobelVolume.getImageStack());
+        StackStatistics ss = new StackStatistics(sobelIp);
+        sobelIp.setDisplayRange(ss.min,  ss.max);  
+        
+        return new IntensityImage(sobelIp);
     }
 }

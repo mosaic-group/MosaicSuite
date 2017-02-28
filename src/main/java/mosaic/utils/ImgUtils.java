@@ -430,7 +430,7 @@ public class ImgUtils {
     /**
      * @return created ImagePlus from provided image containing only specified frame and channel
      */
-    public static ImagePlus extractImage(ImagePlus aImage, final int aFrame, final int aChannel, boolean aMakeCopy) {
+    public static ImagePlus extractFrameAsImage(ImagePlus aImage, final int aFrame, final int aChannel, boolean aMakeCopy) {
         int ni = aImage.getWidth();
         int nj = aImage.getHeight();
         int nz = aImage.getNSlices();

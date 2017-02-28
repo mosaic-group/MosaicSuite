@@ -316,7 +316,7 @@ public class SquasshLauncher {
     private void segmentFrame(ImagePlus aImage, int aCurrentFrame, String aTitle) {
         for (int channel = 0; channel < iNumOfChannels; channel++) {
             logger.debug("------------------- Segmentation of [" + aTitle + "] channel: " + channel + ", frame: " + aCurrentFrame);
-            iInputImages[channel] =  ImgUtils.extractImage(aImage, aCurrentFrame, channel + 1 /* 1-based */, true /* make copy */);
+            iInputImages[channel] =  ImgUtils.extractFrameAsImage(aImage, aCurrentFrame, channel + 1 /* 1-based */, true /* make copy */);
             iNormalizedImages[channel] = ImgUtils.ImgToZXYarray(iInputImages[channel]);
             ArrayOps.normalize(iNormalizedImages[channel]);
             
