@@ -60,7 +60,7 @@ public class TopologicalNumber {
     private void getSubImage(Point aMiddlePoint) {
         for (int i = 0; i < iUnitCubeSize; ++i) {
             int label = iLabelImage.getLabelAbs(aMiddlePoint.add(iPointOffsets[i]));
-            if (iLabelImage.isForbiddenLabel(label)) {
+            if (iLabelImage.isBorderLabel(label)) {
                 label = ValueForForbiddenPoints;
             }
             iSubImage[i] = label;

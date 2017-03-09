@@ -1038,34 +1038,32 @@ public class MosaicUtils {
 
     /**
      * Calculate the sum of all pixels
-     *
-     * @param ip
+     * @param aImage
      * @return
      */
-    public static <T extends RealType<T>> double volume_image(Img<T> ip) {
-        double Vol = 0.0f;
-        final Cursor<T> cur = ip.cursor();
+    public static <T extends RealType<T>> double volume_image(Img<T> aImage) {
+        final Cursor<T> cursor = aImage.cursor();
+        double sum = 0.0;
 
-        while (cur.hasNext()) {
-            cur.fwd();
-            Vol += cur.get().getRealDouble();
+        while (cursor.hasNext()) {
+            cursor.fwd();
+            sum += cursor.get().getRealDouble();
         }
 
-        return Vol;
+        return sum;
     }
 
     /**
-     * It rescale all the pixels of a factor r
-     *
-     * @param image_psf Image
-     * @param r factor to rescale
+     * It rescales all the pixels of image by factor aScaleFactor
+     * @param aImage Image
+     * @param aScaleFactor factor to rescale
      */
-    public static <T extends RealType<T>> void rescale_image(Img<T> image_psf, float r) {
-        final Cursor<T> cur = image_psf.cursor();
+    public static <T extends RealType<T>> void rescale_image(Img<T> aImage, float aScaleFactor) {
+        final Cursor<T> cursor = aImage.cursor();
 
-        while (cur.hasNext()) {
-            cur.fwd();
-            cur.get().setReal(cur.get().getRealFloat() * r);
+        while (cursor.hasNext()) {
+            cursor.fwd();
+            cursor.get().setReal(cursor.get().getRealFloat() * aScaleFactor);
         }
     }
     

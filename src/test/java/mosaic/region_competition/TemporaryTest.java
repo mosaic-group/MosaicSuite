@@ -18,6 +18,8 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.Plot;
 import ij.process.StackStatistics;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.DRS.Rng;
 import mosaic.region_competition.DRS.SobelImg;
 import mosaic.region_competition.DRS.SobelVolume;
@@ -477,7 +479,29 @@ public class TemporaryTest extends CommonBase {
             }
         }
     }
-
+    
+    @Test
+    public void testLabelImg() {
+        String fileName1 = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/3balls3d.tif";
+        ImagePlus img = IJ.openImage(fileName1);
+        LabelImage li1 = new LabelImage(img);
+        li1.connectedComponents();
+        ImagePlus show = li1.show("LI1"); show.setSlice(9);
+        
+        mosaic.utils.Debug.print(show.getDisplayRangeMin(), show.getDisplayRangeMax(), show.getDisplayMode());
+        
+        IJ.run(show, "Set... ", "zoom=300");
+        show.setSlice(8);
+        String fileName2 = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/3objects.tif";
+        fileName2 = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/BikesgraySobel.tif";
+        img = IJ.openImage(fileName2);
+        IntensityImage li2 = new IntensityImage(img);
+        li2.show("LI2");
+        
+        
+        sleep(13000);
+    }
+    
 // Recursive all solutions in python:
 //    
 //    boxSizes, itemSizes = [5, 3, 6], [1, 2, 2, 3, 5]

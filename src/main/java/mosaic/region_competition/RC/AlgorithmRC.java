@@ -101,7 +101,7 @@ public class AlgorithmRC {
         iTopologicalNumber = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
-        iLabelImage.initBoundary();
+        iLabelImage.initBorder();
         List<Point> contourPoints = iLabelImage.initContour();
         initContourContainer(contourPoints);
 
@@ -131,7 +131,7 @@ public class AlgorithmRC {
         for (int i = 0; i < iLabelImage.getSize(); i++) {
             final int absLabel = iLabelImage.getLabelAbs(i);
 
-            if (!iLabelImage.isForbiddenLabel(absLabel)) {
+            if (!iLabelImage.isBorderLabel(absLabel)) {
                 if (maxUsedLabel < absLabel) maxUsedLabel = absLabel;
 
                 LabelStatistics stats = iLabelStatistics.get(absLabel);
@@ -218,8 +218,8 @@ public class AlgorithmRC {
                 }
             }
             else {
-                // There should be statistics for all labels excluding only forbidden label.
-                if (!iLabelImage.isForbiddenLabel(label)) {
+                // There should be statistics for all labels excluding only forbidden border label.
+                if (!iLabelImage.isBorderLabel(label)) {
                     logger.error("Cound not find label statistics for label: " + label + " at: " + point);
                 }
             }
@@ -653,8 +653,8 @@ public class AlgorithmRC {
 
             for (final Integer neighbor : iLabelImage.iterateNeighbours(propagatingPoint)) {
                 final int labelOfDefender = iLabelImage.getLabelAbs(neighbor);
-                if (iLabelImage.isForbiddenLabel(labelOfDefender) || labelOfDefender == propagatingRegionLabel) {
-                    // Skip forbidden and same region labels
+                if (iLabelImage.isBorderLabel(labelOfDefender) || labelOfDefender == propagatingRegionLabel) {
+                    // Skip forbidden border and same region labels
                     continue;
                 }
                 final Point neighbourPoint = iLabelImage.indexToPoint(neighbor);

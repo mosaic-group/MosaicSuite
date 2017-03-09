@@ -1,12 +1,14 @@
 package mosaic.core.imageUtils.images;
 
+import ij.IJ;
+import ij.ImagePlus;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 /**
  * Base image class containing universal dimension-base calculations and methods.
  */
-public class BaseImage {
+abstract public class BaseImage {
     
     protected SpaceIterator iIterator;
     
@@ -100,6 +102,50 @@ public class BaseImage {
     public Point indexToPoint(int aIndex) {
         return iIterator.indexToPoint(aIndex);
     }
+    
+    /**
+     * Gets dimensions from input image 
+     * @param aImage input image
+     * @return dimensions (width, height, numOfSlices)
+     */
+    protected static int[] getDimensions(ImagePlus aImage) {
+        final int[] dims = new int[aImage.getNDimensions()];
+
+        // width, height, nChannels, nSlices, nFrames
+        final int[] imageDimensions = aImage.getDimensions();
+        
+        dims[0] = imageDimensions[0];
+        dims[1] = imageDimensions[1];
+        // No matter what is a configuration of 3rd dim - get just stack size
+        if (dims.length > 2) dims[2] = aImage.getStackSize();
+
+        return dims;
+    }
+    
+    /**
+     * Save the LabelImage as tiff
+     * @param aFileName where to save (full or relative path)
+     */
+    public void save(String aFileName) {
+        final ImagePlus ip = convertToImg("ResultWindow_save");
+        IJ.save(ip, aFileName);
+        ip.close();
+    }
+
+    /**
+     * Shows LabelImage
+     */
+    public ImagePlus show(String aTitle) {
+        final ImagePlus imp = convertToImg(aTitle);
+        imp.show();
+        return imp;
+    }
+    
+    /**
+     * Converts LabelImage to ImagePlus (ShortProcessor)
+     * @param aTitle - title of created image
+     */
+    abstract public ImagePlus convertToImg(String aTitle);
     
     @Override
     public String toString() {

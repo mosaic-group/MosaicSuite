@@ -2,6 +2,7 @@ package mosaic.plugins;
 
 import java.io.File;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import ij.ImagePlus;
@@ -215,6 +216,7 @@ public class Region_CompetitionTest extends CommonBase {
     // TODO: Temporary stuff for running in DRS mode.
     // run("Region Competition", "inputimage=1thing.tif labelimage=[] keep_frames show_and_save_statistics segmentation=[Discrete Region Sampling]");
     @Test
+    @Ignore
     public void testTwoBarsDRS()  {
         
         // Define test data

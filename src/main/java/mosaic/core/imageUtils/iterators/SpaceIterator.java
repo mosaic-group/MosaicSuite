@@ -179,4 +179,13 @@ public class SpaceIterator {
             }
         };
     }
+    
+    @Override
+    public String toString() {
+        String str = "[";
+        for (int d = 0; d < iNumOfDimensions - 1; ++d) str += iDimensions[d] + ", ";
+        str += iDimensions[iNumOfDimensions - 1] + "]";
+        str += " size="+iSize;
+        return str;
+    }
 }

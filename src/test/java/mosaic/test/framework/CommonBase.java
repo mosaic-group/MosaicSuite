@@ -298,7 +298,7 @@ public class CommonBase extends Info {
                             errorMsg += ",";
                         }
                     }
-                    errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
+                    errorMsg += "] Values (orig vs. test): [" + t1 + "] vs. [" + t2 + "]";
                     logger.error(errorMsg);
                 }
             }

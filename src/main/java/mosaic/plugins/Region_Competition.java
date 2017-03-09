@@ -130,6 +130,7 @@ public class Region_Competition implements PlugInFilter {
         segmentationType = userDialog.getSegmentationType();
         
         logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
         logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
         logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
                     ", showAllFrames: " + showAllFrames + 
@@ -359,7 +360,7 @@ public class Region_Competition implements PlugInFilter {
             case File: {
                 if (inputLabelImageChosenByUser != null) {
                     labelImage.initWithImg(inputLabelImageChosenByUser);
-                    labelImage.initBoundary();
+                    labelImage.initBorder();
                     labelImage.connectedComponents();
                 }
                 else {
@@ -382,7 +383,7 @@ public class Region_Competition implements PlugInFilter {
         final int width = dims[0];
         final int height = dims[1];
         
-        ImageStack initialStack = labelImage.getShortStack(true); 
+        ImageStack initialStack = labelImage.getShortStack(true, true, true); 
         stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
       
         // first stack image without boundary&contours
@@ -392,7 +393,7 @@ public class Region_Competition implements PlugInFilter {
         }
         
         // Generate contours and add second image to stack
-        labelImage.initBoundary();
+        labelImage.initBorder();
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
 
@@ -427,7 +428,7 @@ public class Region_Competition implements PlugInFilter {
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
-        labelImage.show("", algorithm.getBiggestLabel());
+        labelImage.show("LabelRC");
         
         iController.close();
         saveStatistics(algorithm);
@@ -438,7 +439,7 @@ public class Region_Competition implements PlugInFilter {
      */
     private void initializeRoi(final LabelImage labelImg) {
         labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
-        labelImg.initBoundary();
+        labelImg.initBorder();
         labelImg.connectedComponents();
     }
     
@@ -476,9 +477,9 @@ public class Region_Competition implements PlugInFilter {
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         iController.close();
         
-        labelImage.show("LabelDRS", algorithm.getBiggestLabel());
-        intensityImage.show("IntenDRS", algorithm.getBiggestLabel());
-        edgeImage.show("EdgeDRS", 1);
+        labelImage.show("LabelDRS");
+        intensityImage.show("IntenDRS");
+        edgeImage.show("EdgeDRS");
         
     }
 

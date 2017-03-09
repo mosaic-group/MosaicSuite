@@ -3,13 +3,9 @@ package mosaic.core.imageUtils.images;
 
 import java.util.Arrays;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.WindowManager;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.ZProjector;
-import ij.process.FloatProcessor;
+import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.utils.MosaicUtils;
 
@@ -60,7 +56,7 @@ public class IntensityImage extends BaseImage {
     /**
      * @return original ImagePlus from which intensity data were taken
      */
-    public ImagePlus getImageIP() {
+    public ImagePlus getImage() {
         return iInputImg;
     }
 
@@ -112,64 +108,17 @@ public class IntensityImage extends BaseImage {
             }
         }
     }
-
-    /**
-     * Gets dimensions from input image 
-     * @param aImage input image
-     * @return dimensions (width, height, numOfSlices)
-     */
-    private static int[] getDimensions(ImagePlus aImage) {
-        final int[] dims = new int[aImage.getNDimensions()];
-
-        // width, height, nChannels, nSlices, nFrames
-        final int[] imageDimensions = aImage.getDimensions();
-        
-        dims[0] = imageDimensions[0];
-        dims[1] = imageDimensions[1];
-        // No matter what is a configuration of 3rd dim - get just stack size
-        if (dims.length > 2) dims[2] = aImage.getStackSize();
-
-        return dims;
-    }
     
     /**
-     * Shows LabelImage
+     * Converts LabelImage to ImagePlus (FloatProcessor)
      */
-    public ImagePlus show(String aTitle, int aMaxValue) {
-        final ImagePlus imp = convert(aTitle, aMaxValue);
-        imp.show();
-        return imp;
-    }
-    
-    /**
-     * Returns representation of LableImage as a ImagePlus. In case of 3D data all pixels are projected along z-axis to
-     * its maximum.
-      */
-    private ImagePlus getImagePlus() {
-        return new GroupedZProjector().groupZProject(new ImagePlus("Projection stack ", getFloatStack()), 
-                                                     ZProjector.MAX_METHOD, 
-                                                     getNumOfSlices());
-    }
-    
-    /**
-     * Converts LabelImage to ImagePlus (ShortProcessor)
-     */
-    public ImagePlus convert(String aTitle, int aMaxValue) {
-        final String title = "ResultWindow " + aTitle;
+    @Override
+    public ImagePlus convertToImg(String aTitle) {
+        final String title = aTitle;
         final ImagePlus imp;
-        
-        if (getNumOfDimensions() == 3) {
-            imp = new ImagePlus(title, getFloatStack());
-        }
-        else {
-            final float[] floatArr = (float[]) getImagePlus().getProcessor().getPixels();
-            
-            // Create ImagePlus with data
-            final FloatProcessor shortProc = new FloatProcessor(getWidth(), getHeight(), floatArr, null);
-            imp = new ImagePlus(WindowManager.getUniqueName(title), shortProc);
-            IJ.setMinAndMax(imp, 0, aMaxValue);
-            IJ.run(imp, "Grays", null);
-        }
+        imp = new ImagePlus(title, getFloatStack());
+        StackStatistics stackStats = new StackStatistics(imp);
+        imp.setDisplayRange(stackStats.min, stackStats.max);
         return imp;
     }
     

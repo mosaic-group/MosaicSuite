@@ -290,7 +290,6 @@ public class GeneratePSF {
      *
      * @return An image representing the PSF
      */
-
     public Img<FloatType> generate(int dim) {
         settings.clist = psfList.psfList[0];
         settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_settings.dat", PSFSettings.class, settings);
@@ -326,9 +325,7 @@ public class GeneratePSF {
         else {
             gd.addChoice("PSF: ", psfList.psfList, settings.clist);
         }
-
         gd.showDialog();
-
         // if Batch system
 
         final String choice = gd.getNextChoice();
@@ -345,7 +342,6 @@ public class GeneratePSF {
         }
 
         // get the dimension
-
         sz = psfc.getSuggestedImageSize();
         if (sz == null) {
             return null;
@@ -365,15 +361,12 @@ public class GeneratePSF {
             psfc.setCenter(mid);
         }
 
-        //
-
         final int loc[] = new int[sz.length];
 
         // Create an imglib2
 
         final ImgFactory<FloatType> imgFactory = new ArrayImgFactory<FloatType>();
         final Img<FloatType> PSFimg = imgFactory.create(sz, new FloatType());
-
         final Cursor<FloatType> cft = PSFimg.cursor();
 
         while (cft.hasNext()) {

@@ -8,17 +8,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.log4j.Logger;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.WindowManager;
 import ij.gui.Roi;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.ZProjector;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
+import ij.process.StackStatistics;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.imageUtils.Connectivity;
 import mosaic.core.imageUtils.FloodFill;
@@ -36,8 +34,10 @@ import net.imglib2.type.numeric.IntegerType;
  */
 public class LabelImage extends BaseImage
 {
+    private static final Logger logger = Logger.getLogger(LabelImage.class);
+    
     public static final int BGLabel = 0;
-    private static final int ForbiddenLabel = Integer.MAX_VALUE;
+    private static final int BorderLabel = Integer.MAX_VALUE;
     
     private int[] iDataLabel;
 
@@ -98,6 +98,31 @@ public class LabelImage extends BaseImage
         initDataLabel(img);
     }
 
+    /**
+     * Initialize an intensity image from an Image Plus and normalize
+     *
+     * @param aInputImg
+     */
+    public LabelImage(ImagePlus aInputImg) {
+        this(aInputImg, true);
+    }
+
+    /**
+     * Initialize an intensity image from an Image Plus
+     * choosing is normalizing or not
+     *
+     * @param aInputImg ImagePlus
+     * @param aShouldNormalize true normalize false don' t
+     */
+    public LabelImage(ImagePlus aInputImg, boolean aShouldNormalize) {
+        super(getDimensions(aInputImg), /* max num of dimensions */ 3);
+        initConnectivities();
+        if (aShouldNormalize == true) {
+            aInputImg = MosaicUtils.normalizeAllSlices(aInputImg);
+        }
+        initWithImg(aInputImg);
+    }
+    
     /**
      * LabelImage loaded from an imgLib2 image
      */
@@ -208,10 +233,17 @@ public class LabelImage extends BaseImage
     }
     
     /**
+     * Returns internal data structure keeping labels
+     */
+    public int[] getDataLabel() {
+        return iDataLabel;
+    }
+
+    /**
      * Is aLabel forbidden?
      */
-    public boolean isForbiddenLabel(int aLabel) {
-        return (aLabel == ForbiddenLabel);
+    public boolean isBorderLabel(int aLabel) {
+        return (aLabel == BorderLabel);
     }
     
     /**
@@ -228,7 +260,7 @@ public class LabelImage extends BaseImage
      * @return true if label is Special (background, forbidden)
      */
     public boolean isSpecialLabel(int aLabel) {
-        if (aLabel == BGLabel || aLabel == ForbiddenLabel) {
+        if (aLabel == BGLabel || aLabel == BorderLabel) {
             return true;
         }
         return false;
@@ -350,14 +382,14 @@ public class LabelImage extends BaseImage
     /**
      * sets the outermost pixels of the LabelImage to the forbidden label
      */
-    public void initBoundary() {
+    public void initBorder() {
         for (final int idx : iIterator.getIndexIterable()) {
             final Point p = indexToPoint(idx);
             final int xs[] = p.iCoords;
             for (int d = 0; d < getNumOfDimensions(); d++) {
                 final int x = xs[d];
                 if (x == 0 || x == getDimension(d) - 1) {
-                    setLabel(idx, ForbiddenLabel);
+                    setLabel(idx, BorderLabel);
                     break;
                 }
             }
@@ -446,80 +478,49 @@ public class LabelImage extends BaseImage
      * LabelImage loaded from file
      */
     public void initWithImg(ImagePlus aImagePlus) {
-        iDataLabel = toIntArray(aImagePlus);
-        initBoundary();
-    }
-
-    /**
-     * Save the LabelImage as tiff
-     * @param aFileName where to save (full or relative path)
-     */
-    public void save(String aFileName) {
-        final ImagePlus ip = convert("save", 256);
-        IJ.save(ip, aFileName);
-        ip.close();
-    }
-
-    /**
-     * Shows LabelImage
-     */
-    public ImagePlus show(String aTitle, int aMaxValue) {
-        final ImagePlus imp = convert(aTitle, aMaxValue);
-        imp.show();
-        return imp;
-    }
-    
-    /**
-     * Converts LabelImage to ImagePlus (ShortProcessor)
-     */
-    public ImagePlus convert(String aTitle, int aMaxValue) {
-        final String title = "ResultWindow " + aTitle;
-        final ImagePlus imp;
-        
-        if (getNumOfDimensions() == 3) {
-            imp = new ImagePlus(title, getShortStack(true));
-        }
-        else {
-            // convert it to absolute shorts
-            final short[] shorts = (short[]) getImagePlus(false).getProcessor().getPixels();
-            for (int i = 0; i < shorts.length; i++) {
-                shorts[i] = (short) Math.abs(shorts[i]);
-            }
-            
-            // Create ImagePlus with data
-            final ShortProcessor shortProc = new ShortProcessor(getWidth(), getHeight(), shorts, null);
-            imp = new ImagePlus(WindowManager.getUniqueName(title), shortProc);
-            IJ.setMinAndMax(imp, 0, aMaxValue);
-            IJ.run(imp, "3-3-2 RGB", null);
-        }
-        return imp;
+        iDataLabel = imgToIntArray(aImagePlus);
     }
 
     /**
      * Add labels (=1) to LabelImage where in aRoi regions.
-     * TODO: Should be done in nicer way...
+     * Works only for 2D and in case of 3D just do nothing.
      */
     public void initLabelsWithRoi(Roi aRoi) {
-        ImageProcessor ip = null;
-        if (getNumOfDimensions() == 3) {
-            ip = getImagePlus(true).getProcessor();
+        if (getNumOfDimensions() == 2) {
+            ImageProcessor ip = new ColorProcessor(getWidth(), getHeight(), iDataLabel);
+            ip.setValue(1);
+            ip.fill(aRoi);
         }
-        else {
-            ip = new ColorProcessor(getWidth(), getHeight(), iDataLabel);
-        }
-        ip.setValue(1);
-        ip.fill(aRoi);
+    }
+    
+    /**
+     * Converts LabelImage to ImagePlus (ShortProcessor)
+     * @param aTitle - title of created image
+     */
+    @Override
+    public ImagePlus convertToImg(String aTitle) {
+        final ImagePlus imp = new ImagePlus(aTitle, getShortStack(true, true, true));
+        StackStatistics stackStats = new StackStatistics(imp);
+        imp.setDisplayRange(stackStats.min, stackStats.max);
+        IJ.run(imp, "3-3-2 RGB", null);
+        return imp;
     }
 
     /**
-     * Returns representation of LableImage as a ImagePlus. In case of 3D data all pixels are projected along z-axis to
-     * its maximum.
-     * @param aClean it true all values are: absolute, in +/- short range and Short.MAX_VALUE is set to 0
+     * Converts LabelImage to a stack of ShortProcessors
      */
-    private ImagePlus getImagePlus(boolean aClean) {
-        return new GroupedZProjector().groupZProject(new ImagePlus("Projection stack ", getShortStack(aClean)), 
-                                                     ZProjector.MAX_METHOD, 
-                                                     getNumOfSlices());
+    public ImageStack getShortStack(boolean aUseAbsValue, boolean aBorderRemove, boolean aClampValues) {
+        final short shortData[] = intToShort(iDataLabel, aUseAbsValue, aBorderRemove, aClampValues);
+        int w = getWidth();
+        int h = getHeight();
+        final int area = w * h;
+        
+        final ImageStack stack = new ImageStack(w, h);
+        for (int i = 0; i < getNumOfSlices(); ++i) {
+            stack.addSlice("", Arrays.copyOfRange(shortData, i * area, (i + 1) * area));
+        } 
+        
+        return stack;
     }
     
     /**
@@ -532,44 +533,40 @@ public class LabelImage extends BaseImage
     private static short[] intToShort(int[] aInputArr, boolean aUseAbsValue, boolean aBorderRemove, boolean aClampValues) {
         final int len = aInputArr.length;
         final short[] shorts = new short[len];
-
+        boolean foundFirstErrorMax = false;
+        boolean foundFirstErrorMin = false;
+        
         for (int i = 0; i < len; ++i) {
-            int val = aUseAbsValue ? Math.abs(aInputArr[i]) : aInputArr[i];
+            int val = aInputArr[i];
+            if (aBorderRemove && val == BorderLabel) val = BGLabel;
             if (aClampValues) {
                 if (val > Short.MAX_VALUE) {
                     val = Short.MAX_VALUE;
+                    if (!foundFirstErrorMax) {
+                        foundFirstErrorMax = true;
+                        logger.error("Found value=" + val + "at idx=" + i + " which is too big for short type!");
+                    }
                 }
                 else if (val < Short.MIN_VALUE) {
+                    if (!foundFirstErrorMin) {
+                        foundFirstErrorMin = true;
+                        logger.error("Found value=" + val + "at idx=" + i + " which is too small for short type!");
+                    }                    
                     val = Short.MIN_VALUE;
                 }
             }
-            if (aBorderRemove && val == Short.MAX_VALUE) val = 0;
-            shorts[i] = (short) val;
+            shorts[i] = aUseAbsValue ? (short) Math.abs((short) val) : (short) val;
         }
 
         return shorts;
     }
     
     /**
-     * Converts LabelImage to a stack of ShortProcessors
+     * Converts aImagePlus to int array with all slices
      */
-    public ImageStack getShortStack(boolean clean) {
-        int w = getWidth();
-        int h = getHeight();
-        final short shortData[] = intToShort(iDataLabel, clean, clean, clean);
-        final int area = w * h;
-        
-        final ImageStack stack = new ImageStack(w, h);
-        for (int i = 0; i < getNumOfSlices(); ++i) {
-            stack.addSlice("", Arrays.copyOfRange(shortData, i * area, (i + 1) * area));
-        }
-        
-        return stack;
-    }
-    
-    public static int[] toIntArray(ImagePlus imagePlus) {
-        final ImageStack stack = imagePlus.getStack();
-        final int imgArea = imagePlus.getWidth() * imagePlus.getHeight();
+    private static int[] imgToIntArray(ImagePlus aImagePlus) {
+        final ImageStack stack = aImagePlus.getStack();
+        final int imgArea = aImagePlus.getWidth() * aImagePlus.getHeight();
         final int numOfSlices = stack.getSize();
         
         int[] result = new int[numOfSlices * imgArea];
@@ -607,12 +604,5 @@ public class LabelImage extends BaseImage
         }
         
         return intArray;
-    }
-
-    /**
-     * Returns internal data structure keeping labels
-     */
-    public int[] getDataLabel() {
-        return iDataLabel;
     }
 }

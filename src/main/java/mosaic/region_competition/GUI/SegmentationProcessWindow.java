@@ -60,7 +60,7 @@ public class SegmentationProcessWindow {
         
         final int dim = aLabelImage.getNumOfDimensions();
         if (dim <= 3) {
-            addSliceToHyperstack(aTitle, aLabelImage.getShortStack(false));
+            addSliceToHyperstack(aTitle, aLabelImage.getShortStack(false, false, false));
         }
         else {
             throw new RuntimeException("Unsupported dimensions: " + dim);

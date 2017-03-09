@@ -111,7 +111,7 @@ public class MaximaBubbles extends Initializer {
      * one. Smoothing by gaussian blur with sigma.
      */
     private void smoothIntensityImage() {
-        ImagePlus imp = new Duplicator().run(iIntensityImage.getImageIP());
+        ImagePlus imp = new Duplicator().run(iIntensityImage.getImage());
         IJ.run(imp, "Gaussian Blur...", "sigma=" + iSigma + " stack");
         iIntensityImage = new IntensityImage(imp);
     }

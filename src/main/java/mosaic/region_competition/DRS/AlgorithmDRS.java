@@ -34,7 +34,7 @@ public class AlgorithmDRS {
         logger.debug(mosaic.utils.Debug.getString(iSettings.toString()));
         
         // Initialize label image
-        iLabelImage.initBoundary();
+        iLabelImage.initBorder();
         iLabelImage.initContour();
         
         
