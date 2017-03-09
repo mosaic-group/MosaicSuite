@@ -481,6 +481,7 @@ public class TemporaryTest extends CommonBase {
     }
     
     @Test
+    @Ignore
     public void testLabelImg() {
         String fileName1 = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/3balls3d.tif";
         ImagePlus img = IJ.openImage(fileName1);
