@@ -614,20 +614,8 @@ public class ImgUtils {
      * @return pad ImageProcessor of same type as input.
      */
     public static ImageProcessor cropImageProcessor(ImageProcessor aIp, int aCropSize) {
-        final int width = aIp.getWidth();
-        final int height = aIp.getHeight();
-        final int newWidth = width - 2 * aCropSize;
-        final int newHeight = height - 2 * aCropSize;
-        
-        final ImageProcessor cropIp = aIp.createProcessor(newWidth, newHeight);
-        
-        for (int x = 0; x < newWidth; ++x) {
-            for (int y = 0; y < newHeight; ++y) {
-                cropIp.set(x, y, aIp.get(x + aCropSize, y + aCropSize));
-            }
-        }
-
-        return cropIp;
+        aIp.setRoi(aCropSize, aCropSize, aIp.getWidth() - 2 * aCropSize, aIp.getHeight() - 2 * aCropSize);
+        return aIp.crop();
     }
 }
 
