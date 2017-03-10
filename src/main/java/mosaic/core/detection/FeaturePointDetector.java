@@ -15,6 +15,7 @@ import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import mosaic.core.utils.DilateImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.ImgUtils;
 
 
 /**
@@ -421,7 +422,7 @@ public class FeaturePointDetector {
         }
         else {
             // we're in 2D mode
-            final ImageProcessor rp = MosaicUtils.padImageStack2D(is.getProcessor(1), iRadius);
+            final ImageProcessor rp = ImgUtils.padImageProcessor(is.getProcessor(1), iRadius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
@@ -439,7 +440,7 @@ public class FeaturePointDetector {
         }
         else {
             // 2D crop
-            final ImageProcessor rp = MosaicUtils.cropImageStack2D(restored.getProcessor(1), iRadius);
+            final ImageProcessor rp = ImgUtils.cropImageProcessor(restored.getProcessor(1), iRadius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }

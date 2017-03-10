@@ -368,22 +368,6 @@ public class MosaicUtils {
         return output.split(" ");
     }
 
-    public static ImageProcessor cropImageStack2D(ImageProcessor ip, int cropsize) {
-        final int width = ip.getWidth();
-        final int newWidth = width - 2 * cropsize;
-        final FloatProcessor cropped_proc = new FloatProcessor(ip.getWidth() - 2 * cropsize, ip.getHeight() - 2 * cropsize);
-        final float[] croppedpx = (float[]) cropped_proc.getPixels();
-        final float[] origpx = (float[]) ip.getPixels();
-        final int offset = cropsize * width + cropsize;
-        for (int i = offset, j = 0; j < croppedpx.length; i++, j++) {
-            croppedpx[j] = origpx[i];
-            if (j % newWidth == newWidth - 1) {
-                i += 2 * cropsize;
-            }
-        }
-        return cropped_proc;
-    }
-
     /**
      * crops a 3D image at all of sides of the imagestack cube.
      *
@@ -394,69 +378,9 @@ public class MosaicUtils {
     public static ImageStack cropImageStack3D(ImageStack is, int cropSize) {
         final ImageStack cropped_is = new ImageStack(is.getWidth() - 2 * cropSize, is.getHeight() - 2 * cropSize);
         for (int s = cropSize + 1; s <= is.getSize() - cropSize; s++) {
-            cropped_is.addSlice("", MosaicUtils.cropImageStack2D(is.getProcessor(s), cropSize));
+            cropped_is.addSlice("", ImgUtils.cropImageProcessor(is.getProcessor(s), cropSize));
         }
         return cropped_is;
-    }
-
-    public static ImageProcessor padImageStack2D(ImageProcessor ip, int padSize) {
-        final int width = ip.getWidth();
-        final int newWidth = width + 2 * padSize;
-        final FloatProcessor padded_proc = new FloatProcessor(ip.getWidth() + 2 * padSize, ip.getHeight() + 2 * padSize);
-        final float[] paddedpx = (float[]) padded_proc.getPixels();
-        final float[] origpx = (float[]) ip.getPixels();
-        // first r pixel lines
-        for (int i = 0; i < padSize * newWidth; i++) {
-            if (i % newWidth < padSize) { // right corner
-                paddedpx[i] = origpx[0];
-                continue;
-            }
-            if (i % newWidth >= padSize + width) {
-                paddedpx[i] = origpx[width - 1]; // left corner
-                continue;
-            }
-            paddedpx[i] = origpx[i % newWidth - padSize];
-        }
-
-        // the original pixel lines and left & right edges
-        for (int i = 0, j = padSize * newWidth; i < origpx.length; i++, j++) {
-            final int xcoord = i % width;
-            if (xcoord == 0) {// add r pixel rows (left)
-                for (int a = 0; a < padSize; a++) {
-                    paddedpx[j] = origpx[i];
-                    j++;
-                }
-            }
-            paddedpx[j] = origpx[i];
-            if (xcoord == width - 1) {// add r pixel rows (right)
-                for (int a = 0; a < padSize; a++) {
-                    j++;
-                    paddedpx[j] = origpx[i];
-                }
-            }
-        }
-
-        // last r pixel lines
-        final int lastlineoffset = origpx.length - width;
-        for (int j = (padSize + ip.getHeight()) * newWidth, i = 0; j < paddedpx.length; j++, i++) {
-            if (i % width == 0) { // left corner
-                for (int a = 0; a < padSize; a++) {
-                    paddedpx[j] = origpx[lastlineoffset];
-                    j++;
-                }
-                // continue;
-            }
-            if (i % width == width - 1) {
-                for (int a = 0; a < padSize; a++) {
-                    paddedpx[j] = origpx[lastlineoffset + width - 1]; // right
-                    // corner
-                    j++;
-                }
-                // continue;
-            }
-            paddedpx[j] = origpx[lastlineoffset + i % width];
-        }
-        return padded_proc;
     }
 
     /**
@@ -471,7 +395,7 @@ public class MosaicUtils {
     public static ImageStack padImageStack3D(ImageStack is, int padSize) {
         final ImageStack padded_is = new ImageStack(is.getWidth() + 2 * padSize, is.getHeight() + 2 * padSize);
         for (int s = 0; s < is.getSize(); s++) {
-            final ImageProcessor padded_proc = MosaicUtils.padImageStack2D(is.getProcessor(s + 1), padSize);
+            final ImageProcessor padded_proc = ImgUtils.padImageProcessor(is.getProcessor(s + 1), padSize);
             // if we are on the top or bottom of the stack, add r slices
             if (s == 0 || s == is.getSize() - 1) {
                 for (int i = 0; i < padSize; i++) {

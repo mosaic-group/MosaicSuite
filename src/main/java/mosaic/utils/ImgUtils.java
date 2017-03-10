@@ -576,5 +576,58 @@ public class ImgUtils {
         ImgUtils.ImgToYX2Darray(fp, img, 1.0);
         return new Matrix(img);
     }
+    
+    
+    /**
+     * Pads (extends) input image processor in each direction by aPadSize pixels. Values of those pixels 
+     * are the closes pixels in original image. 
+     * @param aIp
+     * @param aPadSize
+     * @return pad ImageProcessor of same type as input.
+     */
+    public static ImageProcessor padImageProcessor(ImageProcessor aIp, int aPadSize) {
+        final int width = aIp.getWidth();
+        final int height = aIp.getHeight();
+        final int newWidth = width + 2 * aPadSize;
+        final int newHeight = height + 2 * aPadSize;
+        
+        final ImageProcessor paddedIp = aIp.createProcessor(newWidth, newHeight);
+        
+        for (int x = 0; x < newWidth; ++x) {
+            for (int y = 0; y < newHeight; ++y) {
+                int xc = x - aPadSize;
+                int yc = y - aPadSize;
+                if (xc < 0) xc = 0; if (xc >= width) xc = width - 1;
+                if (yc < 0) yc = 0; if (yc >= height) yc = height - 1;
+                
+                paddedIp.set(x, y, aIp.get(xc, yc));
+            }
+        }
+
+        return paddedIp;
+    }
+
+    /**
+     * Crops (shrinks) input image processor by aCropSize pixels from each side of image. 
+     * @param aIp
+     * @param aCropSize
+     * @return pad ImageProcessor of same type as input.
+     */
+    public static ImageProcessor cropImageProcessor(ImageProcessor aIp, int aCropSize) {
+        final int width = aIp.getWidth();
+        final int height = aIp.getHeight();
+        final int newWidth = width - 2 * aCropSize;
+        final int newHeight = height - 2 * aCropSize;
+        
+        final ImageProcessor cropIp = aIp.createProcessor(newWidth, newHeight);
+        
+        for (int x = 0; x < newWidth; ++x) {
+            for (int y = 0; y < newHeight; ++y) {
+                cropIp.set(x, y, aIp.get(x + aCropSize, y + aCropSize));
+            }
+        }
+
+        return cropIp;
+    }
 }
 
