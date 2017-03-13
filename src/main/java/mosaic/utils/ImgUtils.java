@@ -617,5 +617,98 @@ public class ImgUtils {
         aIp.setRoi(aCropSize, aCropSize, aIp.getWidth() - 2 * aCropSize, aIp.getHeight() - 2 * aCropSize);
         return aIp.crop();
     }
+    
+    /**
+     * Pads (extends) input image stack in each direction by aPadSize pixels. Values of those pixels 
+     * are the closes pixels in original image. 
+     * @param aImageStack
+     * @param aPadSize
+     * @return pad ImageStack of same type as input.
+     */
+    public static ImageStack padImageStack3D(ImageStack aImageStack, int aPadSize) {
+        int width = aImageStack.getWidth();
+        int height = aImageStack.getHeight();
+        int depth = aImageStack.getSize();
+        int newWidth = width + 2 * aPadSize;
+        int newHeight = height + 2 * aPadSize;
+        
+        final ImageStack paddedIs = new ImageStack(newWidth, newHeight);
+        
+        for (int z = 0; z < aPadSize; ++z) {
+            paddedIs.addSlice(ImgUtils.padImageProcessor(aImageStack.getProcessor(1), aPadSize));
+        }
+        for (int z = 1; z <= depth; ++z) {
+            paddedIs.addSlice(ImgUtils.padImageProcessor(aImageStack.getProcessor(z), aPadSize));
+        }
+        for (int z = 0; z < aPadSize; ++z) {
+            paddedIs.addSlice(ImgUtils.padImageProcessor(aImageStack.getProcessor(depth), aPadSize));
+        }
+        
+        return paddedIs;
+    }
+    
+    /**
+     * Crops (shrinks) input ImageStack by aCropSize pixels from each side of image. 
+     * @param aImageStack
+     * @param aCropSize
+     * @return pad ImageStack of same type as input.
+     */
+    public static ImageStack cropImageStack3D(ImageStack aImageStack, int aCropSize) {
+        int width = aImageStack.getWidth();
+        int height = aImageStack.getHeight();
+        int depth = aImageStack.getSize();
+        int newWidth = width - 2 * aCropSize;
+        int newHeight = height - 2 * aCropSize;
+        int newDepth = depth - 2 * aCropSize;
+        
+        return aImageStack.crop(aCropSize, aCropSize, aCropSize, newWidth, newHeight, newDepth);
+    }
+    
+    /**
+     * Pads (extends) input image stack in x/y direction by aPadSize pixels. Values of those pixels 
+     * are the closes pixels in original image. 
+     * @param aImageStack
+     * @param aPadSize
+     * @return pad ImageStack of same type as input.
+     */
+    public static ImageStack padImageStack2D(ImageStack aImageStack, int aPadSize) {
+        int width = aImageStack.getWidth();
+        int height = aImageStack.getHeight();
+        int depth = aImageStack.getSize();
+        int newWidth = width + 2 * aPadSize;
+        int newHeight = height + 2 * aPadSize;
+        
+        final ImageStack paddedIs = new ImageStack(newWidth, newHeight);
+        
+        for (int z = 1; z <= depth; ++z) {
+            paddedIs.addSlice(ImgUtils.padImageProcessor(aImageStack.getProcessor(z), aPadSize));
+        }
+        
+        return paddedIs;
+    }
+    
+    /**
+     * Crops (shrinks) input ImageStack by aCropSize pixels from x/y sides of image. 
+     * @param aImageStack
+     * @param aCropSize
+     * @return pad ImageStack of same type as input.
+     */
+    public static ImageStack cropImageStack2D(ImageStack aImageStack, int aCropSize) {
+        int width = aImageStack.getWidth();
+        int height = aImageStack.getHeight();
+        int depth = aImageStack.getSize();
+        int newWidth = width - 2 * aCropSize;
+        int newHeight = height - 2 * aCropSize;
+        
+        return aImageStack.crop(aCropSize, aCropSize, 0, newWidth, newHeight, depth);
+    }
+    
+    public static ImageStack pad(ImageStack aImageStack, int aPadSize, boolean aIs3D) {
+        return aIs3D ? padImageStack3D(aImageStack, aPadSize) : padImageStack2D(aImageStack, aPadSize);
+    }
+    
+    public static ImageStack crop(ImageStack aImageStack, int aPadSize, boolean aIs3D) {
+        return aIs3D ? cropImageStack3D(aImageStack, aPadSize) : cropImageStack2D(aImageStack, aPadSize);
+    }
 }
 

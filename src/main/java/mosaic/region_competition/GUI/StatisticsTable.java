@@ -12,12 +12,15 @@ import mosaic.region_competition.RC.LabelStatistics;
  */
 public class StatisticsTable {
 
+    private final int iPadSize;
     private final ResultsTable iResultsTable;
     
     /**
      * @param aLabelInfos container with all LabelInformation objects to be shown or/and save in file
+     * @param aPadSize pad size used during segmentation - objects coordinates should be corrected with this value
      */
-    public StatisticsTable(Collection<LabelStatistics> aLabelInfos) {
+    public StatisticsTable(Collection<LabelStatistics> aLabelInfos, int aPadSize) {
+        iPadSize = aPadSize;
         iResultsTable = createStatistics(aLabelInfos);
     }
     
@@ -59,10 +62,10 @@ public class StatisticsTable {
             rt.addValue("size", info.count);
             rt.addValue("mean", info.mean);
             rt.addValue("variance", info.var);
-            rt.addValue("Coord_X", info.mean_pos[0]);
-            rt.addValue("Coord_Y", info.mean_pos[1]);
+            rt.addValue("Coord_X", info.mean_pos[0] - iPadSize);
+            rt.addValue("Coord_Y", info.mean_pos[1] - iPadSize);
             if (info.mean_pos.length > 2) {
-                rt.addValue("Coord_Z", info.mean_pos[2]);
+                rt.addValue("Coord_Z", info.mean_pos[2] - iPadSize);
             }
             else {
                 rt.addValue("Coord_Z", 0.0);

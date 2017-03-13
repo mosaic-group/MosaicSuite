@@ -92,7 +92,8 @@ public class Region_Competition implements PlugInFilter {
     private Calibration inputImageCalibration;
     private ImagePlus originalInputImage;
     private ImagePlus inputImageChosenByUser;
-    private ImagePlus inputLabelImageChosenByUser; 
+    private ImagePlus inputLabelImageChosenByUser;
+    private int iPadSize = 1;
     
     // Algorithm and its input stuff
     private LabelImage labelImage;
@@ -205,7 +206,7 @@ public class Region_Competition implements PlugInFilter {
             String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
     
             algorithm.calculateRegionsCenterOfMass();
-            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values());
+            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
             logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
             statisticsTable.save(absoluteFileName);
             if (showGUI) {
@@ -222,7 +223,9 @@ public class Region_Competition implements PlugInFilter {
         }
         if (outputSegmentedImageLabelFilename != null) { 
             logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
-            labelImage.save(outputSegmentedImageLabelFilename);
+            ImagePlus outImg = labelImage.convertToImg("ResultWindow");
+            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
+            IJ.save(outImg, outputSegmentedImageLabelFilename);
         }
         else {
             logger.error("Cannot save segmentation result. Filename for saving not available!");
@@ -322,7 +325,13 @@ public class Region_Competition implements PlugInFilter {
     private void initInputImage() {
         // We should have a image or...
         if (inputImageChosenByUser != null) {
-            intensityImage = new IntensityImage(inputImageChosenByUser, normalize_ip);
+            ImagePlus workImg = inputImageChosenByUser;
+            if (segmentationType == SegmentationType.RC) {
+                ImageStack padedIs = ImgUtils.pad(inputImageChosenByUser.getStack(), iPadSize, inputImageChosenByUser.getNDimensions() > 2);
+                workImg = inputImageChosenByUser.duplicate();
+                workImg.setStack(padedIs);
+            }
+            intensityImage = new IntensityImage(workImg, normalize_ip);
             inputImageChosenByUser.show();
         }
         else {
@@ -359,7 +368,13 @@ public class Region_Competition implements PlugInFilter {
             }
             case File: {
                 if (inputLabelImageChosenByUser != null) {
-                    labelImage.initWithImg(inputLabelImageChosenByUser);
+                    ImagePlus labelImg = inputLabelImageChosenByUser;
+                    if (segmentationType == SegmentationType.RC) {
+                        ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
+                        labelImg = inputLabelImageChosenByUser.duplicate();
+                        labelImg.setStack(padedIs);
+                    }
+                    labelImage.initWithImg(labelImg);
                     labelImage.initBorder();
                     labelImage.connectedComponents();
                 }
@@ -428,7 +443,9 @@ public class Region_Competition implements PlugInFilter {
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
-        labelImage.show("LabelRC");
+        
+        ImagePlus show = labelImage.show("LabelRC");
+        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
         
         iController.close();
         saveStatistics(algorithm);
