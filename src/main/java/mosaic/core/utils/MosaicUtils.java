@@ -135,7 +135,7 @@ public class MosaicUtils {
         // Get the min and max
         T min = crs.get().createVariable();
         T max = crs.get().createVariable();
-        MosaicUtils.getMinMax(crs, min, max);
+        getMinMax(crs, min, max);
 
         // get conversion;
         conv.setMinMax(min.getRealDouble(), max.getRealDouble());
@@ -167,7 +167,7 @@ public class MosaicUtils {
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
         final String Folder = ImgUtils.getImageDirectory(aImp);
-        final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+        final Segmentation[] sg = getSegmentationPluginsClasses();
 
         // Get infos from possible segmentation
         for (int i = 0; i < sg.length; i++) {
@@ -186,7 +186,7 @@ public class MosaicUtils {
 
             // check if the jobID and filename match
             for (int k = 0; k < jb.length; k++) {
-                final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+                final String[] fl = readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     if (plugin == null) {
@@ -208,7 +208,7 @@ public class MosaicUtils {
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
         final String Folder = ImgUtils.getImageDirectory(aImp);
-        final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+        final Segmentation[] sg = getSegmentationPluginsClasses();
         final SegmentationInfo sI = new SegmentationInfo();
 
         // Get infos from possible segmentation
@@ -230,7 +230,7 @@ public class MosaicUtils {
 
             for (int k = 0; k < jb.length; k++) {
                 // check if the jobID and filename match
-                final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+                final String[] fl = readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     // Get the region list
@@ -753,28 +753,20 @@ public class MosaicUtils {
      */
     static public void StitchCSV(String aBaseDir, String[] output, String aBackgroundValue) {
         CsvMetaInfo mt[] = (aBackgroundValue != null) ? new CsvMetaInfo[] {new CsvMetaInfo("background", aBackgroundValue)} : null;
-        final String[] outcsv = MosaicUtils.getCSV(output);
+        final String[] outcsv = getCSV(output);
         Stitch(outcsv, new File(aBaseDir), new File(aBaseDir + File.separator + "stitch"), mt, Region3DColocRScript.class);
     }
 
     /**
      * Stitch the CSV in the Jobs directory
-     *
      * @param fl directory where search for JobsXXX directory to stitch the csv
      * @param output string array that list all the outputs produced by the plugin
      * @param background Set the backgrond param string
-     * @return true if it stitch all the file success
      */
-    static public boolean StitchJobsCSV(String fl, String[] output, String bck) {
-        // get the job directories
-        final String[] JobDir = ClusterSession.getJobDirectories(0, fl);
-
-        // for all job dir stitch
-        for (int i = 0; i < JobDir.length; i++) {
-            StitchCSV(JobDir[i], output, bck);
+    static public void StitchJobsCSV(String fl, String[] output, String bck) {
+        for (String jobDir : ClusterSession.getJobDirectories(0, fl)) {
+            StitchCSV(jobDir, output, bck);
         }
-
-        return true;
     }
 
     /**
@@ -783,9 +775,9 @@ public class MosaicUtils {
      * @return
      */
     public static <T extends RealType<T>> double volume_image(Img<T> aImage) {
-        final Cursor<T> cursor = aImage.cursor();
         double sum = 0.0;
 
+        final Cursor<T> cursor = aImage.cursor();
         while (cursor.hasNext()) {
             cursor.fwd();
             sum += cursor.get().getRealDouble();

@@ -631,7 +631,7 @@ public class ImgUtils {
         int depth = aImageStack.getSize();
         int newWidth = width + 2 * aPadSize;
         int newHeight = height + 2 * aPadSize;
-        
+        mosaic.utils.Debug.print(width, height, depth, newWidth, newHeight);
         final ImageStack paddedIs = new ImageStack(newWidth, newHeight);
         
         for (int z = 0; z < aPadSize; ++z) {
