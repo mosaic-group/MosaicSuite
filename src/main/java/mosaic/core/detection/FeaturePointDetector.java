@@ -14,7 +14,6 @@ import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import mosaic.core.utils.DilateImage;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ImgUtils;
 
 
@@ -418,7 +417,7 @@ public class FeaturePointDetector {
         // pad the imagestack
         if (is.getSize() > 1) {
             // 3D mode
-            restored = MosaicUtils.padImageStack3D(is, iRadius);
+            restored = ImgUtils.padImageStack3D(is, iRadius);
         }
         else {
             // we're in 2D mode
@@ -436,7 +435,7 @@ public class FeaturePointDetector {
 
         if (is.getSize() > 1) {
             // again, 3D crop
-            restored = MosaicUtils.cropImageStack3D(restored, iRadius);
+            restored = ImgUtils.cropImageStack3D(restored, iRadius);
         }
         else {
             // 2D crop

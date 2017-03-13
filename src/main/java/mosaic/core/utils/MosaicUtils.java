@@ -1,7 +1,6 @@
 package mosaic.core.utils;
 
 
-import java.awt.Choice;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,11 +16,8 @@ import java.util.regex.Pattern;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
+import ij.process.StackStatistics;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
@@ -100,19 +96,13 @@ class ARGBToARGB implements ToARGB {
 }
 
 public class MosaicUtils {
-    public class SegmentationInfo {
-
+    static public class SegmentationInfo {
         public File RegionList;
-        public File RegionMask;
     }
-
-    /////////////////////////////////// Procedures for draw //////////////////
 
     ////// Conversion to ARGB from different Type ////////////////////////////
     public interface ToARGB {
-
         void setMinMax(double min, double max);
-
         ARGBType toARGB(Object data);
     }
 
@@ -156,31 +146,23 @@ public class MosaicUtils {
     /**
      * Filter out from Possible candidate file the one chosen by the user If
      * only one file present nothing appear
-     *
      * @param PossibleFile Vector of possible File
      * @return Chosen file
      */
     static private File filter_possible(Vector<File> PossibleFile) {
-        if (PossibleFile == null) {
+        if (PossibleFile == null || PossibleFile.size() == 0) {
             return null;
         }
 
-        if (PossibleFile.size() > 1) {
-            // Ask user to choose
-
-            final ChooseGUI cg = new ChooseGUI();
-
-            return cg.chooseFile("Choose segmentation", "Found multiple segmentations", PossibleFile);
-        }
         if (PossibleFile.size() == 1) {
             return PossibleFile.get(0);
         }
-        return null;
+        // Ask user to choose
+        return new ChooseGUI().chooseFile("Choose segmentation", "Found multiple segmentations", PossibleFile);
     }
 
     /**
      * Check if there are segmentation information for the image
-     *
      * @param Image
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
@@ -188,7 +170,6 @@ public class MosaicUtils {
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         // Get infos from possible segmentation
-
         for (int i = 0; i < sg.length; i++) {
             final String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
@@ -199,18 +180,12 @@ public class MosaicUtils {
                 }
             }
 
-            // Check if there are Jobs directory
-            // if there are open a job selector
+            // Check if there are Jobs directory if there are open a job selector
             // and search inside the selected directory
-            //
-
             final String[] jb = ClusterSession.getJobDirectories(0, Folder);
 
             // check if the jobID and filename match
-
             for (int k = 0; k < jb.length; k++) {
-                // Filename
-
                 final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
@@ -229,20 +204,15 @@ public class MosaicUtils {
 
     /**
      * Get if there are segmentation information for the image
-     *
      * @param Image
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
         final String Folder = ImgUtils.getImageDirectory(aImp);
         final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
-
-        final Vector<File> PossibleFile = new Vector<File>();
-
-        final MosaicUtils MS = new MosaicUtils();
-        final SegmentationInfo sI = MS.new SegmentationInfo();
+        final SegmentationInfo sI = new SegmentationInfo();
 
         // Get infos from possible segmentation
-
+        final Vector<File> PossibleFile = new Vector<File>();
         for (int i = 0; i < sg.length; i++) {
             String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
@@ -256,17 +226,14 @@ public class MosaicUtils {
             // Check if there are Jobs directory
             // if there are open a job selector
             // and search inside the selected directory
-
             final String[] jb = ClusterSession.getJobDirectories(0, Folder);
 
             for (int k = 0; k < jb.length; k++) {
                 // check if the jobID and filename match
-
                 final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     // Get the region list
-
                     sR = sg[i].getRegionList(aImp);
                     for (int j = 0; j < sR.length; j++) {
                         final File fR = new File(jb[k] + File.separator + sR[j]);
@@ -283,36 +250,17 @@ public class MosaicUtils {
             if (sI.RegionList == null) {
                 return null;
             }
-
-            PossibleFile.clear();
-
-            final String dir = sI.RegionList.getParent();
-
-            final String sM[] = sg[i].getMask(aImp);
-            for (int j = 0; j < sM.length; j++) {
-                final File fM = new File(dir + File.separator + sM[j]);
-
-                if (fM.exists()) {
-                    PossibleFile.add(fM);
-                }
-            }
-
-            sI.RegionMask = filter_possible(PossibleFile);
         }
-
+        
         return sI;
     }
 
     /**
      * Get segmentation classes
-     *
      * @return an array of the classes
      */
     static private Segmentation[] getSegmentationPluginsClasses() {
-        final Segmentation[] sg = new Segmentation[1];
-        sg[0] = new BregmanGLM_Batch();
-
-        return sg;
+        return new Segmentation[] {new BregmanGLM_Batch()};
     }
 
     /**
@@ -368,46 +316,6 @@ public class MosaicUtils {
         return output.split(" ");
     }
 
-    /**
-     * crops a 3D image at all of sides of the imagestack cube.
-     *
-     * @param is a frame to crop
-     * @see pad ImageStack3D
-     * @return the cropped image
-     */
-    public static ImageStack cropImageStack3D(ImageStack is, int cropSize) {
-        final ImageStack cropped_is = new ImageStack(is.getWidth() - 2 * cropSize, is.getHeight() - 2 * cropSize);
-        for (int s = cropSize + 1; s <= is.getSize() - cropSize; s++) {
-            cropped_is.addSlice("", ImgUtils.cropImageProcessor(is.getProcessor(s), cropSize));
-        }
-        return cropped_is;
-    }
-
-    /**
-     * Before convolution, the image is padded such that no artifacts occure at
-     * the edge of an image.
-     *
-     * @param is a frame (not a movie!)
-     * @see cropImageStack3D(ImageStack)
-     * @return the padded imagestack to (w+2*r, h+2r, s+2r) by copying the last
-     *         pixel row/line/slice
-     */
-    public static ImageStack padImageStack3D(ImageStack is, int padSize) {
-        final ImageStack padded_is = new ImageStack(is.getWidth() + 2 * padSize, is.getHeight() + 2 * padSize);
-        for (int s = 0; s < is.getSize(); s++) {
-            final ImageProcessor padded_proc = ImgUtils.padImageProcessor(is.getProcessor(s + 1), padSize);
-            // if we are on the top or bottom of the stack, add r slices
-            if (s == 0 || s == is.getSize() - 1) {
-                for (int i = 0; i < padSize; i++) {
-                    padded_is.addSlice("", padded_proc);
-                }
-            }
-            padded_is.addSlice("", padded_proc);
-        }
-
-        return padded_is;
-    }
-
     public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos) {
         final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
         if (startPos > endPos || startPos < 0 || endPos < 0) {
@@ -454,7 +362,6 @@ public class MosaicUtils {
             IJ.error("" + e);
             return false;
         }
-
     }
 
     /**
@@ -469,11 +376,7 @@ public class MosaicUtils {
         // Check that the image are != null and the images has a difference
         // in dimensionality of one
 
-        if (A == null || B == null) {
-            return false;
-        }
-
-        if (A.numDimensions() - B.numDimensions() != 1) {
+        if (A == null || B == null || (A.numDimensions() - B.numDimensions() != 1)) {
             return false;
         }
 
@@ -484,7 +387,6 @@ public class MosaicUtils {
         while (img_c.hasNext()) {
             img_c.fwd();
             img_v.fwd();
-
             img_v.get().set(img_c.get());
         }
 
@@ -492,57 +394,44 @@ public class MosaicUtils {
     }
 
     /**
-     * Get the frame ImagePlus from an ImagePlus
-     *
-     * @param img Image
-     * @param frame frame (frame start from 1)
-     * @return An ImagePlus of the frame
+     * Get the frame from input ImagePlus
+     * @param aImage Image
+     * @param aFrame frame (start from 1)
+     * @return ImagePlus
      */
-    public static ImagePlus getImageFrame(ImagePlus img, int frame) {
-        if (frame == 0) {
-            return null;
+    public static ImagePlus getImageFrame(ImagePlus aImage, int aFrame) {
+        final ImageStack stack = aImage.getStack();
+        final int imagesPerFrame = stack.getSize() / aImage.getNFrames();
+
+        final ImageStack subStack = new ImageStack(aImage.getWidth(), aImage.getHeight());
+        for (int j = 1; j <= imagesPerFrame; ++j) {
+            subStack.addSlice("st" + j, stack.getProcessor((aFrame - 1) * imagesPerFrame + j));
         }
 
-        final int nImages = img.getNFrames();
-
-        final ImageStack stk = img.getStack();
-
-        final int stack_size = stk.getSize() / nImages;
-
-        final ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
-        for (int j = 0; j < stack_size; j++) {
-            tmp_stk.addSlice("st" + j, stk.getProcessor((frame - 1) * stack_size + j + 1));
-        }
-
-        final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
-        return ip;
+        return new ImagePlus("tmp", subStack);
     }
 
     /**
      * Get the ImagePlus slice from an ImagePlus
-     *
-     * @param img Image
-     * @param channel (channel start from 1)
+     * TODO: Must be investigated during particle tracker refactoring. This method probably does not do what it claims.
+     * @param aImage Image
+     * @param aChannel (channel start from 1)
      * @return An ImagePlus of the channel
      */
-    public static ImagePlus getImageSlice(ImagePlus img, int slice) {
-        if (slice == 0) {
+    public static ImagePlus getImageSlice(ImagePlus aImage, int aChannel) {
+        if (aChannel == 0) {
             return null;
         }
 
-        final int nImages = img.getNSlices();
+        final ImageStack stack = aImage.getStack();
+        final int imagesPerChannel = stack.getSize() / aImage.getNSlices();
 
-        final ImageStack stk = img.getStack();
-
-        final int stack_size = stk.getSize() / nImages;
-
-        final ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
-        for (int j = 0; j < stack_size; j++) {
-            tmp_stk.addSlice("st" + j, stk.getProcessor((slice - 1) * stack_size + j + 1));
+        final ImageStack tmp_stk = new ImageStack(aImage.getWidth(), aImage.getHeight());
+        for (int j = 0; j < imagesPerChannel; j++) {
+            tmp_stk.addSlice("st" + j, stack.getProcessor((aChannel - 1) * imagesPerChannel + j + 1));
         }
 
-        final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
-        return ip;
+        return new ImagePlus("tmp", tmp_stk);
     }
 
     /**
@@ -659,48 +548,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Create a choose image selector
-     *
-     * @param gd Generic Dialog
-     * @param cs string for the choice caption
-     * @param imp ImagePlus to start with
-     * @return awt Choice control
-     */
-    public static Choice chooseImage(GenericDialog gd, ImagePlus imp) {
-        int nOpenedImages = 0;
-        final int[] ids = WindowManager.getIDList();
-        if (ids != null) nOpenedImages = ids.length;
-        final String[] names = new String[nOpenedImages + 1];
-        names[0] = "";
-        if (ids != null) {
-            for (int i = 0; i < nOpenedImages; i++) {
-                final ImagePlus ip = WindowManager.getImage(ids[i]);
-                names[i + 1] = ip.getTitle();
-            }
-        }
-
-        if (gd.getChoices() == null) {
-            return null;
-        }
-
-        final Choice choiceInputImage = (Choice) gd.getChoices().lastElement();
-
-        if (imp != null) {
-            for (int i = 0; i < names.length; i++) {
-                choiceInputImage.addItem(names[i]);
-            }
-
-            final String title = imp.getTitle();
-            choiceInputImage.select(title);
-        }
-        else {
-            choiceInputImage.select(0);
-        }
-
-        return choiceInputImage;
-    }
-
-    /**
      * Parse the options string to get an argument
      *
      * @param aParameterName - searched parameter name
@@ -731,7 +578,6 @@ public class MosaicUtils {
 
         return null;
     }
-
     
     /**
      * IJ method for parsing macro checkboxes. 
@@ -770,7 +616,6 @@ public class MosaicUtils {
     
     /**
      * Given an imglib2 image return the dimensions as an array of long
-     *
      * @param img Image
      * @return array with the image dimensions
      */
@@ -783,7 +628,6 @@ public class MosaicUtils {
 
     /**
      * Given an imglib2 image return the dimensions as an array of integer
-     *
      * @param img Image
      * @return array with the image dimensions
      */
@@ -793,7 +637,6 @@ public class MosaicUtils {
 
     /**
      * Get the minimal value and maximal value of an image
-     *
      * @param img Image
      * @param min minimum value
      * @param max maximum value
@@ -804,7 +647,6 @@ public class MosaicUtils {
         max.setReal(Double.MIN_VALUE);
 
         // Get the min and max
-
         while (cur.hasNext()) {
             cur.fwd();
             if (cur.get().getRealDouble() < min.getRealDouble()) {
@@ -817,22 +659,8 @@ public class MosaicUtils {
     }
 
     /**
-     * Open an image
-     *
-     * @param fl Filename
-     * @return An image
+     * Return absolute path with fileName or null if info not available.
      */
-    static public ImagePlus openImg(String fl) {
-        return IJ.openImage(fl);
-    }
-
-    /**
-     * Return absolut path with fileName or null if info not available.
-     */
-    public static String getAbsolutFileName(ImagePlus aImagePlus) {
-        return getAbsolutFileName(aImagePlus, false);
-    }
-    
     public static String getAbsolutFileName(ImagePlus aImagePlus, boolean aRemoveExtension) {
         if (aImagePlus == null) return null;
         
@@ -850,27 +678,17 @@ public class MosaicUtils {
 
     /**
      * Filter out the csv output dir
-     *
      * @param dir Array of directories
      * @return CSV output dir
      */
-
     private static String[] getCSV(String[] dir) {
         final Vector<String> outcsv = new Vector<String>();
-
-        for (int i = 0; i < dir.length; i++) {
-            if (dir[i].endsWith(".csv")) {
-                outcsv.add(dir[i].replace("*", "_"));
-            }
+        for (String d : dir) {
+            if (d.endsWith(".csv")) outcsv.add(d.replace("*", "_"));
         }
-
-        final String[] outS = new String[outcsv.size()];
-
-        for (int i = 0; i < outcsv.size(); i++) {
-            outS[i] = outcsv.get(i);
-        }
-        mosaic.utils.Debug.print(outcsv);
-        return outS;
+        
+        mosaic.utils.Debug.print("CSV files:", outcsv);
+        return outcsv.toArray(new String[0]);
     }
 
     /**
@@ -943,8 +761,7 @@ public class MosaicUtils {
      * Stitch the CSV in the Jobs directory
      *
      * @param fl directory where search for JobsXXX directory to stitch the csv
-     * @param output string array that list all the outputs produced by the
-     *            plugin
+     * @param output string array that list all the outputs produced by the plugin
      * @param background Set the backgrond param string
      * @return true if it stitch all the file success
      */
@@ -997,26 +814,10 @@ public class MosaicUtils {
      * @return normalized copy of input image
      */
     public static ImagePlus normalizeAllSlices(ImagePlus aImage) {
-        final int nSlices = aImage.getStackSize();
-        ImageStack stack = aImage.getStack();
+        StackStatistics stackStats = new StackStatistics(aImage);
+        double minimum = stackStats.min;
+        double maximum = stackStats.max;
         
-        // Find minimum and maximum in all slices
-        double minimum = Double.POSITIVE_INFINITY;
-        double maximum = Double.NEGATIVE_INFINITY;
-    
-        for (int i = 1; i <= nSlices; ++i) {
-            final ImageStatistics stats = stack.getProcessor(i).getStatistics();
-            final double min = stats.min;
-            final double max = stats.max;
-    
-            if (max > maximum) {
-                maximum = max;
-            }
-            if (min < minimum) {
-                minimum = min;
-            }
-        }
-    
         // Adjust data in case when maximum = minimum
         double range = maximum - minimum;
         if (range == 0.0) {
@@ -1033,14 +834,14 @@ public class MosaicUtils {
         }
     
         // Normalize all stacks and crate new ImagePlus with this stack
+        ImageStack stack = aImage.getStack();
+        final int nSlices = aImage.getStackSize();
         final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
         for (int i = 1; i <= nSlices; ++i) {
             final FloatProcessor fp = (FloatProcessor) stack.getProcessor(i).convertToFloat();
             fp.subtract(minimum);
             fp.multiply(1.0 / range);
-    
-            final String oldTitle = stack.getSliceLabel(i);
-            normalizedStack.addSlice(oldTitle, fp);
+            normalizedStack.addSlice(stack.getSliceLabel(i), fp);
         }
     
         return new ImagePlus("Normalized", normalizedStack);

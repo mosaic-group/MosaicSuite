@@ -24,8 +24,8 @@ public class ClusterModeRC {
 
     public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, Settings settings, String[] out) {
         // The only modification to old implementation:
-        String labelImageFilename = MosaicUtils.getAbsolutFileName(aImp);
-        String inputImageFilename = MosaicUtils.getAbsolutFileName(labelImage);
+        String labelImageFilename = MosaicUtils.getAbsolutFileName(aImp, false);
+        String inputImageFilename = MosaicUtils.getAbsolutFileName(labelImage, false);
         // -------
         
         

@@ -202,7 +202,7 @@ public class BregmanGLM_Batch implements Segmentation {
                     continue;
                 }
                 logger.info("Opening file for segmenting: [" + f.getAbsolutePath() + "]");
-                SquasshLauncher squasshLauncher = new SquasshLauncher(MosaicUtils.openImg(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax, null);
+                SquasshLauncher squasshLauncher = new SquasshLauncher(IJ.openImage(f.getAbsolutePath()), iParameters, outputSaveDir, aNormalizationMin, aNormalizationMax, null);
                 // TODO: Currently it is being overwrite for each processed file. It should be decided how to handle it.
                 //       1. All files should have same number of channels and processed pairs?
                 //       2. or do we allow to have different files.. but then probably Rscript should be run separately 
