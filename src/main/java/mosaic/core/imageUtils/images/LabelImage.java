@@ -24,6 +24,7 @@ import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.utils.ConvertArray;
+import mosaic.utils.ImgUtils;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.IntegerType;
@@ -118,7 +119,7 @@ public class LabelImage extends BaseImage
         super(getDimensions(aInputImg), /* max num of dimensions */ 3);
         initConnectivities();
         if (aShouldNormalize == true) {
-            aInputImg = MosaicUtils.normalizeAllSlices(aInputImg);
+            aInputImg = ImgUtils.convertToNormalizedGloballyFloatType(aInputImg);
         }
         initWithImg(aInputImg);
     }

@@ -11,6 +11,7 @@ import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageConverter;
 import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.math.Matrix;
 import net.imglib2.img.Img;
@@ -489,7 +490,8 @@ public class ImgUtils {
                " BitDepth: " + aImage.getBitDepth() + 
                " Dims(x/y/z): "+ aImage.getWidth() + "/" + aImage.getHeight() + "/" + aImage.getNSlices() + 
                " NumOfFrames: " + aImage.getNFrames() + 
-               " NumOfChannels: " + aImage.getNChannels();
+               " NumOfChannels: " + aImage.getNChannels() +
+               " StackSize: " + aImage.getStackSize();
     }
     
     /**
@@ -709,6 +711,51 @@ public class ImgUtils {
     
     public static ImageStack crop(ImageStack aImageStack, int aPadSize, boolean aIs3D) {
         return aIs3D ? cropImageStack3D(aImageStack, aPadSize) : cropImageStack2D(aImageStack, aPadSize);
+    }
+
+    /**
+     * Scale all values in all stack to floats between 0.0 and 1.0 - minimum and maximum are searched globally in whole stack.
+     * @param aImage input image
+     * @return Normalized copy of input image
+     */
+    public static ImagePlus convertToNormalizedGloballyFloatType(ImagePlus aImage) {
+        StackStatistics stackStats = new StackStatistics(aImage);
+        double minimum = stackStats.min;
+        double maximum = stackStats.max;
+        
+        // Adjust data in case when maximum = minimum
+        double range = maximum - minimum;
+        if (range == 0.0) {
+            if (maximum != 0.0) {
+                // normalize maximum values to 1.0f
+                range = maximum;
+                minimum = 0.0;
+            }
+            else {
+                // this range and minimum will do nothing later
+                range = 1.0;
+                minimum = 0.0;
+            }
+        }
+    
+        // Normalize all stacks and crate new ImagePlus with this stack
+        ImageStack stack = aImage.getStack();
+        final int size = aImage.getStackSize();
+        final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
+        for (int i = 1; i <= size; ++i) {
+            ImageProcessor ip = stack.getProcessor(i).convertToFloat();
+            // If input image is already Float type then convertToFloat returns just reference.
+            // In such case duplicate ImageProcessor. In other cases new FloatProcessor is created.
+            final FloatProcessor fp = (FloatProcessor) ((aImage.getType() == ImagePlus.GRAY32) ? ip.duplicate() : ip);
+            fp.subtract(minimum);
+            fp.multiply(1.0 / range);
+            normalizedStack.addSlice(stack.getSliceLabel(i), fp);
+        }
+    
+        ImagePlus normalizedImg = new ImagePlus("Normalized_" + aImage.getTitle(), normalizedStack);
+        normalizedImg.setDimensions(aImage.getNChannels(), aImage.getNSlices(), aImage.getNFrames());
+        
+        return normalizedImg;
     }
 }
 

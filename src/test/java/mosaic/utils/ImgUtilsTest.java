@@ -3,6 +3,8 @@ package mosaic.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import ij.ImagePlus;
+import ij.ImageStack;
 import ij.process.FloatProcessor;
 import mosaic.test.framework.CommonBase;
 
@@ -194,6 +196,39 @@ public class ImgUtilsTest extends CommonBase {
         for (int x = 0; x < 5; ++x) {
             for (int y = 0; y < 2; ++y) {
                 Assert.assertEquals("Values must be same (factorization value = 1.0)", originalImgArray[x][y], pixels[x + y * fp.getWidth()], 0.001f);
+            }
+        }
+    }
+    
+    @Test
+    public void testConvertToNormalizedGloballyFloatType() {
+        // [z][x][y] == [2][5][2] => 2 frames with imgDims 5x2
+        final float[][][] frames = {{{1.0f, 2.0f}, // frame 1
+                                     {3.0f, 4.0f},
+                                     {5.0f, 6.0f},
+                                     {7.0f, 8.0f},
+                                     {9.0f,10.0f}},
+                
+                                   {{11.0f, 12.0f}, // frame 2
+                                    {13.0f, 14.0f},
+                                    {15.0f, 16.0f},
+                                    {17.0f, 18.0f},
+                                    {19.0f, 20.0f}}};
+        ImageStack is = new ImageStack(frames[0].length, frames[0][0].length);
+        for (int i = 0; i < frames.length; ++i) is.addSlice(new FloatProcessor(frames[i]));
+        ImagePlus outImg = ImgUtils.convertToNormalizedGloballyFloatType(new ImagePlus("", is));
+        ImageStack outStack = outImg.getStack();
+        Assert.assertEquals(outStack.size(), 2);
+        
+        for (int i = 0; i < outStack.size(); ++i) {
+            final float[] pixels = (float[])outStack.getProcessor(i + 1).getPixels();
+            for (int x = 0; x < 5; ++x) {
+                for (int y = 0; y < 2; ++y) {
+                    Assert.assertEquals("Values must be same (factorization value = 1.0)", 
+                                        frames[i][x][y], 
+                                        pixels[x + y * 5]  * 19 + 1, // check if pixels are normalized correctly (range of values 1-19) 
+                                        0.001f);
+                }
             }
         }
     }

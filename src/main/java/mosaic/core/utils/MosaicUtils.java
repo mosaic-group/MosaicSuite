@@ -16,8 +16,6 @@ import java.util.regex.Pattern;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.FloatProcessor;
-import ij.process.StackStatistics;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
@@ -798,44 +796,5 @@ public class MosaicUtils {
             cursor.fwd();
             cursor.get().setReal(cursor.get().getRealFloat() * aScaleFactor);
         }
-    }
-    
-    /**
-     * Scale all values in all slices to floats between 0.0 and 1.0
-     * @param aImage input image
-     * @return normalized copy of input image
-     */
-    public static ImagePlus normalizeAllSlices(ImagePlus aImage) {
-        StackStatistics stackStats = new StackStatistics(aImage);
-        double minimum = stackStats.min;
-        double maximum = stackStats.max;
-        
-        // Adjust data in case when maximum = minimum
-        double range = maximum - minimum;
-        if (range == 0.0) {
-            if (maximum != 0.0) {
-                // normalize maximum values to 1.0f
-                range = maximum;
-                minimum = 0.0;
-            }
-            else {
-                // this range and minimum will do nothing later
-                range = 1.0;
-                minimum = 0.0;
-            }
-        }
-    
-        // Normalize all stacks and crate new ImagePlus with this stack
-        ImageStack stack = aImage.getStack();
-        final int nSlices = aImage.getStackSize();
-        final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
-        for (int i = 1; i <= nSlices; ++i) {
-            final FloatProcessor fp = (FloatProcessor) stack.getProcessor(i).convertToFloat();
-            fp.subtract(minimum);
-            fp.multiply(1.0 / range);
-            normalizedStack.addSlice(stack.getSliceLabel(i), fp);
-        }
-    
-        return new ImagePlus("Normalized", normalizedStack);
     }
 }

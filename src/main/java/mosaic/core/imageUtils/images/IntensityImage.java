@@ -7,7 +7,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.utils.MosaicUtils;
+import mosaic.utils.ImgUtils;
 
 
 /**
@@ -39,7 +39,7 @@ public class IntensityImage extends BaseImage {
         super(getDimensions(aInputImg), /* max num of dimensions */ 3);
         
         if (aShouldNormalize == true) {
-            iInputImg = MosaicUtils.normalizeAllSlices(aInputImg);
+            iInputImg = ImgUtils.convertToNormalizedGloballyFloatType(aInputImg);
         } else {
             iInputImg = aInputImg;
         }
