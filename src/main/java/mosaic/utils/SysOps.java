@@ -215,6 +215,13 @@ public class SysOps {
     }
     
     /**
+     * @return returns filename from provided absolute name
+     */
+    public static String getFileName(String aFileName) {
+        return FilenameUtils.getName(aFileName);
+    }
+    
+    /**
      * @return system username (usually login name of a user) or null if not possible to detect.
      */
     public static String getSystemUsername() {

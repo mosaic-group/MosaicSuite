@@ -27,8 +27,7 @@ public class ClusterModeRC {
         String labelImageFilename = ImgUtils.getImageAbsolutePath(aImp);
         String inputImageFilename = ImgUtils.getImageAbsolutePath(labelImage);
         // -------
-        
-        
+        mosaic.utils.Debug.print("CLUSTER", inputImageFilename, labelImageFilename);
         logger.info("Running RC on cluster");
         
         // We run on cluster - saving config file

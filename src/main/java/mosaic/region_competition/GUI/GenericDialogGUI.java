@@ -42,8 +42,6 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import ij.io.FileInfo;
-import ij.io.Opener;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
@@ -615,13 +613,7 @@ public class GenericDialogGUI  {
         
         // 1. Try to read file from text areas (drag & drop)
         if (file != null && !file.isEmpty()) {
-            final Opener o = new Opener();
-            ip = o.openImage(file);
-            if (ip != null) {
-                final FileInfo fi = ip.getFileInfo();
-                fi.directory = file.substring(0, file.lastIndexOf(File.separator));
-                ip.setFileInfo(fi);
-            }
+            ip = IJ.openImage(file);
         }
         
         // 2. If still null then try to get image from choice/comboboxes  
