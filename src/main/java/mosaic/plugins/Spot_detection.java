@@ -37,7 +37,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
 
         // Detect points in all frames
         for (int frameIdx = 0; frameIdx < numOfFrames; ++frameIdx) {
-            final ImageStack subStack = MosaicUtils.GetSubStackInFloat(iOriginalImp.getStack(), (frameIdx) * numOfSlices + 1, (frameIdx + 1) * numOfSlices);
+            final ImageStack subStack = MosaicUtils.getSubStackInFloat(iOriginalImp.getStack(), (frameIdx) * numOfSlices + 1, (frameIdx + 1) * numOfSlices, false /*duplicate*/);
             final MyFrame frame = new MyFrame(frameIdx);
 
             // Detect feature points in current frame

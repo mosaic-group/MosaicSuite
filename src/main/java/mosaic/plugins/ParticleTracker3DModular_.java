@@ -473,7 +473,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
                 else {
                     // sequence of images mode: construct each frame from the corresponding image
-                    ImageStack frameStack = MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number);
+                    ImageStack frameStack = MosaicUtils.getSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number, false /*duplicate*/);
                     current_frame = new MyFrame(frame_i);
 
                     // Detect feature points in this frame

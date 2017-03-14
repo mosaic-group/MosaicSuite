@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.process.ImageProcessor;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
@@ -314,27 +315,17 @@ public class MosaicUtils {
         return output.split(" ");
     }
 
-    public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos) {
-        final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
+    public static ImageStack getSubStackInFloat(ImageStack is, int startPos, int endPos, boolean duplicate) {
         if (startPos > endPos || startPos < 0 || endPos < 0) {
             return null;
         }
-        for (int i = startPos; i <= endPos; i++) {
-            res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat());
+        final ImageStack subStack = new ImageStack(is.getWidth(), is.getHeight());
+        for (int i = startPos; i <= endPos; ++i) {
+            ImageProcessor fp = duplicate ? is.getProcessor(i).convertToFloat().duplicate() : is.getProcessor(i).convertToFloat();
+            subStack.addSlice(is.getSliceLabel(i), fp);
         }
-        return res;
+        return subStack;
     }
-
-    public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos) {
-        final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-        if (startPos > endPos || startPos < 0 || endPos < 0) {
-            return null;
-        }
-        for (int i = startPos; i <= endPos; i++) {
-            res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat().duplicate());
-        }
-        return res;
-    }  
 
     /**
      * Writes the given <code>info</code> to given file information. <code>info</code> will be written to the beginning of the file,
@@ -657,24 +648,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Return absolute path with fileName or null if info not available.
-     */
-    public static String getAbsolutFileName(ImagePlus aImagePlus, boolean aRemoveExtension) {
-        if (aImagePlus == null) return null;
-        
-        final String folder = ImgUtils.getImageDirectory(aImagePlus);
-        String fileName = aImagePlus.getTitle();
-        
-        if (folder == null || fileName == null || fileName.equals("")) return null;
-            
-        if (aRemoveExtension) {
-            fileName = SysOps.removeExtension(fileName);
-        }
-        
-        return folder + File.separator + fileName;
-    }
-
-    /**
      * Filter out the csv output dir
      * @param dir Array of directories
      * @return CSV output dir
@@ -769,8 +742,6 @@ public class MosaicUtils {
 
     /**
      * Calculate the sum of all pixels
-     * @param aImage
-     * @return
      */
     public static <T extends RealType<T>> double volume_image(Img<T> aImage) {
         double sum = 0.0;

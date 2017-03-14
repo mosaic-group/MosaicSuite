@@ -198,7 +198,7 @@ public class Region_Competition implements PlugInFilter {
 
     private void saveStatistics(AlgorithmRC algorithm) {
         if (showAndSaveStatistics) {
-            String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
+            String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
             if (absoluteFileNameNoExt == null) {
                 logger.error("Cannot save segmentation statistics. Filename for saving not available!");
                 return;
@@ -216,7 +216,7 @@ public class Region_Competition implements PlugInFilter {
     }
 
     private void saveSegmentedImage() {
-        String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
+        String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
         logger.debug("Absolute file name: " + absoluteFileNameNoExt);
         if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
                 outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");

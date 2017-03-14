@@ -107,7 +107,7 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         // Detects particles in the current displayed frame according to the parameters currently set
         final ImageStack stack = aInputImg.getStack();
         final int first_slice = aInputImg.getCurrentSlice();
-        ImageStack frameStack = MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice + aInputImg.getNSlices() - 1);
+        ImageStack frameStack = MosaicUtils.getSubStackInFloat(stack, first_slice, first_slice + aInputImg.getNSlices() - 1, true /*duplicate*/);
         MyFrame frame = new MyFrame(getFrameNumberFromSlice(aInputImg.getCurrentSlice(), aInputImg.getNSlices()) - 1);
         
         Vector<Particle> detectedParticles = featurePointDetector.featurePointDetection(frameStack);

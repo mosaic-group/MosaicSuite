@@ -463,19 +463,33 @@ public class ImgUtils {
     
     /**
      * @param aImage input image
+     * @param aRemoveExtension removes extension of file (only if local file)
      * @return Absolute path to image or null if impossible to detect.
      */
-    public static String getImageAbsolutePath(ImagePlus aImage) {
+    public static String getImageAbsolutePath(ImagePlus aImage, boolean aRemoveExtension) {
         if (aImage != null) {
             FileInfo fi = aImage.getOriginalFileInfo();
             if (fi != null) {
                 if (fi.url != null && !fi.url.equals(""))
                     return fi.url;
-                else if (fi.directory != null && fi.fileName != null)
-                    return fi.directory + fi.fileName;
+                else if (fi.directory != null && fi.fileName != null) {
+                    String name = fi.directory + fi.fileName;
+                    if (aRemoveExtension) {
+                        name = SysOps.removeExtension(name);
+                    }
+                    return name;
+                }
             }
         }
         return null;
+    }
+    
+    /**
+     * @param aImage input image
+     * @return Absolute path to image or null if impossible to detect.
+     */
+    public static String getImageAbsolutePath(ImagePlus aImage) {
+        return getImageAbsolutePath(aImage, false);
     }
     
     enum Type { GRAY8, GRAY16, GRAY32, COLOR_256, COLOR_RGB }
