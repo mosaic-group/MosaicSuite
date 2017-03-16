@@ -473,7 +473,6 @@ public class ImgUtils {
                 if (fi.url != null && !fi.url.equals(""))
                     return fi.url;
                 else if (fi.directory != null && fi.fileName != null) {
-                    mosaic.utils.Debug.print("FILENAME:", fi.directory, fi.fileName, aImage.getTitle());
                     String name = fi.directory + fi.fileName;
                     if (aRemoveExtension) {
                         name = SysOps.removeExtension(name);

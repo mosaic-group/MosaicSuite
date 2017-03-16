@@ -21,7 +21,7 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SobelVolume;
 import mosaic.region_competition.GUI.Controller;
-import mosaic.region_competition.GUI.GenericDialogGUI;
+import mosaic.region_competition.GUI.GUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.RC.AlgorithmRC;
@@ -102,7 +102,7 @@ public class Region_Competition implements PlugInFilter {
     
     // User interfaces
     private SegmentationProcessWindow stackProcess;
-    private GenericDialogGUI userDialog;
+    private GUI userDialog;
     
     
     @Override
@@ -114,7 +114,7 @@ public class Region_Competition implements PlugInFilter {
         initSettingsAndParseMacroOptions();
     
         // Get information from user
-        userDialog = new GenericDialogGUI(settings, originalInputImage);
+        userDialog = new GUI(settings, originalInputImage);
         userDialog.showDialog();
         if (!userDialog.configurationValid()) {
             return DONE;

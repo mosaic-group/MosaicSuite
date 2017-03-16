@@ -38,6 +38,7 @@ public class AlgorithmDRS {
         iLabelImage.initContour();
         
         
+        
     }
 
     public boolean performIteration() {
