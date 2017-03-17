@@ -188,7 +188,7 @@ public class GUI  {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     final String energy = choiceEnergy.getSelectedItem();
-                    EnergyGUI energyGUI = EnergyGUI.factory(iSettings, energy);
+                    GUImeMore energyGUI = EnergyGUI.factory(iSettings, energy);
                     energyGUI.createDialog();
                     energyGUI.showDialog();
                     energyGUI.processDialog();
@@ -217,7 +217,7 @@ public class GUI  {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     final String type = choiceRegularization.getSelectedItem();
-                    final RegularizationGUI gui = RegularizationGUI.factory(iSettings, type);
+                    final GUImeMore gui = RegularizationGUI.factory(iSettings, type);
                     gui.createDialog();
                     gui.showDialog();
                     gui.processDialog();
@@ -248,7 +248,7 @@ public class GUI  {
             @Override
             public void actionPerformed(ActionEvent e) {
                 final String type = initializationChoice.getSelectedItem();
-                final InitializationGUI gui = InitializationGUI.factory(iSettings, type);
+                final GUImeMore gui = InitializationGUI.factory(iSettings, type);
                 gui.createDialog();
                 gui.showDialog();
                 gui.processDialog();
@@ -693,24 +693,20 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
  * If FileDialog is canceled, TextArea is not changed.
  */
 class FileOpenerActionListener implements ActionListener {
-
     private final GenericDialog gd;
     private final TextArea ta;
 
-    protected FileOpenerActionListener(GenericDialog gd, TextArea ta) {
-        this.gd = gd;
-        this.ta = ta;
+    protected FileOpenerActionListener(GenericDialog aParentDialog, TextArea aAreaForPath) {
+        gd = aParentDialog;
+        ta = aAreaForPath;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         final FileDialog fd = new FileDialog(gd);
         fd.setVisible(true);
-        final String dir = fd.getDirectory();
-        final String file = fd.getFile();
-
-        if (file != null && dir != null) {
-            ta.setText(dir + file);
+        if (fd.getFile() != null && fd.getDirectory() != null) {
+            ta.setText(fd.getDirectory() + fd.getFile());
         }
     }
 }
