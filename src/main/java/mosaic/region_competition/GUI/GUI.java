@@ -174,7 +174,6 @@ public class GUI  {
             energyItems[i] = energyValues[i].name();
         }
         gd.addChoice("E_data", energyItems, iSettings.m_EnergyFunctional.name());
-        
         Choice choiceEnergy = (Choice) gd.getChoices().lastElement();
         {
             Button optionButton = new Button("Options");
@@ -188,7 +187,7 @@ public class GUI  {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     final String energy = choiceEnergy.getSelectedItem();
-                    GUImeMore energyGUI = EnergyGUI.factory(iSettings, energy);
+                    SettingsBaseGUI energyGUI = EnergyGUI.factory(iSettings, energy);
                     energyGUI.createDialog();
                     energyGUI.showDialog();
                     energyGUI.processDialog();
@@ -217,7 +216,7 @@ public class GUI  {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     final String type = choiceRegularization.getSelectedItem();
-                    final GUImeMore gui = RegularizationGUI.factory(iSettings, type);
+                    final SettingsBaseGUI gui = RegularizationGUI.factory(iSettings, type);
                     gui.createDialog();
                     gui.showDialog();
                     gui.processDialog();
@@ -248,7 +247,7 @@ public class GUI  {
             @Override
             public void actionPerformed(ActionEvent e) {
                 final String type = initializationChoice.getSelectedItem();
-                final GUImeMore gui = InitializationGUI.factory(iSettings, type);
+                final SettingsBaseGUI gui = InitializationGUI.factory(iSettings, type);
                 gui.createDialog();
                 gui.showDialog();
                 gui.processDialog();

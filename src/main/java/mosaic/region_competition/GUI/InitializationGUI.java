@@ -5,7 +5,7 @@ import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.RC.Settings;
 
 
-abstract class InitializationGUI extends GUImeMore {
+abstract class InitializationGUI extends SettingsBaseGUI {
 
     protected InitializationGUI(Settings settings) {
         super(settings);

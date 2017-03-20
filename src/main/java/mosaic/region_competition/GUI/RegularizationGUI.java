@@ -5,7 +5,7 @@ import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.RC.Settings;
 
 
-abstract class RegularizationGUI extends GUImeMore {
+abstract class RegularizationGUI extends SettingsBaseGUI {
 
     protected RegularizationGUI(Settings settings) {
         super(settings);

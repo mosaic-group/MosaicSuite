@@ -5,13 +5,13 @@ import ij.gui.GenericDialog;
 import mosaic.region_competition.RC.Settings;
 
 
-abstract class GUImeMore {
+abstract class SettingsBaseGUI {
 
     protected GenericDialog gd;
     protected final Settings settings;
 
-    protected GUImeMore(Settings settings) {
-        this.settings = settings;
+    protected SettingsBaseGUI(Settings aSettings) {
+        settings = aSettings;
         gd = new GenericDialog("");
     }
 
@@ -44,15 +44,11 @@ abstract class GUImeMore {
     }
 
     /**
-     * Gets an empty {@link GenericDialog}
-     * 
-     * @return
+     * Creates an empty {@link GenericDialog}
      */
     public static GenericDialog getNoGUI() {
-        GenericDialog noGUI;
-        noGUI = new GenericDialog("No additional Options");
-        final String text = "No additional options available";
-        noGUI.addMessage(text);
+        GenericDialog noGUI = new GenericDialog("No additional Options");
+        noGUI.addMessage("No additional options available");
         noGUI.hideCancelButton();
 
         return noGUI;

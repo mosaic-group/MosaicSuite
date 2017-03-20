@@ -5,7 +5,7 @@ import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.RC.Settings;
 
 
-abstract class EnergyGUI extends GUImeMore {
+abstract class EnergyGUI extends SettingsBaseGUI {
 
     protected EnergyGUI(Settings settings) {
         super(settings);

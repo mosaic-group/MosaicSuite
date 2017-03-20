@@ -53,10 +53,9 @@ public class StatisticsTable {
         final ResultsTable rt = new ResultsTable();
         rt.showRowNumbers(false);
 
-        int rowNumber = 1;
         for (final LabelStatistics info : collection) {
             rt.incrementCounter();
-            rt.addValue("Id", rowNumber++);
+            rt.addValue("Id", rt.getCounter());
             rt.addValue("Image_ID", 0);
             rt.addValue("label", info.label);
             rt.addValue("size", info.count);
@@ -64,12 +63,7 @@ public class StatisticsTable {
             rt.addValue("variance", info.var);
             rt.addValue("Coord_X", info.mean_pos[0] - iPadSize);
             rt.addValue("Coord_Y", info.mean_pos[1] - iPadSize);
-            if (info.mean_pos.length > 2) {
-                rt.addValue("Coord_Z", info.mean_pos[2] - iPadSize);
-            }
-            else {
-                rt.addValue("Coord_Z", 0.0);
-            }
+            rt.addValue("Coord_Z", (info.mean_pos.length > 2) ? (info.mean_pos[2] - iPadSize) : 0.0);
         }
 
         return rt;
