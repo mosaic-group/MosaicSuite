@@ -18,14 +18,11 @@ import mosaic.core.imageUtils.images.LabelImage;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SegmentationProcessWindow {
-    // stack saving the segmentation progress images
     protected ImageStack iStack;
-    // ImagePlus showing iStack
-    protected ImagePlus stackImPlus;
-    // Maximum label number for showing stack
-    private int iMaxLabel = 100;
-    // Should stack keep all added slices or only last added?
-    private boolean shouldKeepAllSlices = false;
+    protected ImagePlus iImage;
+    private int iMaxLabel = 0;
+    private boolean iShouldKeepAllSlices = false;
+    private boolean iIsThatFirstPass = true;
     
     /**
      * Creates output ImagePlus with given dimensions
@@ -34,15 +31,15 @@ public class SegmentationProcessWindow {
      * @param aShouldKeepAllSlices - Should stack keep all added slices or only last added?
      */
     public SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices) {
-        shouldKeepAllSlices = aShouldKeepAllSlices;
+        iShouldKeepAllSlices = aShouldKeepAllSlices;
 
-        // Generate stack and ImagePlus with given dimensions
-        stackImPlus = new ImagePlus(null, new ShortProcessor(aWidth, aHeight));
-        iStack = stackImPlus.createEmptyStack();
-        stackImPlus.show();
-        if (stackImPlus.getWindow() != null) {
-            // Add listener in case when window is generated (not in macro/batch mode)
-            stackImPlus.getWindow().addWindowListener(new StackWindowListener());
+        iImage = new ImagePlus(null, new ShortProcessor(aWidth, aHeight));
+        iStack = iImage.createEmptyStack();
+        iImage.show();
+        
+        if (iImage.getWindow() != null) {
+            // Add listener in case when window is created (not in macro/batch mode)
+            iImage.getWindow().addWindowListener(new StackWindowListener());
         }
     }
     
@@ -50,7 +47,7 @@ public class SegmentationProcessWindow {
      * Adds new LabelImageRC to stack
      * @param aLabelImage - image to add
      * @param aTitle - title for image
-     * @param aBiggestLabelSoFar - maximum label number used so far
+     * @param aBiggestLabelSoFar - maximum label value used so far
      */
     public void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
         if (iStack == null) {
@@ -58,130 +55,75 @@ public class SegmentationProcessWindow {
             return;
         }
         
-        final int dim = aLabelImage.getNumOfDimensions();
-        if (dim <= 3) {
-            addSliceToHyperstack(aTitle, aLabelImage.getShortStack(false, false, false));
+        if (aLabelImage.getNumOfDimensions() <= 3) {
+            addStack(aTitle, aLabelImage.getShortStack(false, false, false));
         }
         else {
-            throw new RuntimeException("Unsupported dimensions: " + dim);
+            throw new RuntimeException("Unsupported dimensions: " + aLabelImage.getNumOfDimensions());
         }
         
-        // Handle new maximum label
+        if (iIsThatFirstPass) {
+            // We have first slices in stack so we can add it to image (it is impossible to have empty stack).
+            iIsThatFirstPass = false;
+            iImage.setStack(iStack);
+        }
+        
+        // Handle new maximum label value and colors of image
         if (aBiggestLabelSoFar > iMaxLabel) {
             iMaxLabel = 2 * aBiggestLabelSoFar;
-        }
-        adjustLUT();
-    }
-    
-    /**
-     * Closes SegmentationProcessWindow
-     */
-    public void close() {
-        if (stackImPlus != null) {
-            stackImPlus.close();
+            IJ.setMinAndMax(iImage, 0, iMaxLabel);
+            IJ.run(iImage, "3-3-2 RGB", null);
         }
     }
     
     /**
-     * Adds a new slice pixels to the end of the stack, and sets the new stack position to this slice
-     *
-     * @param aTitle Title of the stack slice
-     * @param aPixels data of the new slice (pixel array)
+     * Adds single new stack to existing stack
      */
-    public void addSliceToStackAndShow(String aTitle, final short[] aPixels) {
-        if (!shouldKeepAllSlices) {
-            iStack.deleteLastSlice();
+    private void addStack(String aTitle, ImageStack aStack) {
+        if (!iShouldKeepAllSlices) {
+            // We don't keep hitory - remove old slices
+            while (iStack.getSize() > 0) {
+                iStack.deleteLastSlice();
+            }
+        }
+        else {
+            // clean the stack - hyperstack must contain "modulo depth" number of slices
+            while (iStack.getSize() % aStack.getSize() != 0) {
+                iStack.deleteSlice(1);
+            }
+        }
+        
+        // in first iteration, convert to hyperstack if necessary
+        if (iIsThatFirstPass && iShouldKeepAllSlices) {
+            iImage.setOpenAsHyperStack(true);
+            new StackWindow(iImage);
         }
 
-        iStack.addSlice(aTitle, aPixels);
-        stackImPlus.setStack(iStack);
-        stackImPlus.setPosition(iStack.getSize());
-
-        adjustLUT();
-    }
-
-    /**
-     * Adds slices for 3D images to stack, overwrites old images.
-     */
-    private void add3DtoStaticStack(String aTitle, ImageStack aStackSlices) {
-        int oldpos = stackImPlus.getCurrentSlice();
-
-        while (iStack.getSize() > 0) {
-            iStack.deleteLastSlice();
-        }
-
-        final int numOfSlices = aStackSlices.getSize();
-        for (int i = 1; i <= numOfSlices; i++) {
-            iStack.addSlice(aTitle + " " + i, aStackSlices.getPixels(i));
-        }
-
-        stackImPlus.setStack(iStack);
-        stackImPlus.setPosition(oldpos);
-    }
-
-    /**
-     * TODO: Old implementation moved from Region_Competion. Seems that should be revised
-     *       and maybe merged with add3DtoStaticStack.
-     * Shows 3D segmentation progress in a hyperstack
-     */
-    private void addSliceToHyperstack(String title, ImageStack stackslice) {
-        if (!shouldKeepAllSlices) {
-            add3DtoStaticStack(title, stackslice);
-            return;
-        }
-
-        // clean the stack, hyperstack must not contain additional slices
-        while (iStack.getSize() % stackslice.getSize() != 0) {
-            iStack.deleteSlice(1);
-        }
-
-        // in first iteration, convert to hyperstack
-        if (stackImPlus.getNFrames() <= 2) {
-            final ImagePlus imp2 = stackImPlus;
-            imp2.setOpenAsHyperStack(true);
-            new StackWindow(imp2);
-        }
-
-        int lastSlice = stackImPlus.getSlice();
-        final int lastFrame = stackImPlus.getFrame();
-        final boolean wasLastFrame = lastFrame == stackImPlus.getDimensions()[4];
-
-        for (int i = 1; i <= stackslice.getSize(); i++) {
-            iStack.addSlice(title, stackslice.getProcessor(i));
-        }
-
-        final int total = iStack.getSize();
-        final int depth = stackslice.getSize();
-        final int timeSlices = total / depth;
-
-        stackImPlus.setDimensions(1, depth, timeSlices);
-
-        // scroll lock on last frame
+        int lastSlice = iImage.getSlice();
+        final int lastFrame = iImage.getFrame();
         int nextFrame = lastFrame;
-        if (wasLastFrame) {
+        final boolean isLastFrameInImage = (lastFrame == iImage.getDimensions()[4 /* frame no */]);
+        if (isLastFrameInImage) { // If yes, continue to point to the last frame after adding new stack
             nextFrame++;
         }
 
+        // Finally add new stack
+        for (int i = 1; i <= aStack.getSize(); ++i) {
+            iStack.addSlice(aTitle, aStack.getProcessor(i));
+        }
+
+        final int depth = aStack.getSize();
+        final int frame = iStack.getSize() / depth;
+        iImage.setDimensions(1, depth, frame);
+
         // go to mid in first iteration
-        if (timeSlices <= 2) {
-            lastSlice = depth / 2;
+        if (iIsThatFirstPass) {
+            lastSlice = (depth + 1) / 2;
         }
-        try {
-            // sometimes here is a ClassCastException
-            // when scrolling in the hyperstack
-            // it's a IJ problem... catch the Exception, hope it helps
-            stackImPlus.setPosition(1, lastSlice, nextFrame);
-        }
-        catch (final Exception e) {
-            System.out.println(e);
-        }
+        
+        iImage.setPosition(1 /* channel */, lastSlice, nextFrame);
     }
     
-    private void adjustLUT() {
-        IJ.setMinAndMax(stackImPlus, 0, iMaxLabel);
-        IJ.run(stackImPlus, "3-3-2 RGB", null);
-    }
-
     /**
      * This {@link WindowListener} sets stack to null if stackwindow was closed by user. 
      * This indicates to not further producing stackframes. 
@@ -199,7 +141,7 @@ public class SegmentationProcessWindow {
         @Override
         public void windowClosed(WindowEvent e) {
             // hook to new window
-            final Window win = stackImPlus.getWindow();
+            final Window win = iImage.getWindow();
             if (win != null) {
                 win.addWindowListener(this);
             }

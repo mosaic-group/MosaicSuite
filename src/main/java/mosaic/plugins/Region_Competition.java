@@ -398,16 +398,9 @@ public class Region_Competition implements PlugInFilter {
         final int width = dims[0];
         final int height = dims[1];
         
-        ImageStack initialStack = labelImage.getShortStack(true, true, true); 
         stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
       
-        // first stack image without boundary&contours
-        for (int i = 1; i <= initialStack.getSize(); i++) {
-            stackProcess.addSliceToStackAndShow("init without countours", (short[])initialStack.getPixels(i));
-            initialStack.getProcessor(i);
-        }
-        
-        // Generate contours and add second image to stack
+        stackProcess.addSliceToStack(labelImage, "init without contours", 0);
         labelImage.initBorder();
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
