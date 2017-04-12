@@ -36,7 +36,9 @@ public class Settings implements Serializable {
     public int m_MaxNbIterations = 300;
     public double m_OscillationThreshold = 0.02;
     
-
+// TODO: Some new options to handle in future
+    // m_MCMCuseBiasedProposal
+    
     public void copy(Settings s) {
         m_EnergyFunctional = s.m_EnergyFunctional;
         m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;

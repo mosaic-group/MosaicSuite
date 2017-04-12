@@ -47,6 +47,15 @@ public class IntensityImage extends BaseImage {
     }
 
     /**
+     * Create an empty IntensityImage of a given dimension
+     * @param aDimensions dimensions of the LabelImage
+     */
+    public IntensityImage(int[] aDimensions) {
+        super(aDimensions, 3);
+        iInputImg = null;
+        iDataIntensity = new float[getSize()];
+    }
+    /**
      * @return container with intensity of data
      */
     public float[] getDataIntensity() {
@@ -65,6 +74,29 @@ public class IntensityImage extends BaseImage {
      */
     public float get(int idx) {
         return iDataIntensity[idx];
+    }
+    
+    /**
+     * Sets value for given index
+     */
+    public void set(int idx, float aValue) {
+        iDataIntensity[idx] = aValue;
+    }
+
+    /**
+     * Sets value at Point p
+     */
+    public void set(Point p, float aValue) {
+        set(pointToIndex(p), aValue);
+    }
+    
+    /**
+     * Sets value at Point p
+     */
+    public void setSafe(Point aPoint, float aValue) {
+        if (!isInBound(aPoint)) return;
+
+        set(pointToIndex(aPoint), aValue);
     }
     
     /**

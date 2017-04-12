@@ -55,6 +55,19 @@ public class Point {
     }
 
     /**
+     * Euclidean length to point from origin
+     * @param aPoint
+     * @return
+     */
+    public double length() {
+        double ret = 0.0;
+        for (int i = 0; i < iCoords.length; i++) {
+            ret += iCoords[i] * iCoords[i];
+        }
+        return Math.sqrt(ret);
+    }
+    
+    /**
      * Add a coordinates to a Point
      * @param aCoords of Point to add
      * @return returns new Point

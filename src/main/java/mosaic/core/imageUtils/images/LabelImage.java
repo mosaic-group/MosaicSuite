@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
@@ -38,7 +39,7 @@ public class LabelImage extends BaseImage
     private static final Logger logger = Logger.getLogger(LabelImage.class);
     
     public static final int BGLabel = 0;
-    private static final int BorderLabel = Integer.MAX_VALUE;
+    public static final int BorderLabel = Integer.MAX_VALUE;
     
     private int[] iDataLabel;
 
@@ -248,7 +249,7 @@ public class LabelImage extends BaseImage
     }
     
     /**
-     * @return True if aLable is not inner label
+     * @return True if aLable is inner label
      */
     public boolean isInnerLabel(int aLabel) {
         if (isSpecialLabel(aLabel) || isContourLabel(aLabel)) {
@@ -311,8 +312,9 @@ public class LabelImage extends BaseImage
     /**
      * Makes disconnected components to have different labels. All new components will have new (positive), different 
      * label values than old one.
+     * @return 
      */
-    public void connectedComponents() {
+    public Set<Integer> connectedComponents() {
         final HashSet<Integer> oldLabels = new HashSet<Integer>();
         final int size = getSize();
         int minLabel = Integer.MAX_VALUE;
@@ -328,6 +330,7 @@ public class LabelImage extends BaseImage
             oldLabels.add(l);
         }
 
+        final Set<Integer> newLabels = new HashSet<Integer>();
         // relabel connected components
         final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
         aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
@@ -342,10 +345,11 @@ public class LabelImage extends BaseImage
                 for (final int p : ff) {
                     setLabel(p, newLabel);
                 }
-                
+                newLabels.add(newLabel);
                 ++newLabel;
             }
         }
+        return newLabels;
     }
 
     /**
@@ -422,7 +426,6 @@ public class LabelImage extends BaseImage
     }
     
     /**
-     * 
      * @param aPoint
      * @return
      */

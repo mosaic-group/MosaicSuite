@@ -216,14 +216,14 @@ public class Region_CompetitionTest extends CommonBase {
     // TODO: Temporary stuff for running in DRS mode.
     // run("Region Competition", "inputimage=1thing.tif labelimage=[] keep_frames show_and_save_statistics segmentation=[Discrete Region Sampling]");
     @Test
-    @Ignore
+//    @Ignore
     public void testTwoBarsDRS()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/fusionCheck/";
+        final String tcDirName           = "Region_Competition/DRS/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics segmentation=[Discrete Region Sampling]";
-        final String inputFile           = "1thing.tif";
+        final String inputFile           = "5x5.tif";
 
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
@@ -238,6 +238,6 @@ public class Region_CompetitionTest extends CommonBase {
         WindowManager.setTempCurrentImage(ip);
         new PlugInFilterRunner(plugin, "pluginTest", setupString);
         
-        sleep(15000);
+        sleep(1000);
     }
 }

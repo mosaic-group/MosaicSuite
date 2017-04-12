@@ -161,6 +161,20 @@ public class Connectivity {
         return iNumOfDimensions;
     }
 
+    /**
+     * @return neighbors as a point offsets
+     */
+    public Point[] getPointOffsets() {
+        return iPointOffsetsNeighbors;
+    }
+    
+    /**
+     * @return neighbors as a index offsets
+     */
+    public int[] getIndexOffsets() {
+        return iIndexedNeighbors;
+    }
+    
     @Override
     public String toString() {
         return "Connectivity (" + iNumOfDimensions + "D, " + iNumOfNeighbors + "-connectivity)";

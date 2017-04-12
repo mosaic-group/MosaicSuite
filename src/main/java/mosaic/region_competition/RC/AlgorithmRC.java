@@ -298,9 +298,6 @@ public class AlgorithmRC {
      * to inner or to contour points if needed.
      */
     private void changeContourPointLabelToCandidateLabelAndUpdateNeighbours(Point aPoint, ContourParticle aContourParticle) {
-//        final Point aPoint = aParticle.getKey();
-//        final ContourParticle aContourParticle = aParticle.getValue();
-
         final int fromLabel = aContourParticle.label;
         final int toLabel = aContourParticle.candidateLabel;
         float intensity = aContourParticle.intensity;

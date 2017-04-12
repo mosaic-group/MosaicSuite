@@ -2,8 +2,10 @@ package mosaic.region_competition;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -522,4 +524,42 @@ public class TemporaryTest extends CommonBase {
 //                            boxes[i] += itemSizes[j]
 //
 //            recurse(boxSizes, 0, [[] for i in range(len(boxSizes))], 0)
+    
+    
+    static class A {
+        int a, b;
+        A(int aa, int ab) {a = aa; b =ab;}
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + a;
+            return result;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            A other = (A) obj;
+            if (a != other.a) return false;
+            return true;
+        }
+        @Override
+        public String toString() { return "[a = " + a + "  b = " + b + "]"; }
+    }
+    
+    @Test
+    public void testMap() {
+        Map<A, Integer> m = new HashMap<>();
+        A a1 = new A(3,4);
+        A a2 = new A(3,5);
+        
+        m.put(a1, 444);
+        System.out.println(m);
+        m.remove(a2);
+        m.put(a2, 444);
+        System.out.println(m);
+    }
+    
 }
