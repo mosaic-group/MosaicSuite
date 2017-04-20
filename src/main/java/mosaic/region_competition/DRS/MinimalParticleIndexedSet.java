@@ -3,7 +3,7 @@ package mosaic.region_competition.DRS;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ConstIndexedHashSet {
+public class MinimalParticleIndexedSet {
     private HashMap<MinimalParticle, Integer> iMap = new HashMap<>();
     private ArrayList<MinimalParticle> iParticles = new ArrayList<>();
     private MinimalParticle iLastRemovedElement = null;
@@ -62,7 +62,7 @@ public class ConstIndexedHashSet {
      * @param aSet
      * @return this
      */
-    ConstIndexedHashSet join(ConstIndexedHashSet aSet) {
+    MinimalParticleIndexedSet join(MinimalParticleIndexedSet aSet) {
         for(int i = 0; i < aSet.size(); ++i) {
             insert(aSet.elementAt(i));
         }

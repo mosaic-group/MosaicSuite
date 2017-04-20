@@ -6,11 +6,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 
-public class ConstIndexedHashSetTest {
+public class MinimalParticleIndexedSetTest {
 
     @Test
     public void testAll() {
-        ConstIndexedHashSet s = new ConstIndexedHashSet();
+        MinimalParticleIndexedSet s = new MinimalParticleIndexedSet();
         
         // Basic test
         assertEquals(0, s.size());
@@ -69,8 +69,8 @@ public class ConstIndexedHashSetTest {
         MinimalParticle p2b = new MinimalParticle(2, 2, 3);
         MinimalParticle p3 = new MinimalParticle(3, 3, 3);
         
-        ConstIndexedHashSet s1 = new ConstIndexedHashSet();
-        ConstIndexedHashSet s2 = new ConstIndexedHashSet();
+        MinimalParticleIndexedSet s1 = new MinimalParticleIndexedSet();
+        MinimalParticleIndexedSet s2 = new MinimalParticleIndexedSet();
         
         // Create two sets with common element (equal but with different proposal value).
         s1.insert(p1);
