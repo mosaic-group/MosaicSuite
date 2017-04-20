@@ -264,4 +264,27 @@ public class ParticleTracker3DModular_Test extends CommonBase {
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testTracking3D()  {
+        // Define test data
+        final String tcDirName           = "ParticleTracker/Tracking3D/";
+        final String setupString         = "run";
+        final String macroOptions        = "radius=6 cutoff=1 per/abs=0.5 link=1 displacement=100 dynamics=Brownian";
+        final String inputFile           = "Regions_size_5_5_100_100.tif";
+        final String[] expectedImgFiles  = {};
+        final String[] referenceImgFiles = {};
+        final String[] expectedFiles     = {"report.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
+        final String[] referenceFiles    = {"report.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
+
+        // Create tested plugIn
+        final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
+
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }
