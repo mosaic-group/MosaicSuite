@@ -2,9 +2,9 @@ package mosaic.region_competition.DRS;
 
 
 public class MinimalParticle {
-    private int iIndex;
-    private int iCandidateLabel;
-    private float iProposal; // TODO: Probably not used, kept while working with old code
+    public int iIndex;
+    public int iCandidateLabel;
+    public float iProposal;
     
     MinimalParticle(int aIndex, int aCandidateLabel, float aProposal) {
         iIndex = aIndex;
@@ -34,6 +34,6 @@ public class MinimalParticle {
     
     @Override
     public String toString() {
-        return "(" + iIndex + ", " + iCandidateLabel + " " + iProposal +")";
+        return "(" + iIndex + ", " + iCandidateLabel + ", " + iProposal +")";
     }
 }

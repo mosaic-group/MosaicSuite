@@ -46,6 +46,7 @@ public class LabelImage extends BaseImage
     private Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
     protected int[] iNeighbourIndexes;
+    protected int[] iNeighbourBgIndexes;
     
     /**
      * Create a label image from an ImgLib2
@@ -171,6 +172,12 @@ public class LabelImage extends BaseImage
         int idx = 0;
         for (Point p : iConnectivityFG.iterator()) {
             iNeighbourIndexes[idx++] = pointToIndex(p);
+        }
+
+        iNeighbourBgIndexes = new int[iConnectivityBG.getNumOfNeighbors()];
+        idx = 0;
+        for (Point p : iConnectivityBG.iterator()) {
+            iNeighbourBgIndexes[idx++] = pointToIndex(p);
         }
     }
 
@@ -465,6 +472,40 @@ public class LabelImage extends BaseImage
         @Override
         public Integer next() {
             return inputIndex + iNeighbourIndexes[cursor++];
+        }
+        
+        @Override
+        public void remove() {
+            // do nothing
+        }
+    }
+    
+    public Iterable<Integer> iterateBgNeighbours(final Integer aIndex) {
+        return new Iterable<Integer>() {
+
+            @Override
+            public Iterator<Integer> iterator() {
+                return new BgNeighbourConnIterator(aIndex);
+            }
+        };
+    }
+    
+    private class BgNeighbourConnIterator implements Iterator<Integer> {
+        private int cursor = 0;
+        private final int inputIndex;
+        
+        BgNeighbourConnIterator(Integer aIndex) {
+            inputIndex = aIndex;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return (cursor < iNeighbourBgIndexes.length);
+        }
+
+        @Override
+        public Integer next() {
+            return inputIndex + iNeighbourBgIndexes[cursor++];
         }
         
         @Override
