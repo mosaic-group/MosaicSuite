@@ -46,7 +46,7 @@ public class E_Deconvolution extends ExternalEnergy {
     @Override
     public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int aFromLabel = contourParticle.label;
-        final float intensityDelta = (float)(labelMap.get(aToLabel).median - labelMap.get(aFromLabel).median);
+        final float intensityDelta = (float)(labelMap.get(aToLabel).iMedianIntensity - labelMap.get(aFromLabel).iMedianIntensity);
         
         final Point LowerCorner = aIndex.sub(iMiddlePointPsf);
     
@@ -110,7 +110,7 @@ public class E_Deconvolution extends ExternalEnergy {
                 vLabel = 0; // Set Background value ??
             }
 
-            cVModelImage.get().set((float) labelMap.get(vLabel).median);
+            cVModelImage.get().set((float) labelMap.get(vLabel).iMedianIntensity);
         }
 
         new FFTConvolution<FloatType>(DevImage, iPsf).convolve();
@@ -126,7 +126,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // The BG region is not fitted above(since it may be very large and thus
         // the mean is a good approx), set it to the mean value:
-        final double vOldBG = aLabelMap.get(0).median;
+        final double vOldBG = aLabelMap.get(0).iMedianIntensity;
 
         // Time vs. Memory:
         // Memory efficient: iterate the label image: for all new seed points (new label found),
@@ -194,11 +194,11 @@ public class E_Deconvolution extends ExternalEnergy {
         while (vScaling3It.hasNext()) {
             final Map.Entry<Integer, ArrayList<Float>> vLabel = vScaling3It.next();
             float vMedian;
-            if (aLabelMap.get(vLabel.getKey()).count > 2) {
+            if (aLabelMap.get(vLabel.getKey()).iLabelCount > 2) {
                 vMedian = Median(vScalings3.get(vLabel.getKey()));
             }
             else {
-                vMedian = (float) aLabelMap.get(vLabel.getKey()).mean;
+                vMedian = (float) aLabelMap.get(vLabel.getKey()).iMeanIntensity;
             }
 
             // Correct the old intensity values.
@@ -206,7 +206,7 @@ public class E_Deconvolution extends ExternalEnergy {
                 if (vMedian < 0) {
                     vMedian = 0;
                 }
-                aLabelMap.get(vLabel.getKey()).median = vMedian;
+                aLabelMap.get(vLabel.getKey()).iMedianIntensity = vMedian;
             }
             else {
                 // Avoid Nan
@@ -215,7 +215,7 @@ public class E_Deconvolution extends ExternalEnergy {
                     vMedian = Median(vScalings3.get(vLabel.getKey()));
                 }
 
-                aLabelMap.get(vLabel.getKey()).median = (aLabelMap.get(vLabel.getKey()).median - vOldBG) * vMedian + aLabelMap.get(0).median;
+                aLabelMap.get(vLabel.getKey()).iMedianIntensity = (aLabelMap.get(vLabel.getKey()).iMedianIntensity - vOldBG) * vMedian + aLabelMap.get(0).iMedianIntensity;
             }
         }
 
@@ -228,13 +228,13 @@ public class E_Deconvolution extends ExternalEnergy {
         
         if (aToLabel == 0) { 
             // ...the point is removed and set to BG To avoid the operator map::[] in the loop:
-            final float vIntensity_FromLabel = (float) aLabelMap.get(aFromLabel).median;
-            final float vIntensity_BGLabel = (float) aLabelMap.get(aToLabel).median;
+            final float vIntensity_FromLabel = (float) aLabelMap.get(aFromLabel).iMedianIntensity;
+            final float vIntensity_BGLabel = (float) aLabelMap.get(aToLabel).iMedianIntensity;
             subtractPsfFromConvImage(currentPos, vIntensity_FromLabel, vIntensity_BGLabel);
         }
         else {
-            final float vIntensity_ToLabel = (float) aLabelMap.get(aToLabel).median;
-            final float vIntensity_BGLabel = (float) aLabelMap.get(0).median;
+            final float vIntensity_ToLabel = (float) aLabelMap.get(aToLabel).iMedianIntensity;
+            final float vIntensity_BGLabel = (float) aLabelMap.get(0).iMedianIntensity;
             subtractPsfFromConvImage(currentPos, vIntensity_BGLabel, vIntensity_ToLabel);
         }
     }

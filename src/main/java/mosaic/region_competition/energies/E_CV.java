@@ -27,8 +27,8 @@ public class E_CV extends ExternalEnergy {
         final float aValue = contourParticle.intensity;
         final LabelStatistics toStats = labelMap.get(toLabel);
         final LabelStatistics fromStats = labelMap.get(fromLabel);
-        final double newToMean = (toStats.mean * toStats.count + aValue) / (toStats.count + 1);
-        final double energy = Math.pow(aValue - newToMean, 2) - Math.pow(aValue - fromStats.mean, 2);
+        final double newToMean = (toStats.iMeanIntensity * toStats.iLabelCount + aValue) / (toStats.iLabelCount + 1);
+        final double energy = Math.pow(aValue - newToMean, 2) - Math.pow(aValue - fromStats.iMeanIntensity, 2);
         return new EnergyResult(energy, false);
     }
 }

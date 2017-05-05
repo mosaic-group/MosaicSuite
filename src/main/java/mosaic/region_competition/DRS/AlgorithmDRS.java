@@ -189,6 +189,9 @@ public class AlgorithmDRS {
                 }
             }
         }
+        
+        System.out.println("children:\n" + m_MCMCchildren);
+        System.out.println("parents:\n" + m_MCMCparents);
     }
 
     boolean MCMCInsertCandidatesToContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {
@@ -247,7 +250,7 @@ public class AlgorithmDRS {
             /// Note that the order here is important: first insert the particle
             /// that gets replaced. When restoring the state afterwards, the
             /// particle history is iterated in reverse order.
-            if(vReplace) {
+            if (vReplace) {
                 ParticleHistoryElement vPHE2 = new ParticleHistoryElement(vReplacedParticle, aCurrentLabel, false);
                 m_MCMCParticleInContainerHistory.add(vPHE2);
             }

@@ -44,12 +44,12 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         final LabelStatistics aL1 = labelMap.get(L1);
         final LabelStatistics aL2 = labelMap.get(L2);
 
-        final double vMu1 = aL1.mean;
-        final double vMu2 = aL2.mean;
-        final double vVar1 = aL1.var;
-        final double vVar2 = aL2.var;
-        final int vN1 = aL1.count;
-        final int vN2 = aL2.count;
+        final double vMu1 = aL1.iMeanIntensity;
+        final double vMu2 = aL2.iMeanIntensity;
+        final double vVar1 = aL1.iVarIntensity;
+        final double vVar2 = aL2.iVarIntensity;
+        final int vN1 = aL1.iLabelCount;
+        final int vN2 = aL2.iLabelCount;
 
         return calc(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
     }

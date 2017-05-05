@@ -2,29 +2,30 @@ package mosaic.region_competition.RC;
 
 
 public class LabelStatistics {
-
-    public int label = 0; // absolute label
-    public int count; // number of pixels of label
-    public double mean = 0; // mean of intensity
-    public double var = 0; // variance of intensity
-    public double median = 0;
-    public double mean_pos[];
+    // Label info
+    public int iLabel = 0;
+    public int iLabelCount;
+    
+    // Label stats
+    public double iMeanIntensity = 0;
+    public double iVarIntensity = 0;
+    public double iMedianIntensity = 0;
+    
+    // Label mean position
+    public double iMeanPosition[] = null;
 
     /**
-     * Create a label that store information
-     *
-     * @param label id of the label
-     * @param dim dimensions of the problem
+     * Create a statistics for label
+     * @param aLabel id of the label
+     * @param aNumOfDims dimensions of the problem
      */
-
-    public LabelStatistics(int label, int dim) {
-        this.label = label;
-        mean_pos = new double[dim];
+    public LabelStatistics(int aLabel, int aNumOfDims) {
+        iLabel = aLabel;
+        iMeanPosition = new double[aNumOfDims];
     }
 
     @Override
     public String toString() {
-        return "L: " + label + " count: " + count + " " + " mean: " + mean;
+        return "L: " + iLabel + " count: " + iLabelCount + " mean: " + iMeanIntensity;
     }
-
 }

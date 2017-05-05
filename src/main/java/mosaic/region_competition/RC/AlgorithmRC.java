@@ -140,9 +140,9 @@ public class AlgorithmRC {
                     iLabelStatistics.put(absLabel, stats);
                 }
                 final double val = iIntensityImage.get(i);
-                stats.count++;
-                stats.mean += val;
-                stats.var += val * val;
+                stats.iLabelCount++;
+                stats.iMeanIntensity += val;
+                stats.iVarIntensity += val * val;
             }
         }
 
@@ -155,11 +155,11 @@ public class AlgorithmRC {
 
         // Finally - calculate variance, median and mean for each found label
         for (final LabelStatistics stat : iLabelStatistics.values()) {
-            final int n = stat.count;
-            stat.var = n > 1 ? ((stat.var - stat.mean * stat.mean / n) / (n - 1)) : 0;
-            stat.mean = n > 0 ? (stat.mean / n) : 0;
+            final int n = stat.iLabelCount;
+            stat.iVarIntensity = n > 1 ? ((stat.iVarIntensity - stat.iMeanIntensity * stat.iMeanIntensity / n) / (n - 1)) : 0;
+            stat.iMeanIntensity = n > 0 ? (stat.iMeanIntensity / n) : 0;
             // Median on start set equal to mean
-            stat.median = stat.mean;
+            stat.iMedianIntensity = stat.iMeanIntensity;
         }
 
         // Make sure that labelDispenser will not produce again any already used label
@@ -200,8 +200,8 @@ public class AlgorithmRC {
     public void calculateRegionsCenterOfMass() {
         // Reset mean position for all labels
         for (final LabelStatistics labelStats : iLabelStatistics.values()) {
-            for (int i = 0; i < labelStats.mean_pos.length; ++i) {
-                labelStats.mean_pos[i] = 0.0;
+            for (int i = 0; i < labelStats.iMeanPosition.length; ++i) {
+                labelStats.iMeanPosition[i] = 0.0;
             }
         }
 
@@ -214,7 +214,7 @@ public class AlgorithmRC {
 
             if (labelStats != null) {
                 for (int i = 0; i < point.getNumOfDimensions(); ++i) {
-                    labelStats.mean_pos[i] += point.iCoords[i];
+                    labelStats.iMeanPosition[i] += point.iCoords[i];
                 }
             }
             else {
@@ -227,8 +227,8 @@ public class AlgorithmRC {
 
         // Iterate through all label statistics and calculate center of mass basing on previous calcuation
         for (final LabelStatistics labelStats : iLabelStatistics.values()) {
-            for (int i = 0; i < labelStats.mean_pos.length; ++i) {
-                labelStats.mean_pos[i] /= labelStats.count;
+            for (int i = 0; i < labelStats.iMeanPosition.length; ++i) {
+                labelStats.iMeanPosition[i] /= labelStats.iLabelCount;
             }
         }
     }
@@ -241,7 +241,7 @@ public class AlgorithmRC {
 
         while (labelStatsIt.hasNext()) {
             final Entry<Integer, LabelStatistics> entry = labelStatsIt.next();
-            if (entry.getValue().count == 0) {
+            if (entry.getValue().iLabelCount == 0) {
                 if (entry.getKey() != BGLabel) {
                     labelStatsIt.remove();
                     continue;
@@ -365,7 +365,7 @@ public class AlgorithmRC {
                 logger.error("There is not label statistics for label: " + contourParticle.label + " at " + vIt.getKey());
                 continue;
             }
-            else if (labelStat.count == 1) {
+            else if (labelStat.iLabelCount == 1) {
                 contourParticle.candidateLabel = BGLabel;
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(vIt.getKey(), vIt.getValue());
             }
@@ -383,7 +383,7 @@ public class AlgorithmRC {
             if (label == BGLabel) {
                 continue;
             }
-            else if (labelStats.getValue().count <= MinimumAreaSize) {
+            else if (labelStats.getValue().iLabelCount <= MinimumAreaSize) {
                 removeRegion(label);
             }
         }
@@ -416,7 +416,7 @@ public class AlgorithmRC {
             }
 
             // After above loop only outside "layer" of region was removed. Proceed until all stuff is removed.
-            if (iLabelStatistics.get(aLabel).count > 0) {
+            if (iLabelStatistics.get(aLabel).iLabelCount > 0) {
                 for (final Entry<Point, ContourParticle> particleIt : iContourParticles.entrySet()) {
                     if (particleIt.getValue().label == aLabel) {
                         labelParticles.put(particleIt.getKey(), particleIt.getValue());
@@ -505,9 +505,9 @@ public class AlgorithmRC {
 
         // Create a LabelStatistics for the new label and add it to container
         final LabelStatistics newLabelStats = new LabelStatistics(aNewLabel, iLabelImage.getNumOfDimensions());
-        newLabelStats.mean = sumOfVal / count;
-        newLabelStats.var = (count > 1) ? (sumOfSqVal - sumOfVal * sumOfVal / count) / (count - 1) : 0;
-        newLabelStats.count = count;
+        newLabelStats.iMeanIntensity = sumOfVal / count;
+        newLabelStats.iVarIntensity = (count > 1) ? (sumOfSqVal - sumOfVal * sumOfVal / count) / (count - 1) : 0;
+        newLabelStats.iLabelCount = count;
         iLabelStatistics.put(aNewLabel, newLabelStats);
 
         // Clean up the statistics of non valid regions.
@@ -1076,35 +1076,35 @@ public class AlgorithmRC {
     private void updateLabelStatistics(float aIntensity, int aFromLabelIdx, int aToLabelIdx) {
         final LabelStatistics toLabelStats = iLabelStatistics.get(aToLabelIdx);
         final LabelStatistics fromLabelStats = iLabelStatistics.get(aFromLabelIdx);
-        final double toCount = toLabelStats.count;
-        final double fromCount = fromLabelStats.count;
+        final double toCount = toLabelStats.iLabelCount;
+        final double fromCount = fromLabelStats.iLabelCount;
 
         // Before changing the mean, compute the sum of squares of the samples:
-        final double vToLabelSumOfSq = toLabelStats.var * (toCount - 1.0) + toCount * toLabelStats.mean * toLabelStats.mean;
-        final double vFromLabelSumOfSq = fromLabelStats.var * (fromCount - 1.0) + fromCount * fromLabelStats.mean * fromLabelStats.mean;
+        final double vToLabelSumOfSq = toLabelStats.iVarIntensity * (toCount - 1.0) + toCount * toLabelStats.iMeanIntensity * toLabelStats.iMeanIntensity;
+        final double vFromLabelSumOfSq = fromLabelStats.iVarIntensity * (fromCount - 1.0) + fromCount * fromLabelStats.iMeanIntensity * fromLabelStats.iMeanIntensity;
 
         // Calculate the new means for the background and the label:
-        final double vNewMeanToLabel = (toLabelStats.mean * toCount + aIntensity) / (toCount + 1.0);
+        final double vNewMeanToLabel = (toLabelStats.iMeanIntensity * toCount + aIntensity) / (toCount + 1.0);
 
         // TODO: divide by zero. why does this not happen at itk?
-        double vNewMeanFromLabel = (fromCount > 1) ? ((fromCount * fromLabelStats.mean - aIntensity) / (fromCount - 1.0)) : 0.0;
+        double vNewMeanFromLabel = (fromCount > 1) ? ((fromCount * fromLabelStats.iMeanIntensity - aIntensity) / (fromCount - 1.0)) : 0.0;
 
         // Calculate the new variances:
         double newToVar = ((1.0 / (toCount))
-                * (vToLabelSumOfSq + aIntensity * aIntensity - 2.0 * vNewMeanToLabel * (toLabelStats.mean * toCount + aIntensity) + (toCount + 1.0) * vNewMeanToLabel * vNewMeanToLabel));
+                * (vToLabelSumOfSq + aIntensity * aIntensity - 2.0 * vNewMeanToLabel * (toLabelStats.iMeanIntensity * toCount + aIntensity) + (toCount + 1.0) * vNewMeanToLabel * vNewMeanToLabel));
 
         double newFromVar = (fromCount != 2) ? (1.0 / (fromCount - 2.0))
-                * (vFromLabelSumOfSq - aIntensity * aIntensity - 2.0 * vNewMeanFromLabel * (fromLabelStats.mean * fromCount - aIntensity) + (fromCount - 1.0) * vNewMeanFromLabel * vNewMeanFromLabel)
+                * (vFromLabelSumOfSq - aIntensity * aIntensity - 2.0 * vNewMeanFromLabel * (fromLabelStats.iMeanIntensity * fromCount - aIntensity) + (fromCount - 1.0) * vNewMeanFromLabel * vNewMeanFromLabel)
                 : 0.0;
 
         // Update stats
-        toLabelStats.var = newToVar;
-        fromLabelStats.var = newFromVar;
-        toLabelStats.mean = vNewMeanToLabel;
-        fromLabelStats.mean = vNewMeanFromLabel;
+        toLabelStats.iVarIntensity = newToVar;
+        fromLabelStats.iVarIntensity = newFromVar;
+        toLabelStats.iMeanIntensity = vNewMeanToLabel;
+        fromLabelStats.iMeanIntensity = vNewMeanFromLabel;
 
         // Add a sample point to the BG and remove it from the label-region:
-        toLabelStats.count++;
-        fromLabelStats.count--;
+        toLabelStats.iLabelCount++;
+        fromLabelStats.iLabelCount--;
     }
 }

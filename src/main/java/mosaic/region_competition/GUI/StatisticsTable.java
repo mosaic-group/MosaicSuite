@@ -57,13 +57,13 @@ public class StatisticsTable {
             rt.incrementCounter();
             rt.addValue("Id", rt.getCounter());
             rt.addValue("Image_ID", 0);
-            rt.addValue("label", info.label);
-            rt.addValue("size", info.count);
-            rt.addValue("mean", info.mean);
-            rt.addValue("variance", info.var);
-            rt.addValue("Coord_X", info.mean_pos[0] - iPadSize);
-            rt.addValue("Coord_Y", info.mean_pos[1] - iPadSize);
-            rt.addValue("Coord_Z", (info.mean_pos.length > 2) ? (info.mean_pos[2] - iPadSize) : 0.0);
+            rt.addValue("label", info.iLabel);
+            rt.addValue("size", info.iLabelCount);
+            rt.addValue("mean", info.iMeanIntensity);
+            rt.addValue("variance", info.iVarIntensity);
+            rt.addValue("Coord_X", info.iMeanPosition[0] - iPadSize);
+            rt.addValue("Coord_Y", info.iMeanPosition[1] - iPadSize);
+            rt.addValue("Coord_Z", (info.iMeanPosition.length > 2) ? (info.iMeanPosition[2] - iPadSize) : 0.0);
         }
 
         return rt;

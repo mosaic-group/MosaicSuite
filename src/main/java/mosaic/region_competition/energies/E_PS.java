@@ -79,8 +79,8 @@ public class E_PS extends ExternalEnergy {
         if (cntTo == 0) {
             // this 'if' should only happen with the BG label
             final LabelStatistics info = aLabelStats.get(aToLabel);
-            meanTo = info.mean;
-            varTo = info.var;
+            meanTo = info.iMeanIntensity;
+            varTo = info.iVarIntensity;
         }
         else {
             meanTo = sumTo / cntTo;
@@ -92,8 +92,8 @@ public class E_PS extends ExternalEnergy {
         double varFrom;
         if (cntFrom == 0) {
             final LabelStatistics info = aLabelStats.get(fromLabel);
-            meanFrom = info.mean;
-            varFrom = info.var;
+            meanFrom = info.iMeanIntensity;
+            varFrom = info.iVarIntensity;
         }
         else {
             meanFrom = sumFrom / cntFrom;
