@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JButton;
+
 import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
@@ -19,8 +20,8 @@ import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
-import mosaic.ia.FileUtils;
 import mosaic.ia.Analysis.Result;
+import mosaic.ia.FileUtils;
 import mosaic.ia.Potentials;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
@@ -293,5 +294,28 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
         
         return image3d;
+    }
+    
+    //TODO: To be removed after testing
+    public static void runIt() {
+        InteractionAnalysisGui ia = new InteractionAnalysisGui();
+        ia.tabbedPane.setSelectedIndex(1);
+        ia.potentialComboBox.setSelectedIndex(1);
+        
+        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
+        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
+        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
+        
+        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
+        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
+        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
+        
+        ia.setMinMaxCoordinates();
+        ia.calculateDistances();
+        
+        ia.reRuns.setText("3");
+        ia.estimatePotential();
+        ia.testHypothesis();
+        
     }
 }

@@ -6,13 +6,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.scijava.vecmath.Point3d;
-
 import org.junit.Test;
+import org.scijava.vecmath.Point3d;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
 import mosaic.ia.Potentials.PotentialType;
+import mosaic.ia.gui.InteractionAnalysisGui;
 import mosaic.test.framework.CommonBase;
 
 /**
@@ -124,5 +124,12 @@ public class AnalysisTest extends CommonBase {
         
         // No testing anything - just running to catch any unwanted null things..
         analysis.hypothesisTesting(100, 0.01);
+    }
+    
+    @Test
+    public void testIt() {
+           
+        InteractionAnalysisGui.runIt();
+        sleep(21000);
     }
 }

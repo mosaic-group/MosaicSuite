@@ -12,11 +12,11 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
 class HypothesisTesting {
     // Input Distributions
-    private final double[] iDistanceCdf;
-    private final double[] iDistancesGrid;
+    private final double[] iContextQdCdf;
+    private final double[] iContextQdDistancesGrid;
+    private final double[] iNearestNeighborDistancesXtoY;
     
     // Potential Calculator
-    private final double[] iNearestNeighborDistances;
     private final double[] iBestPointFound;
     private final Potential iPotential;
     
@@ -24,22 +24,24 @@ class HypothesisTesting {
     private final int iNumOfMcRuns;
     private final double iAlpha;
 
-    public HypothesisTesting(double[] aDistanceCdf, double[] aDistancesGrid, double[] aNearestNeighborDistances, double[] aBestPointFound, Potential aPotential, int aNumOfMcRuns, double aAlpha) {
-        iDistanceCdf = aDistanceCdf;
-        iDistancesGrid = aDistancesGrid;
+    public HypothesisTesting(double[] aContextQdCdf, double[] aContextQdDistancesGrid, double[] aNearestNeighborDistancesXtoY, double[] aBestPointFound, Potential aPotential, int aNumOfMcRuns, double aAlpha) {
+        iContextQdCdf = aContextQdCdf;
+        iContextQdDistancesGrid = aContextQdDistancesGrid;
+        iNearestNeighborDistancesXtoY = aNearestNeighborDistancesXtoY;
+        
         iBestPointFound = aBestPointFound;
         iPotential = aPotential;
-        iNearestNeighborDistances = aNearestNeighborDistances;
+        
         iNumOfMcRuns = aNumOfMcRuns;
         iAlpha = aAlpha;
     }
 
     public boolean rankTest() {
-        double[] DRand = new double[iNearestNeighborDistances.length];
+        double[] DRand = new double[iNearestNeighborDistancesXtoY.length];
         double[] T = new double[iNumOfMcRuns];
         calculateT(DRand, T);
         
-        double Tob = -1 * iPotential.calculateWithoutEpsilon(iNearestNeighborDistances, iBestPointFound).getSumPotential();
+        double Tob = -1 * iPotential.calculateWithoutEpsilon(iNearestNeighborDistancesXtoY, iBestPointFound).getSumPotential();
         int i = 0;
         for (i = 0; i < iNumOfMcRuns; i++) {
             if (Tob <= T[i]) {
@@ -78,10 +80,10 @@ class HypothesisTesting {
     private void generateRandomDistances(double[] DRand) {
         final Random rn = new Random(System.nanoTime());
 
-        for (int i = 0; i < iNearestNeighborDistances.length;) {
+        for (int i = 0; i < iNearestNeighborDistancesXtoY.length;) {
             double R = rn.nextDouble();
             // to make sure that random value will be in CDF range
-            if (R >= iDistanceCdf[0]) {
+            if (R >= iContextQdCdf[0]) {
                 DRand[i] = findDistance(R);
                 i++;
             }
@@ -90,12 +92,12 @@ class HypothesisTesting {
 
     private double findDistance(double R) {
         int i;
-        for (i = 0; i < iDistanceCdf.length - 1; i++) {
-            if (R >= iDistanceCdf[i] && R < iDistanceCdf[i + 1]) {
+        for (i = 0; i < iContextQdCdf.length - 1; i++) {
+            if (R >= iContextQdCdf[i] && R < iContextQdCdf[i + 1]) {
                 break;
             }
         }
-        return linearInterpolation(iDistanceCdf[i], iDistanceCdf[i + 1], iDistancesGrid[i], iDistancesGrid[i + 1], R);
+        return linearInterpolation(iContextQdCdf[i], iContextQdCdf[i + 1], iContextQdDistancesGrid[i], iContextQdDistancesGrid[i + 1], R);
     }
     
     private static double linearInterpolation(double aXmin, double aXmax, double aYmin, double aYmax, double aXpoint) {

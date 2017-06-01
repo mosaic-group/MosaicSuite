@@ -26,9 +26,9 @@ public abstract class DistanceCalculations {
     protected double yscale = 1;
 
     // Internal data structures
-    private double[] iDistances;
-    private double[] iDistancesGrid;
-    private double[] iProbabilityDistribution;
+    private double[] iNearestNeighborsDistancesXtoY;
+    private double[] iContextQdDistancesGrid;
+    private double[] iContextQdPdf;
 
     DistanceCalculations(float[][][] mask, double aDeltaStepLength, double aKernelWeight, int aNumberOfBins) {
         iDeltaStepLenght = aDeltaStepLength;
@@ -37,16 +37,16 @@ public abstract class DistanceCalculations {
         iMaskImage3d = mask;
     }
     
-    public double[] getProbabilityOfDistancesDistribution() {
-        return iProbabilityDistribution;
+    public double[] getContextQdPdf() {
+        return iContextQdPdf;
     }
     
-    public double[] getDistancesGrid() {
-        return iDistancesGrid;
+    public double[] getContextQdDistancesGrid() {
+        return iContextQdDistancesGrid;
     }
 
-    public double[] getNearestNeighborsDistances() {
-        return iDistances;
+    public double[] getNearestNeighborsDistancesXtoY() {
+        return iNearestNeighborsDistancesXtoY;
     }
 
     /**
@@ -95,17 +95,17 @@ public abstract class DistanceCalculations {
         System.out.println("Maximum/Minimum distance found: " + max + " " + min);
         System.out.println("Bin lenght: " + binLength);
 
-        iDistancesGrid = new double[iNumberOfBins];
-        iProbabilityDistribution = new double[iNumberOfBins];
+        iContextQdDistancesGrid = new double[iNumberOfBins];
+        iContextQdPdf = new double[iNumberOfBins];
         for (int i = 0; i < iNumberOfBins; i++) {
-            iDistancesGrid[i] = i * binLength;
-            iProbabilityDistribution[i] = kernelEstimator.getProbability(i * binLength);
+            iContextQdDistancesGrid[i] = i * binLength;
+            iContextQdPdf[i] = kernelEstimator.getProbability(i * binLength);
         }
     }
 
     protected void calcDistancesOfXtoY() {
         System.out.println("Number of coordinates (X/Y): " + iParticlesX.length + " / " + iParticlesY.length);
-        iDistances = new NearestNeighborTree(iParticlesY).getDistancesToNearestNeighbors(iParticlesX);
+        iNearestNeighborsDistancesXtoY = new NearestNeighborTree(iParticlesY).getDistancesToNearestNeighbors(iParticlesX);
     }
 
     private boolean isInsideMask(Point3d coords) {
