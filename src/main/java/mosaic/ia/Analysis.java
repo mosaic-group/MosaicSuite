@@ -23,10 +23,10 @@ public class Analysis {
     
     private Potential iPotential;
 
-    private double[] iDistancesGrid;
-    private double[] iDistancePdf;
-    private double[] iNearestNeighborDistances;
-    private double[] iNearestNeighborDistancePdf;
+    private double[] iContextQdDistancesGrid;
+    private double[] iContextQdPdf;
+    private double[] iNearestNeighborDistancesXtoY;
+    private double[] iNearestNeighborDistancesXtoYPdf;
     
     private double[][] iBestPointsFound;
     private int iBestPointIndex = -1;
@@ -45,28 +45,28 @@ public class Analysis {
     }
     
     private void calcDistributions(DistanceCalculations dci, double kernelWeightp) {
-        iNearestNeighborDistances = dci.getNearestNeighborsDistances();
-        iDistancesGrid = dci.getDistancesGrid();
+        iNearestNeighborDistancesXtoY = dci.getNearestNeighborsDistancesXtoY();
+        iContextQdDistancesGrid = dci.getContextQdDistancesGrid();
         // TODO: It is not sure if it should be normalized here or later in when calculating CMA. 
         //       In original code there is misleading info, it says that it should be *NOT* normalized but
         //       at the same time output from old DistanceCalculations is already normalized...)
-        iDistancePdf = StatisticsUtils.normalizePdf(dci.getProbabilityOfDistancesDistribution(), false);
-        KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iNearestNeighborDistances, kernelWeightp);
-        iNearestNeighborDistancePdf = new double[iDistancesGrid.length];
-        for (int i = 0; i < iDistancesGrid.length; i++) {
-            iNearestNeighborDistancePdf[i] = kernelEstimatorNN.getProbability(iDistancesGrid[i]);
+        iContextQdPdf = StatisticsUtils.normalizePdf(dci.getContextQdPdf(), false);
+        KernelEstimator kernelEstimatorNN = createkernelDensityEstimator(iNearestNeighborDistancesXtoY, kernelWeightp);
+        iNearestNeighborDistancesXtoYPdf = new double[iContextQdDistancesGrid.length];
+        for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
+            iNearestNeighborDistancesXtoYPdf[i] = kernelEstimatorNN.getProbability(iContextQdDistancesGrid[i]);
         }
-        StatisticsUtils.normalizePdf(iNearestNeighborDistancePdf, false);
+        StatisticsUtils.normalizePdf(iNearestNeighborDistancesXtoYPdf, false);
         
-        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(iNearestNeighborDistances);
+        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(iNearestNeighborDistancesXtoY);
         minDistance = mmm.min;
         maxDistance = mmm.max;
         meanDistance = mmm.mean;
         System.out.println("Min/Max/Mean distance of X to Y: " + mmm.min + " / " + mmm.max + " / " + mmm.mean);
         
-        new DistributionsPlot(iDistancesGrid, iDistancePdf, iNearestNeighborDistancePdf).show();
-        PlotHistogram.plot("ObservedDistances", iNearestNeighborDistances, getOptimBins(iNearestNeighborDistances, 8, iNearestNeighborDistances.length / 8));
-        IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iNearestNeighborDistances));
+        new DistributionsPlot(iContextQdDistancesGrid, iContextQdPdf, iNearestNeighborDistancesXtoYPdf).show();
+        PlotHistogram.plot("ObservedDistances", iNearestNeighborDistancesXtoY, getOptimBins(iNearestNeighborDistancesXtoY, 8, iNearestNeighborDistancesXtoY.length / 8));
+        IJ.showMessage("Suggested Kernel wt(p): " + calcWekaWeights(iNearestNeighborDistancesXtoY));
     }
 
     public static class Result {
@@ -86,15 +86,15 @@ public class Analysis {
         }
     }
     
-    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
-        final FitFunction fitfun = new FitFunction(iDistancesGrid, iDistancePdf, iNearestNeighborDistances, iPotential, iNearestNeighborDistancePdf);
+    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes, boolean aRepetitiveResults) {
+        final FitFunction fitfun = new FitFunction(iContextQdPdf, iContextQdDistancesGrid, iNearestNeighborDistancesXtoYPdf, iNearestNeighborDistancesXtoY, iPotential);
         iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
         double[] bestFunctionValue = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
         
         for (int cmaRunNumber = 0; cmaRunNumber < cmaReRunTimes; cmaRunNumber++) {
-            final CMAEvolutionStrategy cma = createNewConfiguredCma();
+            final CMAEvolutionStrategy cma = createNewConfiguredCma(aRepetitiveResults);
             final double[] fitness = cma.init();
             
             while (cma.stopConditions.getNumber() == 0) {
@@ -136,9 +136,9 @@ public class Analysis {
         }
 
         fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
-        new EstimatedPotentialPlot(iDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
-        double[] observedNNDistancesPdf = StatisticsUtils.normalizePdf(fitfun.getObservedNearestNeighborDistancesPdf(), false);
-        new DistributionsPlot(iDistancesGrid, observedNNDistancesPdf, iDistancePdf, iNearestNeighborDistancePdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        new EstimatedPotentialPlot(iContextQdDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        double[] observedModelFitPdPdf = StatisticsUtils.normalizePdf(fitfun.getObservedModelFitPdPdf(), false);
+        new DistributionsPlot(iContextQdDistancesGrid, observedModelFitPdPdf, iContextQdPdf, iNearestNeighborDistancesXtoYPdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
     }
 
     private void addNewOutputResult(List<Result> aResultsOutput, double aBestFunctionValue, double[] aBestPointFound) {
@@ -166,10 +166,12 @@ public class Analysis {
         }
     }
 
-    private CMAEvolutionStrategy createNewConfiguredCma() {
+    private CMAEvolutionStrategy createNewConfiguredCma(boolean aRepetitiveResults) {
         final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
-        cma.setSeed(1);
-        cma.setRand(new Random(1));
+        if (aRepetitiveResults) {
+            cma.setSeed(1);
+            cma.setRand(new Random(1));
+        }
         cma.options.writeDisplayToFile = 0;
         cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
         cma.options.stopFitness = 1e-12; // optional setting
@@ -178,7 +180,7 @@ public class Analysis {
         
         final double[] initialX = new double[iPotential.numOfDimensions()];
         final double[] initialSigma = new double[iPotential.numOfDimensions()];
-        final Random rn = new Random(123456);
+        final Random rn = aRepetitiveResults ? new Random(123456) : new Random();
         if (iPotential.getType() == PotentialType.NONPARAM) {
             for (int i = 0; i < iPotential.numOfDimensions(); i++) {
                 initialX[i] = meanDistance * rn.nextDouble();
@@ -223,9 +225,9 @@ public class Analysis {
         }
         else {
             System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-            final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iDistancePdf, true), 
-                                                               iDistancesGrid, 
-                                                               iNearestNeighborDistances, 
+            final HypothesisTesting ht = new HypothesisTesting(StatisticsUtils.calculateCdf(iContextQdPdf, true), 
+                                                               iContextQdDistancesGrid, 
+                                                               iNearestNeighborDistancesXtoY, 
                                                                iBestPointsFound[iBestPointIndex], 
                                                                iPotential, 
                                                                monteCarloRunsForTest, alpha);
@@ -290,7 +292,7 @@ public class Analysis {
     }
 
     public double[] getDistances() {
-        return iNearestNeighborDistances;
+        return iNearestNeighborDistancesXtoY;
     }
     
     public void setPotentialType(Potential potentialType) {

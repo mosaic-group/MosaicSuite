@@ -325,6 +325,15 @@ public class Region_Competition implements PlugInFilter {
     private void initInputImage() {
         // We should have a image or...
         if (inputImageChosenByUser != null) {
+            int c = inputImageChosenByUser.getNChannels();
+            int f = inputImageChosenByUser.getNFrames();
+            if (c != 1 || f != 1) {
+                String s = "Region Competition is not able to segment correctly multichannel or multiframe images.\n" +
+                        "Current input file info: number of channels=" + c +
+                        "number of frames=" + f + "\nPlease use as a input only 2D or 3D single image.";
+                IJ.showMessage(s);
+                throw new RuntimeException(s);
+            }
             ImagePlus workImg = inputImageChosenByUser;
             if (segmentationType == SegmentationType.RC) {
                 ImageStack padedIs = ImgUtils.pad(inputImageChosenByUser.getStack(), iPadSize, inputImageChosenByUser.getNDimensions() > 2);

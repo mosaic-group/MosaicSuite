@@ -12,46 +12,48 @@ import net.sf.javaml.utils.ArrayUtils;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class DistributionsPlot extends BasePlot {
-    public DistributionsPlot(double[] aX, double[] aQ, double[] aObservedDistance) {
-        double max = Math.max(ArrayUtils.max(aQ), ArrayUtils.max(aObservedDistance));
+    public DistributionsPlot(double[] aContextQdDistancesGrid, double[] aContextQdPdf, double[] aNearestNeighborDistancesXtoYPdf) {
+        double max = Math.max(ArrayUtils.max(aContextQdPdf), ArrayUtils.max(aNearestNeighborDistancesXtoYPdf));
         plot = new Plot("Result: Estimated distance distributions", "Distance", "Probability density");
-        plot.setLimits(aX[0], aX[aX.length - 1], 0, max);
-        plot.setLineWidth(2);
+        plot.setLimits(aContextQdDistancesGrid[0], aContextQdDistancesGrid[aContextQdDistancesGrid.length - 1], 0, max);
         
-        drawNearestNeighborDistances(aX, aObservedDistance);
-        drawProbabilityOfDistance(aX, aQ);
+        drawContextQdPdf(aContextQdDistancesGrid, aContextQdPdf);
+        drawNearestNeighborDistancesXtoYPdf(aContextQdDistancesGrid, aNearestNeighborDistancesXtoYPdf);
     }
     
-    public DistributionsPlot(double[] aDistances, double[] aModelFit, double[] aProbabilityOfDistance, double[] aNearestNeighborDistance, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
-        double max = Math.max(ArrayUtils.max(aProbabilityOfDistance), Math.max(ArrayUtils.max(aNearestNeighborDistance), ArrayUtils.max(aModelFit)));
+    public DistributionsPlot(double[] aContextQdDistancesGrid, double[] aObservedModelFitPdPdf, double[] aContextQdPdf, double[] aNearestNeighborDistancesXtoYPdf, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
+        double max = Math.max(ArrayUtils.max(aContextQdPdf), Math.max(ArrayUtils.max(aNearestNeighborDistancesXtoYPdf), ArrayUtils.max(aObservedModelFitPdPdf)));
         plot = new Plot("Distance distributions", "Distance", "Probability density");
-        plot.setLimits(aDistances[0], aDistances[aDistances.length - 1], 0, max);
+        plot.setLimits(aContextQdDistancesGrid[0], aContextQdDistancesGrid[aContextQdDistancesGrid.length - 1], 0, max);
         plot.setLineWidth(2);
 
-        drawNearestNeighborDistances(aDistances, aNearestNeighborDistance);
-        drawProbabilityOfDistance(aDistances, aProbabilityOfDistance);
-        drawModelFit(aDistances, aModelFit);
+        drawContextQdPdf(aContextQdDistancesGrid, aContextQdPdf);
+        drawObservedModelFitPdPdf(aContextQdDistancesGrid, aObservedModelFitPdPdf);
+        drawNearestNeighborDistancesXtoYPdf(aContextQdDistancesGrid, aNearestNeighborDistancesXtoYPdf);
         addDescription(aPotential, aBestPointFound, aBestFunctionValue);
     }
 
-    private void drawModelFit(double[] aDistances, double[] aModelFit) {
-        plot.setColor(Color.green);
+    private void drawObservedModelFitPdPdf(double[] aDistances, double[] aModelFit) {
+        plot.setColor(Color.green); 
+        plot.setLineWidth(2);
         plot.addPoints(aDistances, aModelFit, PlotWindow.LINE);
         plot.addLabel(.65, .4, "----  ");
         plot.setColor(Color.black);
         plot.addLabel(.7, .4, "p(d): Model fit");
     }
 
-    private void drawProbabilityOfDistance(double[] aDistances, double[] aProbabilityOfDistance) {
+    private void drawContextQdPdf(double[] aDistances, double[] aProbabilityOfDistance) {
         plot.setColor(Color.red);
+        plot.setLineWidth(4);
         plot.addPoints(aDistances, aProbabilityOfDistance, PlotWindow.LINE);
         plot.addLabel(.65, .3, "----  ");
         plot.setColor(Color.black);
         plot.addLabel(.7, .3, "q(d): Context");
     }
 
-    private void drawNearestNeighborDistances(double[] aDistances, double[] aNearestNeighborDistance) {
+    private void drawNearestNeighborDistancesXtoYPdf(double[] aDistances, double[] aNearestNeighborDistance) {
         plot.setColor(Color.BLUE);
+        plot.setLineWidth(1.5f);
         plot.addPoints(aDistances, aNearestNeighborDistance, PlotWindow.LINE);
         plot.addLabel(.65, .2, "----  ");
         plot.setColor(Color.black);

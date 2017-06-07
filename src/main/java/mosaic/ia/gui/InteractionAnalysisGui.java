@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JButton;
+
 import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
@@ -19,8 +20,8 @@ import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
-import mosaic.ia.FileUtils;
 import mosaic.ia.Analysis.Result;
+import mosaic.ia.FileUtils;
 import mosaic.ia.Potentials;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
@@ -109,7 +110,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
         iAnalysis.setPotentialType(potential); // for the first time
         List<Result> results = new ArrayList<Result>();
-        iAnalysis.cmaOptimization(results, numReRuns);
+        iAnalysis.cmaOptimization(results, numReRuns, false);
+        mosaic.utils.Debug.print(results);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
             for (Analysis.Result r : results) {

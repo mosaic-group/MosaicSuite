@@ -155,7 +155,7 @@ public class Potentials {
         @Override
         public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = Math.abs(aParameters[1]);
-            final double epsilon = Math.abs(aParameters[0]);
+            final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon);
             return this;
         }
@@ -198,7 +198,7 @@ public class Potentials {
         public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
-            final double epsilon = Math.abs(aParameters[0]);
+            final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon, sigma);
             return this;
         }
@@ -288,7 +288,7 @@ public class Potentials {
         public Potential calculate(double[] aDistances, double[] aParameters) {
             final double threshold = 0;
             final double sigma = Math.abs(aParameters[1]);
-            final double epsilon = Math.abs(aParameters[0]);
+            final double epsilon = aParameters[0];
             calc(aDistances, threshold, epsilon, sigma);
             return this;
         }

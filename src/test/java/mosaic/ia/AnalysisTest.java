@@ -6,9 +6,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.scijava.vecmath.Point3d;
-
 import org.junit.Test;
+import org.scijava.vecmath.Point3d;
 
 import ij.macro.Interpreter;
 import mosaic.ia.Analysis.Result;
@@ -55,7 +54,7 @@ public class AnalysisTest extends CommonBase {
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.HERNQUIST));
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results, 1);
+        analysis.cmaOptimization(results, 1, true);
         
         epsilon = 1e-6;
         assertEquals(36.723224, results.get(0).iStrength, epsilon);
@@ -93,7 +92,7 @@ public class AnalysisTest extends CommonBase {
         analysis.setPotentialType(Potentials.createPotential(PotentialType.NONPARAM, analysis.getMinDistance(), analysis.getMaxDistance(), 41, 0.1));
         
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results, 1);
+        analysis.cmaOptimization(results, 1, true);
 
         epsilon = 1e-6;
         assertEquals(0.0, results.get(0).iStrength, epsilon);
@@ -115,7 +114,7 @@ public class AnalysisTest extends CommonBase {
         analysis.setPotentialType(Potentials.createPotential(PotentialType.STEP));
         
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results, 1);
+        analysis.cmaOptimization(results, 1, true);
         
         epsilon = 1e-6;
         assertEquals(2.439648, results.get(0).iStrength, epsilon);
