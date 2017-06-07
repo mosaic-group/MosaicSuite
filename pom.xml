@@ -6,7 +6,7 @@
     <name>MosacSuite ImageJ/Fiji plugin</name>
     <artifactId>MosaicSuite</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <description>Package contains image processing algorithms developed in MOSAIC Group</description>
     <url>http://mosaic.mpi-cbg.de/?q=downloads/imageJ</url>
     <developers>
