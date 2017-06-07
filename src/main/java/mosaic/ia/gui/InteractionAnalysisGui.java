@@ -110,7 +110,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
         iAnalysis.setPotentialType(potential); // for the first time
         List<Result> results = new ArrayList<Result>();
-        iAnalysis.cmaOptimization(results, numReRuns);
+        iAnalysis.cmaOptimization(results, numReRuns, false);
+        mosaic.utils.Debug.print(results);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
             for (Analysis.Result r : results) {
@@ -294,28 +295,5 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
         
         return image3d;
-    }
-    
-    //TODO: To be removed after testing
-    public static void runIt() {
-        InteractionAnalysisGui ia = new InteractionAnalysisGui();
-        ia.tabbedPane.setSelectedIndex(1);
-        ia.potentialComboBox.setSelectedIndex(1);
-        
-        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
-        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
-        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
-        
-        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
-        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
-        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
-        
-        ia.setMinMaxCoordinates();
-        ia.calculateDistances();
-        
-        ia.reRuns.setText("3");
-        ia.estimatePotential();
-        ia.testHypothesis();
-        
     }
 }

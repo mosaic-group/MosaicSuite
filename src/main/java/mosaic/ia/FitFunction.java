@@ -13,8 +13,8 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
  * and observed NN distances PDF (calculated for given potential).
  */
 class FitFunction extends AbstractObjectiveFunction {
-    private final double[] iContextQtPdf;
-    private final double[] iContextQtDistancesGrid;
+    private final double[] iContextQdPdf;
+    private final double[] iContextQdDistancesGrid;
     private final double[] iNearestNeighborDistancesXtoYPdf;
     private final double[] iNearestNeighborDistancesXtoY;
     private final Potential iPotential;
@@ -22,12 +22,21 @@ class FitFunction extends AbstractObjectiveFunction {
     private double[] iObservedModelFitPdPdf;
     private static final double MachineEpsilon = Math.ulp(1.0);
     
-    public FitFunction(double[] aContextQtPdf, double[] aContextQtDistncesGrid, double[] aNearestNeighborDistancesXtoYPdf, double[] aNearestNeighborDistancesXtoY, Potential aPotential) {
-        iContextQtPdf = aContextQtPdf;
-        iContextQtDistancesGrid = aContextQtDistncesGrid;
+    double iLowRange = 0;
+    double iHighRange = 0;
+    
+    public FitFunction(double[] aContextQdPdf, double[] aContextQdDistncesGrid, double[] aNearestNeighborDistancesXtoYPdf, double[] aNearestNeighborDistancesXtoY, Potential aPotential) {
+        iContextQdPdf = aContextQdPdf;
+        iContextQdDistancesGrid = aContextQdDistncesGrid;
         iNearestNeighborDistancesXtoYPdf = aNearestNeighborDistancesXtoYPdf;
         iNearestNeighborDistancesXtoY = aNearestNeighborDistancesXtoY;
         iPotential = aPotential;
+        
+        MinMaxMean mmmDistanceGrid = StatisticsUtils.getMinMaxMean(iContextQdDistancesGrid);
+        MinMaxMean mmmNNDistances = StatisticsUtils.getMinMaxMean(iNearestNeighborDistancesXtoY);
+        iLowRange = Math.max(Math.min(mmmDistanceGrid.min, mmmNNDistances.min), MachineEpsilon);
+        iHighRange = Math.max(mmmDistanceGrid.max, mmmNNDistances.max);
+        System.out.println("FIT RANGE: " + iLowRange+ " <= x[1] <= " + iHighRange);
     }
     
     public double[] getObservedModelFitPdPdf() {
@@ -36,20 +45,16 @@ class FitFunction extends AbstractObjectiveFunction {
 
     @Override
     public boolean isFeasible(double[] x) {
+        // NOPARAM is always OK
         if (iPotential.getType() == PotentialType.NONPARAM) {
             return true;
         }
-        MinMaxMean mmmDistanceGrid = StatisticsUtils.getMinMaxMean(iContextQtDistancesGrid);
-        MinMaxMean mmmNNDistances = StatisticsUtils.getMinMaxMean(iNearestNeighborDistancesXtoY);
 
         // Check if epsilon/strenght and threshold/scale have reasonable values to not overflow calculations.
-        if (x[0] >= MachineEpsilon && x[0] <= 50 &&
-                x[1] >= Math.max(Math.min(mmmDistanceGrid.min, mmmNNDistances.min), MachineEpsilon) && 
-                x[1] <= Math.max(mmmDistanceGrid.max, mmmNNDistances.max)) 
-        {
-            // 50 is aribtrary. but log(Double.MAXVAL) = 709.782712893384
+        if (Math.abs(x[0]) > MachineEpsilon && x[1] >= iLowRange && x[1] <= iHighRange) {
             return true;
         }
+        
         return false;
     }
 
@@ -63,13 +68,13 @@ class FitFunction extends AbstractObjectiveFunction {
     }
     
     public double l2Norm(double[] params) {
-        double[] gibbsPotential = iPotential.calculate(iContextQtDistancesGrid, params).getGibbsPotential();
+        double[] gibbsPotential = iPotential.calculate(iContextQdDistancesGrid, params).getGibbsPotential();
         final double Z = calculateNormalizationConstantZ(gibbsPotential);
-        iObservedModelFitPdPdf = new double[iContextQtDistancesGrid.length];
+        iObservedModelFitPdPdf = new double[iContextQdDistancesGrid.length];
         
         double value = 0;
-        for (int i = 0; i < iContextQtDistancesGrid.length; i++) {
-            iObservedModelFitPdPdf[i] = gibbsPotential[i] * iContextQtPdf[i] * (1 / Z);
+        for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
+            iObservedModelFitPdPdf[i] = gibbsPotential[i] * iContextQdPdf[i] * (1 / Z);
             value += Math.pow((iObservedModelFitPdPdf[i] - iNearestNeighborDistancesXtoYPdf[i]), 2);
         }
         
@@ -88,16 +93,16 @@ class FitFunction extends AbstractObjectiveFunction {
     }
 
     private double calculateNormalizationConstantZ(double[] aGibbsPotential) {
-        final double[] support = new double[iContextQtDistancesGrid.length];
-        for (int i = 0; i < iContextQtDistancesGrid.length; i++) {
-            support[i] = aGibbsPotential[i] * iContextQtPdf[i];
+        final double[] support = new double[iContextQdDistancesGrid.length];
+        for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
+            support[i] = aGibbsPotential[i] * iContextQdPdf[i];
         }
         
         double Z = 0;
-        for (int i = 0; i < iContextQtDistancesGrid.length - 1; i++) {
+        for (int i = 0; i < iContextQdDistancesGrid.length - 1; i++) {
             Z += (support[i] + support[i + 1]) / 2;
         }
-        Z += support[0] / 2 + support[iContextQtDistancesGrid.length - 1] / 2;
+        Z += support[0] / 2 + support[iContextQdDistancesGrid.length - 1] / 2;
 
         return Z;
     }

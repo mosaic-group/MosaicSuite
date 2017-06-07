@@ -86,7 +86,7 @@ public class Analysis {
         }
     }
     
-    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
+    public void cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes, boolean aRepetitiveResults) {
         final FitFunction fitfun = new FitFunction(iContextQdPdf, iContextQdDistancesGrid, iNearestNeighborDistancesXtoYPdf, iNearestNeighborDistancesXtoY, iPotential);
         iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
         double[] bestFunctionValue = new double[cmaReRunTimes];
@@ -94,7 +94,7 @@ public class Analysis {
         boolean diffFitness = false;
         
         for (int cmaRunNumber = 0; cmaRunNumber < cmaReRunTimes; cmaRunNumber++) {
-            final CMAEvolutionStrategy cma = createNewConfiguredCma();
+            final CMAEvolutionStrategy cma = createNewConfiguredCma(aRepetitiveResults);
             final double[] fitness = cma.init();
             
             while (cma.stopConditions.getNumber() == 0) {
@@ -166,10 +166,12 @@ public class Analysis {
         }
     }
 
-    private CMAEvolutionStrategy createNewConfiguredCma() {
+    private CMAEvolutionStrategy createNewConfiguredCma(boolean aRepetitiveResults) {
         final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
-        cma.setSeed(1);
-        cma.setRand(new Random(1));
+        if (aRepetitiveResults) {
+            cma.setSeed(1);
+            cma.setRand(new Random(1));
+        }
         cma.options.writeDisplayToFile = 0;
         cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
         cma.options.stopFitness = 1e-12; // optional setting
@@ -178,7 +180,7 @@ public class Analysis {
         
         final double[] initialX = new double[iPotential.numOfDimensions()];
         final double[] initialSigma = new double[iPotential.numOfDimensions()];
-        final Random rn = new Random(123456);
+        final Random rn = aRepetitiveResults ? new Random(123456) : new Random();
         if (iPotential.getType() == PotentialType.NONPARAM) {
             for (int i = 0; i < iPotential.numOfDimensions(); i++) {
                 initialX[i] = meanDistance * rn.nextDouble();

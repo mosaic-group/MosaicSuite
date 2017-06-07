@@ -6,8 +6,6 @@ import java.util.Random;
 
 import ij.IJ;
 import mosaic.ia.Potentials.Potential;
-import mosaic.utils.math.StatisticsUtils;
-import mosaic.utils.math.StatisticsUtils.MinMaxMean;
 
 
 class HypothesisTesting {
@@ -28,76 +26,69 @@ class HypothesisTesting {
         iContextQdCdf = aContextQdCdf;
         iContextQdDistancesGrid = aContextQdDistancesGrid;
         iNearestNeighborDistancesXtoY = aNearestNeighborDistancesXtoY;
-        
         iBestPointFound = aBestPointFound;
         iPotential = aPotential;
-        
         iNumOfMcRuns = aNumOfMcRuns;
         iAlpha = aAlpha;
     }
 
-    public boolean rankTest() {
-        double[] DRand = new double[iNearestNeighborDistancesXtoY.length];
-        double[] T = new double[iNumOfMcRuns];
-        calculateT(DRand, T);
-        
-        double Tob = -1 * iPotential.calculateWithoutEpsilon(iNearestNeighborDistancesXtoY, iBestPointFound).getSumPotential();
+    public void rankTest() {
+        double[] T = calculateT();
+        double observedT = -1 * Math.signum(iBestPointFound[0]) * iPotential.calculateWithoutEpsilon(iNearestNeighborDistancesXtoY, iBestPointFound).getSumPotential();
         int i = 0;
-        for (i = 0; i < iNumOfMcRuns; i++) {
-            if (Tob <= T[i]) {
-                break;
-            }
+        while(i < iNumOfMcRuns) {
+            if (observedT <= T[i]) break;
+            ++i;
         }
         
-        MinMaxMean mmm = StatisticsUtils.getMinMaxMean(T);
-        System.out.println("MinT: " + mmm.min + " maxT: " + mmm.max);
-        System.out.println("T obs: " + Tob + " found at rank: " + i);
+        System.out.println("minT=" + T[0] + " maxT=" + T[iNumOfMcRuns - 1] + " observedT=" + observedT + " found at rank:" + i + "/" + iNumOfMcRuns);
         
+        String s = "";
         if (i > (int) ((1 - iAlpha) * iNumOfMcRuns)) {
-            if ((iNumOfMcRuns - i) == 0) {
-                System.out.println("Null hypothesis rejected, rank: " + i + " out of " + iNumOfMcRuns + " p-value: " + 1.0 / iNumOfMcRuns);
-                IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: " + i + " out of " + iNumOfMcRuns + "MC runs with alpha= " + iAlpha + " p-value < " + 1.0 / iNumOfMcRuns);
-            }
-            else {
-                System.out.println("Null hypothesis rejected, rank: " + i + " out of " + iNumOfMcRuns + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-                IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: " + i + " out of " + iNumOfMcRuns + "MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-            }
-            return true;
+            s = "Null hypothesis: No interaction - Rejected, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha;
+            s += (i == iNumOfMcRuns) ? (" p-value < " + 1.0 / iNumOfMcRuns) : 
+                                       (" p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
         }
-        IJ.showMessage("Null hypothesis accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-        System.out.println("Null hypothesis: No interaction - Accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns);
-        return false;
+        else {
+            s = "Null hypothesis accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns;
+        }
+        
+        System.out.println(s);
+        IJ.showMessage(s);
     }
 
-    private void calculateT(double[] DRand, double[] T) {
-        for (int i = 0; i < iNumOfMcRuns; i++) {
-            generateRandomDistances(DRand);
-            T[i] = -1 *  iPotential.calculateWithoutEpsilon(DRand, iBestPointFound).getSumPotential();
+    private double[] calculateT() {
+        double[] distancesSample = new double[iNearestNeighborDistancesXtoY.length];
+        double[] T = new double[iNumOfMcRuns];
+        
+        for (int i = 0; i < iNumOfMcRuns; ++i) {
+            sampleDistancesFromContextQd(distancesSample);
+            T[i] = -1 * Math.signum(iBestPointFound[0]) * iPotential.calculateWithoutEpsilon(distancesSample, iBestPointFound).getSumPotential();
         }
+        
         Arrays.sort(T);
+        return T;
     }
 
-    private void generateRandomDistances(double[] DRand) {
-        final Random rn = new Random(System.nanoTime());
+    private void sampleDistancesFromContextQd(double[] aSampleOfDistancesFromContextQd) {
+        final Random rng = new Random(System.nanoTime());
 
-        for (int i = 0; i < iNearestNeighborDistancesXtoY.length;) {
-            double R = rn.nextDouble();
+        for (int i = 0; i < aSampleOfDistancesFromContextQd.length;) {
+            double R = rng.nextDouble();
             // to make sure that random value will be in CDF range
             if (R >= iContextQdCdf[0]) {
-                DRand[i] = findDistance(R);
-                i++;
+                aSampleOfDistancesFromContextQd[i] = findDistanceForPropability(R);
+                ++i;
             }
         }
     }
 
-    private double findDistance(double R) {
-        int i;
-        for (i = 0; i < iContextQdCdf.length - 1; i++) {
-            if (R >= iContextQdCdf[i] && R < iContextQdCdf[i + 1]) {
-                break;
-            }
+    private double findDistanceForPropability(double aProbabilityQd) {
+        int i = 0;
+        for (i = 0; i < iContextQdCdf.length - 1; ++i) {
+            if (aProbabilityQd >= iContextQdCdf[i] && aProbabilityQd < iContextQdCdf[i + 1]) break;
         }
-        return linearInterpolation(iContextQdCdf[i], iContextQdCdf[i + 1], iContextQdDistancesGrid[i], iContextQdDistancesGrid[i + 1], R);
+        return linearInterpolation(iContextQdCdf[i], iContextQdCdf[i + 1], iContextQdDistancesGrid[i], iContextQdDistancesGrid[i + 1], aProbabilityQd);
     }
     
     private static double linearInterpolation(double aXmin, double aXmax, double aYmin, double aYmax, double aXpoint) {
