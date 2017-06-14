@@ -36,7 +36,7 @@ public class FeaturePointDetector {
 
     // Internal stuff
     private Vector<Particle> iParticles;
-    private int[][] mask;
+    private int[][] iMask;
     
     
     /**
@@ -232,8 +232,6 @@ public class FeaturePointDetector {
 
         for (int m = 0; m < iParticles.size(); ++m) {
             final Particle currentParticle = iParticles.elementAt(m);
-            currentParticle.special = true;
-            currentParticle.nonParticleDiscriminationScore = 0;
             float epsx = 0;
             float epsy = 0;
             float epsz = 0;
@@ -267,7 +265,7 @@ public class FeaturePointDetector {
                             }
                             int x = (int) currentParticle.iX + l;
                             
-                            float c = pixels[y * imageWidth + x] * mask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
+                            float c = pixels[y * imageWidth + x] * iMask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
 
                             epsx += l * c;
                             epsy += k * c;
@@ -347,61 +345,84 @@ public class FeaturePointDetector {
         if (iParticles.size() == 1) {
             // If there is only one particle it should not be discriminated - big enough value will do the job.
             iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
+            iParticles.elementAt(0).special = true;
         }
         
-        int max_x = 1;
-        int max_y = 1;
-        int max_z = 1;
-        for (int j = 0; j < iParticles.size(); j++) {
+        // Find maximum coordinates of particles and clear/set proper features of particle.
+        int maxX = 1;
+        int maxY = 1;
+        int maxZ = 1;
+        for (int j = 0; j < iParticles.size(); ++j) {
             final Particle pJ = iParticles.elementAt(j);
-            max_x = Math.max((int) pJ.iX, max_x);
-            max_y = Math.max((int) pJ.iY, max_y);
-            max_z = Math.max((int) pJ.iZ, max_z);
-
-            for (int k = j + 1; k < iParticles.size(); k++) {
-                final Particle pK = iParticles.elementAt(k);
-                double score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * Math.exp(- Math.pow((pJ.m0 - pK.m0), 2) / (2.0 * 0.1) - Math.pow((pJ.m2 - pK.m2), 2) / (2.0 * 0.1) );
-                pJ.nonParticleDiscriminationScore += score;
-                pK.nonParticleDiscriminationScore += score;
-            }
-            
-            if (pJ.nonParticleDiscriminationScore < iCutoff) {
-                pJ.special = false;
-            }
+            pJ.special = true;
+            pJ.nonParticleDiscriminationScore = 0;
+            maxX = Math.max((int) pJ.iX, maxX);
+            maxY = Math.max((int) pJ.iY, maxY);
+            maxZ = Math.max((int) pJ.iZ, maxZ);
         }
 
         // Remove duplicates (happens when dealing with artificial images)
         // Create a bitmap (with ghostlayers to not have to perform bounds checking)
-        final boolean[][][] vBitmap = new boolean[max_z + 3][max_y + 3][max_x + 3];
-        for (int z = 0; z < max_z + 3; z++) {
-            for (int y = 0; y < max_y + 3; y++) {
-                for (int x = 0; x < max_x + 3; x++) {
-                    vBitmap[z][y][x] = false;
-                }
-            }
-        }
-
-        for (int j = 0; j < iParticles.size(); j++) {
+        // +3 since:
+        // +1 to max dimension to have correct array size (coordinates are 0-based) and then 
+        // +1 to have ghost layer on left and 
+        // +1 to have ghost layer on right
+        final boolean[][][] takenPositions = new boolean[maxZ + 3][maxY + 3][maxX + 3];
+        for (int j = 0; j < iParticles.size(); ++j) {
             final Particle pJ = iParticles.elementAt(j);
-            boolean vParticleInNeighborhood = false;
-            for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
-                for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
-                    for (int ox = -1; !vParticleInNeighborhood && ox <= 1; ox++) {
-                        if (vBitmap[(int) pJ.iZ + 1 + oz][(int) pJ.iY + 1 + oy][(int) pJ.iX + 1 + ox]) {
-                            vParticleInNeighborhood = true;
+            boolean particleInNeighborhood = false;
+            for (int oz = -1; !particleInNeighborhood && oz <= 1; ++oz) {
+                for (int oy = -1; !particleInNeighborhood && oy <= 1; ++oy) {
+                    for (int ox = -1; !particleInNeighborhood && ox <= 1; ++ox) {
+                        if (takenPositions[(int) pJ.iZ + 1 + oz][(int) pJ.iY + 1 + oy][(int) pJ.iX + 1 + ox]) {
+                            particleInNeighborhood = true;
                         }
                     }
                 }
             }
 
-            if (vParticleInNeighborhood) {
-                pJ.special = false;
+            if (particleInNeighborhood) {
+                pJ.special = false; // Mark particle as not valid
             }
             else {
-                vBitmap[(int) pJ.iZ + 1][(int) pJ.iY + 1][(int) pJ.iX + 1] = true;
+                takenPositions[(int) pJ.iZ + 1][(int) pJ.iY + 1][(int) pJ.iX + 1] = true; // Mark position as occupied
             }
         }
+        
+        // Calculate Nt - number of valid particles
+        int Nt = 0;
+        for (int j = 0; j < iParticles.size(); ++j) {
+            if (iParticles.elementAt(j).special == true) ++Nt;
+        }
+        logger.debug("Detected " + Nt + " non duplicated particles.");
+        
+        // Calculate score for each valid particle
+        int countValid = 0;
+        double sigma0 = 0.1;
+        double sigma2 = 0.1;
+        for (int j = 0; j < iParticles.size(); ++j) {
+            final Particle pJ = iParticles.elementAt(j);
+            if (!pJ.special) continue; // Skip not valid particle
 
+            for (int k = j; k < iParticles.size(); ++k) {
+                final Particle pK = iParticles.elementAt(k);
+                if (!pK.special) continue; // Skip not valid particle
+                double score = (1.0 / (2.0 * Math.PI * sigma0 * sigma2 * Nt)) * Math.exp(- Math.pow((pJ.m0 - pK.m0), 2) / (2.0 * sigma0 * sigma0) - Math.pow((pJ.m2 - pK.m2), 2) / (2.0 * sigma2 * sigma2));
+                pJ.nonParticleDiscriminationScore += score;
+                if (j != k) pK.nonParticleDiscriminationScore += score;
+            }
+            
+            // Normalize score
+            pJ.nonParticleDiscriminationScore /= 1/(2.0 * Math.PI * sigma0 * sigma2);
+            
+            if (pJ.nonParticleDiscriminationScore < iCutoff) {
+                pJ.special = false;  // Mark particle as not valid
+            }
+            else {
+                countValid++;
+            }
+        }
+        logger.debug("Detected " + countValid + " after non particle discrimination phase.");
     }
 
     /**
@@ -533,7 +554,7 @@ public class FeaturePointDetector {
      * @param mask_radius
      */
     private void generateDilationMasks(int mask_radius) {
-        mask = DilateImage.generateMask(mask_radius);
+        iMask = DilateImage.generateMask(mask_radius);
     }
 
     /**

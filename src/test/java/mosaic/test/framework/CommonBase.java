@@ -205,6 +205,7 @@ public class CommonBase extends Info {
         String expected = readFile(refFile);
         String result = readFile(testFile);
         assertEquals("Files differ!", expected, result);
+        logger.debug("Files match!");
     }
 
     protected void compareCsvFiles(String refFile, String testFile) {

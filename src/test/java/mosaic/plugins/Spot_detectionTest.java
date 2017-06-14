@@ -12,7 +12,7 @@ public class Spot_detectionTest extends CommonBase {
         // Define test data
         final String tcDirName          = "FeaturePointDetection/singleFrame/";
         final String setupString        = "run";
-        final String macroOptions       = "radius=2 cutoff=0.1 per/abs=0.6";
+        final String macroOptions       = "radius=2 cutoff=0.001 per/abs=0.6";
         final String inputFile          = "spots.tif";
         final String[] expectedFiles    = {};
         final String[] referenceFiles   = {};
@@ -58,7 +58,7 @@ public class Spot_detectionTest extends CommonBase {
         // Define test data
         final String tcDirName          = "FeaturePointDetection/3d/";
         final String setupString        = "run";
-        final String macroOptions       = "radius=3 cutoff=3 per/abs=0.1";
+        final String macroOptions       = "radius=3 cutoff=0.0 per/abs=0.1";
         final String inputFile          = "3Dframe.tif";
         final String[] expectedFiles    = {};
         final String[] referenceFiles   = {};
