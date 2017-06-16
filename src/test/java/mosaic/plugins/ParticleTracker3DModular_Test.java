@@ -123,7 +123,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
         final String setupString         = "run";
-        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=Brownian";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=0.1 per/abs=0.3 link=1 displacement=5 dynamics=Brownian";
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
@@ -146,7 +146,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
         final String setupString         = "run";
-        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=[Constant velocity]";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=0.1 per/abs=0.3 link=1 displacement=5 dynamics=[Constant velocity]";
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
@@ -169,7 +169,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/ArtificialImgTest/";
         final String setupString         = "run";
-        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=1 per/abs=0.3 link=1 displacement=5 dynamics=[Straight lines]";
+        final String macroOptions        = "object=1.001 dynamics_=1.002 optimizer=Hungarian radius=5 cutoff=0.1 per/abs=0.3 link=1 displacement=5 dynamics=[Straight lines]";
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
@@ -270,7 +270,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/Tracking3D/";
         final String setupString         = "run";
-        final String macroOptions        = "radius=6 cutoff=1 per/abs=0.5 link=1 displacement=100 dynamics=Brownian";
+        final String macroOptions        = "radius=6 cutoff=0.01 per/abs=0.5 link=1 displacement=100 dynamics=Brownian";
         final String inputFile           = "Regions_size_5_5_100_100.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
