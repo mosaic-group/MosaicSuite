@@ -66,7 +66,7 @@ public class GUIhelper {
         gd.addMessage("Particle Detection:");
         // These 3 params are only relevant for non text_files_mode
         gd.addNumericField("Radius", fpd.getRadius(), 0);
-        gd.addNumericField("Cutoff", fpd.getCutoff(), 1);
+        gd.addNumericField("Cutoff [0-1]", fpd.getCutoff(), 1);
         gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 5, 6, " ");
 
         gd.addCheckbox("Absolute", false);
