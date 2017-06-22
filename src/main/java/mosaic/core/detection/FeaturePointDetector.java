@@ -46,7 +46,7 @@ public class FeaturePointDetector {
     public FeaturePointDetector(float aGlobalMax, float aGlobalMin) {
         iGlobalMax = aGlobalMax;
         iGlobalMin = aGlobalMin;
-        setDetectionParameters(3.0f, 0.001f, 3, 0.0f, false);
+        setDetectionParameters(0.001f, 0.005f, 3, 0.0f, false);
     }
 
     /**
@@ -211,7 +211,7 @@ public class FeaturePointDetector {
                 }
             }
         }
-        logger.debug("Detected " + iParticles.size() + " particles.");
+        logger.info("Detected " + iParticles.size() + " particles.");
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
@@ -422,7 +422,7 @@ public class FeaturePointDetector {
                 countValid++;
             }
         }
-        logger.debug("Detected " + countValid + " after non particle discrimination phase.");
+        logger.info("Detected " + countValid + " after non particle discrimination phase.");
     }
 
     /**
@@ -577,6 +577,8 @@ public class FeaturePointDetector {
         else {
             iThresholdMode = Mode.PERCENTILE_MODE;
         }
+        
+        logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE"));
 
         // create Mask for Dilation with the user defined radius
         generateDilationMasks(iRadius);
