@@ -65,9 +65,9 @@ public class GUIhelper {
     public static void addUserDefinedParametersDialog(GenericDialog gd, FeaturePointDetector fpd) {
         gd.addMessage("Particle Detection:");
         // These 3 params are only relevant for non text_files_mode
-        gd.addNumericField("Radius", fpd.getRadius(), 0);
-        gd.addNumericField("Cutoff [0-1]", fpd.getCutoff(), 1);
-        gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 5, 6, " ");
+        gd.addNumericField("Radius", fpd.getRadius(), 0, 7, null);
+        gd.addNumericField("Cutoff [0-1]", fpd.getCutoff(), 3, 7, null);
+        gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 3, 7, null);
 
         gd.addCheckbox("Absolute", false);
     }
