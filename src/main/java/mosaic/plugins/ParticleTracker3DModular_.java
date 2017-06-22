@@ -478,7 +478,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
                     // Detect feature points in this frame
                     IJ.showStatus("Detecting Particles in Frame " + (frame_i + 1) + "/" + iNumOfFrames);
-                    logger.debug("Detecting particles in frame: " + (frame_i + 1) + "/" + iNumOfFrames);
+                    logger.info("Detecting particles in frame: " + (frame_i + 1) + "/" + iNumOfFrames);
                     Vector<Particle> detectedParticles = detector.featurePointDetection(frameStack);
                     current_frame.setParticles(detectedParticles);
                 }
@@ -927,6 +927,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @see TrajectoryStackWindow
      */
     public void generateView(ImagePlus duplicated_imp, Img<ARGBType> out) {
+        if (iTrajectories.size() == 0) {
+            IJ.error("There are no any trajectories detected - nothing to visualize.");
+            return;
+        }
         final String new_title = "All Trajectories Visual";
 
         if (duplicated_imp == null) {
