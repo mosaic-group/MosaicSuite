@@ -4,6 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
  
     <name>MosacSuite ImageJ/Fiji plugin</name>
+    <groupId>mosaic</groupId>
     <artifactId>MosaicSuite</artifactId>
     <packaging>jar</packaging>
     <version>1.0.5</version>
@@ -51,14 +52,23 @@
     
     <developers>
         <developer>
-            <id>gonciarz</id>
+            <id>Krzysztof.Gonciarz</id>
             <name>Krzysztof Gonciarz</name>
             <url>http://imagej.net/User:Krzysztof.Gonciarz</url>
             <email>gonciarz@mpi-cbg.de</email>
-            <properties><id>gonciarz</id></properties>
+            <roles>
+                <role>developer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>            
         </developer>
     </developers>
     <contributors>
+        <contributor>
+            <properties><id>Krzysztof.Gonciarz</id></properties>
+            <name>Krzysztof Gonciarz</name>
+            <email>gonciarz@mpi-cbg.de</email>
+        </contributor>    
         <contributor>
             <name>Pietro Incardona</name>
             <email>incardon@mpi-cbg.de</email>
