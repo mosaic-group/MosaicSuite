@@ -130,6 +130,7 @@ public class Analysis {
             
             addNewOutputResult(aResultsOutput, bestFunctionValue[cmaRunNumber], iBestPointsFound[cmaRunNumber]);
         }
+        mosaic.utils.Debug.print("BestPointFound", aResultsOutput.get(iBestPointIndex), bestFunctionValue[iBestPointIndex]);
 
         if (diffFitness) {
             IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
