@@ -42,24 +42,22 @@ public class GUIhelper {
 
     /**
      * Gets user defined params that are necessary to display the preview of particle detection.
+     * This is the only way to re-read values without touching internal GenericDialgo counters
      */
     public static Boolean getUserDefinedPreviewParams(GenericDialog gd, FeaturePointDetector fpd) {
 
         @SuppressWarnings("unchecked")
-        // the warning is due to old imagej code.
         final Vector<TextField> vec = gd.getNumericFields();
+        @SuppressWarnings("unchecked")
+        final Vector<Checkbox> vecb = gd.getCheckboxes();
+        
         final int rad = Integer.parseInt((vec.elementAt(0)).getText());
         final double cut = Double.parseDouble((vec.elementAt(1)).getText());
         final float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
         final float intThreshold = per * 100;
-        @SuppressWarnings("unchecked")
-        // the warning is due to old imagej code
-        final Vector<Checkbox> vecb = gd.getCheckboxes();
         final boolean absolute = vecb.elementAt(0).getState();
 
-        // even if the frames were already processed (particles detected) but
-        // the user changed the detection params then the frames needs to be processed again
-        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);// , sigma_fac);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);
     }
     
     public static void addUserDefinedParametersDialog(GenericDialog gd, FeaturePointDetector fpd) {
@@ -69,7 +67,7 @@ public class GUIhelper {
         gd.addNumericField("Cutoff [0-1]", fpd.getCutoff(), 3, 7, null);
         gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 3, 7, null);
 
-        gd.addCheckbox("Absolute", false);
+        gd.addCheckbox("Absolute", fpd.getThresholdMode() == FeaturePointDetector.Mode.ABS_THRESHOLD_MODE);
     }
     
     
@@ -106,55 +104,83 @@ public class GUIhelper {
 
         final Panel preview_panel = new Panel();
         final GridBagLayout gridbag = new GridBagLayout();
-        final GridBagConstraints c = new GridBagConstraints();
         preview_panel.setLayout(gridbag);
+        
+        final GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.gridwidth = GridBagConstraints.REMAINDER;
 
-        /* scroll bar to navigate through the slices of the movie */
-        final Scrollbar preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, img.getCurrentSlice(), 1, 1, img.getStackSize() + 1);
+        int[] position = img.convertIndexToPosition(img.getCurrentSlice());
+        
+        // scroll bar to navigate through the frames of the movie
+        final Scrollbar preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, position[2], 1, 1, img.getNFrames() + 1);
         preview_scrollbar.addAdjustmentListener(new AdjustmentListener() {
-
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e) {
                 // set the current visible slice to the one selected on the bar
-                img.setSlice(preview_scrollbar.getValue());
+                int[] position = img.convertIndexToPosition(img.getCurrentSlice());
+                img.setPosition(position[0], position[1],preview_scrollbar.getValue());
             }
         });
         preview_scrollbar.setUnitIncrement(1);
         preview_scrollbar.setBlockIncrement(1);
 
-        /* button to generate preview of the detected particles */
+        // Add second scrollbar for depth only if we have 3D image.
+        final Scrollbar preview_scrollbarZ;
+        final int nDepth = img.getNSlices();
+        if (nDepth > 1) {
+            preview_scrollbarZ = new Scrollbar(Scrollbar.HORIZONTAL, position[1], 1, 1, img.getNSlices() + 1);
+            preview_scrollbarZ.addAdjustmentListener(new AdjustmentListener() {
+                @Override
+                public void adjustmentValueChanged(AdjustmentEvent e) {
+                    // set the current visible slice to the one selected on the bar
+                    //                img.setSlice(preview_scrollbar.getValue());
+                    int[] position = img.convertIndexToPosition(img.getCurrentSlice());
+                    img.setPosition(position[0], preview_scrollbarZ.getValue(), position[2]);
+                }
+            });
+            preview_scrollbarZ.setUnitIncrement(1);
+            preview_scrollbarZ.setBlockIncrement(1);
+        } else {
+            preview_scrollbarZ = null;
+        }
+            
+        // button to generate preview of the detected particles
         final Button preview = new Button("Preview Detected");
         preview.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
-                previewHandler.preview(e);
+                int[] position = img.convertIndexToPosition(img.getCurrentSlice());
+                previewHandler.preview(e, position[1]);
             }
         });
 
-        /* button to save the detected particles */
+        // button to save the detected particles
         final Button save_detected = new Button("Save Detected");
         save_detected.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 previewHandler.saveDetected(e);
             }
         });
-        final Label seperation = new Label("______________", Label.CENTER);
-        final Label previewLabel = new Label("");
+        
         gridbag.setConstraints(preview, c);
         preview_panel.add(preview);
         gridbag.setConstraints(preview_scrollbar, c);
         preview_panel.add(preview_scrollbar);
+        if (nDepth > 1) {
+            gridbag.setConstraints(preview_scrollbarZ, c);
+            preview_panel.add(preview_scrollbarZ);
+        }
         gridbag.setConstraints(save_detected, c);
         preview_panel.add(save_detected);
+        final Label previewLabel = new Label("");
         gridbag.setConstraints(previewLabel, c);
         preview_panel.add(previewLabel);
+        final Label seperation = new Label("______________", Label.CENTER);
         gridbag.setConstraints(seperation, c);
         preview_panel.add(seperation);
+        
         return preview_panel;
     }
 }

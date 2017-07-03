@@ -793,7 +793,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @see MyFrame#featurePointDetection()
      * @see PreviewCanvas
      */
-    private synchronized void preview() {
+    private synchronized void preview(int zDepth) {
         if (iInputImage == null) {
             return;
         }
@@ -815,6 +815,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         ImagePlus wrap = ImageJFunctions.wrap(img_frame, "Preview detection");
         if (detectImg == null) detectImg = wrap;
         else detectImg.setImage(wrap);
+        detectImg.setSlice(zDepth);
         detectImg.show();
     }
 
@@ -1320,11 +1321,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     }
 
     @Override
-    public void preview(ActionEvent e) {
+    public void preview(ActionEvent e, int zDepth) {
         // set the original_imp window position next to the dialog window
         this.iInputImage.getWindow().setLocation((int) gd.getLocationOnScreen().getX() + gd.getWidth(), (int) gd.getLocationOnScreen().getY());
         // do preview
-        this.preview();
+        this.preview(zDepth);
         preview_canvas.repaint();
     }
 
