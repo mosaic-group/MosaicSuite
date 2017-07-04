@@ -83,7 +83,7 @@ public class GUI  {
     boolean isConfigurationReadAlready = false;
     
     // TODO: Temporary variable to turn off DRS from GUI - it must be removed in a final version!
-    boolean showDrsSettings = false;
+    boolean showDrsSettings = true;
     
     /**
      * Create main GUI of RC plugin
