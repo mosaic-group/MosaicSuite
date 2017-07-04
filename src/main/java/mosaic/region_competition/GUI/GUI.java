@@ -82,6 +82,9 @@ public class GUI  {
     boolean isConfigurationValid = false;
     boolean isConfigurationReadAlready = false;
     
+    // TODO: Temporary variable to turn off DRS from GUI - it must be removed in a final version!
+    boolean showDrsSettings = false;
+    
     /**
      * Create main GUI of RC plugin
      */
@@ -147,7 +150,7 @@ public class GUI  {
         p.add(b);
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
         
-        iMainDialogWin.addRadioButtonGroup("Segmentation Type: ", SegmentationTypes, 1, SegmentationTypes.length, SegmentationTypes[0]);
+        if (showDrsSettings) iMainDialogWin.addRadioButtonGroup("Segmentation Type: ", SegmentationTypes, 1, SegmentationTypes.length, SegmentationTypes[0]);
         iMainDialogWin.addCheckbox("Process on computer cluster", false);
 
         p = new Panel();
@@ -379,7 +382,7 @@ public class GUI  {
         iKeepAllFrames = iMainDialogWin.getNextBoolean();
         iShowNormalized = iMainDialogWin.getNextBoolean();
         iShowAndSaveStatistics = iMainDialogWin.getNextBoolean();
-        iSegmentationType = Region_Competition.SegmentationType.values()[Arrays.asList(SegmentationTypes).indexOf(iMainDialogWin.getNextRadioButton())];
+        if (showDrsSettings) iSegmentationType = Region_Competition.SegmentationType.values()[Arrays.asList(SegmentationTypes).indexOf(iMainDialogWin.getNextRadioButton())];
         iUseCluster = iMainDialogWin.getNextBoolean();
         
         return true;
