@@ -35,7 +35,6 @@ public class SegmentationProcessWindow {
 
         iImage = new ImagePlus(null, new ShortProcessor(aWidth, aHeight));
         iStack = iImage.createEmptyStack();
-        iImage.show();
         
         if (iImage.getWindow() != null) {
             // Add listener in case when window is created (not in macro/batch mode)
@@ -63,9 +62,10 @@ public class SegmentationProcessWindow {
         }
         
         if (iIsThatFirstPass) {
-            // We have first slices in stack so we can add it to image (it is impossible to have empty stack).
+            // We have first slices in stack so we can add it to image (it is impossible to add empty stack).
             iIsThatFirstPass = false;
             iImage.setStack(iStack);
+            iImage.show();
         }
         
         // Handle new maximum label value and colors of image
@@ -93,11 +93,6 @@ public class SegmentationProcessWindow {
             }
         }
         
-        // in first iteration, convert to hyperstack if necessary
-        if (iIsThatFirstPass && iShouldKeepAllSlices) {
-            iImage.setOpenAsHyperStack(true);
-            new StackWindow(iImage);
-        }
 
         int lastSlice = iImage.getSlice();
         final int lastFrame = iImage.getFrame();
@@ -115,6 +110,12 @@ public class SegmentationProcessWindow {
         final int depth = aStack.getSize();
         final int frame = iStack.getSize() / depth;
         iImage.setDimensions(1, depth, frame);
+        
+        // convert to hyperstack if necessary (after second frame is added)
+        if (iShouldKeepAllSlices && frame == 2) {
+            iImage.setOpenAsHyperStack(true);
+            new StackWindow(iImage);
+        }
 
         // go to mid in first iteration
         if (iIsThatFirstPass) {
