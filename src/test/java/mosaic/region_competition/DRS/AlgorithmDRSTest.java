@@ -24,7 +24,7 @@ public class AlgorithmDRSTest extends CommonBase {
         ii.set(0, 1);
         ii.set(2, 2);
         
-        Pair<Double, EnumeratedDistribution<Integer>> distPair1 = AlgorithmDRS.generateDiscreteDistribution(ii);
+        Pair<Double, EnumeratedDistribution<Integer>> distPair1 = AlgorithmDRS.generateDiscreteDistribution(ii, new Rng());
         assertEquals(3.0, distPair1.getFirst(), 1e-6);
         assertEquals(6, distPair1.getSecond().getPmf().size());
         
@@ -32,7 +32,7 @@ public class AlgorithmDRSTest extends CommonBase {
         ii.set(0, 0);
         ii.set(2, 1e-10f);
         
-        Pair<Double, EnumeratedDistribution<Integer>> distPair2 = AlgorithmDRS.generateDiscreteDistribution(ii);
+        Pair<Double, EnumeratedDistribution<Integer>> distPair2 = AlgorithmDRS.generateDiscreteDistribution(ii, new Rng());
         assertEquals(6.0, distPair2.getFirst(), 1e-6); // expected number of pixels * 1.0
         assertEquals(6, distPair2.getSecond().getPmf().size());
 

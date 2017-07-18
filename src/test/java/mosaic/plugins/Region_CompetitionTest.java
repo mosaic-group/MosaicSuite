@@ -1,6 +1,8 @@
 package mosaic.plugins;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -239,5 +241,13 @@ public class Region_CompetitionTest extends CommonBase {
         new PlugInFilterRunner(plugin, "pluginTest", setupString);
         
         sleep(1000);
+    }
+    
+    @Test
+    @Ignore
+    public void xxx() {
+        ArrayList<Boolean> a = new ArrayList<>(Arrays.asList(new Boolean[10]));
+//        Collections.fill(a, Boolean.FALSE);
+        System.out.println(a);
     }
 }

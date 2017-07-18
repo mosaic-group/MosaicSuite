@@ -11,6 +11,11 @@ public class MinimalParticle {
         iCandidateLabel = aCandidateLabel; 
         iProposal = aProposal;
     }
+    
+    MinimalParticle() {
+        // set values that are unusual
+        this(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+    }
 
     @Override
     public int hashCode() {

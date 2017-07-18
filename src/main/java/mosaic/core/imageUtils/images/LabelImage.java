@@ -390,6 +390,34 @@ public class LabelImage extends BaseImage
         }
         return true;
     }
+
+    /**
+     * Is point with aIndex single (not having FG neighbour with same abs label)
+     * @return true if yes
+     */
+    public boolean isSingleFgPoint(Integer aIndex, int aLabel) {
+        final int absLabel = labelToAbs(aLabel);
+        for (final int idx : iterateNeighbours(aIndex)) {
+            if (getLabelAbs(idx) == absLabel) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Is point with aIndex surrounded with BG connectivity by points of the given aLabel 
+     * @return true if yes
+     */
+    public boolean isEnclosedByLabelBgConnectivity(Integer aIndex, int aLabel) {
+        final int absLabel = labelToAbs(aLabel);
+        for (final int idx : iterateBgNeighbours(aIndex)) {
+            if (getLabelAbs(idx) != absLabel) {
+                return false;
+            }
+        }
+        return true;
+    }
     
     /**
      * sets the outermost pixels of the LabelImage to the forbidden label

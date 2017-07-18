@@ -102,6 +102,6 @@ public class MinimalParticleIndexedSet {
     
     @Override
     public String toString() {
-        return "MAP:\n" + iMap + "\nVEC:\n" + iParticles;
+        return " MAP/VECsize: " + iMap.size() +"/" + iParticles.size() + " mapElements:\n" + iMap;
     }
 }

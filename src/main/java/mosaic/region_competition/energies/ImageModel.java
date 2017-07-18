@@ -19,62 +19,59 @@ public class ImageModel {
     private static final float EnergyRegionCoeff = 1.0f;
     private static final float ConstantOutwardFlow = 0.0f; 
     
-    private final Settings settings;
     
-    private final ExternalEnergy e_data;
-    private final InternalEnergy e_length;
-    private final ExternalEnergy e_merge;
+    private final ExternalEnergy iEnergyData;
+    private final InternalEnergy iEnergyLength;
+    private final ExternalEnergy iEnergyMerge;
+    private final Settings iSettings;
 
-    public ImageModel(ExternalEnergy e_data, InternalEnergy e_length, ExternalEnergy e_merge, Settings settings) {
-        this.e_data = e_data;
-        this.e_length = e_length;
-        this.e_merge = e_merge;
-        this.settings = settings;
+    public ImageModel(ExternalEnergy aEnergyData, InternalEnergy aEnergyLength, ExternalEnergy aEnergyMerge, Settings aSettings) {
+        iEnergyData = aEnergyData;
+        iEnergyLength = aEnergyLength;
+        iEnergyMerge = aEnergyMerge;
+        iSettings = aSettings;
     }
 
     public Energy getEdata() {
-        return e_data;
+        return iEnergyData;
     }
 
     public EnergyFunctionalType getEdataType() {
-        return settings.m_EnergyFunctional;
+        return iSettings.m_EnergyFunctional;
     }
 
-    public EnergyResult calculateDeltaEnergy(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
+    public EnergyResult calculateDeltaEnergy(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelStatistics> aLabelMap) {
         Double vEnergy = 0.0;
         Boolean vMerge = false;
 
         // Calculate the change in energy due to the change of intensity when changing
         // from one label 'from' to another 'to'.
         if (EnergyRegionCoeff != 0) {
-            EnergyResult vV = e_data.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
+            EnergyResult vV = iEnergyData.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
             vEnergy += EnergyRegionCoeff * vV.energyDifference;
             // vMerge may be null here and will be set below at the merge energy.
             vMerge = vV.merge;
         }
 
         // Contour Length (Regularization)
-        final float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
-        if (m_EnergyContourLengthCoeff != 0 && e_length != null) {
-
-            EnergyResult vV = e_length.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
-            final Double eCurv = vV.energyDifference;
-            vEnergy += m_EnergyContourLengthCoeff * eCurv;
+        final float m_EnergyContourLengthCoeff = iSettings.m_EnergyContourLengthCoeff;
+        if (m_EnergyContourLengthCoeff != 0 && iEnergyLength != null) {
+            EnergyResult vV = iEnergyLength.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
+            vEnergy += m_EnergyContourLengthCoeff * vV.energyDifference;
         }
 
         // add a balloon force and a constant outward flow. If fronts were
         // touching, no constant flow is imposed (cancels out).
-        // currentLabel == 0
-        if ( aContourPointPtr.label == 0) // growing
+        if (aContourPointPtr.label == 0) // growing
         {
             final float vCurrentImageValue = aContourPointPtr.intensity;
             vEnergy -= ConstantOutwardFlow;
-            if (settings.m_EnergyFunctional == EnergyFunctionalType.e_PS) {
-                if (settings.m_BalloonForceCoeff > 0) { // outward flow
-                    vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
+            if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_PS) {
+                if (iSettings.m_BalloonForceCoeff > 0) { // outward flow
+                    vEnergy -= iSettings.m_BalloonForceCoeff * vCurrentImageValue;
                 }
                 else {
-                    vEnergy -= -settings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
+                    vEnergy -= -iSettings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
                 }
             }
         }
@@ -84,9 +81,9 @@ public class ImageModel {
         }
 
         // For the full-region based energy models, register competing regions undergo a merge.
-        if (e_merge != null) // use e_merge explicitly
+        if (iEnergyMerge != null) // use e_merge explicitly
         {
-            EnergyResult vV = e_merge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
+            EnergyResult vV = iEnergyMerge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
             vMerge = vV.merge;
         }
 
