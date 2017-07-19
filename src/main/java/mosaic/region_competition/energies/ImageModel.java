@@ -48,6 +48,7 @@ public class ImageModel {
         // from one label 'from' to another 'to'.
         if (EnergyRegionCoeff != 0) {
             EnergyResult vV = iEnergyData.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
+            System.out.println("ExtEn: " + EnergyRegionCoeff * vV.energyDifference + " " + vV.energyDifference);
             vEnergy += EnergyRegionCoeff * vV.energyDifference;
             // vMerge may be null here and will be set below at the merge energy.
             vMerge = vV.merge;
@@ -57,6 +58,7 @@ public class ImageModel {
         final float m_EnergyContourLengthCoeff = iSettings.m_EnergyContourLengthCoeff;
         if (m_EnergyContourLengthCoeff != 0 && iEnergyLength != null) {
             EnergyResult vV = iEnergyLength.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
+            System.out.println("IntEn: " + m_EnergyContourLengthCoeff * vV.energyDifference + " " + vV.energyDifference);
             vEnergy += m_EnergyContourLengthCoeff * vV.energyDifference;
         }
 
@@ -84,6 +86,7 @@ public class ImageModel {
         if (iEnergyMerge != null) // use e_merge explicitly
         {
             EnergyResult vV = iEnergyMerge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
+            System.out.println("MergeEn: " + vV.energyDifference);
             vMerge = vV.merge;
         }
 

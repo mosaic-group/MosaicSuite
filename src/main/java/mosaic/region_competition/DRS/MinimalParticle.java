@@ -12,6 +12,12 @@ public class MinimalParticle {
         iProposal = aProposal;
     }
     
+    MinimalParticle(MinimalParticle aMp) {
+        iIndex = aMp.iIndex;
+        iCandidateLabel = aMp.iCandidateLabel; 
+        iProposal = aMp.iProposal;
+    }
+    
     MinimalParticle() {
         // set values that are unusual
         this(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);

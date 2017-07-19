@@ -26,9 +26,11 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
+import mosaic.region_competition.RC.ContourParticle;
 import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.ImageModel;
+import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
 
@@ -239,8 +241,8 @@ public class AlgorithmDRS {
             }
         }
         
-        System.out.println("children:\n" + m_MCMCchildren);
-        System.out.println("parents:\n" + m_MCMCparents);
+        System.out.println("CHILDREN:\n" + m_MCMCchildren);
+        System.out.println("PARENTS:\n" + m_MCMCparents);
         
         initStatistics();
         
@@ -441,7 +443,8 @@ public class AlgorithmDRS {
             }
             vCandidateMoveVec.set(vPC, vParticle);
         }
-        
+        System.out.println("vLabelsBeforeJump_A: " + vLabelsBeforeJump_A);
+        System.out.println("vLabelsBeforeJump_B: " + vLabelsBeforeJump_B);
         System.out.println("vCandidateMoveVec:\n" + vCandidateMoveVec);  
         System.out.println("vq_A:\n" + vq_A);
             
@@ -469,7 +472,7 @@ public class AlgorithmDRS {
             /// Iterate over particles A:
             for (int vPC = 0; vPC < vCandidateMoveVec.size(); ++vPC) {
                 MinimalParticle vPartIt = vCandidateMoveVec.get(vPC);
-                MinimalParticle vA = vPartIt;
+                MinimalParticle vA = new MinimalParticle(vPartIt);
                 
                 /// TODO: the next line shouldn't change anything?
                 vA.iProposal = MCMCproposal(vA.iIndex, vA.iCandidateLabel);
@@ -477,7 +480,7 @@ public class AlgorithmDRS {
                 ArrayList<MinimalParticle> vUpdatedParticlesInNeighborhood = new ArrayList<>();
                 System.out.println("MCMCApplyParticle1");
                 MCMCApplyParticle(vPartIt, true);
-
+                System.out.println("vCandidateMoveVec1: " + vCandidateMoveVec);
 
                 /// BTW we have to remember if A' is a floating particle in the
                 /// state x -> A.
@@ -524,9 +527,11 @@ public class AlgorithmDRS {
 
                 /// Get the reverse particle of A (without proposal update as it
                 /// is not necessary):
-                MinimalParticle vReverseParticleA = vPartIt;
+                MinimalParticle vReverseParticleA = new MinimalParticle(vPartIt);
+                System.out.println("vReverseParticleA bef: " + vReverseParticleA);
                 vReverseParticleA.iCandidateLabel = vLabelsBeforeJump_A.get(vPC).intValue();
-
+                System.out.println("vReverseParticleA aft: " + vReverseParticleA);
+                
                 /// In case that vA == vB, we must already undo the simulated
                 /// move in order to calculate Q'(B'|A') (== Q'(A'|B'))
                 if (vSingleParticleMoveForPairProposals) {
@@ -579,11 +584,137 @@ public class AlgorithmDRS {
             } /// end loop particles (all the A particles)
         } /// end if (pair proposal) condition
 
+        /// Currently it is possible that the same candidate is in the move set.
+        /// Hence we store the applied moves to avoid duplicates.
+        MinimalParticleIndexedSet vAppliedParticles = new MinimalParticleIndexedSet();
+        ArrayList<Integer> vAppliedParticleOrigLabels = new ArrayList<>();
+
+        /// Iterate the candidates, calculate the energy and perform the moves.
+        for (int vPC = 0; vPC < vCandidateMoveVec.size(); ++vPC) {
+            MinimalParticle vParticleA = vCandidateMoveVec.get(vPC);
+            MinimalParticle vParticleB = vPartnerMoveVec.get(vPC);
+
+            /// apply particle A and B, start with B:
+            int vN = (m_MCMCusePairProposal && !vSingleParticleMoveForPairProposals) ? 2 : 1;
+            for (; vN > 0; --vN) {
+
+                /// it is necessary that we start with particle B as we have
+                /// to calculate Q(A|B) and Qb(B|A).
+                MinimalParticle vCurrentMinimalParticle = null;
+                int vOriginalLabel;
+                if(vN > 1) {
+                    System.out.println("vN > 1");
+                    vCurrentMinimalParticle = vParticleB;
+                    vOriginalLabel = vLabelsBeforeJump_B.get(vPC).intValue();
+                } else {
+                    System.out.println("vN <= 1");
+                    vCurrentMinimalParticle = vParticleA;
+                    vOriginalLabel = vLabelsBeforeJump_A.get(vPC).intValue();
+                }
+
+
+                /// We calculate the energy and apply them move iff
+                /// - the move has not been performed beforehand (a particle
+                ///   was sampled twice)
+                /// - THE FOLLOWING IS CURRENTLY A NON ISSUE AS B CANNOT BE A':
+                ///   particle B is not the reverse particle of particle A (in
+                ///   case of m_usePairProposals, i.e. vN > 1). This is important
+                ///   because the energy update gets corrupted as particle B is
+                ///   not a valid particle before A was applied. To resolve this
+                ///   we just perform a one particle move (we don't apply B).
+
+                if (vAppliedParticles.find(vCurrentMinimalParticle) == vAppliedParticles.size()) {
+                    /// Calculate the energy difference when changing this candidate:
+                    System.out.println("vCurrentMinimalParticle: " + vCurrentMinimalParticle);
+                    vTotEnergyDiff += CalculateEnergyDifference(
+                            vCurrentMinimalParticle.iIndex,
+                            vOriginalLabel,
+                            vCurrentMinimalParticle.iCandidateLabel,
+                            iIntensityImage.get(vCurrentMinimalParticle.iIndex));
+                    System.out.println("vTotEnergyDiff: " + vTotEnergyDiff);
+                    /// Finally, perform the (particle-)move
+                    System.out.println("MCMCApplyParticle4\n");
+                    MCMCApplyParticle(vCurrentMinimalParticle,  false);
+
+                    vAppliedParticles.insert(vCurrentMinimalParticle);
+                    vAppliedParticleOrigLabels.add(vOriginalLabel);
+                }
+
+                /// Calculate Q(A|B) and Qb(B|A) in case we moved B only; this is
+                /// when vN == 2.
+//                if(vN == 2) {
+//                    /// Get the neighbors (conditional particles) and sum up
+//                    /// their proposal values; this is the normalizer for the
+//                    /// discrete probability Q(A|B)
+//                    MinimalParticleIndexedSetType vParts_Q_AgivenB;
+//                    MCMCgetParticlesInFGNeighborhood(vParticleB.m_Index, &vParts_Q_AgivenB);
+//                    /// add particle B as this is always a candidate as well
+//                    vParticleB.m_Proposal = MCMCproposal(vParticleB.m_Index, vParticleB.m_CandidateLabel);
+//                    vParts_Q_AgivenB.insert(vParticleB);
+//
+//                    if (m_MCMCuseBiasedProposal) {
+//                        float vNormalizer_Q_A_B = 0;
+//                        for (unsigned int vPI = 0; vPI < vParts_Q_AgivenB.size(); vPI++) {
+//                            vNormalizer_Q_A_B += vParts_Q_AgivenB[vPI].m_Proposal;
+//                        }
+//                        /// vParticleA.m_Proposal is not valid anymore. Particle A
+//                        /// got a new proposal when applying particle B.
+//                        float vProposalA = MCMCproposal(vParticleA.m_Index, vParticleA.m_CandidateLabel);
+//                        vq_A_B[vPC] = vProposalA / vNormalizer_Q_A_B;
+//                    } else {
+//                        vq_A_B[vPC] = 1.0f / vParts_Q_AgivenB.size();
+//                    }
+//
+//                    /// create A'
+//                    MinimalParticleType vReverseParticleA = vParticleA;
+//                    vReverseParticleA.m_CandidateLabel = vLabelsBeforeJump_A[vPC];
+//                    vReverseParticleA.m_Proposal = MCMCproposal(
+//                            vReverseParticleA.m_Index, vReverseParticleA.m_CandidateLabel);
+//
+//                    /// Calculate Qb(B'|A')
+//                    MinimalParticleIndexedSetType vParts_Qb_BgivenA;
+//                    MCMCgetParticlesInFGNeighborhood(vParticleA.m_Index, &vParts_Qb_BgivenA);
+//                    vParts_Qb_BgivenA.insert(vReverseParticleA);
+//                    if (m_MCMCuseBiasedProposal) {
+//                        float vNormalizer_Qb_B_A = 0;
+//                        for (unsigned int vPI = 0; vPI < vParts_Qb_BgivenA.size();vPI++) {
+//                            vNormalizer_Qb_B_A += vParts_Qb_BgivenA[vPI].m_Proposal;
+//                        }
+//                        /// the proposal of the backward particle (given A) is:
+//                        float vProposalBb = MCMCproposal(vParticleB.m_Index,
+//                                vLabelsBeforeJump_B[vPC]);
+//                        vqb_B_A[vPC] = vProposalBb / vNormalizer_Qb_B_A;
+//                    } else {
+//                        vqb_B_A[vPC] = 1.0f / vParts_Qb_BgivenA.size();
+//                    }
+//                }
+            }
+        }
         
+        System.out.println("================= IMPL END =================================");
         //IMPL
         
         // TDOO: TO bo removed after impl. is done
         return true;
+    }
+    
+    float CalculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
+
+//        float vEnergy = 0;
+        ContourParticle contourCandidate = new ContourParticle(aCurrentLabel, aImgValue);
+        final EnergyResult energyResult = iImageModel.calculateDeltaEnergy(iLabelImage.indexToPoint(aIndex), contourCandidate, aToLabel, iLabelStatistics);
+        
+//        for(unsigned int vI = 0; vI < m_ExtEnergies.size(); vI++) {
+//            vEnergy += m_ExtEnergies[vI]->EvaluateEnergyDifference(
+//                    aIndex, aCurrentLabel, aToLabel, aImgValue).first;
+//        }
+//
+//        for(unsigned int vI = 0; vI < m_IntEnergies.size(); vI++) {
+//            vEnergy += m_IntEnergies[vI]->EvaluateEnergyDifference(
+//                    aIndex, aCurrentLabel, aToLabel);
+//        }
+        
+        return energyResult.energyDifference.floatValue();
     }
 
     void MCMCApplyParticle(MinimalParticle aCandidateParticle, boolean aDoSimulate){
