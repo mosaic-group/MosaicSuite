@@ -370,6 +370,16 @@ public class LabelImage extends BaseImage
     }
 
     /**
+     * Is the point at the boundary
+     * @param aPoint point to be checked
+     * @return true if is at the boundary false otherwise
+     */
+    public boolean isBoundaryPoint(int aIndex) {
+        final int inLabel = getLabel(aIndex);
+        return !isEnclosedByLabel(aIndex, inLabel);
+    }
+
+    /**
      * Is aPoint surrounded by points of the given aLabel
      * @return true if yes
      */
