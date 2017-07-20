@@ -225,8 +225,11 @@ public class Region_CompetitionTest extends CommonBase {
         final String tcDirName           = "Region_Competition/DRS/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics segmentation=[Discrete Region Sampling]";
-        final String inputFile           = "5x5.tif";
-
+        String inputFile           = null;
+//        inputFile           = "5x5.tif";
+//        inputFile           = "cross6x6.tif";
+        inputFile           = "2sq.tif";
+        
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");

@@ -497,19 +497,35 @@ public class LabelImage extends BaseImage
     private class NeighbourConnIterator implements Iterator<Integer> {
         private int cursor = 0;
         private final int inputIndex;
-        
+        int max = 0;
+        int[] idxs = null;
         NeighbourConnIterator(Integer aIndex) {
             inputIndex = aIndex;
+            Point start = indexToPoint(aIndex);
+            max = 0;
+            idxs = new int[iNeighbourIndexes.length];
+            if (isInBound(start)) {
+                for (int i = 0; i < iNeighbourIndexes.length; i++) { 
+                    if (isInBound(start.add(indexToPoint(iNeighbourIndexes[i])))) {
+                        idxs[max++] = iNeighbourIndexes[i] + inputIndex;
+                    }
+                }
+            }
+//            System.err.println("IterDEB: index: " + aIndex + "cursor: " + cursor + " point: " + start + " max: " + max + " idxs: " + mosaic.utils.Debug.getString(idxs));
         }
         
         @Override
         public boolean hasNext() {
-            return (cursor < iNeighbourIndexes.length);
+//            System.err.println("IterDEB2: index: " + inputIndex + "cursor: " + cursor  + " max: " + max + " idxs: " + mosaic.utils.Debug.getString(idxs));
+//              System.out.println("hasNext: " + (cursor < max));
+              return cursor < max;
+//            return (cursor < iNeighbourIndexes.length);
         }
 
         @Override
         public Integer next() {
-            return inputIndex + iNeighbourIndexes[cursor++];
+            return idxs[cursor++];
+//            return inputIndex + iNeighbourIndexes[cursor++];
         }
         
         @Override
@@ -531,19 +547,32 @@ public class LabelImage extends BaseImage
     private class BgNeighbourConnIterator implements Iterator<Integer> {
         private int cursor = 0;
         private final int inputIndex;
-        
+        int max = 0;
+        int[] idxs = null;
         BgNeighbourConnIterator(Integer aIndex) {
             inputIndex = aIndex;
+            Point start = indexToPoint(aIndex);
+            max = 0;
+            idxs = new int[iNeighbourBgIndexes.length];
+            if (isInBound(start)) {
+                for (int i = 0; i < iNeighbourBgIndexes.length; i++) { 
+                    if (isInBound(start.add(indexToPoint(iNeighbourBgIndexes[i])))) {
+                        idxs[max++] = iNeighbourBgIndexes[i] + inputIndex;
+                    }
+                }
+            }
         }
         
         @Override
         public boolean hasNext() {
-            return (cursor < iNeighbourBgIndexes.length);
+            return cursor < max;
+//            return (cursor < iNeighbourBgIndexes.length);
         }
 
         @Override
         public Integer next() {
-            return inputIndex + iNeighbourBgIndexes[cursor++];
+            return idxs[cursor++];
+//            return inputIndex + iNeighbourBgIndexes[cursor++];
         }
         
         @Override
