@@ -821,7 +821,8 @@ public class Matrix {
     public boolean compare(Matrix aMatrix, double aEpsilon) {
         final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
-            if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
+            double diff = Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]);
+            if (diff == Double.NaN || diff > aEpsilon) {
                 // DEBUG: Uncomment below to see different element
                 // =====================================================
                 //                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " +

@@ -1,6 +1,5 @@
 package mosaic.plugins;
 
-import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,7 +27,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     // Segmentation parameters
     private NoiseType iNoiseType;
     private PsfType iPsfType;
-    private Dimension iPsfDimension;
+    private double iPsfDeviation;
     private double iSubpixelSampling;
     private int iCoefficientStep;
     private double iRegularizerTerm;
@@ -82,7 +81,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         final SegmentationAlgorithm sa = new SegmentationAlgorithm(img,
                                                                    iNoiseType,
                                                                    iPsfType,
-                                                                   iPsfDimension,
+                                                                   iPsfDeviation,
                                       /* subpixel sampling */      iSubpixelSampling,
                                       /* scale */                  iCoefficientStep,
                                       /* regularizer term */       iRegularizerTerm,
@@ -117,7 +116,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         // Get segmentation paramters
         iNoiseType = cd.getNoiseType();
         iPsfType = cd.getPsfType();
-        iPsfDimension = cd.getPsfDimension();
+        iPsfDeviation = cd.getPsfDeviation();
         iSubpixelSampling = cd.getSubpixelSampling();
         iCoefficientStep = cd.getCoefficientStep();
         iRegularizerTerm = cd.getRegularizerTerm();

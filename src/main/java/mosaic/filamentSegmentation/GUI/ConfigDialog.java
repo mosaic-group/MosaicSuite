@@ -1,6 +1,5 @@
 package mosaic.filamentSegmentation.GUI;
 
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Panel;
 import java.awt.SystemColor;
@@ -22,8 +21,7 @@ public class ConfigDialog {
     // Properties names for saving data from GUI
     private final String PropNoiseType       = "FilamentSegmentation.noiseType";
     private final String PropPsfType         = "FilamentSegmentation.psfType";
-    private final String PropPsfDimensionX   = "FilamentSegmentation.psfDimensionX";
-    private final String PropPsfDimensionY   = "FilamentSegmentation.psfDimensionY";
+    private final String PropPsfDeviation    = "FilamentSegmentation.psfDeviation";
     private final String PropSubpixel        = "FilamentSegmentation.subpixel";
     private final String PropScale           = "FilamentSegmentation.scale";
     private final String PropRegularizerTerm = "FilamentSegmentation.propRegularizerTerm";
@@ -33,7 +31,7 @@ public class ConfigDialog {
     // Segmentation parameters and settings
     private NoiseType iNoiseType;
     private PsfType iPsfType;
-    private Dimension iPsfDimension;
+    private double iPsfDeviation;
     private double iSubpixelSampling;
     private int iCoefficientStep;
     private double iRegularizerTerm;
@@ -49,8 +47,8 @@ public class ConfigDialog {
         return iPsfType;
     }
     
-    public Dimension getPsfDimension() {
-        return iPsfDimension;
+    public double getPsfDeviation() {
+        return iPsfDeviation;
     }
     
     public double getSubpixelSampling() {
@@ -76,7 +74,7 @@ public class ConfigDialog {
     public boolean getConfiguration() {
         boolean isConfigOK = true;
         final String[] noiseType = {"Gaussian", "Poisson"};
-        final String[] psfType = {"Gaussian", "Dark Field", "Phase Contrast"};
+        final String[] psfType = {"Gaussian", "Dark Field", "Phase Contrast", "None"};
         final String[] subPixel = {"1x", "2x", "4x"};
         final String[] scales = {"100 %", "50 %", "25 %", "12.5 %", "6.25 %"};
         final String[] layers = {"Overlay (zoomable)", "Image Data"};
@@ -102,8 +100,7 @@ public class ConfigDialog {
         // Read data from all fields and remember it in preferences
         final String noise = aDialog.getNextRadioButton();
         final String psf = aDialog.getNextRadioButton();
-        final int psfx = (int)aDialog.getNextNumber();
-        final int psfy = (int)aDialog.getNextNumber();
+        final double psfDeviation = aDialog.getNextNumber();
         final String subpixel = aDialog.getNextRadioButton();
         final String scale = aDialog.getNextRadioButton();
         final double lambda = aDialog.getNextNumber();
@@ -111,14 +108,13 @@ public class ConfigDialog {
         final String layer = aDialog.getNextRadioButton();
         
         // Verify input (only things that can be entered not correctly, radio buttons are always OK)
-        boolean isConfigOK = verifyInputParams(psfx, psfy, iterations);
+        boolean isConfigOK = verifyInputParams(iterations, psfDeviation);
         
         if (isConfigOK) {
             // OK -> save and set all settings
             Prefs.set(PropNoiseType, noise);
             Prefs.set(PropPsfType, psf);
-            Prefs.set(PropPsfDimensionX, psfx);
-            Prefs.set(PropPsfDimensionY, psfy);
+            Prefs.set(PropPsfDeviation, psfDeviation);
             Prefs.set(PropSubpixel, subpixel);
             Prefs.set(PropScale, scale);
             Prefs.set(PropRegularizerTerm, lambda);
@@ -128,8 +124,8 @@ public class ConfigDialog {
             // Set segmentation paramters for futher use
             iNoiseType = NoiseType.values()[Arrays.asList(aNoiseType).indexOf(noise)];
             iPsfType = PsfType.values()[Arrays.asList(aPsfType).indexOf(psf)];
-            iPsfDimension = new Dimension(psfx, psfy);
-            iSubpixelSampling = 1/Math.pow(2, Arrays.asList(aSubPixel).indexOf(subpixel)); // 1, 0.5, 0.25
+            iPsfDeviation = psfDeviation; 
+            iSubpixelSampling = 1/Math.pow(2, Arrays.asList(aSubPixel).indexOf(subpixel)); // sets: 1, 0.5, 0.25 0.125
             iCoefficientStep = Arrays.asList(aScales).indexOf(scale);
             iRegularizerTerm = lambda / 1000; // For easier user input it has scale * 1e-3
             iNumberOfIterations = iterations;
@@ -142,11 +138,10 @@ public class ConfigDialog {
     private GenericDialog createConfigWindow(final String[] aNoiseType, final String[] aPsfType, final String[] aSubPixel, final String[] aScales, final String[] aLayers) {
         final GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
         
-        gd.addRadioButtonGroup("Noise_Type: ", aNoiseType, 3, 1, Prefs.get(PropNoiseType, aNoiseType[0]));
+        gd.addRadioButtonGroup("Noise_Type: ", aNoiseType, aNoiseType.length, 1, Prefs.get(PropNoiseType, aNoiseType[0]));
    
-        gd.addRadioButtonGroup("PSF_Type: ", aPsfType, 3, 1, Prefs.get(PropPsfType, aPsfType[0]));
-        gd.addNumericField("PSF_dimensions:_____[rows]", (int)Prefs.get(PropPsfDimensionY, 1), 0);
-        gd.addNumericField("                 [columns]", (int)Prefs.get(PropPsfDimensionX, 1), 0);
+        gd.addRadioButtonGroup("PSF_Type: ", aPsfType, aPsfType.length, 1, Prefs.get(PropPsfType, aPsfType[0]));
+        gd.addNumericField("PSF standard deviation:", Prefs.get(PropPsfDeviation, 0.5), 3);
    
         gd.addRadioButtonGroup("Subpixel_sampling: ", aSubPixel, 1, 3, Prefs.get(PropSubpixel, aSubPixel[0]));
    
@@ -160,9 +155,9 @@ public class ConfigDialog {
         
         gd.addMessage("\n");
         final String referenceInfo = "\"Automatic optimal filament segmentation with sub-pixel accuracy using generalized linear models and B-spline level-sets\",\n"+
-                            "Med. Image Anal., 32:157-172, 2016\n\n" +
-                            "X. Xiao, V. F. Geyer, H. Bowne-Anderson,\n" +
-                            "J. Howard, and I. F. Sbalzarini.";
+                                     "Med. Image Anal., 32:157-172, 2016\n\n" +
+                                     "X. Xiao, V. F. Geyer, H. Bowne-Anderson,\n" +
+                                     "J. Howard, and I. F. Sbalzarini.";
         final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         final TextArea ta = new TextArea(referenceInfo, 6, 55, TextArea.SCROLLBARS_NONE);
@@ -177,7 +172,7 @@ public class ConfigDialog {
         return gd;
     }
 
-    private boolean verifyInputParams(final int psfx, final int psfy, final int iterations) {
+    private boolean verifyInputParams(final int iterations, final double deviation) {
         boolean isConfigOK = true;
         
         String errorMsg = "";
@@ -185,9 +180,9 @@ public class ConfigDialog {
             isConfigOK = false;
             errorMsg += "Number of iteration cannot be lower that 0\n";
         }
-        if (psfx < 1 || psfy < 1) {
+        if (deviation <= 0) {
             isConfigOK = false;
-            errorMsg += "PSF dimensions cannot be lower than 1\n";
+            errorMsg += "PSF standard deviation must be > 0\n";
         }
         
         if (!isConfigOK) {
