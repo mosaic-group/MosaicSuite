@@ -54,15 +54,16 @@ public class SegmentationAlgorithm {
     }
 
     // Input data
-    private final double[][] iImage;
-    private final NoiseType iNoiseType;
-    private final PsfType iPsfType;
-    private final Dimension iPsfSize;
-    private final double iSubpixelSampling;
-    private final int iCoeffsStepScale;
-    private final double iLambdaReg;
+    private double[][] iImage;
+    private NoiseType iNoiseType;
+    private PsfType iPsfType;
+    private double iPsfDeviation;
+    private Dimension iPsfSize;
+    private double iSubpixelSampling;
+    private int iCoeffsStepScale;
+    private double iLambdaReg;
 
-    private final int iNoOfIterations;
+    private int iNoOfIterations;
 
     // Calculated segmentation data
     private int iStepSize;
@@ -84,20 +85,40 @@ public class SegmentationAlgorithm {
     private Matrix iEnergyGradOfBases;
 
 
-    public SegmentationAlgorithm(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, Dimension aPsfSize,
-                                 double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, 
-                                 int aMaxNoOfIterations) {
+    public SegmentationAlgorithm(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, double aPsfDeviation,
+                                 double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, int aMaxNoOfIterations) {
+        // 3 * stdDev on both sides of a mean covers 99,73% of distr.
+        int psfSize = (int)(2 * 3 * aPsfDeviation);
+        // Make it odd (and at least 1, if iPsfDeviation is really small).
+        if (psfSize % 2 == 0) psfSize += 1;
+
+        setInputData(aImage, aNoiseType, aPsfType, aPsfDeviation, new Dimension(psfSize, psfSize),
+                     aSubpixelSampling, aCoeffsStepScale, aRegularizerTerm, aMaxNoOfIterations);
+        
+        // (Pre)calculate and setup all common things needed by segmenation.
+        initialize();
+    }
+    
+    public SegmentationAlgorithm(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, double aPsfDeviation, Dimension aPsfSize,
+                                 double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, int aMaxNoOfIterations) {
+        setInputData(aImage, aNoiseType, aPsfType, aPsfDeviation, aPsfSize,
+                     aSubpixelSampling, aCoeffsStepScale, aRegularizerTerm, aMaxNoOfIterations);
+        
+        // (Pre)calculate and setup all common things needed by segmenation.
+        initialize();
+    }
+    
+    private void setInputData(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, double aPsfDeviation, Dimension aPsfSize,
+                              double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, int aMaxNoOfIterations) {
         iImage = aImage;
         iNoiseType = aNoiseType;
         iPsfType = aPsfType;
+        iPsfDeviation = aPsfDeviation;
         iPsfSize = aPsfSize;
         iSubpixelSampling = aSubpixelSampling;
         iCoeffsStepScale = aCoeffsStepScale;
         iLambdaReg = aRegularizerTerm;
         iNoOfIterations = aMaxNoOfIterations;
-
-        // (Pre)calculate and setup all common things needed by segmenation.
-        initialize();
     }
 
     /**
@@ -670,9 +691,12 @@ public class SegmentationAlgorithm {
             case DARK_FIELD:
                 // Intentionally falling down
             case GAUSSIAN:
-                // sigma 0.5 follows default value for sigma in Matlab's command
-                // 'fspecial'
-                iPsf = GaussPsf.generate(iPsfSize.width, iPsfSize.height, 0.5);
+                // 3 * stdDev on both sides of a mean covers 99,73% of distr.
+                int psfSize = (int)(2 * 3 * iPsfDeviation);
+                // Make it odd (and at least 1, if iPsfDeviation is really small).
+                if (psfSize % 2 == 0) psfSize += 1;
+                
+                iPsf = GaussPsf.generate(iPsfSize.width, iPsfSize.height, iPsfDeviation);
                 break;
             case PHASE_CONTRAST:
                 // Values taken from Matlab's implementation
@@ -682,8 +706,9 @@ public class SegmentationAlgorithm {
                 iPsf = new Matrix(new double[][] { { 1 } });
                 break;
             default:
-                // Default case - use 4x4 Gauss psf
-                iPsf = GaussPsf.generate(4, 4, 0.5);
+                // Default case - use 3x3 Gauss psf
+                // sigma 0.5 follows default value for sigma in Matlab's command 'fspecial'
+                iPsf = GaussPsf.generate(3, 3, 0.5);
                 break;
         }
 
@@ -703,6 +728,7 @@ public class SegmentationAlgorithm {
         str +=       "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
         str +=       "NoiseType: " + iNoiseType.toString() + "\n";
         str +=       "PsfType: " +  iPsfType.toString() + "\n";
+        str +=       "PsfDeviation: " + iPsfDeviation + "\n";
         str +=       "W/H: " + iPsfSize.width + "/" + iPsfSize.height + "\n";
         str +=       "Subpixel sampling: " + iSubpixelSampling + "\n";
         str +=       "StepScale: " + iCoeffsStepScale + "\n";

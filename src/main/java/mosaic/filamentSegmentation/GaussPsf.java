@@ -25,9 +25,11 @@ public class GaussPsf {
         }
 
         // Normalize
-        for (int y = 0; y < yl; ++y) {
-            for (int x = 0; x < xl; ++x) {
-                psf[y][x] /= sum;
+        if (sum != 0) {
+            for (int y = 0; y < yl; ++y) {
+                for (int x = 0; x < xl; ++x) {
+                    psf[y][x] /= sum;
+                }
             }
         }
 

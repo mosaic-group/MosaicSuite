@@ -173,6 +173,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     private boolean text_files_mode = false;
     private boolean only_detect = false;
     private boolean frames_processed = false;
+    private boolean saveMss = false;
     
     /**
      * Different commands from the plugin menu call the same plugin class with a different argument.
@@ -195,6 +196,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
         iInputImage = aInputImage;
 
+        final String options = Macro.getOptions();
+        logger.info("Macro Options: [" + options + "]");
+        if (options != null) {
+            if (MosaicUtils.parseCheckbox("saveMss", options)) {
+                logger.info("Save MSS results = true");
+                saveMss = true;
+            }
+        }
+        
         // Setup detection/linking things
         iParticleLinker = new ParticleLinkerGreedy();
 
@@ -724,7 +734,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * Generate a String header of each colum
      */
     public String trajectoryHeader() {
-        String unit = iInputImage.getCalibration().getUnit();
+        String unit = "pixel"; //iInputImage.getCalibration().getUnit();
         return new String("%% frame x (" + unit + ")     y (" + unit + ")    z (" + unit + ")      m0 " + "        m1 " + "          m2 " + "          m3 " + "          m4 " + "          s \n");
     }
 
@@ -742,10 +752,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     private StringBuffer getTrajectoriesInfo() {
         final StringBuffer traj_info = new StringBuffer("%% Trajectories:\n");
         traj_info.append("%%\t 1st column: frame number\n");
-        String unit = iInputImage.getCalibration().getUnit();
-        traj_info.append("%%\t 2nd column: x coordinate top-down" + "(" + unit + ")" + "\n");
-        traj_info.append("%%\t 3rd column: y coordinate left-right" + "(" + unit + ")" + "\n");
-        traj_info.append("%%\t 4th column: z coordinate bottom-top" + "(" + unit + ")" + "\n");
+        // TODO: change unit to taken from image after coordinates have also recalculation implemented.
+        traj_info.append("%%\t 2nd column: x coordinate top-down" + "(pixel)" + "\n");
+        traj_info.append("%%\t 3rd column: y coordinate left-right" + "(pixel)" + "\n");
+        traj_info.append("%%\t 4th column: z coordinate bottom-top" + "(pixel)" + "\n");
         if (text_files_mode) {
             traj_info.append("%%\t next columns: other information provided for each particle in the given order\n");
         }
@@ -775,8 +785,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
         MosaicUtils.write2File(vFI.directory, "Traj_" + resultFilesTitle + ".txt", getFullReport().toString());
         if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
-        final ResultsTable rt = generateResultsTableWithTrajectories();
         try {
+            if (saveMss) {
+                Double[] calData = getImageCalibrationData();
+                if (calData[0] != null) {
+                    double pixelDimensions = calData[0];
+                    double timeInterval = calData[1];
+                    ResultsTable rtMss = mssAllResultsToTable(pixelDimensions, timeInterval);
+                    rtMss.saveAs(new File(vFI.directory, "TrajMss_" + resultFilesTitle + ".csv").getAbsolutePath());
+                }
+            }
+            final ResultsTable rt = generateResultsTableWithTrajectories();
             rt.saveAs(new File(vFI.directory, "Traj_" + resultFilesTitle + ".csv").getAbsolutePath());
         }
         catch (final IOException e) {
@@ -1427,7 +1446,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
     private ResultsTable getResultsTable() {
         final ResultsTable rt = ResultsTable.getResultsTable();
-
         if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
             if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")) {
                 rt.reset();
@@ -1484,13 +1502,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
     public ResultsTable mssAllResultsToTable(double aPixelDimensions, double aTimeInterval) {
         final ResultsTable rt = getResultsTable();
-
         if (rt != null) {
+            rt.reset();
             final Iterator<Trajectory> iter = iTrajectories.iterator();
             while (iter.hasNext()) {
                 final Trajectory currentTrajectory = iter.next();
                 computeMssForOneTrajectory(rt, currentTrajectory, aPixelDimensions, aTimeInterval);
             }
+            logger.info("Computed MSS for " + rt.getCounter() + " trajectories.");
 
             if (isGuiMode == true) {
                 rt.show("Results");
@@ -1500,6 +1519,63 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         return rt;
     }
 
+    
+    /**
+     * @return array with [pixelDimensions, timeInterval] - if null there was some error getting cal. data.
+     */
+    public Double[] getImageCalibrationData() {
+        // Get all calibration data from image
+        final double width = iInputImage.getCalibration().pixelWidth;
+        final double height = iInputImage.getCalibration().pixelHeight;
+        final double interval = iInputImage.getCalibration().frameInterval;
+        final String intervalUnit = iInputImage.getCalibration().getTimeUnit();
+        final String unit = iInputImage.getCalibration().getUnit();
+
+        // Do checking and complain if necessary
+        String message = "";
+        if (width != height) {
+            message += "Pixel width is different than height. \n";
+        }
+        else if (interval == 0) {
+            message += "Frame interval is equall to 0. To perform analysis it must have correct value \n";
+        }
+        else if (!(unit.equals("nm") || unit.equals(IJ.micronSymbol + "m") || unit.equals("um") || unit.equals("mm") || unit.equals("m"))) {
+            message += "Dimension unit must be one of: m, mm, um or (" + IJ.micronSymbol + "m), nm";
+        }
+        else if (!(intervalUnit.equals("us") || intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("ms") || intervalUnit.equals("sec") || intervalUnit.equals("s"))) {
+            message += "Time interval unit must be one of: s, sec, ms, us, " + IJ.micronSymbol + "m";
+        }
+        if (!message.equals("")) {
+            IJ.error(message);
+            return new Double[] {null, null};
+        }
+        
+        // All provided data are correct! Get it and recalculate if needed.
+
+        double pixelDimensions = width;
+        double timeInterval = interval;
+
+        // Convert dimension unit to meters
+        if (unit.equals("nm")) {
+            pixelDimensions /= 1000000000; // convert from nm to m
+        }
+        else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
+            pixelDimensions /= 1000000; // convert from um to m
+        }
+        else if (unit.equals("mm")) {
+            pixelDimensions /= 1000; // convert from mm to nm
+        }
+
+        // convert time unit to seconds
+        if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
+            timeInterval /= 1000000; // convert from us to s
+        }
+        else if (intervalUnit.equals("ms")) {
+            timeInterval /= 1000; // convert from ms to s
+        }
+        return new Double[] {pixelDimensions, timeInterval};
+    }
+    
     public double getCutoffRadius() {
         return detector.getCutoff();
     }
