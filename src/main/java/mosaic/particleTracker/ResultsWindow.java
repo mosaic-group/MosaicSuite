@@ -298,57 +298,16 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
-
-            // Get all calibration data from image
-            final double width = particleTracker3DModular.iInputImage.getCalibration().pixelWidth;
-            final double height = particleTracker3DModular.iInputImage.getCalibration().pixelHeight;
-            final double interval = particleTracker3DModular.iInputImage.getCalibration().frameInterval;
-            final String intervalUnit = particleTracker3DModular.iInputImage.getCalibration().getTimeUnit();
-            final String unit = particleTracker3DModular.iInputImage.getCalibration().getUnit();
-
-            // Do checking and complain if necessary
-            String message = "";
-            if (width != height) {
-                message += "Pixel width is different than height. \n";
+            Double[] calData = particleTracker3DModular.getImageCalibrationData();
+            if (calData[0] != null) {
+                pixelDimensions = calData[0];
+                timeInterval = calData[1];
             }
-            else if (interval == 0) {
-                message += "Frame interval is equall to 0. To perform analysis it must have correct value \n";
-            }
-            else if (!(unit.equals("nm") || unit.equals(IJ.micronSymbol + "m") || unit.equals("um") || unit.equals("mm") || unit.equals("m"))) {
-                message += "Dimension unit must be one of: m, mm, um or (" + IJ.micronSymbol + "m), nm";
-            }
-            else if (!(intervalUnit.equals("us") || intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("ms") || intervalUnit.equals("sec") || intervalUnit.equals("s"))) {
-                message += "Time interval unit must be one of: s, sec, ms, us, " + IJ.micronSymbol + "m";
-            }
-            if (!message.equals("")) {
-                IJ.showMessage(message);
+            else {
+                // error msg is printed by getImageCalibrationData() method
                 WindowManager.setCurrentWindow(particleTracker3DModular.iInputImage.getWindow());
                 IJ.run("Properties...");
                 return;
-            }
-            // All provided data are correct! Get it and recalculate if
-            // needed.
-
-            pixelDimensions = width;
-            timeInterval = interval;
-
-            // Convert dimension unit to meters
-            if (unit.equals("nm")) {
-                pixelDimensions /= 1000000000; // convert from nm to m
-            }
-            else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
-                pixelDimensions /= 1000000; // convert from um to m
-            }
-            else if (unit.equals("mm")) {
-                pixelDimensions /= 1000; // convert from mm to nm
-            }
-
-            // convert time unit to seconds
-            if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
-                timeInterval /= 1000000; // convert from us to s
-            }
-            else if (intervalUnit.equals("ms")) {
-                timeInterval /= 1000; // convert from ms to s
             }
         }
 
