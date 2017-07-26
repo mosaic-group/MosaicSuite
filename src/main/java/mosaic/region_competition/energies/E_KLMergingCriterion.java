@@ -75,9 +75,11 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         // TODO: Is this working? result=Infinity in cases that were checked (including tests) but it is not 
         // recognized by isNan below...
         //        double R = (aMu1 - vMu12) * (aMu1 - vMu12) *(aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * ((aVar1 + aVar2) / vVar12 - 2.0 - Math.log(aVar2 * aVar1 / vVar12));
-        final double result = vDKL1 + vDKL2;
+        double result = vDKL1 + vDKL2;
         if (Double.isNaN(result)) {
-            throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");
+            mosaic.utils.Debug.print("NaN problem", aMu1,  aMu2, aVar1, aVar2, aN1,  aN2);
+            result = 0;
+//            throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");
         }
         return result;
     }

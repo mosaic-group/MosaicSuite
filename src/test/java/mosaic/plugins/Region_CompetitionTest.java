@@ -224,15 +224,23 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/DRS/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics segmentation=[Discrete Region Sampling]";
+        final String macroOptions        = "labelimage=membrane_2D_init.tif show_and_save_statistics segmentation=[Discrete Region Sampling]";
         String inputFile           = null;
 //        inputFile           = "5x5.tif";
 //        inputFile           = "cross6x6.tif";
-        inputFile           = "2sq.tif";
+//        inputFile           = "2sq.tif";
+        inputFile = "membrane_2D_crop.tif";
         
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        
+        copyTestResources("membrane_2D_init.tif", getTestDataPath() + tcDirName, tmpPath);
+        
+        // A little hack - I have no found the other way to load second image for test purposes.
+        Interpreter.batchMode = true;
+        Interpreter.addBatchModeImage(loadImagePlus(tmpPath + "/membrane_2D_init.tif"));
+        
         
         tcPath = getTestDataPath() + tcDirName;
         String aInputFile = inputFile;
@@ -243,7 +251,7 @@ public class Region_CompetitionTest extends CommonBase {
         WindowManager.setTempCurrentImage(ip);
         new PlugInFilterRunner(plugin, "pluginTest", setupString);
         
-        sleep(1000);
+        sleep(100000);
     }
     
     @Test

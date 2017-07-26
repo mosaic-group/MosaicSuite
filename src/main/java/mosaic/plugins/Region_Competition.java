@@ -470,7 +470,7 @@ public class Region_Competition implements PlugInFilter {
         IntensityImage edgeImage = initEdgeImage();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
-
+        imageModel.removeMergeEnergy();
         // Run segmentation
         AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, new mosaic.region_competition.DRS.Settings());
         

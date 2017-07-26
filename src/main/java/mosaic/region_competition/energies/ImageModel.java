@@ -22,7 +22,7 @@ public class ImageModel {
     
     private final ExternalEnergy iEnergyData;
     private final InternalEnergy iEnergyLength;
-    private final ExternalEnergy iEnergyMerge;
+    private ExternalEnergy iEnergyMerge;
     private final Settings iSettings;
 
     public ImageModel(ExternalEnergy aEnergyData, InternalEnergy aEnergyLength, ExternalEnergy aEnergyMerge, Settings aSettings) {
@@ -32,6 +32,8 @@ public class ImageModel {
         iSettings = aSettings;
     }
 
+    public void removeMergeEnergy() {iEnergyMerge = null;}
+    
     public Energy getEdata() {
         return iEnergyData;
     }

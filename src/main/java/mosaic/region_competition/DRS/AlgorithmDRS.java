@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.swing.plaf.synth.SynthSpinnerUI;
-
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
@@ -51,14 +49,14 @@ public class AlgorithmDRS {
     //       Change them to something nicer after implementation.
 
     // Parameters
-    boolean m_MCMCuseBiasedProposal = true; // TODO: false by default in c++
-    boolean m_MCMCusePairProposal = true; // TODO: false by def
+    boolean m_MCMCuseBiasedProposal = false; // TODO: false by default in c++
+    boolean m_MCMCusePairProposal = false; // TODO: false by def
     
     boolean m_AllowFission = true;
     boolean m_AllowHandles = true;
     boolean m_AllowFusion = true;
 
-    int m_MaxNbIterations = 2222;
+    int m_MaxNbIterations = 100000;
     int m_iteration_counter = 0;
     int m_MCMCstepsize = 1;
     
@@ -356,19 +354,19 @@ public class AlgorithmDRS {
             /// We will grow and hence choose one out of the children list
             vActiveCandidates = m_MCMCchildren.get(vAbsLabel);
             if (vActiveCandidates == null) {
-                vActiveCandidates = new MinimalParticleIndexedSet();
-                m_MCMCchildren.put(vAbsLabel, vActiveCandidates);
+//                vActiveCandidates = new MinimalParticleIndexedSet();
+//                m_MCMCchildren.put(vAbsLabel, vActiveCandidates);
             }
         } else {
             vActiveCandidates = m_MCMCparents.get(vAbsLabel);
             if (vActiveCandidates == null) {
-                vActiveCandidates = new MinimalParticleIndexedSet();
-                m_MCMCparents.put(vAbsLabel, vActiveCandidates);
+//                vActiveCandidates = new MinimalParticleIndexedSet();
+//                m_MCMCparents.put(vAbsLabel, vActiveCandidates);
             }
         }
         System.out.println("vR/vProbabilityToProposeAFloatingParticle: " + vR + "/" + vProbabilityToProposeAFloatingParticle + " " + vActiveCandidates);
         
-        if (vActiveCandidates.size() == 0) {
+        if (vActiveCandidates == null || vActiveCandidates.size() == 0) {
             /// This is an empty region. Maybe there exists a floating particle
             /// with no future for this region. But if m_Count == 0, it will not
             /// be accepted according to the definition of the energy. We hence
@@ -418,7 +416,9 @@ public class AlgorithmDRS {
         }
         System.out.println("DISCRETEE !!!!!!!!!!!!!!!!!!!" + vDiscreteDistr);
         // TODO investigate (m_MCMCuseBiasedProposal && !vParticleAIsFloating)  condition to catch cases when dist is null
-        if (vDiscreteDistr != null) System.out.println("DISCRETEE !!!!!!!!!!!!!!!!!!!\n" + vDiscreteDistr.getPmf());
+        if (vDiscreteDistr != null) {
+            System.out.println("DISCRETEE !!!!!!!!!!!!!!!!!!!\n" + vDiscreteDistr.getPmf());
+        }
         
         /// Draw n particles from the discrete distribution
         ArrayList<MinimalParticle> vCandidateMoveVec = new ArrayList<>(Arrays.asList(new MinimalParticle[m_MCMCstepsize]));
@@ -1800,7 +1800,10 @@ public class AlgorithmDRS {
             }
             
             //FGandBGTopoNbPairType vTopoNb = m_TopologicalNumberFunction->EvaluateFGTNOfLabelAtIndex(aParticle.m_Index, vContainerLabel);
-            if (vTopoNb == null) {System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!! 1st"); return false;}
+            if (vTopoNb == null) {
+                System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!! 1st"); 
+                return false;
+            }
             System.out.println("TN: " + vTopoNb.iNumOfConnectedComponentsFG + " " + vTopoNb.iNumOfConnectedComponentsBG);
             if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
                 return false;
@@ -1808,7 +1811,7 @@ public class AlgorithmDRS {
 
             /// if the both labels are not 0, we must calculate the
             /// topo numbers for the current and the candidate label.
-            if(0 != aParticle.iCandidateLabel) {
+            if (0 != aParticle.iCandidateLabel) {
 //                vTopoNb = m_TopologicalNumberFunction->EvaluateFGTNOfLabelAtIndex(aParticle.iIndex, aParticle.iCandidateLabel);
                 vTopoNb = null;
                 for (TopologicalNumberResult tnr : topologicalNumbersForAllAdjacentLabels) {
@@ -1817,7 +1820,10 @@ public class AlgorithmDRS {
                         break;
                     }
                 }
-                if (vTopoNb == null) {System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!!  2nd"); return false;}    
+                if (vTopoNb == null) {
+                    System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!!  2nd"); 
+                    return false;   
+                }
                 if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
                     return false;
                 }
