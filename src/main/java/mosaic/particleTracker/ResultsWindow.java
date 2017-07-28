@@ -28,6 +28,7 @@ import ij.io.SaveDialog;
 import ij.text.TextPanel;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.ParticleTracker3DModular_;
+import mosaic.plugins.ParticleTracker3DModular_.CalibrationData;
 
 /**
  * Defines a window to be the main user interface for result display and analysis
@@ -298,12 +299,13 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
-            Double[] calData = particleTracker3DModular.getImageCalibrationData();
-            if (calData[0] != null) {
-                pixelDimensions = calData[0];
-                timeInterval = calData[1];
+            CalibrationData calData = particleTracker3DModular.getImageCalibrationData();
+            if (calData.errorMsg == null) {
+                pixelDimensions = calData.pixelDimension;
+                timeInterval = calData.timeInterval;
             }
             else {
+                IJ.error(calData.errorMsg);
                 // error msg is printed by getImageCalibrationData() method
                 WindowManager.setCurrentWindow(particleTracker3DModular.iInputImage.getWindow());
                 IJ.run("Properties...");

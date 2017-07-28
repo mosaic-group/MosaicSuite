@@ -82,7 +82,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "linkStraight.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_linkStraight.tif.txt", "Traj_linkStraight.tif.csv"};
+        final String[] expectedFiles     = {"Traj_linkStraight.tif.xml", "Traj_linkStraight.tif.txt", "Traj_linkStraight.tif.csv"};
         final String[] referenceFiles    = {"linkStraight.xml", "linkStraight.txt", "linkStraight.csv"};
 
         // Create tested plugIn
@@ -105,7 +105,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "threeFramesVirusMovie.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_threeFramesVirusMovie.tif.csv"};
+        final String[] expectedFiles     = {"Traj_threeFramesVirusMovie.tif.xml", "Traj_threeFramesVirusMovie.tif.csv"};
         final String[] referenceFiles    = {"threeFramesVirusMovieMssMsd.xml", "threeFramesVirusMovieTrajectories.csv"};
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
@@ -127,7 +127,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv", "TrajMss_ArtificialTest.tif.csv"};
+        final String[] expectedFiles     = {"Traj_ArtificialTest.tif.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv", "TrajMss_ArtificialTest.tif.csv"};
         final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv", "TrajMss_ArtificialTest.tif.csv"};
 
         // Create tested plugIn
@@ -150,7 +150,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
+        final String[] expectedFiles     = {"Traj_ArtificialTest.tif.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
         final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv"};
 
         // Create tested plugIn
@@ -173,7 +173,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
+        final String[] expectedFiles     = {"Traj_ArtificialTest.tif.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
         final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv"};
 
         // Create tested plugIn
@@ -274,7 +274,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           = "Regions_size_5_5_100_100.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"report.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
+        final String[] expectedFiles     = {"Traj_Regions_size_5_5_100_100.tif.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
         final String[] referenceFiles    = {"report.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
 
         // Create tested plugIn

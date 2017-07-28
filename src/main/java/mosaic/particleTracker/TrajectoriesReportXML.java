@@ -13,6 +13,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import mosaic.core.detection.Particle;
 import mosaic.plugins.ParticleTracker3DModular_;
+import mosaic.plugins.ParticleTracker3DModular_.CalibrationData;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -129,17 +130,22 @@ public class TrajectoriesReportXML {
     }
 
     private void generateTrajectoryAnalysis(Element aParent, Trajectory aTrajectory) {
-        final Element trajAnalysis = addElement(aParent, "TrajectoryAnalysis");
-        final TrajectoryAnalysis ta = new TrajectoryAnalysis(aTrajectory);
-        if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
-            addElementWithAttr(trajAnalysis, "MSS", "slope", "" + ta.getMSSlinear(), "yAxisIntercept", "" + ta.getMSSlinearY0());
-            addElementWithAttr(trajAnalysis, "MSD", "slope", "" + ta.getGammasLogarithmic()[1], "yAxisIntercept", "" + ta.getGammasLogarithmicY0()[1]);
-            addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "" + ta.getDiffusionCoefficients()[1]);
-        }
-        else {
-            addElementWithAttr(trajAnalysis, "MSS", "slope", "", "yAxisIntercept", "");
-            addElementWithAttr(trajAnalysis, "MSD", "slope", "", "yAxisIntercept", "");
-            addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "");
+        CalibrationData calData = iTracker.getImageCalibrationData();
+        if (calData.errorMsg == null) {
+            final Element trajAnalysis = addElement(aParent, "TrajectoryAnalysis");
+            final TrajectoryAnalysis ta = new TrajectoryAnalysis(aTrajectory);
+            ta.setLengthOfAPixel(calData.pixelDimension);
+            ta.setTimeInterval(calData.timeInterval);
+            if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
+                addElementWithAttr(trajAnalysis, "MSS", "slope", "" + ta.getMSSlinear(), "yAxisIntercept", "" + ta.getMSSlinearY0());
+                addElementWithAttr(trajAnalysis, "MSD", "slope", "" + ta.getGammasLogarithmic()[1], "yAxisIntercept", "" + ta.getGammasLogarithmicY0()[1]);
+                addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "" + ta.getDiffusionCoefficients()[1]);
+            }
+            else {
+                addElementWithAttr(trajAnalysis, "MSS", "slope", "", "yAxisIntercept", "");
+                addElementWithAttr(trajAnalysis, "MSD", "slope", "", "yAxisIntercept", "");
+                addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "");
+            }
         }
     }
 

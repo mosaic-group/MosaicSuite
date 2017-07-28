@@ -784,14 +784,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             return;
         }
         MosaicUtils.write2File(vFI.directory, "Traj_" + resultFilesTitle + ".txt", getFullReport().toString());
-        if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
+        if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "Traj_" + resultFilesTitle + ".xml").getAbsolutePath(), this);
         try {
             if (saveMss) {
-                Double[] calData = getImageCalibrationData();
-                if (calData[0] != null) {
-                    double pixelDimensions = calData[0];
-                    double timeInterval = calData[1];
-                    ResultsTable rtMss = mssAllResultsToTable(pixelDimensions, timeInterval);
+                CalibrationData calData = getImageCalibrationData();
+                if (calData.errorMsg == null) {
+                    ResultsTable rtMss = mssAllResultsToTable(calData.pixelDimension, calData.timeInterval);
                     rtMss.saveAs(new File(vFI.directory, "TrajMss_" + resultFilesTitle + ".csv").getAbsolutePath());
                 }
             }
@@ -1519,11 +1517,20 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         return rt;
     }
 
-    
+    public class CalibrationData {
+        public CalibrationData(Double aPixelDimension, Double aTimeInterval, String aErrorMsg) {
+            pixelDimension = aPixelDimension;
+            timeInterval = aTimeInterval;
+            errorMsg = aErrorMsg;
+        }
+        public Double pixelDimension;
+        public Double timeInterval;
+        public String errorMsg;
+    }
     /**
      * @return array with [pixelDimensions, timeInterval] - if null there was some error getting cal. data.
      */
-    public Double[] getImageCalibrationData() {
+    public CalibrationData getImageCalibrationData() {
         // Get all calibration data from image
         final double width = iInputImage.getCalibration().pixelWidth;
         final double height = iInputImage.getCalibration().pixelHeight;
@@ -1546,8 +1553,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             message += "Time interval unit must be one of: s, sec, ms, us, " + IJ.micronSymbol + "m";
         }
         if (!message.equals("")) {
-            IJ.error(message);
-            return new Double[] {null, null};
+            return new CalibrationData(null, null, message);
         }
         
         // All provided data are correct! Get it and recalculate if needed.
@@ -1573,7 +1579,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         else if (intervalUnit.equals("ms")) {
             timeInterval /= 1000; // convert from ms to s
         }
-        return new Double[] {pixelDimensions, timeInterval};
+        return new CalibrationData(pixelDimensions, timeInterval, null);
     }
     
     public double getCutoffRadius() {
