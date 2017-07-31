@@ -32,26 +32,4 @@ public class RngTest {
     static public void superMethod(Object o) {
         mosaic.utils.Debug.print("EL", o);
     }
-    
-    @Test
-    public void testMap() {
-        ConcurrentHashMap<String, Integer> m = new ConcurrentHashMap<>();
-        Map<String, Integer> mm = new HashMap<String, Integer>();
-        final int num = 5;
-        for (int i = 0; i < num; ++i) {
-            m.put("a" + i, 2*i);
-            mm.put("a" + i, 2*i);
-        }
-        
-        mm.forEach( (k, v) -> System.out.println("Key:" + k + " Val: " + v));
-        
-        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
-        numbers.forEach(System.out::println);
-        numbers.forEach(RngTest::superMethod);
-        System.out.println(numbers.stream().filter(w -> w > 3).mapToInt(Integer::intValue).min().getAsInt());
-        Map<Integer, String> all = mm.entrySet().stream().filter(e -> e.getValue() > 4).collect(Collectors.toMap(e -> e.getValue(), e-> e.getKey()));
-        System.out.println("ALL->" + mm);
-        System.out.println("ALL->" + all);
-        return;
-    }
 }

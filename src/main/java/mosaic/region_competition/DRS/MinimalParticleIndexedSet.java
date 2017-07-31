@@ -64,7 +64,7 @@ public class MinimalParticleIndexedSet {
      */
     MinimalParticleIndexedSet join(MinimalParticleIndexedSet aSet) {
         for(int i = 0; i < aSet.size(); ++i) {
-            insert(aSet.elementAt(i));
+            insert(new MinimalParticle(aSet.elementAt(i)));
         }
         return this;
     }

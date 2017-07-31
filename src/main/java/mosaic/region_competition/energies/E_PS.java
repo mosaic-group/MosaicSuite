@@ -81,12 +81,12 @@ public class E_PS extends ExternalEnergy {
             final LabelStatistics info = aLabelStats.get(aToLabel);
             meanTo = info.iMeanIntensity;
             varTo = info.iVarIntensity;
-            mosaic.utils.Debug.print("DEBUG varTo if: ", aToLabel, info, meanTo, varTo);
+//            mosaic.utils.Debug.print("DEBUG varTo if: ", aToLabel, info, meanTo, varTo);
         }
         else {
             meanTo = sumTo / cntTo;
             varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo);
-            mosaic.utils.Debug.print("DEBUG varTo", sumSquaredTo, sumSquaredTo, cntTo);
+//            mosaic.utils.Debug.print("DEBUG varTo", sumSquaredTo, sumSquaredTo, cntTo);
             // varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo - 1);
         }
 
@@ -100,7 +100,7 @@ public class E_PS extends ExternalEnergy {
         else {
             meanFrom = sumFrom / cntFrom;
             varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom);
-            mosaic.utils.Debug.print("DEBUG varFrom", sumSquaredFrom, sumFrom, cntFrom);
+//            mosaic.utils.Debug.print("DEBUG varFrom", sumSquaredFrom, sumFrom, cntFrom);
             // varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom - 1);
         }
 

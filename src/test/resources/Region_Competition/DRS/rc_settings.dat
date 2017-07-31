@@ -1,6 +1,6 @@
 {
-  "m_EnergyFunctional": "e_PS",
-  "m_GaussPSEnergyRadius": 4,
+  "m_EnergyFunctional": "e_PC",
+  "m_GaussPSEnergyRadius": 8,
   "m_BalloonForceCoeff": 0.0,
   "regularizationType": "Sphere_Regularization",
   "m_CurvatureMaskRadius": 8.0,

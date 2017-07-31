@@ -511,21 +511,16 @@ public class LabelImage extends BaseImage
                     }
                 }
             }
-//            System.err.println("IterDEB: index: " + aIndex + "cursor: " + cursor + " point: " + start + " max: " + max + " idxs: " + mosaic.utils.Debug.getString(idxs));
         }
         
         @Override
         public boolean hasNext() {
-//            System.err.println("IterDEB2: index: " + inputIndex + "cursor: " + cursor  + " max: " + max + " idxs: " + mosaic.utils.Debug.getString(idxs));
-//              System.out.println("hasNext: " + (cursor < max));
               return cursor < max;
-//            return (cursor < iNeighbourIndexes.length);
         }
 
         @Override
         public Integer next() {
             return idxs[cursor++];
-//            return inputIndex + iNeighbourIndexes[cursor++];
         }
         
         @Override
@@ -566,13 +561,11 @@ public class LabelImage extends BaseImage
         @Override
         public boolean hasNext() {
             return cursor < max;
-//            return (cursor < iNeighbourBgIndexes.length);
         }
 
         @Override
         public Integer next() {
             return idxs[cursor++];
-//            return inputIndex + iNeighbourBgIndexes[cursor++];
         }
         
         @Override
