@@ -340,7 +340,8 @@ public class Region_Competition implements PlugInFilter {
                 workImg = inputImageChosenByUser.duplicate();
                 workImg.setStack(padedIs);
             }
-            intensityImage = new IntensityImage(workImg, normalize_ip);
+            //TODO Normalize turned off temporarily
+            intensityImage = new IntensityImage(workImg, false /*normalize_ip*/);
             inputImageChosenByUser.show();
         }
         else {
@@ -472,7 +473,9 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
         imageModel.removeMergeEnergy();
         // Run segmentation
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, new mosaic.region_competition.DRS.Settings());
+        mosaic.region_competition.DRS.Settings drsSetings = new mosaic.region_competition.DRS.Settings();
+        drsSetings.m_MaxNbIterations = settings.m_MaxNbIterations;
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSetings);
         
         boolean isDone = false;
         int iteration = 0;

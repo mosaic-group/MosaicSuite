@@ -120,7 +120,9 @@ public class IntensityImage extends BaseImage {
      */
     private void initIntensityData(ImagePlus aImage) {
         if (aImage.getType() != ImagePlus.GRAY32) {
-            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
+            aImage.setStack(aImage.getStack().convertToFloat());
+            //TODO: temprarily - tbi
+//            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
         }
         
         // Create container for image data and fill it
@@ -155,9 +157,9 @@ public class IntensityImage extends BaseImage {
     }
     
     /**
-     * Converts LabelImage to a stack of ShortProcessors
+     * Converts LabelImage to a stack of FloatProcessors
      */
-    private ImageStack getFloatStack() {
+    public ImageStack getFloatStack() {
         int w = getWidth();
         int h = getHeight();
         final int area = w * h;

@@ -51,7 +51,7 @@ public class ImageModel {
         if (EnergyRegionCoeff != 0) {
             EnergyResult vV = iEnergyData.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, aLabelMap);
 //            System.out.println("ExtEn: " + EnergyRegionCoeff * vV.energyDifference + " " + vV.energyDifference);
-            vEnergy += EnergyRegionCoeff * vV.energyDifference * 0; //FAKE
+            vEnergy += EnergyRegionCoeff * vV.energyDifference ;//* 0; //FAKE
             // vMerge may be null here and will be set below at the merge energy.
             vMerge = vV.merge;
         }

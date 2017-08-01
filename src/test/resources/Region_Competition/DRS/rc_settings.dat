@@ -3,7 +3,7 @@
   "m_GaussPSEnergyRadius": 8,
   "m_BalloonForceCoeff": 0.0,
   "regularizationType": "Sphere_Regularization",
-  "m_CurvatureMaskRadius": 8.0,
+  "m_CurvatureMaskRadius": 4.0,
   "labelImageInitType": "File",
   "l_BoxRatio": 0.8,
   "m_BubblesRadius": 10,
