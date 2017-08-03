@@ -58,7 +58,7 @@ public class AlgorithmDRS {
     boolean m_AllowFusion = true;
     boolean m_AllowHandles = true;
 
-    int m_MaxNbIterations = Integer.MAX_VALUE/10000 + 1000000;
+    int m_MaxNbIterations = 2_000_000;
     int m_iteration_counter = 0;
     int m_MCMCstepsize = 1;
     
@@ -135,7 +135,7 @@ public class AlgorithmDRS {
         public int second;
         
         @Override
-        public String toString() {return "SR {" + first + ", " + second + "}";}
+        public String toString() {return "SR{" + first + ", " + second + "}";}
     }
     
 //    typedef itk::ContourIndexHashFunctor<m_Dim> ContourIndexHashFunctorType;
@@ -148,10 +148,10 @@ public class AlgorithmDRS {
     
     
     //TODO: Used for testing only to have same values as rngs in C++ impl. to be removed after all
-//    int[] distr = new int [] {};
+//    int[] distrFake = new int [] {};
 //    int distrCnt = 0;
-//    double[] rndFake = new double [] {1, 0.0242085, 2, 0, 0.174484, 1, 0.969521, 0, 0, 0.38655, 1, 0.814472, 0, 0, 0.72542, 1, 0.75238, 0, 0, 0.265093, 1, 0.612531, 0, 0, 0.891408, 1, 0.21804, 1, 1, 0.362591, 1, 0.355309, 3, 1, 0.587227, 1, 0.122697, 0, 0, 1, 0.741561, 0, 0, 0.859183, 1, 0.504463, 0, 1, 0.311447, 1, 0.265599, 5, 0, 1, 0.319456, 6, 0, 0.401913, 1, 0.156406, 0, 0, 1, 0.264553, 1, 0, 0.876385, 1, 0.0942966, 0, 1, 0.475545, 2, 1, 1, 0.701221, 2, 0, 1, 0.630415, 0, 2, 0.687748, 1, 0.208622, 3, 1, 0.227179, 1, 0.194659, 5, 0, 0.354112, 1, 0.571731, 2, 1, 0.19814, 1, 0.581833, 5, 0, 0.215702};
-//    int rndCnt = 0;
+//    double[] rndFake = new double []{1, 0.0242085, 0.804251, 2, 1, 0.371495, 0.969521, 9};
+    int rndCnt = 0;
     
     public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, Settings aSettings) {
         
@@ -235,7 +235,12 @@ public class AlgorithmDRS {
         m_MCMCTotalNormalizer = 0.0f;
         
         
-//        m_MaxNbIterations = iSettings.m_MaxNbIterations;
+        m_MaxNbIterations = iSettings.m_MaxNbIterations;
+        m_AllowFission = iSettings.m_AllowFission;
+        m_AllowFusion = iSettings.m_AllowFusion;
+        m_AllowHandles = iSettings.m_AllowHandles;
+        
+        
         // TODO: It seems that input label image cannot have negative labels, this code temporary changes it to all positives.
         final Iterator<Point> ri2 = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
         while (ri2.hasNext()) {
@@ -259,8 +264,6 @@ public class AlgorithmDRS {
                 m_MCMCparentsProposalNormalizer.put(labelAbs, 0f);
                 m_MCMCchildrenProposalNormalizer.put(labelAbs, 0f);
             }
-            //            TODO: rest of initialization
-            //            
             //            // Add all regular particles at this spot:
             MinimalParticleIndexedSet vPs = new MinimalParticleIndexedSet();
             
@@ -276,6 +279,10 @@ public class AlgorithmDRS {
             }
         }
         
+//        //System.out.println("m_MCMCparentsProposalNormalizer: " + m_MCMCparentsProposalNormalizer);
+//        //System.out.println("m_MCMCchildrenProposalNormalizer: " + m_MCMCchildrenProposalNormalizer);
+//        //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel);
+        
         //System.out.println("CHILDREN:\n" + m_MCMCchildren);
         //System.out.println("PARENTS:\n" + m_MCMCparents);
         
@@ -290,8 +297,9 @@ public class AlgorithmDRS {
         /* Main loop */
         int vAcceptedMoves = 0;
         int vTempAcceptedMoves = 0;
+        int modulo = m_MaxNbIterations / 100 + 1;
         while (m_MaxNbIterations > m_iteration_counter) {
-            if (m_iteration_counter % 10 == 0) {
+            if (m_iteration_counter % modulo == 0) {
                 System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
             }
             m_iteration_counter++;
@@ -306,7 +314,7 @@ public class AlgorithmDRS {
             //System.out.println("CHILDREN:\n" + m_MCMCchildren);
             //System.out.println("PARENTS:\n" + m_MCMCparents);
         }
-        
+        //System.out.println("DONE: " + m_MaxNbIterations + " iterations!");
         
         if (m_Verbose) PrintFinalInfo(vAcceptedMoves);
         iLabelImage.save("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/test.tif");
@@ -318,83 +326,40 @@ public class AlgorithmDRS {
         MCMCWriteResults2((int) ((1.0f - m_MCMCburnInFactor) * m_iteration_counter), aFilenamePrefix);
     }
     
-    void MCMCWriteResults(int aNumberOfIterations, String aFilenamePrefix) {
-        System.out.println("Saving1...");
-        int vCountableIterationNb = (aNumberOfIterations >= m_iteration_counter) ? (m_iteration_counter-1) : aNumberOfIterations;
-        int vStartingIterationNb = m_iteration_counter - vCountableIterationNb; //TODO: probably -1 tbi
-
-        //System.out.println("aNumberOfIterations: " + aNumberOfIterations + " vStartingIterationNb: " + vStartingIterationNb + " vCountableIterationNb: " + vCountableIterationNb + "\nm_MCMCRegionLabel: " + m_MCMCRegionLabel + "\nm_MCMCResults: " + m_MCMCResults);
-        for (int vL = 0; vL < m_MCMCRegionLabel.size(); ++vL) {
-            System.out.println("Saving..." + vL);
-            int vLabelOfInterest = m_MCMCRegionLabel.get(vL);
-
-            // we don't want write results for the BG region:
-            if (vLabelOfInterest == LabelImage.BGLabel) continue;
-
-            // copy the original label image (n times)
-            IntensityImage vOutputImage = new IntensityImage(iLabelImage.getDimensions());
-            for (int i = 0; i < iLabelImage.getSize(); ++i) {
-                vOutputImage.set(i, iLabelImage.getLabelAbs(i) == vLabelOfInterest ? 1f : 0f);
-            }
-            System.out.println("Saving2..." + vL);
-            /// For each pixel where we have results...
-            for (Entry<Integer,List<MCMCSingleResult>> e :  m_MCMCResults.entrySet()) {
-                int vIndex = e.getKey();
-                int vCurrentLabelAtSpot = iLabelImage.getLabelAbs(vIndex);
-                int vNbIterationsInLabel = (vCurrentLabelAtSpot == vLabelOfInterest) ? vCountableIterationNb : 0;
-
-                /// ...iterate the events for this particular pixel. We only care
-                /// if either the current label is the label of interest or the
-                /// event tells us that the pixel changed to the label of interest.
-                /// We start at the end and go backward in time.
-
-                for (int i = e.getValue().size() - 1; i >= 0; --i) {
-                    MCMCSingleResult result = e.getValue().get(i);
-                    int vIteration = result.first;
-                    int vLabelBeforeMove = result.second;
-
-                    if (vIteration < vStartingIterationNb) {/// We are in the burn-in phase
-                        break;
-                    }
-
-                    if (vCurrentLabelAtSpot == vLabelOfInterest) {
-                        // we changed to the current label of interest, this means beforehand there was in a different label, hence we subtract the remaining iterations.
-                        vNbIterationsInLabel -= (vIteration-vStartingIterationNb);
-                    } else if (vLabelBeforeMove  == vLabelOfInterest) {
-                        /// we left the label of interest, this means that we the spot was occupied by it beforehand, hence we add the remaining iterations.
-                        vNbIterationsInLabel += (vIteration-vStartingIterationNb);
-                    }
-                    vCurrentLabelAtSpot = vLabelBeforeMove;
-                }
-
-                vOutputImage.set(vIndex, (float)(vNbIterationsInLabel) / vCountableIterationNb);
-            }
-            System.out.println("Saving3..." + vL);
-            /// scale the image to
-            //System.out.println("FILENAMEPREFIX:  " + aFilenamePrefix + "\nLABELOFINTEREST: " + vLabelOfInterest);
-            vOutputImage.save(aFilenamePrefix + vLabelOfInterest + ".tif");
-        }
-    }
-    
     void MCMCWriteResults2(int aNumberOfIterations, String aFilenamePrefix) {
-        System.out.println("Wrighting..");
+        //System.out.println("Wrighting..");
         int vCountableIterationNb = (aNumberOfIterations >= m_iteration_counter) ? (m_iteration_counter-1) : aNumberOfIterations;
         int vStartingIterationNb = m_iteration_counter - vCountableIterationNb; //TODO: probably -1 tbi
 
-        //System.out.println("aNumberOfIterations: " + aNumberOfIterations + " vStartingIterationNb: " + vStartingIterationNb + " vCountableIterationNb: " + vCountableIterationNb + "\nm_MCMCRegionLabel: " + m_MCMCRegionLabel + "\nm_MCMCResults: " + m_MCMCResults);
+//        //System.out.println("aNumberOfIterations: " + aNumberOfIterations + " vStartingIterationNb: " + vStartingIterationNb + " vCountableIterationNb: " + vCountableIterationNb + "\nm_MCMCRegionLabel: " + m_MCMCRegionLabel + "\nm_MCMCResults: " + m_MCMCResults);
         
         int[] dims = iLabelImage.getDimensions();
         SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
         
-        IntensityImage label = new IntensityImage(iLabelImage.getDimensions());
+        
+//        resultImg.addSliceToStack(iIntensityImage, "intensity", 0);
+        
+//        IntensityImage label = new IntensityImage(m_MCMCInitBackupLabelImage.getDimensions());
+//        for (int i = 0; i < m_MCMCInitBackupLabelImage.getSize(); ++i) {
+//            float l = (m_MCMCInitBackupLabelImage.getLabelAbs(i) > 0 && m_MCMCInitBackupLabelImage.getLabel(i) != LabelImage.BorderLabel) ? m_MCMCInitBackupLabelImage.getLabelAbs(i) : 0f;
+//            label.set(i, l);//Abs(i) > 0 && m_MCMCInitBackupLabelImage.getLabel(i) != LabelImage.BorderLabel ? 1f : 0f);
+//        }
+//        resultImg.addSliceToStack(label, "origImage", 0);
+//        
+//        
+        IntensityImage label2 = new IntensityImage(iLabelImage.getDimensions());
+        float maxVal = iLabelImage.getMax();
         for (int i = 0; i < iLabelImage.getSize(); ++i) {
-            label.set(i, iLabelImage.getLabelAbs(i) > 0 && iLabelImage.getLabel(i) != LabelImage.BorderLabel ? 1f : 0f);
+            float l = (iLabelImage.getLabelAbs(i) > 0 && iLabelImage.getLabel(i) != LabelImage.BorderLabel) ? iLabelImage.getLabelAbs(i) : 0f;
+            label2.set(i, l/maxVal);//Abs(i) > 0 && iLabelImage.getLabel(i) != LabelImage.BorderLabel ? 1f : 0f);
         }
-        resultImg.addSliceToStack(label, "label image", 0);
+        resultImg.addSliceToStack(label2, "label image", 0);
+        
+        
         
         for (int vL = 0; vL < m_MCMCRegionLabel.size(); ++vL) {
             int vLabelOfInterest = m_MCMCRegionLabel.get(vL);
-            System.out.println("Saving1..." + vL);
+            //System.out.println("Saving1..." + vL);
             // we don't want write results for the BG region:
             if (vLabelOfInterest == LabelImage.BGLabel) continue;
 
@@ -403,7 +368,7 @@ public class AlgorithmDRS {
             for (int i = 0; i < iLabelImage.getSize(); ++i) {
                 vOutputImage.set(i, iLabelImage.getLabelAbs(i) == vLabelOfInterest ? 1f : 0f);
             }
-            System.out.println("Saving2..." + vL );
+            //System.out.println("Saving2..." + vL );
             /// For each pixel where we have results...
             for (Entry<Integer,List<MCMCSingleResult>> e :  m_MCMCResults.entrySet()) {
                 int vIndex = e.getKey();
@@ -434,21 +399,21 @@ public class AlgorithmDRS {
                     vCurrentLabelAtSpot = vLabelBeforeMove;
                 }
 
-                vOutputImage.set(vIndex, ((float)vNbIterationsInLabel) / vCountableIterationNb);
+                vOutputImage.set(vIndex, (float)(((double)vNbIterationsInLabel) / ((double)vCountableIterationNb)));
             }
 
             /// scale the image to
             //System.out.println("FILENAMEPREFIX:  " + aFilenamePrefix + "\nLABELOFINTEREST: " + vLabelOfInterest);
 //            vOutputImage.save(aFilenamePrefix + vLabelOfInterest + ".tif");
-            System.out.println("Saving3..." + vL);
+            //System.out.println("Saving3..." + vL);
             
             resultImg.addSliceToStack(vOutputImage, "conf" + vL, 0);
-            System.out.println("Saving4..." + vL);
+            //System.out.println("Saving4..." + vL);
         }
-        System.out.println("Wrighting..END");
+        //System.out.println("Wrighting..END");
         //System.out.println("Saving: " + aFilenamePrefix + "Stack.tif");
         IJ.save(resultImg.getImage(), aFilenamePrefix + "Stack.tif");
-        System.out.println("Wrighting..END2");
+        //System.out.println("Wrighting..END2");
     }
     
     void PrintFinalInfo(int aNumberOfAcceptedMoves) {
@@ -471,10 +436,10 @@ public class AlgorithmDRS {
         /// always be a floating particle somewhere (given the algorithm
         /// got initialized with more than one region). But in the burn-in phase
         /// we delete floating particles.
-        //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel );
+//        //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel );
         if (m_MCMCRegionLabel.size() < 2) {
             // TODO: Should be handled differently than RuntimeEx?
-            throw new RuntimeException("No active region for MCMC available");
+            throw new RuntimeException("No active region for MCMC available in iter: " + m_iteration_counter);
         }
         
         /// Sample a region number (a FG region number; without BG)
@@ -649,7 +614,7 @@ public class AlgorithmDRS {
                 //System.out.println("distr1: " +  vParticleIndex);
                 
                 //FAKE:
-//                vParticleIndex = distr[distrCnt++];
+//                vParticleIndex = distrFake[distrCnt++];
                 
                 //System.out.println("vParticleIndex1: " + vParticleIndex);
                 vq_A.set(vPC, vAllParticlesFwdProposals.get(vParticleIndex).getSecond().floatValue());
@@ -670,7 +635,7 @@ public class AlgorithmDRS {
             }
 
             MinimalParticle vParticle = new MinimalParticle(vActiveCandidates.elementAt(vParticleIndex));
-            //System.out.println("vParticle in loop: " + vParticle);
+            //System.out.println("vParticle in loop: " + vParticle + " " + vParticleAIsFloating + " " + iLabelImage.getLabel(vParticle.iIndex));
             if (vParticleAIsFloating) {
                 /// A floating particle was selected.
                 vParticle_A_IsFloating.set(vPC, true);
@@ -768,7 +733,7 @@ public class AlgorithmDRS {
                     
                     
                     //FAKE:
-//                    vCondIndex = distr[distrCnt++];
+//                    vCondIndex = distrFake[distrCnt++];
                     
                     //System.out.println("distr2: " +  vCondIndex);
                     
@@ -1420,18 +1385,20 @@ public class AlgorithmDRS {
         /// of the currently shrinking region:
         /// (compare to also AddNeighborsAtRemove(..))
         if (vAbsLabelFrom != 0) { // a FG region is shrinking
-
+            //System.out.println("vAbsLabelFrom != 0 ");
             for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
                 Point vOff = m_NeighborsOffsets_BG_Connectivity[vN];
                 int vL = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff));
-                //System.out.println("            vL:" + vL);
+                //System.out.println("            vL:" + vL + " " + vAbsLabelFrom );
                 /// Check if new points enter the contour (internal point becomes a parent):
                 /// Internal points of this region are positive:
                 if (vL > 0 && Math.abs(vL) == vAbsLabelFrom) {
+                    //System.out.println("prop index: " + (vCandidateIndex + iLabelImage.pointToIndex(vOff)) + iLabelImage.indexToPoint(vCandidateIndex + iLabelImage.pointToIndex(vOff)));
                     float vProposal1 = MCMCproposal(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0);
                     boolean vNotExisted = MCMCInsertCandidatesToContainers(new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0, vProposal1), vAbsLabelFrom, true);
+                    //System.out.println("P/exist: " + new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0, vProposal1) + " " + vNotExisted);
                     if (vNotExisted) {
-                        iLabelImage.setLabel(currIdx + iLabelImage.pointToIndex(vOff), -vAbsLabelTo);
+                        iLabelImage.setLabel(currIdx + iLabelImage.pointToIndex(vOff), -vAbsLabelFrom);
                         MCMCPushLabelImageHistory(aCandidateParticle.iIndex + iLabelImage.pointToIndex(vOff), vL);
                     }
                 }
@@ -1835,7 +1802,7 @@ public class AlgorithmDRS {
             int vLinIndex = m_MCMCEdgeImageDistr.sample();
             
             //FAKE:
-//            vLinIndex = distr[distrCnt++];
+//            vLinIndex = distrFake[distrCnt++];
             //System.out.println("distr3: " +  vLinIndex);
             
             if (m_Dim == 2 || m_Dim == 3) {

@@ -80,11 +80,11 @@ public class SegmentationProcessWindow {
         }
         
         // Handle new maximum label value and colors of image
-        if (aBiggestLabelSoFar > iMaxLabel) {
-            iMaxLabel = 2 * aBiggestLabelSoFar;
-            IJ.setMinAndMax(iImage, 0, iMaxLabel);
-            IJ.run(iImage, "3-3-2 RGB", null);
-        }
+//        if (aBiggestLabelSoFar > iMaxLabel) {
+//            iMaxLabel = 2 * aBiggestLabelSoFar;
+//            IJ.setMinAndMax(iImage, 0, iMaxLabel);
+//            IJ.run(iImage, "3-3-2 RGB", null);
+//        }
     }
     
     /**

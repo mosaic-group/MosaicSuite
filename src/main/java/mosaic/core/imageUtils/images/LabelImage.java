@@ -46,7 +46,7 @@ public class LabelImage extends BaseImage
     private Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
     protected int[] iNeighbourIndexes;
-    protected int[] iNeighbourBgIndexes;
+    protected Point[] iNeighbourBgIndexes;
     
     /**
      * Create a label image from an ImgLib2
@@ -174,10 +174,10 @@ public class LabelImage extends BaseImage
             iNeighbourIndexes[idx++] = pointToIndex(p);
         }
 
-        iNeighbourBgIndexes = new int[iConnectivityBG.getNumOfNeighbors()];
+        iNeighbourBgIndexes = new Point[iConnectivityBG.getNumOfNeighbors()];
         idx = 0;
         for (Point p : iConnectivityBG.iterator()) {
-            iNeighbourBgIndexes[idx++] = pointToIndex(p);
+            iNeighbourBgIndexes[idx++] = p;
         }
     }
 
@@ -203,6 +203,8 @@ public class LabelImage extends BaseImage
      * Sets the LabelImage at given aIndex to aLabel
      */
     public void setLabel(int aIndex, int aLabel) {
+//        mosaic.utils.Debug.print(">>>>>>> >>>>>>>>>>> >>>>>>>>> setLabel: ", aIndex, aLabel, iDataLabel[aIndex]);
+//        mosaic.utils.Debug.printStack();
         iDataLabel[aIndex] = aLabel;
     }
 
@@ -340,14 +342,23 @@ public class LabelImage extends BaseImage
         final Set<Integer> newLabels = new HashSet<Integer>();
         // relabel connected components
         final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
-        aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        if (minLabel < BGLabel && maxLabel > BGLabel) {
+            // Case when we initialize with previous segmentation result (it contains +/- label values and we cannot
+            // take BGLabel into range of threshold).
+            aMultiThsFunctionPtr.AddThresholdBetween(BGLabel + 1, maxLabel);
+            aMultiThsFunctionPtr.AddThresholdBetween(minLabel, BGLabel - 1);
+        }
+        else {
+            aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        }
         // labels can be also negative, in such case start from 1
         int newLabel = Math.max(maxLabel + 1, 1);
+        mosaic.utils.Debug.print("CONNECTED COMP: ", minLabel, maxLabel, newLabel);
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);
             if (oldLabels.contains(label)) {
                 final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
-    
+                mosaic.utils.Debug.print(ff.size(), label, idx);
                 // set region to new label
                 for (final int p : ff) {
                     setLabel(p, newLabel);
@@ -551,11 +562,13 @@ public class LabelImage extends BaseImage
             idxs = new int[iNeighbourBgIndexes.length];
             if (isInBound(start)) {
                 for (int i = 0; i < iNeighbourBgIndexes.length; i++) { 
-                    if (isInBound(start.add(indexToPoint(iNeighbourBgIndexes[i])))) {
-                        idxs[max++] = iNeighbourBgIndexes[i] + inputIndex;
+//                    mosaic.utils.Debug.print(i, start.add(iNeighbourBgIndexes[i]), iNeighbourBgIndexes[i]);
+                    if (isInBound(start.add(iNeighbourBgIndexes[i]))) {
+                        idxs[max++] = pointToIndex(iNeighbourBgIndexes[i]) + inputIndex;
                     }
                 }
             }
+//            mosaic.utils.Debug.print(">>>>>>>>>>>>>>>>>>>>>> BG ITER: ", max, idxs, start, aIndex);
         }
         
         @Override
@@ -596,6 +609,14 @@ public class LabelImage extends BaseImage
             ip.setValue(1);
             ip.fill(aRoi);
         }
+    }
+    
+    public int getMax() {
+        int max = Integer.MIN_VALUE;
+        for (int v : iDataLabel) {
+            if (max < v) max = v;
+        }
+        return max;
     }
     
     /**

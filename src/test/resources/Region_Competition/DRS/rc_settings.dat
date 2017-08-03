@@ -1,9 +1,9 @@
 {
-  "m_EnergyFunctional": "e_PC",
+  "m_EnergyFunctional": "e_PC_Gauss",
   "m_GaussPSEnergyRadius": 8,
   "m_BalloonForceCoeff": 0.0,
   "regularizationType": "Sphere_Regularization",
-  "m_CurvatureMaskRadius": 4.0,
+  "m_CurvatureMaskRadius": 8.0,
   "labelImageInitType": "File",
   "l_BoxRatio": 0.8,
   "m_BubblesRadius": 10,
@@ -15,7 +15,7 @@
   "m_AllowFusion": true,
   "m_AllowFission": true,
   "m_AllowHandles": true,
-  "m_EnergyContourLengthCoeff": 0.07,
+  "m_EnergyContourLengthCoeff": 5,
   "m_RegionMergingThreshold": 0.02,
   "m_MaxNbIterations": 300,
   "m_OscillationThreshold": 0.02

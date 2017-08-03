@@ -32,6 +32,7 @@ import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.E_Gamma;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
+import mosaic.region_competition.energies.E_PC_Gauss;
 import mosaic.region_competition.energies.E_PS;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
@@ -62,7 +63,7 @@ public class Region_Competition implements PlugInFilter {
     }
 
     public enum EnergyFunctionalType {
-        e_PC, e_PS, e_DeconvolutionPC
+        e_PC, e_PS, e_DeconvolutionPC, e_PC_Gauss
     }
 
     public enum RegularizationType {
@@ -291,6 +292,10 @@ public class Region_Competition implements PlugInFilter {
                 e_data = new E_Deconvolution(intensityImage, image_psf);
                 break;
             }
+            case e_PC_Gauss: {
+                e_data = new E_PC_Gauss();
+                break;
+            }
             default: {
                 final String s = "Unsupported Energy functional";
                 IJ.showMessage(s);
@@ -471,7 +476,7 @@ public class Region_Competition implements PlugInFilter {
         IntensityImage edgeImage = initEdgeImage();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
-        imageModel.removeMergeEnergy();
+//        imageModel.removeMergeEnergy();
         // Run segmentation
         mosaic.region_competition.DRS.Settings drsSetings = new mosaic.region_competition.DRS.Settings();
         drsSetings.m_MaxNbIterations = settings.m_MaxNbIterations;
