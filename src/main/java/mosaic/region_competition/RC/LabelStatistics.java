@@ -3,16 +3,18 @@ package mosaic.region_competition.RC;
 
 public class LabelStatistics {
     // Label info
-    public int iLabel = 0;
-    public int iLabelCount;
+    public final int iLabel;
+    public int iLabelCount = 0;
     
     // Label stats
     public double iMeanIntensity = 0;
     public double iVarIntensity = 0;
     public double iMedianIntensity = 0;
+    public double iSumOfSq = 0;
+    public double iSum = 0;
     
     // Label mean position
-    public double iMeanPosition[] = null;
+    public final double iMeanPosition[];
 
     /**
      * Create a statistics for label
@@ -26,6 +28,6 @@ public class LabelStatistics {
 
     @Override
     public String toString() {
-        return "L: " + iLabel + " count: " + iLabelCount + " mean: " + iMeanIntensity;
+        return "{L: " + iLabel + ", count: " + iLabelCount + ", mean: " + iMeanIntensity + "}";
     }
 }

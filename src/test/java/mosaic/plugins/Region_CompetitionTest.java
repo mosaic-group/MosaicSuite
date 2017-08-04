@@ -23,7 +23,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/dot/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics";
+        final String macroOptions        = "show_and_save_statistics show_normalized normalize=true";
         final String inputFile           = "dot.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/dot_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/dot_seg_c1.tif"};
@@ -48,7 +48,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/uc_psf/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics";
+        final String macroOptions        = "show_and_save_statistics show_normalized";
         final String inputFile           = "uc_data.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/uc_data_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/uc_data_seg_c1.tif"};
@@ -76,7 +76,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/fusionCheck/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics";
+        final String macroOptions        = "show_and_save_statistics show_normalized";
         final String inputFile           = "1thing.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/1thing_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/1thing_seg_c1.tif"};
@@ -101,7 +101,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/sphere_3d/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics";
+        final String macroOptions        = "show_and_save_statistics show_normalized";
         final String inputFile           = "sphere.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/sphere_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/sphere_seg_c1.tif"};
@@ -126,7 +126,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/twoBars/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics";
+        final String macroOptions        = "show_and_save_statistics show_normalized";
         final String inputFile           = "twoBars.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/twoBars_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/twoBars_seg_c1.tif"};
@@ -151,7 +151,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/labelImgFromFile/";
         final String setupString         = "run";
-        final String macroOptions        = "labelimage=label.tif show_and_save_statistics";
+        final String macroOptions        = "labelimage=label.tif show_and_save_statistics show_normalized";
         final String inputFile           = "object.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/object_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/object_seg_c1.tif"};
@@ -181,7 +181,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/dotCluster/";
         final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics process username=" + System.getProperty("user.name");
+        final String macroOptions        = "show_and_save_statistics show_normalized process username=" + System.getProperty("user.name");
         final String inputFile           = "dot.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/dot_seg_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/dot_seg_c1.tif"};
@@ -230,7 +230,7 @@ public class Region_CompetitionTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Region_Competition/DRS/";
         final String setupString         = "run";
-        final String macroOptions        = "labelimage=cellsInit.tif show_and_save_statistics segmentation=[Discrete Region Sampling]";
+        final String macroOptions        = "labelimage=cellsInit.tif show_and_save_statistics segmentation=[Discrete Region Sampling] normalize=false";
         String inputFile           = null;
 //        inputFile           = "5x5.tif";
 //        inputFile           = "cross6x6.tif";

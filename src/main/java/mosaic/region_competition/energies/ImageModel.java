@@ -32,8 +32,6 @@ public class ImageModel {
         iSettings = aSettings;
     }
 
-    public void removeMergeEnergy() {iEnergyMerge = null;}
-    
     public Energy getEdata() {
         return iEnergyData;
     }

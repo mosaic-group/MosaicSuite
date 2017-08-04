@@ -130,6 +130,7 @@ public class Region_Competition implements PlugInFilter {
         if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
         useCluster = userDialog.useCluster();
         segmentationType = userDialog.getSegmentationType();
+        normalize_ip = userDialog.getNormalize();
         
         logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
         if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
@@ -138,7 +139,8 @@ public class Region_Competition implements PlugInFilter {
                     ", showAllFrames: " + showAllFrames + 
                     ", useCluster: " + useCluster +
                     ", segmentationType: " + segmentationType +
-                    ", showGui: " + showGUI);
+                    ", showGui: " + showGUI +
+                    ", normalize: " + normalize_ip);
         logger.debug("Settings:\n" + Debug.getJsonString(settings));
         
         // Save new settings from user input.
@@ -294,6 +296,7 @@ public class Region_Competition implements PlugInFilter {
             }
             case e_PC_Gauss: {
                 e_data = new E_PC_Gauss();
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, settings.m_RegionMergingThreshold);
                 break;
             }
             default: {
@@ -345,8 +348,7 @@ public class Region_Competition implements PlugInFilter {
                 workImg = inputImageChosenByUser.duplicate();
                 workImg.setStack(padedIs);
             }
-            //TODO Normalize turned off temporarily
-            intensityImage = new IntensityImage(workImg, false /*normalize_ip*/);
+            intensityImage = new IntensityImage(workImg, normalize_ip);
             inputImageChosenByUser.show();
         }
         else {

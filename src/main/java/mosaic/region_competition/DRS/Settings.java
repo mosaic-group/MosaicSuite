@@ -23,7 +23,8 @@ public class Settings implements Serializable {
     public int m_BubblesRadius = 10;
     public int m_BubblesDispl = 10;
     public int l_BubblesRadius = 5;
-    public double l_Sigma = 2;
+    
+    public double l_Sigma = 2; 
     public double l_Tolerance = 0.005; // 0 - 1.0
     public int l_RegionTolerance = 4;
     

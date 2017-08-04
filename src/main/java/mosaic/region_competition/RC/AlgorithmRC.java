@@ -827,9 +827,7 @@ public class AlgorithmRC {
             
             // Add the seed point to the network
             networkMembers.add(new ContourParticleWithIndex(motherPoint, motherContour));
-            if (!Double.isFinite(motherContour.energyDifference)) {
-                logger.error("Not correct contour particle detected: " + motherContour.energyDifference + " " + motherContour);
-            }
+
             // Iterate all children of the seed, push to the stack if there is a mother.
             for (final Point daughterPoint : motherContour.getDaughterList()) {
                 final ContourParticle daughterContour = iCandidates.get(daughterPoint);

@@ -66,7 +66,7 @@ public class GUI  {
     private Choice iInputImageChoice;
     private Choice iLabelImageChoice;
     private boolean iKeepAllFrames = true;
-    private boolean iShowNormalized = false;
+    private boolean iShowNormalized = true;
     private boolean iShowAndSaveStatistics = true;
     private boolean iUseCluster = false;
     private static final String SegmentationTypes[] = {"Region Competition", "Discrete Region Sampling"};
@@ -135,7 +135,6 @@ public class GUI  {
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 
         addOpenedImageChooser();
-
         final boolean[] bools = new boolean[] { iKeepAllFrames, iShowNormalized, iShowAndSaveStatistics, };
         iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
 
@@ -414,6 +413,10 @@ public class GUI  {
 
     public boolean showAndSaveStatistics() {
         return iShowAndSaveStatistics;
+    }
+    
+    public boolean getNormalize() {
+        return iShowNormalized;
     }
 
     private ImagePlus getImage(final String file, ImagePlus inputImage, ImagePlus aDefault) {

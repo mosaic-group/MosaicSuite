@@ -18,6 +18,10 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class E_PC_Gauss extends ExternalEnergy {
+    double CalculateVariance(double aSumSq, double aMean, double aN) {
+        if (aN < 2) return 0; //TODO: what would be appropriate?
+        return (aSumSq - aN * aMean * aMean)/(aN - 1.0);
+    }
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int fromLabel = contourParticle.label;
@@ -26,32 +30,30 @@ public class E_PC_Gauss extends ExternalEnergy {
         final LabelStatistics totoStats = labelMap.get(toLabel);
         final LabelStatistics fromStats = labelMap.get(fromLabel);
         
-        final double newToToMean = (totoStats.iMeanIntensity * totoStats.iLabelCount + aValue) / (totoStats.iLabelCount + 1);
-        final double newFromMean = (fromStats.iMeanIntensity * fromStats.iLabelCount - aValue) / (fromStats.iLabelCount - 1);
-        
-        // Before changing the mean, compute the sum of squares of the samples:
         final double totoCount = totoStats.iLabelCount;
         final double fromCount = fromStats.iLabelCount;
-        final double vToToLabelSumOfSq = totoStats.iVarIntensity * (totoCount - 1.0) + totoCount * totoStats.iMeanIntensity * totoStats.iMeanIntensity;
-        final double vFromLabelSumOfSq = fromStats.iVarIntensity * (fromCount - 1.0) + fromCount * fromStats.iMeanIntensity * fromStats.iMeanIntensity;
         
-        double newToVar =   ((1.0 / (totoCount)) * (vToToLabelSumOfSq + aValue * aValue - 2.0 * newToToMean * (totoStats.iMeanIntensity * totoCount + aValue) + (totoCount + 1.0) * newToToMean * newToToMean));
-        double newFromVar = ((1.0 / (fromCount - 2)) * (vFromLabelSumOfSq - aValue * aValue - 2.0 * newFromMean * (fromStats.iMeanIntensity * fromCount - aValue) + (fromCount - 1.0) * newFromMean * newFromMean));
-        double oldToVar = totoStats.iVarIntensity;
-        double oldFromVar = fromStats.iVarIntensity;
+        double newToToMean = (totoStats.iSum + aValue) / (totoCount + 1.0);
+        double newFromMean = (fromStats.iSum - aValue) / (fromCount - 1.0);
+        double newToVar   = CalculateVariance(totoStats.iSumOfSq + aValue * aValue, newToToMean, totoCount + 1.0);
+        double newFromVar = CalculateVariance(fromStats.iSumOfSq - aValue * aValue, newFromMean, fromCount - 1.0);
+        double oldToVar = CalculateVariance(totoStats.iSumOfSq, totoStats.iSum / totoCount, totoCount);
+        double oldFromVar = CalculateVariance(fromStats.iSumOfSq, fromStats.iSum / fromCount, fromCount);
         
-        if (newToVar == 0) newToVar = Math.ulp(1.0) * 10;
-        if (newFromVar == 0) newFromVar = Math.ulp(1.0) * 10;
-        if (oldToVar == 0) oldToVar = Math.ulp(1.0) * 10;
-        if (oldFromVar == 0) oldFromVar = Math.ulp(1.0) * 10;
+//        System.out.println(totoStats.iLabelCount + " " + fromStats.iLabelCount + " " + totoStats.iMeanIntensity + " " + fromStats.iMeanIntensity + " " + oldFromVar + " " + oldToVar);
+//        System.out.println("NewMeans/NewVars: " + newToToMean + " " + newFromMean + " " + newToVar + " " + newFromVar);
+        
+        if (newToVar <= 0) newToVar = Math.ulp(1.0) * 10;
+        if (newFromVar <= 0) newFromVar = Math.ulp(1.0) * 10;
+        if (oldToVar <= 0) oldToVar = Math.ulp(1.0) * 10;
+        if (oldFromVar <= 0) oldFromVar = Math.ulp(1.0) * 10;
         
         double vOneBySq2Pi = 1.0/Math.sqrt(2.0*Math.PI);
-        double first = ((fromCount-1) * Math.log(vOneBySq2Pi/ Math.sqrt(newFromVar)) - (fromCount - 1.0) / 2.0);
-        first += -(fromCount * Math.log(vOneBySq2Pi / Math.sqrt(oldFromVar)) - (fromCount) / 2.0);
-        first += ((totoCount+1) * Math.log(vOneBySq2Pi/ Math.sqrt(newToVar)) - (totoCount + 1.0) / 2.0);
-        first += -(totoCount * Math.log(vOneBySq2Pi / Math.sqrt(oldToVar)) - (totoCount) / 2.0);
+        double first = ((fromCount-1) * Math.log(vOneBySq2Pi / Math.sqrt(newFromVar)) - (fromCount - 1.0) / 2.0);
+        first +=       -(fromCount    * Math.log(vOneBySq2Pi / Math.sqrt(oldFromVar)) - (fromCount) / 2.0);
+        first +=       ((totoCount+1) * Math.log(vOneBySq2Pi / Math.sqrt(newToVar))   - (totoCount + 1.0) / 2.0);
+        first +=          -(totoCount * Math.log(vOneBySq2Pi / Math.sqrt(oldToVar))   - (totoCount) / 2.0);
         first *= -1.0 * 1;
-                
         return new EnergyResult(first, false);
     }
 }
