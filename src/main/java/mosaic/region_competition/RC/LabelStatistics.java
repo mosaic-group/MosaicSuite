@@ -7,11 +7,11 @@ public class LabelStatistics {
     public int iLabelCount = 0;
     
     // Label stats
-    public double iMeanIntensity = 0;
-    public double iVarIntensity = 0;
-    public double iMedianIntensity = 0;
-    public double iSumOfSq = 0;
-    public double iSum = 0;
+    public double iMeanIntensity = 0.0;
+    public double iVarIntensity = 0.0;
+    public double iMedianIntensity = 0.0;
+    public double iSumOfSq = 0.0;
+    public double iSum = 0.0;
     
     // Label mean position
     public final double iMeanPosition[];

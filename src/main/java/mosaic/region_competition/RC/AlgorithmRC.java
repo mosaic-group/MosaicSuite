@@ -125,10 +125,9 @@ public class AlgorithmRC {
      * Initializes statistics. For each found label creates LabelStatistics object and stores it in labelStatistics container.
      */
     private void initStatistics() {
-        // First create all LabelStatistics for each found label and calculate values needed for later
-        // variance/mean calculations
+        // First create all LabelStatistics for each found label and calculate values needed for later variance/mean calculations
         int maxUsedLabel = 0;
-        for (int i = 0; i < iLabelImage.getSize(); i++) {
+        for (int i = 0; i < iLabelImage.getSize(); ++i) {
             final int absLabel = iLabelImage.getLabelAbs(i);
 
             if (!iLabelImage.isBorderLabel(absLabel)) {
@@ -140,9 +139,9 @@ public class AlgorithmRC {
                     iLabelStatistics.put(absLabel, stats);
                 }
                 final double val = iIntensityImage.get(i);
+                stats.iSum += val;
+                stats.iSumOfSq += val*val;
                 stats.iLabelCount++;
-                stats.iMeanIntensity += val;
-                stats.iVarIntensity += val * val;
             }
         }
 
@@ -154,19 +153,24 @@ public class AlgorithmRC {
         }
 
         // Finally - calculate variance, median and mean for each found label
-        for (final LabelStatistics stat : iLabelStatistics.values()) {
-            final int n = stat.iLabelCount;
-            stat.iVarIntensity = n > 1 ? ((stat.iVarIntensity - stat.iMeanIntensity * stat.iMeanIntensity / n) / (n - 1)) : 0;
-            stat.iMeanIntensity = n > 0 ? (stat.iMeanIntensity / n) : 0;
+        for (LabelStatistics stat : iLabelStatistics.values()) {
+            int n = stat.iLabelCount;
+            stat.iMeanIntensity = n > 0 ? (stat.iSum / n) : 0;
+            stat.iVarIntensity = CalculateVariance(stats.iSumOfSq,  stat.iMeanIntensity, n);
             // Median on start set equal to mean
             stat.iMedianIntensity = stat.iMeanIntensity;
         }
-
+        
         // Make sure that labelDispenser will not produce again any already used label
         // Safe to search with 'max' we have at least one value in container (background)
         labelDispenser.setMaxValueOfUsedLabel(maxUsedLabel);
     }
-
+    
+    double CalculateVariance(double aSumSq, double aMean, int aN) {
+        if (aN < 2) return 0;
+        return (aSumSq - aN * aMean * aMean)/(aN - 1.0);
+    }
+    
     /**
      * @return value of biggest label ever used
      */
@@ -505,9 +509,14 @@ public class AlgorithmRC {
 
         // Create a LabelStatistics for the new label and add it to container
         final LabelStatistics newLabelStats = new LabelStatistics(aNewLabel, iLabelImage.getNumOfDimensions());
-        newLabelStats.iMeanIntensity = sumOfVal / count;
-        newLabelStats.iVarIntensity = (count > 1) ? (sumOfSqVal - sumOfVal * sumOfVal / count) / (count - 1) : 0;
         newLabelStats.iLabelCount = count;
+        newLabelStats.iSum = sumOfVal;
+        newLabelStats.iSumOfSq = sumOfSqVal;
+        newLabelStats.iMeanIntensity = newLabelStats.iLabelCount > 0 ? (newLabelStats.iSum / newLabelStats.iLabelCount) : 0;
+        newLabelStats.iVarIntensity = CalculateVariance(newLabelStats.iSumOfSq,  newLabelStats.iMeanIntensity, newLabelStats.iLabelCount);
+        // TODO: What to do with median, by default it is zero but shouldn't it be calculated basing on merged labels?
+//        newLabelStats.iMedianIntensity = newLabelStats.iMeanIntensity;
+        
         iLabelStatistics.put(aNewLabel, newLabelStats);
 
         // Clean up the statistics of non valid regions.
@@ -1073,38 +1082,22 @@ public class AlgorithmRC {
         }
     }
 
-    private void updateLabelStatistics(float aIntensity, int aFromLabelIdx, int aToLabelIdx) {
-        final LabelStatistics toLabelStats = iLabelStatistics.get(aToLabelIdx);
-        final LabelStatistics fromLabelStats = iLabelStatistics.get(aFromLabelIdx);
-        final double toCount = toLabelStats.iLabelCount;
-        final double fromCount = fromLabelStats.iLabelCount;
+    private void updateLabelStatistics(double aIntensity, int aFromLabelIdx, int aToLabelIdx) {
+        final LabelStatistics toStats = iLabelStatistics.get(aToLabelIdx);
+        final LabelStatistics fromStats = iLabelStatistics.get(aFromLabelIdx);
 
-        // Before changing the mean, compute the sum of squares of the samples:
-        final double vToLabelSumOfSq = toLabelStats.iVarIntensity * (toCount - 1.0) + toCount * toLabelStats.iMeanIntensity * toLabelStats.iMeanIntensity;
-        final double vFromLabelSumOfSq = fromLabelStats.iVarIntensity * (fromCount - 1.0) + fromCount * fromLabelStats.iMeanIntensity * fromLabelStats.iMeanIntensity;
-
-        // Calculate the new means for the background and the label:
-        final double vNewMeanToLabel = (toLabelStats.iMeanIntensity * toCount + aIntensity) / (toCount + 1.0);
-
-        // TODO: divide by zero. why does this not happen at itk?
-        double vNewMeanFromLabel = (fromCount > 1) ? ((fromCount * fromLabelStats.iMeanIntensity - aIntensity) / (fromCount - 1.0)) : 0.0;
-
-        // Calculate the new variances:
-        double newToVar = ((1.0 / (toCount))
-                * (vToLabelSumOfSq + aIntensity * aIntensity - 2.0 * vNewMeanToLabel * (toLabelStats.iMeanIntensity * toCount + aIntensity) + (toCount + 1.0) * vNewMeanToLabel * vNewMeanToLabel));
-
-        double newFromVar = (fromCount != 2) ? (1.0 / (fromCount - 2.0))
-                * (vFromLabelSumOfSq - aIntensity * aIntensity - 2.0 * vNewMeanFromLabel * (fromLabelStats.iMeanIntensity * fromCount - aIntensity) + (fromCount - 1.0) * vNewMeanFromLabel * vNewMeanFromLabel)
-                : 0.0;
-
-        // Update stats
-        toLabelStats.iVarIntensity = newToVar;
-        fromLabelStats.iVarIntensity = newFromVar;
-        toLabelStats.iMeanIntensity = vNewMeanToLabel;
-        fromLabelStats.iMeanIntensity = vNewMeanFromLabel;
-
-        // Add a sample point to the BG and remove it from the label-region:
-        toLabelStats.iLabelCount++;
-        fromLabelStats.iLabelCount--;
+        toStats.iSumOfSq += aIntensity*aIntensity;
+        fromStats.iSumOfSq -= aIntensity*aIntensity;
+        toStats.iSum += aIntensity;
+        fromStats.iSum -= aIntensity;
+        
+        toStats.iLabelCount++;
+        fromStats.iLabelCount--;
+        
+        // Update mean/var from updatet sums and label count
+        toStats.iMeanIntensity = (toStats.iSum ) / (toStats.iLabelCount);
+        fromStats.iMeanIntensity = (fromStats.iLabelCount > 0) ? (fromStats.iSum ) / (fromStats.iLabelCount) : 0;
+        toStats.iVarIntensity = CalculateVariance(toStats.iSumOfSq, toStats.iMeanIntensity, toStats.iLabelCount);
+        fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 }

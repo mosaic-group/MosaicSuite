@@ -1860,21 +1860,20 @@ public class AlgorithmDRS {
     private void updateLabelStatistics(double aIntensity, int aFromLabelIdx, int aToLabelIdx) {
         final LabelStatistics toStats = iLabelStatistics.get(aToLabelIdx);
         final LabelStatistics fromStats = iLabelStatistics.get(aFromLabelIdx);
-        final int toCount = toStats.iLabelCount;
-        final int fromCount = fromStats.iLabelCount;
 
         toStats.iSumOfSq += aIntensity*aIntensity;
         fromStats.iSumOfSq -= aIntensity*aIntensity;
         toStats.iSum += aIntensity;
         fromStats.iSum -= aIntensity;
         
-        toStats.iMeanIntensity = (toStats.iSum + aIntensity) / (toCount + 1.0);
-        fromStats.iMeanIntensity = (fromStats.iSum - aIntensity) / (fromCount - 1.0);
-        toStats.iVarIntensity = CalculateVariance(toStats.iSumOfSq + aIntensity * aIntensity, toStats.iMeanIntensity, toCount + 1);
-        fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq - aIntensity * aIntensity, fromStats.iMeanIntensity, fromCount - 1);
-
         toStats.iLabelCount++;
         fromStats.iLabelCount--;
+        
+        // Update mean/var from updatet sums and label count
+        toStats.iMeanIntensity = (toStats.iSum ) / (toStats.iLabelCount);
+        fromStats.iMeanIntensity = (fromStats.iLabelCount > 0) ? (fromStats.iSum ) / (fromStats.iLabelCount) : 0;
+        toStats.iVarIntensity = CalculateVariance(toStats.iSumOfSq, toStats.iMeanIntensity, toStats.iLabelCount);
+        fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 
     boolean MCMCInsertCandidatesToContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {

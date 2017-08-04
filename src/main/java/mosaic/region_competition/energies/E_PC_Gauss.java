@@ -18,42 +18,42 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class E_PC_Gauss extends ExternalEnergy {
-    double CalculateVariance(double aSumSq, double aMean, double aN) {
-        if (aN < 2) return 0; //TODO: what would be appropriate?
+    double CalculateVariance(double aSumSq, double aMean, int aN) {
+        if (aN < 2) return 0;
         return (aSumSq - aN * aMean * aMean)/(aN - 1.0);
     }
+    
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int fromLabel = contourParticle.label;
-        final float aValue = contourParticle.intensity;
+        final double aValue = contourParticle.intensity;
         
-        final LabelStatistics totoStats = labelMap.get(toLabel);
+        final LabelStatistics toStats = labelMap.get(toLabel);
         final LabelStatistics fromStats = labelMap.get(fromLabel);
         
-        final double totoCount = totoStats.iLabelCount;
-        final double fromCount = fromStats.iLabelCount;
+        final int toCount = toStats.iLabelCount;
+        final int fromCount = fromStats.iLabelCount;
         
-        double newToToMean = (totoStats.iSum + aValue) / (totoCount + 1.0);
-        double newFromMean = (fromStats.iSum - aValue) / (fromCount - 1.0);
-        double newToVar   = CalculateVariance(totoStats.iSumOfSq + aValue * aValue, newToToMean, totoCount + 1.0);
-        double newFromVar = CalculateVariance(fromStats.iSumOfSq - aValue * aValue, newFromMean, fromCount - 1.0);
-        double oldToVar = CalculateVariance(totoStats.iSumOfSq, totoStats.iSum / totoCount, totoCount);
-        double oldFromVar = CalculateVariance(fromStats.iSumOfSq, fromStats.iSum / fromCount, fromCount);
+        double newToMean = (toStats.iSum + aValue) / (toCount + 1.0);
+        double newFromMean = (fromCount > 0) ? (fromStats.iSum - aValue) / (fromCount - 1.0) : 0.0;
+        double newToVar   = CalculateVariance(toStats.iSumOfSq + aValue * aValue, newToMean, toCount + 1);
+        double newFromVar = CalculateVariance(fromStats.iSumOfSq - aValue * aValue, newFromMean, fromCount - 1);
+        double oldToVar = toStats.iVarIntensity;
+        double oldFromVar = fromStats.iVarIntensity;
         
-//        System.out.println(totoStats.iLabelCount + " " + fromStats.iLabelCount + " " + totoStats.iMeanIntensity + " " + fromStats.iMeanIntensity + " " + oldFromVar + " " + oldToVar);
-//        System.out.println("NewMeans/NewVars: " + newToToMean + " " + newFromMean + " " + newToVar + " " + newFromVar);
         
         if (newToVar <= 0) newToVar = Math.ulp(1.0) * 10;
         if (newFromVar <= 0) newFromVar = Math.ulp(1.0) * 10;
         if (oldToVar <= 0) oldToVar = Math.ulp(1.0) * 10;
         if (oldFromVar <= 0) oldFromVar = Math.ulp(1.0) * 10;
         
-        double vOneBySq2Pi = 1.0/Math.sqrt(2.0*Math.PI);
-        double first = ((fromCount-1) * Math.log(vOneBySq2Pi / Math.sqrt(newFromVar)) - (fromCount - 1.0) / 2.0);
-        first +=       -(fromCount    * Math.log(vOneBySq2Pi / Math.sqrt(oldFromVar)) - (fromCount) / 2.0);
-        first +=       ((totoCount+1) * Math.log(vOneBySq2Pi / Math.sqrt(newToVar))   - (totoCount + 1.0) / 2.0);
-        first +=          -(totoCount * Math.log(vOneBySq2Pi / Math.sqrt(oldToVar))   - (totoCount) / 2.0);
-        first *= -1.0 * 1;
-        return new EnergyResult(first, false);
+        double vOneBySq2Pi = 1.0/Math.sqrt(2.0 * Math.PI);
+        double energy = (fromCount-1.0) * Math.log(vOneBySq2Pi / Math.sqrt(newFromVar)) - (fromCount - 1.0) / 2.0;
+        energy -=        fromCount      * Math.log(vOneBySq2Pi / Math.sqrt(oldFromVar)) - (fromCount) / 2.0;
+        energy +=       (toCount+1.0)   * Math.log(vOneBySq2Pi / Math.sqrt(newToVar))   - (toCount + 1.0) / 2.0;
+        energy -=        toCount        * Math.log(vOneBySq2Pi / Math.sqrt(oldToVar))   - (toCount) / 2.0;
+        energy *= -1.0;
+        
+        return new EnergyResult(energy, false);
     }
 }
