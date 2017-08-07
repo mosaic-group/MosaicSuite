@@ -22,7 +22,7 @@ import mosaic.utils.ImgUtils;
 public class ClusterModeRC {
     private static final Logger logger = Logger.getLogger(ClusterModeRC.class);
 
-    public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, Settings settings, String[] out) {
+    public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, Settings iSettings, String[] out) {
         // The only modification to old implementation:
         String labelImageFilename = ImgUtils.getImageAbsolutePath(aImp);
         String inputImageFilename = ImgUtils.getImageAbsolutePath(labelImage);
@@ -31,7 +31,7 @@ public class ClusterModeRC {
         logger.info("Running RC on cluster");
         
         // We run on cluster - saving config file
-        Region_Competition.getConfigHandler().SaveToFile("/tmp/settings.dat", settings);
+        Region_Competition.getConfigHandler().SaveToFile("/tmp/settings.dat", iSettings);
 
         final ClusterGUI cg = new ClusterGUI();
         ClusterSession ss = cg.getClusterSession();
@@ -46,8 +46,8 @@ public class ClusterModeRC {
             if (fl.isDirectory() == true) {
                 // we have a directory
 
-                String opt = getOptions(fl, settings);
-                if (settings.labelImageInitType == InitializationType.File) {
+                String opt = getOptions(fl, iSettings);
+                if (iSettings.labelImageInitType == InitializationType.File) {
                     // upload label images
 
                     ss = cg.getClusterSession();
@@ -62,8 +62,8 @@ public class ClusterModeRC {
                 ss = ClusterSession.processFiles(fileslist, "Region Competition", opt + " show_and_save_statistics", out, cg);
             }
             else if (fl.isFile()) {
-                String opt = getOptions(fl, settings);
-                if (settings.labelImageInitType == InitializationType.File) {
+                String opt = getOptions(fl, iSettings);
+                if (iSettings.labelImageInitType == InitializationType.File) {
                     // upload label images
                     ss = cg.getClusterSession();
                     fileslist = new File[1];
@@ -80,9 +80,9 @@ public class ClusterModeRC {
         }
         else {
             // It is an image
-            String opt = getOptions(aImp, settings);
+            String opt = getOptions(aImp, iSettings);
 
-            if (settings.labelImageInitType == InitializationType.File) {
+            if (iSettings.labelImageInitType == InitializationType.File) {
                 // upload label images
 
                 ss = cg.getClusterSession();

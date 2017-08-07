@@ -71,8 +71,8 @@ class BubblesInitGUI extends InitializationGUI {
 
 class BoxInitGUI extends InitializationGUI {
 
-    protected BoxInitGUI(Settings settings) {
-        super(settings);
+    protected BoxInitGUI(Settings aSettings) {
+        super(aSettings);
         gd.setTitle("Box Initialization");
     }
 

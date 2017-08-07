@@ -11,6 +11,7 @@ import ij.ImageStack;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
+import ij.plugin.filter.Convolver;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
@@ -78,7 +79,7 @@ public class Region_Competition implements PlugInFilter {
     private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     // Settings
-    private Settings settings = null;
+    private Settings iSettings = null;
     private String outputSegmentedImageLabelFilename = null;
     private boolean normalize_ip = true;
     private boolean showGUI = true;
@@ -115,7 +116,7 @@ public class Region_Competition implements PlugInFilter {
         initSettingsAndParseMacroOptions();
     
         // Get information from user
-        userDialog = new GUI(settings, originalInputImage);
+        userDialog = new GUI(iSettings, originalInputImage);
         userDialog.showDialog();
         if (!userDialog.configurationValid()) {
             return DONE;
@@ -141,10 +142,10 @@ public class Region_Competition implements PlugInFilter {
                     ", segmentationType: " + segmentationType +
                     ", showGui: " + showGUI +
                     ", normalize: " + normalize_ip);
-        logger.debug("Settings:\n" + Debug.getJsonString(settings));
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
         
         // Save new settings from user input.
-        getConfigHandler().SaveToFile(configFilePath(), settings);
+        getConfigHandler().SaveToFile(configFilePath(), iSettings);
     
         // If there were no input image when plugin was started then return NO_IMAGE_REQUIRED 
         // since user must have chosen image in dialog - they will be processed later.
@@ -161,7 +162,7 @@ public class Region_Competition implements PlugInFilter {
         if (useCluster == true) {
             ClusterModeRC.runClusterMode(inputImageChosenByUser, 
                                          inputLabelImageChosenByUser,
-                                         settings, 
+                                         iSettings, 
                                          outputFileNamesSuffixes);
             
             // Finish - nothing to do more here...
@@ -236,7 +237,7 @@ public class Region_Competition implements PlugInFilter {
     }
 
     private void initSettingsAndParseMacroOptions() {
-        settings = null;
+        iSettings = null;
         
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
@@ -250,16 +251,16 @@ public class Region_Competition implements PlugInFilter {
 
             String path = MosaicUtils.parseString("config", options);
             if (path != null) {
-                settings = getConfigHandler().LoadFromFile(path, Settings.class);
+                iSettings = getConfigHandler().LoadFromFile(path, Settings.class);
             }
 
             outputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
         }
 
-        if (settings == null) {
+        if (iSettings == null) {
             // load default config file
             configFilePath();
-            settings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
+            iSettings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
         }
     }
 
@@ -273,14 +274,14 @@ public class Region_Competition implements PlugInFilter {
     private void initEnergies() {
         ExternalEnergy e_data;
         ExternalEnergy e_merge = null;
-        switch (settings.m_EnergyFunctional) {
+        switch (iSettings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV();
-                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, settings.m_RegionMergingThreshold);
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, iSettings.m_RegionMergingThreshold);
                 break;
             }
             case e_PS: {
-                e_data = new E_PS(labelImage, intensityImage, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
+                e_data = new E_PS(labelImage, intensityImage, iSettings.m_GaussPSEnergyRadius, iSettings.m_RegionMergingThreshold);
                 break;
             }
             case e_DeconvolutionPC: {
@@ -296,7 +297,7 @@ public class Region_Competition implements PlugInFilter {
             }
             case e_PC_Gauss: {
                 e_data = new E_PC_Gauss();
-                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, settings.m_RegionMergingThreshold);
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, iSettings.m_RegionMergingThreshold);
                 break;
             }
             default: {
@@ -307,9 +308,9 @@ public class Region_Competition implements PlugInFilter {
         }
 
         InternalEnergy e_length;
-        switch (settings.regularizationType) {
+        switch (iSettings.regularizationType) {
             case Sphere_Regularization: {
-                e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, inputImageCalibration);
+                e_length = new E_CurvatureFlow(labelImage, (int)iSettings.m_CurvatureMaskRadius, inputImageCalibration);
                 break;
             }
             case Approximative: {
@@ -327,7 +328,7 @@ public class Region_Competition implements PlugInFilter {
             }
         }
 
-        imageModel = new ImageModel(e_data, e_length, e_merge, settings);
+        imageModel = new ImageModel(e_data, e_length, e_merge, iSettings);
     }
 
     private void initInputImage() {
@@ -361,7 +362,7 @@ public class Region_Competition implements PlugInFilter {
     private void initLabelImage() {
         labelImage = new LabelImage(intensityImage.getDimensions());
 
-        InitializationType input = settings.labelImageInitType;
+        InitializationType input = iSettings.labelImageInitType;
 
         switch (input) {
             case ROI_2D: {
@@ -370,16 +371,16 @@ public class Region_Competition implements PlugInFilter {
             }
             case Rectangle: {
                 final BoxInitializer bi = new BoxInitializer(labelImage);
-                bi.initialize(settings.l_BoxRatio);
+                bi.initialize(iSettings.l_BoxRatio);
                 break;
             }
             case Bubbles: {
                 final BubbleInitializer bi = new BubbleInitializer(labelImage);
-                bi.initialize(settings.m_BubblesRadius, settings.m_BubblesDispl);
+                bi.initialize(iSettings.m_BubblesRadius, iSettings.m_BubblesDispl);
                 break;
             }
             case LocalMax: {
-                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_Sigma, settings.l_Tolerance, settings.l_BubblesRadius, settings.l_RegionTolerance);
+                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
                 mb.initialize();
                 break;
             }
@@ -431,15 +432,15 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, settings);
+        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, iSettings);
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < settings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
-            IJ.showProgress(iteration, settings.m_MaxNbIterations);
+            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
+            IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
@@ -449,7 +450,7 @@ public class Region_Competition implements PlugInFilter {
             // Add slice with iteration output
             stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
-        IJ.showProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
@@ -478,19 +479,19 @@ public class Region_Competition implements PlugInFilter {
         IntensityImage edgeImage = initEdgeImage();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
-//        imageModel.removeMergeEnergy();
+
         // Run segmentation
         mosaic.region_competition.DRS.Settings drsSetings = new mosaic.region_competition.DRS.Settings();
-        drsSetings.m_MaxNbIterations = settings.m_MaxNbIterations;
+        drsSetings.m_MaxNbIterations = iSettings.m_MaxNbIterations;
         AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSetings);
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < settings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
-            IJ.showProgress(iteration, settings.m_MaxNbIterations);
+            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
+            IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
@@ -500,20 +501,22 @@ public class Region_Competition implements PlugInFilter {
             // Add slice with iteration output
             stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
-        IJ.showProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         iController.close();
         
-        labelImage.show("LabelDRS");
-        intensityImage.show("IntenDRS");
-        edgeImage.show("EdgeDRS");
+//        labelImage.show("LabelDRS");
+//        intensityImage.show("IntenDRS");
+//        edgeImage.show("EdgeDRS");
         
     }
 
     private IntensityImage initEdgeImage() {
-        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().convertToFloat());
+        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().duplicate().convertToFloat());
+        sobelInput = ImgUtils.convertToNormalizedGloballyFloatType(sobelInput);
+        gaussBlur3D(sobelInput.getImageStack(), 1.5f);
         SobelVolume sobelVolume = new SobelVolume(sobelInput);
         if (inputImageChosenByUser.getNSlices() == 1) { 
             sobelVolume.sobel2D();
@@ -526,5 +529,76 @@ public class Region_Competition implements PlugInFilter {
         sobelIp.setDisplayRange(ss.min,  ss.max);  
         
         return new IntensityImage(sobelIp);
+    }
+    
+    // TODO GaussBlur & Kernel methods are repeated at lest 3x times in code -> move into some utils
+    private void gaussBlur3D(ImageStack is, float aRadius) {
+        final float[] vKernel = CalculateNormalizedGaussKernel(aRadius);
+        int kernel_radius = vKernel.length / 2;
+        final int nSlices = is.getSize();
+        final int vWidth = is.getWidth();
+        for (int i = 1; i <= nSlices; i++){
+            final ImageProcessor restored_proc = is.getProcessor(i);
+            final Convolver convolver = new Convolver();
+            // no need to normalize the kernel - its already normalized
+            convolver.setNormalize(false);
+            //the gaussian kernel is separable and can done in 3x 1D convolutions!
+            convolver.convolve(restored_proc, vKernel, vKernel.length , 1);
+            convolver.convolve(restored_proc, vKernel, 1 , vKernel.length);
+        }
+        //2D mode, abort here; the rest is unnecessary
+        if (is.getSize() == 1) {
+            return;
+        }
+
+        //TODO: which kernel? since lambda_n = 1 pixel, it does not depend on the resolution -->not rescale
+        //rescale the kernel for z dimension
+        //          vKernel = CalculateNormalizedGaussKernel((float)(aRadius / (original_imp.getCalibration().pixelDepth / original_imp.getCalibration().pixelWidth)));
+
+        kernel_radius = vKernel.length / 2;
+        //to speed up the method, store the processor in an array (not invoke getProcessor()):
+        final float[][] vOrigProcessors = new float[nSlices][];
+        final float[][] vRestoredProcessors = new float[nSlices][];
+        for (int s = 0; s < nSlices; s++) {
+            vOrigProcessors[s] = (float[])is.getProcessor(s + 1).getPixelsCopy();
+            vRestoredProcessors[s] = (float[])is.getProcessor(s + 1).getPixels();
+        }
+        //begin convolution with 1D gaussian in 3rd dimension:
+        for (int y = kernel_radius; y < is.getHeight() - kernel_radius; y++){
+            for (int x = kernel_radius; x < is.getWidth() - kernel_radius; x++){
+                for (int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {
+                    float sum = 0;
+                    for (int i = -kernel_radius; i <= kernel_radius; i++) {
+                        sum += vKernel[i + kernel_radius] * vOrigProcessors[s + i - 1][y*vWidth+x];
+                    }
+                    vRestoredProcessors[s-1][y*vWidth+x] = sum;
+                }
+            }
+        }
+    }
+
+    private float[] CalculateNormalizedGaussKernel(float aRadius){
+        int vL = (int)aRadius * 3 * 2 + 1;
+        if (vL < 3) {
+            vL = 3;
+        }
+        final float[] vKernel = new float[vL];
+        final int vM = vKernel.length/2;
+        for (int vI = 0; vI < vM; vI++){
+            vKernel[vI] = (float)(1f/(2f*Math.PI*aRadius*aRadius) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f*aRadius*aRadius)));
+            vKernel[vKernel.length - vI - 1] = vKernel[vI];
+        }
+        vKernel[vM] = (float)(1f/(2f*Math.PI*aRadius*aRadius));
+
+        //normalize the kernel numerically:
+        float vSum = 0;
+        for (int vI = 0; vI < vKernel.length; vI++){
+            vSum += vKernel[vI];
+        }
+        final float vScale = 1.0f/vSum;
+        for (int vI = 0; vI < vKernel.length; vI++){
+            vKernel[vI] *= vScale;
+        }
+        return vKernel;
     }
 }

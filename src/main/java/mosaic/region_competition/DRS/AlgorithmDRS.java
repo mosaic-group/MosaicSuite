@@ -52,8 +52,8 @@ public class AlgorithmDRS {
     // Change them to something nicer after implementation.
 
     // Parameters
-    boolean m_MCMCuseBiasedProposal = false; // TODO: false by default in c++
-    boolean m_MCMCusePairProposal = false; // TODO: false by def
+    boolean m_MCMCuseBiasedProposal = true; // TODO: false by default in c++
+    boolean m_MCMCusePairProposal = true; // TODO: false by def
 
     boolean m_AllowFission = true;
     boolean m_AllowFusion = true;
