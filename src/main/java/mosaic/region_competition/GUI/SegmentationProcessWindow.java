@@ -59,7 +59,7 @@ public class SegmentationProcessWindow {
      * @param aTitle - title for image
      * @param aBiggestLabelSoFar - maximum label value used so far
      */
-    public void addSliceToStack(IntensityImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
+    public void addSliceToStack(IntensityImage aLabelImage, String aTitle) {
         if (iStack == null) {
             // stack was closed by user, don't reopen
             return;
@@ -78,13 +78,6 @@ public class SegmentationProcessWindow {
             iImage.setStack(iStack);
             iImage.show();
         }
-        
-        // Handle new maximum label value and colors of image
-//        if (aBiggestLabelSoFar > iMaxLabel) {
-//            iMaxLabel = 2 * aBiggestLabelSoFar;
-//            IJ.setMinAndMax(iImage, 0, iMaxLabel);
-//            IJ.run(iImage, "3-3-2 RGB", null);
-//        }
     }
     
     /**

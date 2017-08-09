@@ -2,16 +2,16 @@ package mosaic.region_competition.GUI;
 
 
 import ij.gui.GenericDialog;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.Settings;
 
 
 abstract class SettingsBaseGUI {
 
     protected GenericDialog gd;
-    protected final Settings settings;
+    protected final Settings iSettings;
 
     protected SettingsBaseGUI(Settings aSettings) {
-        settings = aSettings;
+        iSettings = aSettings;
         gd = new GenericDialog("");
     }
 

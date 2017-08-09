@@ -1,4 +1,4 @@
-package mosaic.region_competition.DRS;
+package mosaic.region_competition;
 
 
 import java.io.Serializable;
@@ -9,37 +9,52 @@ import mosaic.plugins.Region_Competition.RegularizationType;
 
 
 public class Settings implements Serializable {
-    private static final long serialVersionUID = 1777976540627904861L;
-
-    public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
-    public int m_GaussPSEnergyRadius = 8;
-    public float m_BalloonForceCoeff = 0.0f;
+    private static final long serialVersionUID = 1777976540627904860L;
     
-    public RegularizationType regularizationType = RegularizationType.Sphere_Regularization;
-    public float m_CurvatureMaskRadius = 8;
-    
+    // Init Label Image ---------------------------------------------------------------------------
+    // Init Type / ClusterMode
     public InitializationType labelImageInitType = InitializationType.Bubbles;
+    
+    // Box Init / Init Label Image
     public double l_BoxRatio = 0.8;
+    
+    // Bubbles Init / Label Image
     public int m_BubblesRadius = 10;
     public int m_BubblesDispl = 10;
-    public int l_BubblesRadius = 5;
     
-    public double l_Sigma = 2; 
+    // Local Max / Init Label Image
+    public int l_BubblesRadius = 5;
+    public double l_Sigma = 2;
     public double l_Tolerance = 0.005; // 0 - 1.0
     public int l_RegionTolerance = 4;
+
+    // Init Energies ------------------------------------------------------------------------------
+    // Curvature Flow Energy (internal)
+    public float m_CurvatureMaskRadius = 8;
+
+    // E_PS Energy (external)
+    public int m_GaussPSEnergyRadius = 8;
+    public float m_BalloonForceCoeff = 0.0f;
+
+    // All energies
+    public float m_RegionMergingThreshold = 0.02f;
     
+    // Other --------------------------------------------------------------------------------------
+    // Image Model
+    public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
+    public RegularizationType regularizationType = RegularizationType.Sphere_Regularization;
+    public float m_EnergyContourLengthCoeff = 0.04f;
+    
+    // RC and DRS
     public boolean m_AllowFusion = true;
     public boolean m_AllowFission = true;
     public boolean m_AllowHandles = true;
-
-    public float m_EnergyContourLengthCoeff = 0.04f;
-    public float m_RegionMergingThreshold = 0.02f;
     public int m_MaxNbIterations = 300;
+    
+    // RC only
     public double m_OscillationThreshold = 0.02;
     
-// TODO: Some new options to handle in future
-    // m_MCMCuseBiasedProposal
-    
+
     public void copy(Settings s) {
         m_EnergyFunctional = s.m_EnergyFunctional;
         m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;

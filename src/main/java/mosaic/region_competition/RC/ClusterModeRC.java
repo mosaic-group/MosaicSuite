@@ -13,6 +13,7 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
+import mosaic.region_competition.Settings;
 import mosaic.utils.ImgUtils;
 
 /**
@@ -31,7 +32,7 @@ public class ClusterModeRC {
         logger.info("Running RC on cluster");
         
         // We run on cluster - saving config file
-        Region_Competition.getConfigHandler().SaveToFile("/tmp/settings.dat", iSettings);
+        Region_Competition.getConfigHandler().SaveToFile(ClusterSession.DefaultSettingsFileName, iSettings);
 
         final ClusterGUI cg = new ClusterGUI();
         ClusterSession ss = cg.getClusterSession();
@@ -122,28 +123,25 @@ public class ClusterModeRC {
      * @return
      */
     private static int getDimension(ImagePlus aImp) {
-        if (aImp.getNSlices() == 1) {
-            return 2;
-        }
-        return 3;
+        return (aImp.getNSlices() == 1) ? 2 : 3;
     }
 
-    private static String getOptions(File f, Settings settings) {
+    private static String getOptions(File f, Settings aSettings) {
         final int d = getDimension(f);
-        return generateParameters(d, settings);
+        return generateParameters(d, aSettings);
     }
 
 
-    private static String getOptions(ImagePlus aImp, Settings settings) {
+    private static String getOptions(ImagePlus aImp, Settings aSettings) {
         final int d = getDimension(aImp);
-        return generateParameters(d, settings);
+        return generateParameters(d, aSettings);
     }
 
-    private static String generateParameters(final int aDimension, Settings settings) {
+    private static String generateParameters(final int aDimension, Settings aSettings) {
         String par = "Dimensions=" + aDimension + " ";
         
         // if deconvolving create a PSF generator window
-        if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (aSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
             final GeneratePSF psf = new GeneratePSF();
             psf.generate(aDimension);
             par += psf.getParameters();

@@ -203,8 +203,6 @@ public class LabelImage extends BaseImage
      * Sets the LabelImage at given aIndex to aLabel
      */
     public void setLabel(int aIndex, int aLabel) {
-//        mosaic.utils.Debug.print(">>>>>>> >>>>>>>>>>> >>>>>>>>> setLabel: ", aIndex, aLabel, iDataLabel[aIndex]);
-//        mosaic.utils.Debug.printStack();
         iDataLabel[aIndex] = aLabel;
     }
 
@@ -353,12 +351,10 @@ public class LabelImage extends BaseImage
         }
         // labels can be also negative, in such case start from 1
         int newLabel = Math.max(maxLabel + 1, 1);
-        mosaic.utils.Debug.print("CONNECTED COMP: ", minLabel, maxLabel, newLabel);
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);
             if (oldLabels.contains(label)) {
                 final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
-                mosaic.utils.Debug.print(ff.size(), label, idx);
                 // set region to new label
                 for (final int p : ff) {
                     setLabel(p, newLabel);
@@ -562,13 +558,11 @@ public class LabelImage extends BaseImage
             idxs = new int[iNeighbourBgIndexes.length];
             if (isInBound(start)) {
                 for (int i = 0; i < iNeighbourBgIndexes.length; i++) { 
-//                    mosaic.utils.Debug.print(i, start.add(iNeighbourBgIndexes[i]), iNeighbourBgIndexes[i]);
                     if (isInBound(start.add(iNeighbourBgIndexes[i]))) {
                         idxs[max++] = pointToIndex(iNeighbourBgIndexes[i]) + inputIndex;
                     }
                 }
             }
-//            mosaic.utils.Debug.print(">>>>>>>>>>>>>>>>>>>>>> BG ITER: ", max, idxs, start, aIndex);
         }
         
         @Override

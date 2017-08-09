@@ -20,13 +20,15 @@ public class E_PS extends ExternalEnergy {
     private final IntensityImage iIntensityImage;
     private final LabelImage iLabelImage;
 
+    private final float iBalloonForceCoeff;
     private final float iRegionMergingThreshold;
     private final MaskOnSpaceMapper iSphereIt;
     
-    public E_PS(LabelImage aLabelImage, IntensityImage aIntensityImage, int aPsEnergyRadius, float aRegionMergingThreshold) {
+    public E_PS(LabelImage aLabelImage, IntensityImage aIntensityImage, int aPsEnergyRadius, float aBalloonForceCoeff, float aRegionMergingThreshold) {
         iBgLabel = LabelImage.BGLabel;
         iIntensityImage = aIntensityImage;
         iLabelImage = aLabelImage;
+        iBalloonForceCoeff = aBalloonForceCoeff;
         iRegionMergingThreshold = aRegionMergingThreshold;
         iSphereIt = new MaskOnSpaceMapper(new BallMask(aPsEnergyRadius, iLabelImage.getNumOfDimensions()), iLabelImage.getDimensions());
     }
@@ -81,13 +83,10 @@ public class E_PS extends ExternalEnergy {
             final LabelStatistics info = aLabelStats.get(aToLabel);
             meanTo = info.iMeanIntensity;
             varTo = info.iVarIntensity;
-//            mosaic.utils.Debug.print("DEBUG varTo if: ", aToLabel, info, meanTo, varTo);
         }
         else {
             meanTo = sumTo / cntTo;
             varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo);
-//            mosaic.utils.Debug.print("DEBUG varTo", sumSquaredTo, sumSquaredTo, cntTo);
-            // varTo = (sumSquaredTo - sumTo * sumTo / cntTo) / (cntTo - 1);
         }
 
         double meanFrom;
@@ -100,8 +99,6 @@ public class E_PS extends ExternalEnergy {
         else {
             meanFrom = sumFrom / cntFrom;
             varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom);
-//            mosaic.utils.Debug.print("DEBUG varFrom", sumSquaredFrom, sumFrom, cntFrom);
-            // varFrom = (sumSquaredFrom - sumFrom * sumFrom / cntFrom) / (cntFrom - 1);
         }
 
         boolean shouldMerge = false;
@@ -111,8 +108,18 @@ public class E_PS extends ExternalEnergy {
             }
         }
 
-        final double energyDiff = Math.pow(value - meanTo, 2) - Math.pow(value - meanFrom, 2);
+        double energyDiff = Math.pow(value - meanTo, 2) - Math.pow(value - meanFrom, 2);
 
+        if (fromLabel == 0) {
+            float vCurrentImageValue = (float)value;
+            if (iBalloonForceCoeff > 0) { // outward flow
+                energyDiff -= iBalloonForceCoeff * vCurrentImageValue;
+            }
+            else {
+                energyDiff -= -iBalloonForceCoeff * (1 - vCurrentImageValue);
+            }
+        }
+        
         return new EnergyResult(energyDiff, shouldMerge);
     }
 }

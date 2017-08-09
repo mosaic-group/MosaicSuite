@@ -22,7 +22,6 @@ import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
-import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
@@ -38,7 +37,7 @@ public class AlgorithmRC {
     private final LabelImage iLabelImage;
     private final IntensityImage iIntensityImage;
     private final ImageModel iImageModel;
-    private final Settings iSettings;
+    private final SettingsRC iSettings;
 
     private final HashMap<Point, ContourParticle> iContourParticles = new HashMap<Point, ContourParticle>();
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
@@ -91,13 +90,13 @@ public class AlgorithmRC {
         }
     }
 
-    public AlgorithmRC(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, Settings aSettings) {
+    public AlgorithmRC(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, SettingsRC aSettings) {
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
         iImageModel = aModel;
         iSettings = aSettings;
 
-        oscillationDetection = new OscillationDetection(iSettings.m_OscillationThreshold, iSettings.m_MaxNbIterations);
+        oscillationDetection = new OscillationDetection(iSettings.oscillationThreshold, iSettings.maxNumOfIterations);
         iTopologicalNumber = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
@@ -189,7 +188,7 @@ public class AlgorithmRC {
      * Initialize the energy function
      */
     private void initEnergies() {
-        if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (iSettings.usingDeconvolutionPcEnergy) {
             // Deconvolution: - Alocate and initialize the 'ideal image'
             // TODO: This is not OOP, handling energies should be redesigned
             ((E_Deconvolution) iImageModel.getEdata()).GenerateModelImage(iLabelImage, iLabelStatistics);
@@ -312,7 +311,7 @@ public class AlgorithmRC {
 
         // Update the statistics of the propagating and the loser region.
         updateLabelStatistics(intensity, fromLabel, toLabel);
-        if (iImageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (iSettings.usingDeconvolutionPcEnergy) {
             ((E_Deconvolution) iImageModel.getEdata()).UpdateConvolvedImage(aPoint, fromLabel, toLabel, iLabelStatistics);
         }
 
@@ -597,7 +596,7 @@ public class AlgorithmRC {
     }
     
     public boolean performIteration() {
-        if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (iSettings.usingDeconvolutionPcEnergy) {
             ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
         }
         
@@ -910,7 +909,7 @@ public class AlgorithmRC {
         // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
         // we check if there is an introduction of a handle.
         boolean validPoint = true;
-        if (!iSettings.m_AllowHandles) {
+        if (!iSettings.allowHandles) {
             for (final TopologicalNumberResult tn : topologicalNumbers) {
                 // - "allow introducing holes": T_FG(x, L = l') > 1
                 if (tn.iLabel == currentCandidateLabel && tn.iNumOfConnectedComponentsFG > 1) {
@@ -954,7 +953,7 @@ public class AlgorithmRC {
         }
         
         if (isItGoingToSplit) {
-            if (iSettings.m_AllowFission) {
+            if (iSettings.allowFission) {
                 registerNeighbourSeedsWithSameLabel(seeds, currentPoint, currentLabel);
             }
             else {
@@ -971,7 +970,7 @@ public class AlgorithmRC {
      */
     private boolean mergeRegions() {
         boolean didMerge = false;
-        if (iSettings.m_AllowFusion) {
+        if (iSettings.allowFusion) {
             final Set<Integer> checkedLabels = new HashSet<Integer>();
             for (final Entry<Point, LabelPair> iter : iCompetingRegions.entrySet()) {
                 final Point point = iter.getKey();
@@ -1054,7 +1053,7 @@ public class AlgorithmRC {
         if (mergeRegions()) didSplitOrMerge = true;
         
         if (didSplitOrMerge) {
-            if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+            if (iSettings.usingDeconvolutionPcEnergy) {
                 ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
             }
         }

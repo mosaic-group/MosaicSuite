@@ -47,7 +47,7 @@ import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.plugins.Region_Competition.SegmentationType;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.Settings;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.

@@ -18,19 +18,17 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 
-import ij.IJ;
 import mosaic.core.imageUtils.Connectivity;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
-import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.RC.ContourParticle;
 import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.E_Deconvolution;
-import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.Energy.EnergyResult;
+import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
 
@@ -44,7 +42,7 @@ public class AlgorithmDRS {
     private final IntensityImage iIntensityImage;
     private final IntensityImage iEdgeImage;
     private final ImageModel iImageModel;
-    private final Settings iSettings;
+    private final SettingsDRS iSettings;
 
     int m_Dim;
 
@@ -59,14 +57,14 @@ public class AlgorithmDRS {
     boolean m_AllowFusion = true;
     boolean m_AllowHandles = true;
 
-    int m_MaxNbIterations = 1;
+    int m_MaxNbIterations = 15;
     int m_iteration_counter = 0;
     int m_MCMCstepsize = 1;
 
     boolean m_Verbose = true; // false by default
 
     float m_OffBoundarySampleProbability = 0.00f;
-    float m_MCMCburnInFactor = 0.5f;
+    float m_MCMCburnInFactor = 0.3f;
 
     float m_MCMCtemperature = 1;
 
@@ -138,52 +136,8 @@ public class AlgorithmDRS {
 
     float m_FloatingParticlesProposalNormalizer = 0;
     int m_MCMCNumberOfSamplesForBiasedPropApprox = 30;
-
-    class MCMCSingleResult {
-
-        public MCMCSingleResult(int aIteration, int aLabel) {
-            first = aIteration;
-            second = aLabel;
-        }
-
-        public int first;
-        public int second;
-
-        @Override
-        public String toString() {
-            return "SR{" + first + ", " + second + "}";
-        }
-    }
-
-    // typedef itk::ContourIndexHashFunctor<m_Dim> ContourIndexHashFunctorType;
-    // typedef ContourIndexType MCMCResultsKeyType;
-    // typedef std::list<MCMCSingleResultType> MCMCResultsValueType;
-    // typedef std::pair<unsigned int, LabelAbsPixelType> MCMCSingleResultType;
-    // typedef itksys::hash_map<MCMCResultsKeyType, MCMCResultsValueType, ContourIndexHashFunctorType, ContourIndexHashFunctorType> MCMCResultsType;
-    // --------------------------------------
-    Map<Integer, List<MCMCSingleResult>> m_MCMCResults = new HashMap<>();
-
-    // TODO: Used for testing only to have same values as rngs in C++ impl. to be removed after all
-    // int[] distrFake = new int [] {};
-    // int distrCnt = 0;
-//     double[] rndFake = new double []{9, 0.0242085, 0.804251, 2, 1, 0.371495, 0.969521, 33, 3, 0.814472, 0.281466, 5, 0.72542, 1, 0.427545, 0.246671, 11, 0.126943, 7, 0.550317, 0.93447, 8, 0.0905857, 3, 0.80727, 0.696331, 10, 7, 0.122697, 0.0168849, 38, 2, 0.741561, 0.291676, 6, 0.859183, 1, 0.504463, 0.473035, 15, 0.73204, 9, 0.997128, 0.265599, 18, 0.319456, 7, 0.726142, 0.401913, 24, 7, 0.716822, 0.111291, 25, 0.0996342, 6, 0.0942966, 0.0641331, 7, 0.475545, 2, 0.143855, 0.701221, 14, 3, 0.687748, 0.475076, 19, 0.209851, 5, 0.354112, 0.670111, 25, 0.673095, 2, 0.19814, 0.968594, 24, 6, 0.196005, 0.215702, 9, 0.778064, 4, 0.936728, 0.1475, 23, 1, 0.695465, 0.0349299, 1, 0.807192, 2, 0.0840249, 0.655701, 30, 8, 0.286152, 0.222424, 5, 0.414751, 8, 0.632687, 0.672565, 25, 5, 0.617664, 0.958405, 42, 0.963285, 1, 0.261931, 0.539576, 31, 1, 0.62174, 0.904788, 9, 4, 0.207049, 0.967092, 4, 0.00780324, 2, 0.353856, 0.841407, 33, 4, 0.195957, 0.334705, 33, 6, 0.117226, 0.512938, 28, 7, 0.165695, 0.379157, 0, 2, 0.285655, 0.0555556, 6, 0.708686, 3, 0.972032, 0.0597925, 4, 0.147852, 7, 0.502834, 0.970316, 9, 0.819714, 9, 0.122779, 0.00780352, 3, 0.613694, 4, 0.932906, 0.0926923, 10, 9, 0.85582, 0.64156, 19, 1, 0.923323, 0.361011, 18, 0.657728, 4, 0.146744, 0.465661, 38, 5, 0.955374, 0.88798, 41, 5, 0.0691061, 0.16348, 18, 0.212438, 1, 0.816759, 0.278351, 11, 0.371858, 1, 0.0550778, 0.359199, 4, 0.775211, 6, 0.0743306, 0.0646312, 2, 0.0917381, 6, 0.180657, 0.13934, 5, 0.563897, 6, 0.789776, 0.269799, 18, 0.565413, 2, 0.438453, 0.399316, 19, 0.00663259, 9, 0.542902, 0.426467, 0, 0.119572, 2, 0.29308, 0.0250456, 3, 0.366374, 4, 0.370339, 0.761286, 39, 0.234948, 6, 0.153854, 0.0739321, 3, 0.583287, 3, 0.201527, 0.476966, 19, 0.866945, 5, 0.405344, 0.100804, 18, 0.0281171, 4, 0.352219, 0.89555, 20, 0.289031, 1, 0.835263, 0.706855, 31, 4, 0.164697, 0.367333, 38, 0.42988, 8, 0.597312, 0.584693, 17, 8, 0.269747, 0.754283, 16, 5, 0.10167, 0.418674, 31, 0.845384, 4, 0.873026, 0.149344, 15, 0.420781, 7, 0.0746843, 0.960681, 15, 0.168252, 1, 0.831872, 0.712033, 18, 9, 0.135777, 0.519899, 29, 9, 0.946703, 0.302177, 20, 0.125696, 1, 0.429442, 0.411444, 1, 0.690184, 4, 0.932393, 0.88081, 21, 9, 0.425554, 0.844335, 33, 9, 0.0324901, 0.470838, 14, 0.148429, 1, 0.19616, 0.0831573, 19, 0.472882, 6, 0.643867, 0.506679, 12, 3, 0.257002, 0.86531, 20, 4, 0.00554229, 0.138065, 3, 1, 0.265875, 0.73764, 31, 3, 0.659497, 0.711741, 4, 7, 0.0226224, 0.598105, 40, 0.563668, 7, 0.153924, 0.94681, 2, 0.329961, 6, 0.633148, 0.00495287, 14, 0.380775, 5, 0.466071, 0.416428, 11, 0.574926, 4, 0.628018, 0.294928, 23, 0.526249, 4, 0.319154, 0.138241, 35, 4, 0.268521, 0.251931, 6, 8, 0.172888, 0.838369, 0, 4, 0.507337, 0.0834727, 39, 9, 0.617015, 0.517876, 18, 1, 0.614336, 0.318674, 15, 0.90038, 3, 0.457127, 0.733059, 34, 2, 0.0658325, 0.150573, 4, 0.412313, 8, 0.828625, 0.761497, 19, 6, 0.843188, 0.645713, 34, 6, 0.172825, 0.988653, 8, 1, 0.990459, 0.95069, 2, 5, 0.327065, 0.374025, 40, 0.110761, 6, 0.465026, 0.433443, 20, 0.896564, 9, 0.926846, 0.309338, 11, 0.849086, 6, 0.701971, 0.393704, 13, 0.940168, 6, 0.929885, 0.470226, 18, 0.166409, 4, 0.185002, 0.629079, 22, 0.206741, 2, 0.940623, 0.494668, 2, 0.751568, 2, 0.777115, 0.702282, 6, 5, 0.854271, 0.511151, 4};
-    int rndCnt = 0;
-
-    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, Settings aSettings) {
-
-        //System.out.println(m_NumberGenerator.GetUniformVariate(0.0, 1.0));
-        //System.out.println(m_NumberGenerator.GetUniformVariate(0.0, 1.0));
-        //System.out.println(m_NumberGenerator.GetUniformVariate(0.0, 1.0));
-        //System.out.println(m_NumberGenerator.GetUniformVariate(0.0, 1.0));
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //System.out.println(m_NumberGenerator.GetIntegerVariate(1));
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //System.out.println(m_NumberGenerator.GetUniformVariate(0.0, 1.0));
-        //System.out.println(m_NumberGenerator.GetVariate());
-        //
+    
+    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, SettingsDRS aSettings) {
         logger.debug("DRS algorithm created");
 
         iLabelImage = aLabelImage;
@@ -194,12 +148,6 @@ public class AlgorithmDRS {
 
         m_Dim = iLabelImage.getNumOfDimensions();
         iLabelImage.save("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/testBef.tif");
-
-        logger.debug(mosaic.utils.Debug.getString(iIntensityImage.getDimensions()));
-        logger.debug(mosaic.utils.Debug.getString(iLabelImage.getDimensions()));
-        logger.debug(mosaic.utils.Debug.getString(iEdgeImage.getDimensions()));
-        logger.debug(mosaic.utils.Debug.getString(iImageModel.toString()));
-        logger.debug(mosaic.utils.Debug.getString(iSettings.toString()));
 
         // Initialize label image
         iLabelImage.initBorder();
@@ -246,10 +194,10 @@ public class AlgorithmDRS {
         visitedLabels.add(LabelImage.BGLabel);
         m_MCMCTotalNormalizer = 0.0f;
 
-        m_MaxNbIterations = iSettings.m_MaxNbIterations;
-        m_AllowFission = iSettings.m_AllowFission;
-        m_AllowFusion = iSettings.m_AllowFusion;
-        m_AllowHandles = iSettings.m_AllowHandles;
+        m_MaxNbIterations = iSettings.maxNumOfIterations;
+        m_AllowFission = iSettings.allowFission;
+        m_AllowFusion = iSettings.allowFusion;
+        m_AllowHandles = iSettings.allowHandles;
 
         // TODO: It seems that input label image cannot have negative labels, this code temporary changes it to all positives.
         final Iterator<Point> ri2 = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
@@ -305,7 +253,6 @@ public class AlgorithmDRS {
 
         /* Main loop */
         int vAcceptedMoves = 0;
-        int vTempAcceptedMoves = 0;
         int modulo = m_MaxNbIterations / 100;
         if (modulo < 1) modulo = 1;
         while (m_MaxNbIterations > m_iteration_counter) {
@@ -315,7 +262,6 @@ public class AlgorithmDRS {
             m_iteration_counter++;
             int vAccepted = MCMCDoIteration() ? 1 : 0;
             vAcceptedMoves += vAccepted;
-            vTempAcceptedMoves += vAccepted;
 
             /// Some output:
             if (m_Verbose) {
@@ -328,83 +274,10 @@ public class AlgorithmDRS {
         //System.out.println("DONE: " + m_MaxNbIterations + " iterations!");
 
         if (m_Verbose) {
-            //System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
+            System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
         }
-        iLabelImage.save("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/test.tif");
-        MCMCWriteResults("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/test2.tif");
-
-    }
-
-    void MCMCWriteResults(String aFilenamePrefix) {
-        MCMCWriteResults2((int) ((1.0f - m_MCMCburnInFactor) * m_iteration_counter), aFilenamePrefix);
-    }
-
-    void MCMCWriteResults2(int aNumberOfIterations, String aFilenamePrefix) {
-        //System.out.println("Wrighting..");
-        int vCountableIterationNb = (aNumberOfIterations >= m_iteration_counter) ? (m_iteration_counter - 1) : aNumberOfIterations;
-        int vStartingIterationNb = m_iteration_counter - vCountableIterationNb; // TODO: probably -1 tbi
-
-        int[] dims = iLabelImage.getDimensions();
-        SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
-
-        for (int vL = 0; vL < m_MCMCRegionLabel.size(); ++vL) {
-            int vLabelOfInterest = m_MCMCRegionLabel.get(vL);
-            //System.out.println("Saving1..." + vL);
-            // we don't want write results for the BG region:
-            if (vLabelOfInterest == LabelImage.BGLabel) continue;
-
-            // copy the original label image (n times)
-            IntensityImage vOutputImage = new IntensityImage(iLabelImage.getDimensions());
-            for (int i = 0; i < iLabelImage.getSize(); ++i) {
-                vOutputImage.set(i, iLabelImage.getLabelAbs(i) == vLabelOfInterest ? 1f : 0f);
-            }
-            //System.out.println("Saving2..." + vL );
-            /// For each pixel where we have results...
-            for (Entry<Integer, List<MCMCSingleResult>> e : m_MCMCResults.entrySet()) {
-                int vIndex = e.getKey();
-                int vCurrentLabelAtSpot = iLabelImage.getLabelAbs(vIndex);
-                long vNbIterationsInLabel = (vCurrentLabelAtSpot == vLabelOfInterest) ? vCountableIterationNb : 0;
-
-                /// ...iterate the events for this particular pixel. We only care
-                /// if either the current label is the label of interest or the
-                /// event tells us that the pixel changed to the label of interest.
-                /// We start at the end and go backward in time.
-
-                for (int i = e.getValue().size() - 1; i >= 0; --i) {
-                    MCMCSingleResult result = e.getValue().get(i);
-                    int vIteration = result.first;
-                    int vLabelBeforeMove = result.second;
-
-                    if (vIteration < vStartingIterationNb) {/// We are in the burn-in phase
-                        break;
-                    }
-
-                    if (vCurrentLabelAtSpot == vLabelOfInterest) {
-                        // we changed to the current label of interest, this means beforehand there was in a different label, hence we subtract the remaining iterations.
-                        vNbIterationsInLabel -= (vIteration - vStartingIterationNb);
-                    }
-                    else if (vLabelBeforeMove == vLabelOfInterest) {
-                        /// we left the label of interest, this means that we the spot was occupied by it beforehand, hence we add the remaining iterations.
-                        vNbIterationsInLabel += (vIteration - vStartingIterationNb);
-                    }
-                    vCurrentLabelAtSpot = vLabelBeforeMove;
-                }
-
-                vOutputImage.set(vIndex, (float) (((double) vNbIterationsInLabel) / ((double) vCountableIterationNb)));
-            }
-
-            /// scale the image to
-            //System.out.println("FILENAMEPREFIX: " + aFilenamePrefix + "\nLABELOFINTEREST: " + vLabelOfInterest);
-            // vOutputImage.save(aFilenamePrefix + vLabelOfInterest + ".tif");
-            //System.out.println("Saving3..." + vL);
-
-            resultImg.addSliceToStack(vOutputImage, "conf" + vL, 0);
-            //System.out.println("Saving4..." + vL);
-        }
-        //System.out.println("Wrighting..END");
-        //System.out.println("Saving: " + aFilenamePrefix + "Stack.tif");
-        IJ.save(resultImg.getImage(), aFilenamePrefix + "Stack.tif");
-        //System.out.println("Wrighting..END2");
+        
+        createProbabilityImage();
     }
 
     boolean MCMCDoIteration() {
@@ -1208,17 +1081,17 @@ public class AlgorithmDRS {
         /// the difference (nothing is stored if we do not accept):
 
         // create the result entry
-        MCMCSingleResult vResult = new MCMCSingleResult(aIteration, aLabelBefore);
+        McmcResult vResult = new McmcResult(aIteration, aLabelBefore);
 
         // check if results are already stored at this location:
         // typename MCMCResultsType::iterator vR =
-        List<MCMCSingleResult> vR = m_MCMCResults.get(aCandidateIndex);
+        List<McmcResult> vR = iMcmcResults.get(aCandidateIndex);
         if (vR == null) {
             /// Create a new entry
-            ArrayList<MCMCSingleResult> vList = new ArrayList<>();
+            ArrayList<McmcResult> vList = new ArrayList<>();
             // vList.push_back(vResult);
             vList.add(vResult);
-            m_MCMCResults.put(aCandidateIndex, vList);
+            iMcmcResults.put(aCandidateIndex, vList);
         }
         else {
             vR.add(vResult);
@@ -1791,14 +1664,14 @@ public class AlgorithmDRS {
 
     void PrepareEnergyCalculationForEachIteration() {
         // Same as in RC algorithm
-        if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (iSettings.usingDeconvolutionPcEnergy) {
             ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
         }
     }
 
     void prepareEnergies() {
         // TODO: it is a'la initEnergies from RC
-        if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (iSettings.usingDeconvolutionPcEnergy) {
             // Deconvolution: - Alocate and initialize the 'ideal image'
             // TODO: This is not OOP, handling energies should be redesigned
             ((E_Deconvolution) iImageModel.getEdata()).GenerateModelImage(iLabelImage, iLabelStatistics);
@@ -1969,12 +1842,9 @@ public class AlgorithmDRS {
                 }
             }
 
-            // FGandBGTopoNbPairType vTopoNb = m_TopologicalNumberFunction->EvaluateFGTNOfLabelAtIndex(aParticle.m_Index, vContainerLabel);
             if (vTopoNb == null) {
-                //System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!! 1st");
                 return false;
             }
-            //System.out.println("TN: " + vTopoNb.iNumOfConnectedComponentsFG + " " + vTopoNb.iNumOfConnectedComponentsBG);
             if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
                 return false;
             }
@@ -1991,7 +1861,6 @@ public class AlgorithmDRS {
                     }
                 }
                 if (vTopoNb == null) {
-                    //System.out.println("NULL TOPO NUMBER !!!!!!!!!!!!! 2nd");
                     return false;
                 }
                 if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
@@ -2105,28 +1974,96 @@ public class AlgorithmDRS {
         return 10;
     }
 
-    // DONE so FAR
+    
+    // ================================= CLEANED UP ===================================================
+    
+    class McmcResult {
+        public int iteration;
+        public int previousLabel;
 
+        public McmcResult(int aIteration, int aPreviousLabel) { iteration = aIteration; previousLabel = aPreviousLabel; }
+
+        @Override
+        public String toString() {
+            return "Result{" + iteration + ", " + previousLabel + "}";
+        }
+    }
+    
+    Map<Integer, List<McmcResult>> iMcmcResults = new HashMap<>(); // point index -> result
+    
+    
     /**
-     * Generates distribution from input image.ds NOTICE: in case if values in input image are too small (< 10*eps(1)) it will provide flat distribution and will change all pixels of input image to 1.0
+     * Creates output probability image with slice for every label.
+     */
+    void createProbabilityImage() {
+        // Create output stack image
+        int[] dims = iLabelImage.getDimensions();
+        SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
+
+        int numOfBurnInIterations = (int) (m_MCMCburnInFactor * m_iteration_counter);
+        int numOfCountableIterations = m_iteration_counter - numOfBurnInIterations;
+        
+        for (int currentLabel : m_MCMCRegionLabel) {
+            if (currentLabel == LabelImage.BGLabel) continue;
+
+            // Create initial image for current label
+            IntensityImage img = new IntensityImage(iLabelImage.getDimensions());
+            for (int i = 0; i < iLabelImage.getSize(); ++i) {
+                img.set(i, iLabelImage.getLabelAbs(i) == currentLabel ? 1f : 0f);
+            }
+            
+            for (Entry<Integer, List<McmcResult>> e : iMcmcResults.entrySet()) {
+                int index = e.getKey();
+                List<McmcResult> results = e.getValue();
+
+                int labelAtIndex = iLabelImage.getLabelAbs(index);
+
+                // Calculate for how many iterations currentLabel was a result during countable iterations.
+                long iterationsInLabel = (labelAtIndex == currentLabel) ? numOfCountableIterations : 0;
+                for (int i = results.size() - 1; i >= 0; --i) {
+                    McmcResult result = results.get(i);
+                    
+                    // Check if we are in the burn-in phase
+                    if (result.iteration < numOfBurnInIterations) break;
+
+                    if (currentLabel == labelAtIndex) {
+                        iterationsInLabel -= (result.iteration - numOfBurnInIterations);
+                    }
+                    else if (currentLabel == result.previousLabel) {
+                        iterationsInLabel += (result.iteration - numOfBurnInIterations);
+                    }
+                    labelAtIndex = result.previousLabel;
+                }
+
+                img.set(index, (float) ( (double)iterationsInLabel / numOfCountableIterations));
+            }
+
+            resultImg.addSliceToStack(img, "label_" + currentLabel);
+        }
+    }    
+    
+    /**
+     * Generates distribution from input image.ds 
+     * NOTICE: in case if values in input image are too small (< 10*eps(1)) it will provide flat distribution and will change all pixels of input image to 1.0
      * 
      * @param aImg input image to generate distribution from
      * @return pair (sum of all pixels in image, generated distribution)
      */
     static Pair<Double, EnumeratedDistribution<Integer>> generateDiscreteDistribution(IntensityImage aImg, Rng am_NumberGeneratorBoost) {
         ArrayList<Pair<Integer, Double>> pmf = new ArrayList<>(aImg.getSize());
+        
         Iterator<Point> ri = new SpaceIterator(aImg.getDimensions()).getPointIterator();
         int index = 0;
-        double m_MCMCZe = 0;
+        double sumOfPixelValues = 0;
         while (ri.hasNext()) {
             final Point point = ri.next();
             double value = aImg.get(point);
-            m_MCMCZe += value;
+            sumOfPixelValues += value;
             pmf.add(new Pair<Integer, Double>(index++, value));
         }
         // if sum of all pixels is too small (< 10 * epislon(1f) as in original code) then just use flat distribution
-        if (m_MCMCZe < 10 * Math.ulp(1.0f)) {
-            m_MCMCZe = aImg.getSize();
+        if (sumOfPixelValues < 10 * Math.ulp(1.0f)) {
+            sumOfPixelValues = aImg.getSize();
             index = 0;
             ri = new SpaceIterator(aImg.getDimensions()).getPointIterator();
             while (ri.hasNext()) {
@@ -2139,6 +2076,6 @@ public class AlgorithmDRS {
 
         EnumeratedDistribution<Integer> m_MCMCEdgeImageDistr = new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
 
-        return new Pair<>(m_MCMCZe, m_MCMCEdgeImageDistr);
+        return new Pair<>(sumOfPixelValues, m_MCMCEdgeImageDistr);
     }
 }

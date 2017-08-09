@@ -2,21 +2,21 @@ package mosaic.region_competition.GUI;
 
 
 import mosaic.plugins.Region_Competition.RegularizationType;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.Settings;
 
 
 abstract class RegularizationGUI extends SettingsBaseGUI {
 
-    protected RegularizationGUI(Settings settings) {
-        super(settings);
+    protected RegularizationGUI(Settings aSettings) {
+        super(aSettings);
     }
 
-    private static RegularizationGUI factory(Settings settings, RegularizationType type) {
+    private static RegularizationGUI factory(Settings aSettings, RegularizationType type) {
         RegularizationGUI result = null;
 
         switch (type) {
             case Sphere_Regularization: {
-                result = new CurvatureFlowGUI(settings);
+                result = new CurvatureFlowGUI(aSettings);
                 break;
             }
             case Approximative:
@@ -29,28 +29,28 @@ abstract class RegularizationGUI extends SettingsBaseGUI {
         return result;
     }
 
-    public static RegularizationGUI factory(Settings settings, String regularization) {
+    public static RegularizationGUI factory(Settings aSettings, String regularization) {
         final RegularizationType type = RegularizationType.valueOf(regularization);
-        return factory(settings, type);
+        return factory(aSettings, type);
     }
 
 }
 
 class CurvatureFlowGUI extends RegularizationGUI {
 
-    public CurvatureFlowGUI(Settings settings) {
-        super(settings);
+    public CurvatureFlowGUI(Settings aSettings) {
+        super(aSettings);
     }
 
     @Override
     public void createDialog() {
         gd.setTitle("Curvature Based Gradient Flow Options");
-        gd.addNumericField("R_k", settings.m_CurvatureMaskRadius, 0);
+        gd.addNumericField("R_k", iSettings.m_CurvatureMaskRadius, 0);
     }
 
     @Override
     public void process() {
-        settings.m_CurvatureMaskRadius = (int) gd.getNextNumber();
+        iSettings.m_CurvatureMaskRadius = (int) gd.getNextNumber();
     }
 }
 

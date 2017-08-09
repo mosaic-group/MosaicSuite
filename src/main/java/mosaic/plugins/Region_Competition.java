@@ -19,7 +19,9 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.region_competition.Settings;
 import mosaic.region_competition.DRS.AlgorithmDRS;
+import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.DRS.SobelVolume;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI;
@@ -27,7 +29,7 @@ import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.RC.ClusterModeRC;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.RC.SettingsRC;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -281,7 +283,7 @@ public class Region_Competition implements PlugInFilter {
                 break;
             }
             case e_PS: {
-                e_data = new E_PS(labelImage, intensityImage, iSettings.m_GaussPSEnergyRadius, iSettings.m_RegionMergingThreshold);
+                e_data = new E_PS(labelImage, intensityImage, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.m_RegionMergingThreshold);
                 break;
             }
             case e_DeconvolutionPC: {
@@ -328,7 +330,7 @@ public class Region_Competition implements PlugInFilter {
             }
         }
 
-        imageModel = new ImageModel(e_data, e_length, e_merge, iSettings);
+        imageModel = new ImageModel(e_data, e_length, e_merge, iSettings.m_EnergyContourLengthCoeff);
     }
 
     private void initInputImage() {
@@ -432,7 +434,14 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, iSettings);
+        SettingsRC rcSettings = new SettingsRC(iSettings.m_AllowFusion, 
+                                               iSettings.m_AllowFission, 
+                                               iSettings.m_AllowHandles, 
+                                               iSettings.m_MaxNbIterations, 
+                                               iSettings.m_OscillationThreshold, 
+                                               iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+        
+        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, rcSettings);
         
         boolean isDone = false;
         int iteration = 0;
@@ -481,9 +490,13 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        mosaic.region_competition.DRS.Settings drsSetings = new mosaic.region_competition.DRS.Settings();
-        drsSetings.m_MaxNbIterations = iSettings.m_MaxNbIterations;
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSetings);
+        SettingsDRS drsSettings = new SettingsDRS(iSettings.m_AllowFusion, 
+                                                  iSettings.m_AllowFission, 
+                                                  iSettings.m_AllowHandles, 
+                                                  iSettings.m_MaxNbIterations, 
+                                                  iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+        
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSettings);
         
         boolean isDone = false;
         int iteration = 0;
@@ -507,7 +520,7 @@ public class Region_Competition implements PlugInFilter {
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         iController.close();
         
-//        labelImage.show("LabelDRS");
+        labelImage.show("LabelDRS");
 //        intensityImage.show("IntenDRS");
 //        edgeImage.show("EdgeDRS");
         
