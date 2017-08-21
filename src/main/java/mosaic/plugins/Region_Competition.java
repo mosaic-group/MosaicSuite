@@ -20,6 +20,7 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.Settings.SegmentationType;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.DRS.SobelVolume;
@@ -73,10 +74,6 @@ public class Region_Competition implements PlugInFilter {
         Sphere_Regularization, Approximative, None,
     }
     
-    public static enum SegmentationType {
-        RC, DRS
-    }
-
     // Output file names
     private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 

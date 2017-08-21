@@ -42,12 +42,12 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.plugins.Region_Competition;
+import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
-import mosaic.plugins.Region_Competition.SegmentationType;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.Settings.SegmentationType;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
@@ -148,8 +148,10 @@ public class GUI  {
         });
         p.add(b);
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
+        mosaic.utils.Debug.print("LIST", Arrays.asList(SegmentationType.values()));
+        String s = SegmentationTypes[Arrays.asList(SegmentationType.values()).indexOf(iSettings.segmentationType)];
         
-        if (showDrsSettings) iMainDialogWin.addRadioButtonGroup("Segmentation Type: ", SegmentationTypes, 1, SegmentationTypes.length, SegmentationTypes[0]);
+        if (showDrsSettings) iMainDialogWin.addRadioButtonGroup("Segmentation Type: ", SegmentationTypes, 1, SegmentationTypes.length, s);
         iMainDialogWin.addCheckbox("Process on computer cluster", false);
 
         p = new Panel();
@@ -381,7 +383,10 @@ public class GUI  {
         iKeepAllFrames = iMainDialogWin.getNextBoolean();
         iShowNormalized = iMainDialogWin.getNextBoolean();
         iShowAndSaveStatistics = iMainDialogWin.getNextBoolean();
-        if (showDrsSettings) iSegmentationType = Region_Competition.SegmentationType.values()[Arrays.asList(SegmentationTypes).indexOf(iMainDialogWin.getNextRadioButton())];
+        if (showDrsSettings) {
+            iSegmentationType = SegmentationType.values()[Arrays.asList(SegmentationTypes).indexOf(iMainDialogWin.getNextRadioButton())];
+            iSettings.segmentationType = iSegmentationType;
+        }
         iUseCluster = iMainDialogWin.getNextBoolean();
         
         return true;

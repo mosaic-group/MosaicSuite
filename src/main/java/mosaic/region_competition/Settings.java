@@ -11,6 +11,12 @@ import mosaic.plugins.Region_Competition.RegularizationType;
 public class Settings implements Serializable {
     private static final long serialVersionUID = 1777976540627904860L;
     
+    public static enum SegmentationType {
+        RC, DRS
+    }
+    
+    public SegmentationType segmentationType = SegmentationType.RC;
+    
     // Init Label Image ---------------------------------------------------------------------------
     // Init Type / ClusterMode
     public InitializationType labelImageInitType = InitializationType.Bubbles;

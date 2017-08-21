@@ -37,21 +37,9 @@ public class AlgorithmDRS {
 
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
 
-    // Input for Algorithm
-    private final LabelImage iLabelImage;
-    private final IntensityImage iIntensityImage;
-    private final IntensityImage iEdgeImage;
-    private final ImageModel iImageModel;
-    private final SettingsDRS iSettings;
-
-    int m_Dim;
-
-    // TODO: Names below are map one to one from original source code
-    // Change them to something nicer after implementation.
-
     // Parameters
-    boolean m_MCMCuseBiasedProposal = true; // TODO: false by default in c++
-    boolean m_MCMCusePairProposal = true; // TODO: false by def
+    boolean m_MCMCuseBiasedProposal = false; // TODO: false by default in c++
+    boolean m_MCMCusePairProposal = false; // TODO: false by def
 
     boolean m_AllowFission = true;
     boolean m_AllowFusion = true;
@@ -61,8 +49,6 @@ public class AlgorithmDRS {
     int m_iteration_counter = 0;
     int m_MCMCstepsize = 1;
 
-    boolean m_Verbose = true; // false by default
-
     float m_OffBoundarySampleProbability = 0.00f;
     float m_MCMCburnInFactor = 0.3f;
 
@@ -70,6 +56,15 @@ public class AlgorithmDRS {
 
     // ==========================================================
 
+    // Input for Algorithm
+    private final LabelImage iLabelImage;
+    private final IntensityImage iIntensityImage;
+    private final IntensityImage iEdgeImage;
+    private final ImageModel iImageModel;
+    private final SettingsDRS iSettings;
+
+    int m_Dim;
+    
     Rng m_NumberGenerator = new Rng(1212);
     Rng m_NumberGeneratorBoost = new Rng();
 
@@ -96,28 +91,27 @@ public class AlgorithmDRS {
     Map<Integer, MinimalParticleIndexedSet> m_MCMCparents = new HashMap<>();
 
     class ParticleHistoryElement {
+        final MinimalParticle particle;
+        final int originalLabel;
+        final boolean wasAdded;
 
         public ParticleHistoryElement(MinimalParticle vReplacedParticle, int aCurrentLabel, boolean b) {
-            m_Particle = vReplacedParticle;
-            m_OriginalLabel = aCurrentLabel;
-            m_WasAdded = b;
+            particle = vReplacedParticle;
+            originalLabel = aCurrentLabel;
+            wasAdded = b;
         }
-
-        final MinimalParticle m_Particle;
-        final int m_OriginalLabel;
-        final boolean m_WasAdded;
 
         @Override
         public String toString() {
-            return m_Particle + " / " + m_OriginalLabel + " / " + m_WasAdded + "\n";
+            return "PHE{ P:" + particle + ", L:" + originalLabel + ", A:" + wasAdded + "}";
         }
     }
 
     List<ParticleHistoryElement> m_MCMCParticleInContainerHistory = new ArrayList<>();
+    List<ParticleHistoryElement> m_MCMCFloatingParticleInContainerHistory = new ArrayList<>();
 
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
 
-    List<ParticleHistoryElement> m_MCMCFloatingParticleInContainerHistory = new ArrayList<>();
 
     class LabelImageHistoryEventType {
 
@@ -264,19 +258,14 @@ public class AlgorithmDRS {
             vAcceptedMoves += vAccepted;
 
             /// Some output:
-            if (m_Verbose) {
                 // TODO: Add debug info same as in cpp
 //                //System.out.println("aNumberOfAcceptedMoves: " + vTempAcceptedMoves); // Resets vTempAcceptedMoves back to 0.
-            }
             //System.out.println("CHILDREN:\n" + m_MCMCchildren);
             //System.out.println("PARENTS:\n" + m_MCMCparents);
         }
         //System.out.println("DONE: " + m_MaxNbIterations + " iterations!");
-
-        if (m_Verbose) {
-            System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
-        }
         
+        System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
         createProbabilityImage();
     }
 
@@ -941,18 +930,7 @@ public class AlgorithmDRS {
             vAccept = true;
         }
         else {
-            double rnd = m_NumberGenerator.GetUniformVariate(0, 1);
-
-            // FAKE:
-//             rnd = rndFake[rndCnt++];
-
-            //System.out.println("m_NumberGenerator8: " + rnd);
-            if (vHastingsRatio > rnd) {
-                vAccept = true;
-            }
-            else {
-                vAccept = false;
-            }
+            vAccept = (vHastingsRatio > m_NumberGenerator.GetUniformVariate(0, 1));
         }
 
         /// Register the result (if we accept) or rollback to the previous state.
@@ -988,21 +966,21 @@ public class AlgorithmDRS {
         /// insertion/deletion methods).
         for (int i = m_MCMCParticleInContainerHistory.size() - 1; i >= 0; --i) {
             ParticleHistoryElement phe = m_MCMCParticleInContainerHistory.get(i);
-            if (phe.m_WasAdded) {
-                MCMCEraseCandidatesFromContainers(phe.m_Particle, phe.m_OriginalLabel, false);
+            if (phe.wasAdded) {
+                MCMCEraseCandidatesFromContainers(phe.particle, phe.originalLabel, false);
             }
             else {
-                MCMCInsertCandidatesToContainers(phe.m_Particle, phe.m_OriginalLabel, false);
+                MCMCInsertCandidatesToContainers(phe.particle, phe.originalLabel, false);
             }
         }
 
         for (int i = m_MCMCFloatingParticleInContainerHistory.size() - 1; i >= 0; --i) {
             ParticleHistoryElement phe = m_MCMCFloatingParticleInContainerHistory.get(i);
-            if (phe.m_WasAdded) {
-                MCMCEraseFloatingParticle(phe.m_Particle, false);
+            if (phe.wasAdded) {
+                MCMCEraseFloatingParticle(phe.particle, false);
             }
             else {
-                MCMCInsertFloatingParticleCumulative(phe.m_Particle, false);
+                MCMCInsertFloatingParticleCumulative(phe.particle, false);
             }
         }
 
