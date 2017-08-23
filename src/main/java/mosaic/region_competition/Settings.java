@@ -60,32 +60,48 @@ public class Settings implements Serializable {
     // RC only
     public double m_OscillationThreshold = 0.02;
     
+    // DRS only - MCMC parameters
+    public float offBoundarySampleProbability = 0.00f;
+    public boolean useBiasedProposal = false;
+    public boolean usePairProposal = false;
+    public float burnInFactor = 0.3f;
 
     public void copy(Settings s) {
-        m_EnergyFunctional = s.m_EnergyFunctional;
-        m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
-        m_BalloonForceCoeff = s.m_BalloonForceCoeff;
-        
-        regularizationType = s.regularizationType;
-        m_CurvatureMaskRadius = s.m_CurvatureMaskRadius;
-        
+        segmentationType = s.segmentationType;
         labelImageInitType = s.labelImageInitType;
+        
         l_BoxRatio = s.l_BoxRatio;
+        
         m_BubblesRadius = s.m_BubblesRadius;
         m_BubblesDispl = s.m_BubblesDispl;
+        
         l_BubblesRadius = s.l_BubblesRadius;
         l_Sigma = s.l_Sigma;
         l_Tolerance = s.l_Tolerance;
         l_RegionTolerance = s.l_RegionTolerance;
         
+        m_CurvatureMaskRadius = s.m_CurvatureMaskRadius;
+        
+        m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
+        m_BalloonForceCoeff = s.m_BalloonForceCoeff;
+        
+        m_RegionMergingThreshold = s.m_RegionMergingThreshold;
+        
+        m_EnergyFunctional = s.m_EnergyFunctional;
+        regularizationType = s.regularizationType;
+        m_EnergyContourLengthCoeff = s.m_EnergyContourLengthCoeff;
+        
         m_AllowFusion = s.m_AllowFusion;
         m_AllowFission = s.m_AllowFission;
         m_AllowHandles = s.m_AllowHandles;
-        
-        m_EnergyContourLengthCoeff = s.m_EnergyContourLengthCoeff;
-        m_RegionMergingThreshold = s.m_RegionMergingThreshold;
         m_MaxNbIterations = s.m_MaxNbIterations;
+        
         m_OscillationThreshold = s.m_OscillationThreshold;
+        
+        offBoundarySampleProbability = s.offBoundarySampleProbability;
+        useBiasedProposal = s.useBiasedProposal;
+        usePairProposal = s.usePairProposal;
+        burnInFactor = s.burnInFactor;
     }
 
     public Settings() {}

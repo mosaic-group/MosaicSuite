@@ -49,6 +49,10 @@ public class SegmentationProcessWindow {
         this(aWidth, aHeight, aShouldKeepAllSlices, false);
     }
     
+    public void setImageTitle(String aTitle) {
+        iImage.setTitle(aTitle);
+    }
+    
     public ImagePlus getImage() {
         return iImage;
     }

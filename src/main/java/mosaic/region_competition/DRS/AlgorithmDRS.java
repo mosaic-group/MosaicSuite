@@ -38,24 +38,14 @@ public class AlgorithmDRS {
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
 
     // Parameters
-    boolean m_MCMCuseBiasedProposal = false; // TODO: false by default in c++
-    boolean m_MCMCusePairProposal = false; // TODO: false by def
-
-    boolean m_AllowFission = true;
-    boolean m_AllowFusion = true;
-    boolean m_AllowHandles = true;
-
-    int m_MaxNbIterations = 15;
-    int m_iteration_counter = 0;
     int m_MCMCstepsize = 1;
-
-    float m_OffBoundarySampleProbability = 0.00f;
-    float m_MCMCburnInFactor = 0.3f;
-
     float m_MCMCtemperature = 1;
 
     // ==========================================================
 
+    int vAcceptedMoves = 0;
+    int m_iteration_counter = 0;
+    
     // Input for Algorithm
     private final LabelImage iLabelImage;
     private final IntensityImage iIntensityImage;
@@ -165,11 +155,11 @@ public class AlgorithmDRS {
         m_MCMCEdgeImageDistr = distPair.getSecond();
 
         // Prepare a fast proposal computation:
-        //System.out.println("m_MCMCuseBiasedProposal: " + (m_MCMCuseBiasedProposal ? "1" : "0") + " " + m_NeighborhoodSize_BG_Connectivity);
+        //System.out.println("iSettings.m_MCMCuseBiasedProposal: " + (iSettings.m_MCMCuseBiasedProposal ? "1" : "0") + " " + m_NeighborhoodSize_BG_Connectivity);
         for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
             //System.out.println(vN + "_conn: " + m_NeighborsOffsets_BG_Connectivity[vN]);
         }
-        if (m_MCMCuseBiasedProposal) {
+        if (iSettings.useBiasedProposal) {
             m_MCMClengthProposalMask = new float[m_NeighborhoodSize_BG_Connectivity];
             for (int i = 0; i < m_NeighborhoodSize_BG_Connectivity; ++i) {
                 Point offset = m_NeighborsOffsets_BG_Connectivity[i];
@@ -187,11 +177,6 @@ public class AlgorithmDRS {
         m_MCMCchildrenProposalNormalizer.put(LabelImage.BGLabel, 0f);
         visitedLabels.add(LabelImage.BGLabel);
         m_MCMCTotalNormalizer = 0.0f;
-
-        m_MaxNbIterations = iSettings.maxNumOfIterations;
-        m_AllowFission = iSettings.allowFission;
-        m_AllowFusion = iSettings.allowFusion;
-        m_AllowHandles = iSettings.allowHandles;
 
         // TODO: It seems that input label image cannot have negative labels, this code temporary changes it to all positives.
         final Iterator<Point> ri2 = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
@@ -244,29 +229,18 @@ public class AlgorithmDRS {
         prepareEnergies(); // TODO: initEnergies from RC - should be handled differently (energies cleanup)
 
         // --------------- Main loop ---------------------
-
-        /* Main loop */
-        int vAcceptedMoves = 0;
-        int modulo = m_MaxNbIterations / 100;
-        if (modulo < 1) modulo = 1;
-        while (m_MaxNbIterations > m_iteration_counter) {
-            if (m_iteration_counter % modulo == 0) {
-                System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
-            }
-            m_iteration_counter++;
-            int vAccepted = MCMCDoIteration() ? 1 : 0;
-            vAcceptedMoves += vAccepted;
-
-            /// Some output:
-                // TODO: Add debug info same as in cpp
-//                //System.out.println("aNumberOfAcceptedMoves: " + vTempAcceptedMoves); // Resets vTempAcceptedMoves back to 0.
-            //System.out.println("CHILDREN:\n" + m_MCMCchildren);
-            //System.out.println("PARENTS:\n" + m_MCMCparents);
-        }
-        //System.out.println("DONE: " + m_MaxNbIterations + " iterations!");
         
-        System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
-        createProbabilityImage();
+        /* Main loop */
+        
+//        int modulo = iSettings.maxNumOfIterations/ 100;
+//        if (modulo < 1) modulo = 1;
+//        while (iSettings.maxNumOfIterations> m_iteration_counter) {
+//            if (m_iteration_counter % modulo == 0) {
+//                System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
+//            }
+//            m_iteration_counter++;
+//            vAcceptedMoves += MCMCDoIteration() ? 1 : 0;
+//        }
     }
 
     boolean MCMCDoIteration() {
@@ -301,10 +275,10 @@ public class AlgorithmDRS {
         /// Find the corresponding label
         int vAbsLabel = m_MCMCRegionLabel.get(vAbsLabelIndex);
         //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel + " " + vAbsLabelIndex);
-        if (m_AllowFission && m_AllowFusion) {
+        if (iSettings.allowFission && iSettings.allowFusion) {
             // linear annealing
-            float vOffboundaryPerc = m_OffBoundarySampleProbability * (1.0f - m_iteration_counter / (m_MCMCburnInFactor * m_MaxNbIterations));
-            //System.out.println("m_OffBoundarySampleProbability: " + m_OffBoundarySampleProbability + " " + m_iteration_counter + " " + m_MCMCburnInFactor + " " + m_MaxNbIterations);
+            float vOffboundaryPerc = iSettings.offBoundarySampleProbability * (1.0f - m_iteration_counter / (iSettings.burnInFactor * iSettings.maxNumOfIterations));
+            //System.out.println("iSettings.m_OffBoundarySampleProbability: " + iSettings.m_OffBoundarySampleProbability + " " + m_iteration_counter + " " + iSettings.m_MCMCburnInFactor + " " + m_MaxNbIterations);
             double rnd = m_NumberGenerator.GetVariate();
 
             // FAKE:
@@ -383,7 +357,7 @@ public class AlgorithmDRS {
         // typedef boost::random::discrete_distribution<int, float> DiscreteDistType;
         // DiscreteDistType* vDiscreteDistr;
 
-        if (m_MCMCuseBiasedProposal && !vParticleAIsFloating && (m_MCMCNumberOfSamplesForBiasedPropApprox == 0 || m_MCMCNumberOfSamplesForBiasedPropApprox >= vActiveCandidates.size())) {
+        if (iSettings.useBiasedProposal && !vParticleAIsFloating && (m_MCMCNumberOfSamplesForBiasedPropApprox == 0 || m_MCMCNumberOfSamplesForBiasedPropApprox >= vActiveCandidates.size())) {
             // vAllParticlesFwdProposals.reserve(vActiveCandidates.size());
 
             int index = 0;
@@ -394,7 +368,7 @@ public class AlgorithmDRS {
             //System.out.println(vAllParticlesFwdProposals.size());
 
         }
-        else if (m_MCMCuseBiasedProposal && !vParticleAIsFloating) {
+        else if (iSettings.useBiasedProposal && !vParticleAIsFloating) {
             vApproxedIndex = true;
             // vAllParticlesFwdProposals.reserve(m_MCMCNumberOfSamplesForBiasedPropApprox);
             vIndexOffset = m_NumberGenerator.GetIntegerVariate(vActiveCandidates.size() - 1);
@@ -460,7 +434,7 @@ public class AlgorithmDRS {
         for (int vPC = 0; vPC < m_MCMCstepsize; vPC++) {
 
             int vParticleIndex;
-            if (m_MCMCuseBiasedProposal && !vParticleAIsFloating) {
+            if (iSettings.useBiasedProposal && !vParticleAIsFloating) {
                 vParticleIndex = vDiscreteDistr.sample();
 
                 //System.out.println("distr1: " + vParticleIndex);
@@ -522,7 +496,7 @@ public class AlgorithmDRS {
         //System.out.println("vCandidateMoveVec:\n" + vCandidateMoveVec);
         //System.out.println("vq_A:\n" + vq_A);
 
-        if (m_MCMCuseBiasedProposal && !vParticleAIsFloating) {
+        if (iSettings.useBiasedProposal && !vParticleAIsFloating) {
             vDiscreteDistr = null;
         }
 
@@ -538,8 +512,8 @@ public class AlgorithmDRS {
         /// a forward praticle and B' the backward particle.
         /// - Qb always assumes backward particles as its arguments! Hence,
         /// Qb_A_B is the probabily Qb(A'|B').
-        //System.out.println("m_MCMCusePairProposal: " + m_MCMCusePairProposal);
-        if (m_MCMCusePairProposal) {
+        //System.out.println("iSettings.m_MCMCusePairProposal: " + iSettings.m_MCMCusePairProposal);
+        if (iSettings.usePairProposal) {
 
             /// Iterate over particles A:
             for (int vPC = 0; vPC < vCandidateMoveVec.size(); ++vPC) {
@@ -569,7 +543,7 @@ public class AlgorithmDRS {
                 MinimalParticle vB = new MinimalParticle();
 
                 /// Choose B from Q(B|A) and calculate Q(B|A).
-                if (m_MCMCuseBiasedProposal) {
+                if (iSettings.useBiasedProposal) {
                     ArrayList<Float> vProposalsVector = new ArrayList<>(vParts_Q_BgivenA.size());
                     float vNormalizer_Q_B_A = 0;
 
@@ -638,7 +612,7 @@ public class AlgorithmDRS {
                 MinimalParticleIndexedSet vParts_Qb_AgivenB = new MinimalParticleIndexedSet();
                 MCMCgetPartnerParticleSet(vB, vParts_Qb_AgivenB);
 
-                if (m_MCMCuseBiasedProposal) {
+                if (iSettings.useBiasedProposal) {
                     //System.out.println("vParts_Qb_AgivenB: " + vParts_Qb_AgivenB);
                     float vNormalizer_Qb_A_B = 0;
                     for (int vPI = 0; vPI < vParts_Qb_AgivenB.size(); ++vPI) {
@@ -666,7 +640,7 @@ public class AlgorithmDRS {
                         vq_B.set(vPC, 0f);
                     }
                     else {
-                        if (m_MCMCuseBiasedProposal) {
+                        if (iSettings.useBiasedProposal) {
                             /// vB.mProposal needs to be recalculated here:
                             vq_B.set(vPC, MCMCproposal(vB.iIndex) / MCMCGetProposalNormalizer(vLabelsBeforeJump_B.get(vPC).intValue(), vB.iCandidateLabel));
                         }
@@ -689,7 +663,7 @@ public class AlgorithmDRS {
             MinimalParticle vParticleB = new MinimalParticle(vPartnerMoveVec.get(vPC));
 
             /// apply particle A and B, start with B:
-            int vN = (m_MCMCusePairProposal && !vSingleParticleMoveForPairProposals) ? 2 : 1;
+            int vN = (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) ? 2 : 1;
             for (; vN > 0; --vN) {
 
                 /// it is necessary that we start with particle B as we have
@@ -744,7 +718,7 @@ public class AlgorithmDRS {
                     vParticleB.iProposal = MCMCproposal(vParticleB.iIndex);
                     vParts_Q_AgivenB.insert(vParticleB);
 
-                    if (m_MCMCuseBiasedProposal) {
+                    if (iSettings.useBiasedProposal) {
                         float vNormalizer_Q_A_B = 0;
                         for (int vPI = 0; vPI < vParts_Q_AgivenB.size(); vPI++) {
                             vNormalizer_Q_A_B += vParts_Q_AgivenB.elementAt(vPI).iProposal;
@@ -767,7 +741,7 @@ public class AlgorithmDRS {
                     MinimalParticleIndexedSet vParts_Qb_BgivenA = new MinimalParticleIndexedSet();
                     MCMCgetParticlesInFGNeighborhood(vParticleA.iIndex, vParts_Qb_BgivenA);
                     vParts_Qb_BgivenA.insert(vReverseParticleA);
-                    if (m_MCMCuseBiasedProposal) {
+                    if (iSettings.useBiasedProposal) {
                         float vNormalizer_Qb_B_A = 0;
                         for (int vPI = 0; vPI < vParts_Qb_BgivenA.size(); vPI++) {
                             vNormalizer_Qb_B_A += vParts_Qb_BgivenA.elementAt(vPI).iProposal;
@@ -793,7 +767,7 @@ public class AlgorithmDRS {
             MinimalParticle vParticleB = vPartnerMoveVec.get(vPC);
 
             /// Figure out if the backward particles are floating:
-            if (m_MCMCusePairProposal) {
+            if (iSettings.usePairProposal) {
                 vParticle_Bb_IsFloating.set(vPC, MCMCParticleHasFloatingProperty(vParticleB.iIndex, vLabelsBeforeJump_B.get(vPC).intValue()));
             }
             else {
@@ -814,7 +788,7 @@ public class AlgorithmDRS {
             }
             /// in pair proposal, if A' is floating, B' is as well (they are the
             /// same particle):
-            if (m_MCMCusePairProposal && vParticle_Bb_IsFloating.get(vPC)) { // only possible in pair proposal mode
+            if (iSettings.usePairProposal && vParticle_Bb_IsFloating.get(vPC)) { // only possible in pair proposal mode
                 vReverseFloatingP = new MinimalParticle(vPartnerMoveVec.get(vPC));
                 vLabelBeforeJump = vLabelsBeforeJump_B.get(vPC).intValue();
                 vReverseFloatingP.iCandidateLabel = vLabelBeforeJump;
@@ -847,13 +821,13 @@ public class AlgorithmDRS {
             MinimalParticle vParticleB = vPartnerMoveVec.get(vPC);
 
             /// Calculate vqb_A and vqb_B
-            if (!m_MCMCuseBiasedProposal) {
+            if (!iSettings.useBiasedProposal) {
                 vqb_A.set(vPC, 1.0f);
                 vqb_B.set(vPC, 1.0f);
             }
             else {
                 vqb_A.set(vPC, MCMCproposal(vParticleA.iIndex));
-                if (m_MCMCusePairProposal && !vSingleParticleMoveForPairProposals) {
+                if (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) {
                     vqb_B.set(vPC, MCMCproposal(vParticleB.iIndex));
                 }
             }
@@ -861,7 +835,7 @@ public class AlgorithmDRS {
             float vqb_A_normalizer = (vParticle_Ab_IsFloating.get(vPC)) ? (m_FloatingParticlesProposalNormalizer)
                     : MCMCGetProposalNormalizer(vParticleA.iCandidateLabel, vLabelsBeforeJump_A.get(vPC).intValue());
             vqb_A.set(vPC, vqb_A.get(vPC) / vqb_A_normalizer);
-            if (m_MCMCusePairProposal && !vSingleParticleMoveForPairProposals) {
+            if (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) {
                 float vqb_B_normalizer = vParticle_Bb_IsFloating.get(vPC) ? (m_FloatingParticlesProposalNormalizer)
                         : MCMCGetProposalNormalizer(vParticleB.iCandidateLabel, vLabelsBeforeJump_B.get(vPC).intValue());
                 vqb_B.set(vPC, vqb_B.get(vPC) / vqb_B_normalizer);
@@ -881,7 +855,7 @@ public class AlgorithmDRS {
         float vForwardBackwardRatio = 1.0f;
         for (int vPC = 0; vPC < vCandidateMoveVec.size(); ++vPC) {
 
-            if (m_MCMCusePairProposal) {
+            if (iSettings.usePairProposal) {
                 if (vParticle_Ab_IsFloating.get(vPC) || vParticle_Bb_IsFloating.get(vPC) || vParticle_A_IsFloating.get(vPC)) {
                     vForwardBackwardRatio *= (vqb_B.get(vPC) * vqb_A_B.get(vPC)) / (vq_A.get(vPC) * vq_B_A.get(vPC));
                 }
@@ -1127,7 +1101,7 @@ public class AlgorithmDRS {
 
         /// Update the proposals for all particles in the neighborhood (as they
         /// might have changed).
-        if (m_MCMCuseBiasedProposal || (!m_AllowFission || !m_AllowHandles)) {
+        if (iSettings.useBiasedProposal || (!iSettings.allowFission || !iSettings.allowHandles)) {
             MCMCupdateProposalsAndFilterTopologyInNeighborhood(aCandidateParticle);
         }
     }
@@ -1469,7 +1443,7 @@ public class AlgorithmDRS {
         }
 
         /// filter the points to meet topological constraints:
-        if (!m_AllowFission || !m_AllowHandles) {
+        if (!iSettings.allowFission || !iSettings.allowHandles) {
             MCMCTopologyFiltering(aSet);
         }
 
@@ -1807,7 +1781,7 @@ public class AlgorithmDRS {
     /// now the particle is rejected if it changes somehow the topology.
     boolean MCMCIsParticleTopoValid(MinimalParticle aParticle) {
         // TODO: Currently not effiecient but seems to be correct with output. Must be checked how to find topo number wihtout looping after reults from getTopologicalNumbersForAllAdjacentLabels
-        if (!m_AllowFission || !m_AllowHandles) {
+        if (!iSettings.allowFission || !iSettings.allowHandles) {
             /// get the correct label to access the container of the particle
             int vContainerLabel = (aParticle.iCandidateLabel == 0) ? Math.abs(iLabelImage.getLabel(aParticle.iIndex)) : aParticle.iCandidateLabel;
 
@@ -1851,7 +1825,7 @@ public class AlgorithmDRS {
     }
 
     float MCMCproposal(int aIndex) {
-        if (!m_MCMCuseBiasedProposal) return 1;
+        if (!iSettings.useBiasedProposal) return 1;
 
         // Length-prior driven proposal:
         float vLength = 0;
@@ -1877,7 +1851,7 @@ public class AlgorithmDRS {
     float MCMCGetUnnormalizedFloatingParticleProposal() {
         // floating particles need a proposal > 0: We take half of the smallest element in the mask
         // (hack:we assume the smallest element to be at position 0).
-        if (!m_MCMCuseBiasedProposal) return 1;
+        if (!iSettings.useBiasedProposal) return 1;
         return m_MCMClengthProposalMask[0] / 2.0f;
     }
 
@@ -1941,17 +1915,25 @@ public class AlgorithmDRS {
     }
 
     public boolean performIteration() {
-        boolean convergence = true;
-
-        // TODO: real job strats here
-
-        return convergence;
+        int modulo = iSettings.maxNumOfIterations/ 100;
+        if (modulo < 1) modulo = 1;
+        if (m_iteration_counter % modulo == 0) {
+            System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
+        }
+        m_iteration_counter++;
+        vAcceptedMoves += MCMCDoIteration() ? 1 : 0;
+        
+        if (m_iteration_counter == iSettings.maxNumOfIterations) {
+            System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
+        }
+        
+        // never done earlier than wanted number of iterations
+        return false;
     }
 
     public int getBiggestLabel() {
         return 10;
     }
-
     
     // ================================= CLEANED UP ===================================================
     
@@ -1972,13 +1954,14 @@ public class AlgorithmDRS {
     
     /**
      * Creates output probability image with slice for every label.
+     * @return 
      */
-    void createProbabilityImage() {
+    public SegmentationProcessWindow createProbabilityImage() {
         // Create output stack image
         int[] dims = iLabelImage.getDimensions();
         SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
 
-        int numOfBurnInIterations = (int) (m_MCMCburnInFactor * m_iteration_counter);
+        int numOfBurnInIterations = (int) (iSettings.burnInFactor * m_iteration_counter);
         int numOfCountableIterations = m_iteration_counter - numOfBurnInIterations;
         
         for (int currentLabel : m_MCMCRegionLabel) {
@@ -2018,6 +2001,10 @@ public class AlgorithmDRS {
 
             resultImg.addSliceToStack(img, "label_" + currentLabel);
         }
+        
+        resultImg.setImageTitle("Probability");
+        
+        return resultImg;
     }    
     
     /**

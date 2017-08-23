@@ -75,7 +75,7 @@ public class Region_Competition implements PlugInFilter {
     }
     
     // Output file names
-    private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
+    private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif", "*_prob_c1.tif" };
 
     // Settings
     private Settings iSettings = null;
@@ -220,15 +220,23 @@ public class Region_Competition implements PlugInFilter {
 
     private void saveSegmentedImage() {
         String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
-        logger.debug("Absolute file name: " + absoluteFileNameNoExt);
+        String outputProbabilityImgFileNameNoExt = null;
+        logger.debug("Absolute file name with dir: " + absoluteFileNameNoExt);
         if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
                 outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
+                outputProbabilityImgFileNameNoExt = absoluteFileNameNoExt + outputFileNamesSuffixes[2].replace("*", "");
         }
         if (outputSegmentedImageLabelFilename != null) { 
             logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
             ImagePlus outImg = labelImage.convertToImg("ResultWindow");
             outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
             IJ.save(outImg, outputSegmentedImageLabelFilename);
+            
+            //TODO: save probability image
+            if (segmentationType == SegmentationType.DRS && outputProbabilityImgFileNameNoExt != null) {
+                logger.debug("Probability file name with dir: " + outputProbabilityImgFileNameNoExt);
+                IJ.save(stackProcess.getImage(), outputProbabilityImgFileNameNoExt);
+            }
         }
         else {
             logger.error("Cannot save segmentation result. Filename for saving not available!");
@@ -416,6 +424,7 @@ public class Region_Competition implements PlugInFilter {
         final int height = dims[1];
         
         stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
+        stackProcess.setImageTitle("Stack_" + (inputImageChosenByUser.getTitle() == null ? "DRS" : inputImageChosenByUser.getTitle()));
       
         stackProcess.addSliceToStack(labelImage, "init without contours", 0);
         labelImage.initBorder();
@@ -491,6 +500,10 @@ public class Region_Competition implements PlugInFilter {
                                                   iSettings.m_AllowFission, 
                                                   iSettings.m_AllowHandles, 
                                                   iSettings.m_MaxNbIterations, 
+                                                  iSettings.offBoundarySampleProbability,
+                                                  iSettings.useBiasedProposal,
+                                                  iSettings.usePairProposal,
+                                                  iSettings.burnInFactor,
                                                   iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
         
         AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSettings);
@@ -509,13 +522,13 @@ public class Region_Competition implements PlugInFilter {
             isDone = iController.hasAborted() ? true : isDone;
 
             // Add slice with iteration output
-            stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
         IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
-        stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         iController.close();
+        
+        stackProcess = algorithm.createProbabilityImage();
         
         labelImage.show("LabelDRS");
 //        intensityImage.show("IntenDRS");

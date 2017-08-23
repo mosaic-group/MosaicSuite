@@ -4,6 +4,7 @@ package mosaic.region_competition.GUI;
 import java.awt.Button;
 import java.awt.Choice;
 import java.awt.FileDialog;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Panel;
@@ -42,7 +43,6 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
@@ -92,7 +92,7 @@ public class GUI  {
         iSettings = aSettings;
         iInputImg = aInputImg;
         
-        final String[] strings = new String[] { "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
+        final String[] strings = new String[] { "Keep_Frames", "Normalize_input_image", "Show_and_save_Statistics", "Process on computer cluster"};
         if (IJ.isMacro() == true) {
             // TODO: Used in cluster mode probalby.. Must be checked if can be converted to regular window.
             logger.info("GUI - macro mode");
@@ -109,7 +109,9 @@ public class GUI  {
         logger.info("GUI - regular mode");
         
         iMainDialogWin = new CustomDialog("Region Competition");
-
+        final Font bf = new Font(null, Font.BOLD, 12);
+        
+        iMainDialogWin.addMessage("Input and Label image", bf);
         iMainDialogWin.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
         new TextAreaListener(this, iMainDialogWin.getTextArea1(), TextDefaultInputImage);
         new TextAreaListener(this, iMainDialogWin.getTextArea2(), TextDefaultLabelImage);
@@ -122,7 +124,9 @@ public class GUI  {
         b.addActionListener(new FileOpenerActionListener(iMainDialogWin, iMainDialogWin.getTextArea2()));
         p.add(b);
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
+        addOpenedImageChooser();
 
+        iMainDialogWin.addMessage("Segmentation parameters", bf);
         p = new Panel();
         b = new Button("Parameters");
         b.addActionListener(new ActionListener() {
@@ -133,13 +137,9 @@ public class GUI  {
         });
         p.add(b);
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
-
-        addOpenedImageChooser();
-        final boolean[] bools = new boolean[] { iKeepAllFrames, iShowNormalized, iShowAndSaveStatistics, };
-        iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
-
+        
         p = new Panel();
-        b = new Button("Reset");
+        b = new Button("Reset Parameters");
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -148,11 +148,18 @@ public class GUI  {
         });
         p.add(b);
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
-        mosaic.utils.Debug.print("LIST", Arrays.asList(SegmentationType.values()));
+
+        iMainDialogWin.addMessage("Output and processing settings", bf);
+        final boolean[] bools = new boolean[] { iKeepAllFrames, iShowNormalized, iShowAndSaveStatistics, false};
+        iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
+
+        
         String s = SegmentationTypes[Arrays.asList(SegmentationType.values()).indexOf(iSettings.segmentationType)];
         
-        if (showDrsSettings) iMainDialogWin.addRadioButtonGroup("Segmentation Type: ", SegmentationTypes, 1, SegmentationTypes.length, s);
-        iMainDialogWin.addCheckbox("Process on computer cluster", false);
+        if (showDrsSettings) {
+            iMainDialogWin.addMessage("Segmentation Type:", bf);
+            iMainDialogWin.addRadioButtonGroup(null, SegmentationTypes, 1, SegmentationTypes.length, s);
+        }
 
         p = new Panel();
         p.add(new JLabel("<html>Please refer to and cite:<br><br>" + 
@@ -167,10 +174,12 @@ public class GUI  {
      */
     protected void createParametersDialog() {
         GenericDialog gd = new GenericDialog("Region Competition Parameters");
-
-        int gridy = 0;
+        final Font bf = new Font(null, Font.BOLD, 12);
+        
+        int gridy = 1;
         final int gridx = 2;
 
+        gd.addMessage("Energy and initialization settings", bf);
         // Energy Functional
         final EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
         final String[] energyItems = new String[energyValues.length];
@@ -257,15 +266,20 @@ public class GUI  {
                 gui.processDialog();
             }
         });
-
+        
+        gd.addMessage("\nGeneral settings", bf);
+        gd.addNumericField("Lambda E_length", iSettings.m_EnergyContourLengthCoeff, 4, 8, "");
+        gd.addNumericField("Max_Iterations", iSettings.m_MaxNbIterations, 0, 8, "");
         gd.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { iSettings.m_AllowFusion, iSettings.m_AllowFission, iSettings.m_AllowHandles });
 
-        // Numeric Fields
-        gd.addNumericField("Lambda E_length", iSettings.m_EnergyContourLengthCoeff, 4);
-        gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4);
+        gd.addMessage("\nRegion Competition only", bf);
+        gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4, 8, "");
+        gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4, 8, "");
 
-        gd.addNumericField("Max_Iterations", iSettings.m_MaxNbIterations, 0);
-        gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4);
+        gd.addMessage("\nDiscrete Region Sampling only", bf);
+        gd.addNumericField("Burn-in factor [0-1]", iSettings.burnInFactor, 4, 8, "");
+        gd.addNumericField("Off-boundary probability [0-1]", iSettings.offBoundarySampleProbability, 4, 8, "");
+        gd.addCheckboxGroup(1, 2, new String[] { "biased proposal", "pair proposal" }, new boolean[] { iSettings.useBiasedProposal, iSettings.usePairProposal });
 
         gd.showDialog();
 
@@ -282,8 +296,8 @@ public class GUI  {
             final String regularization = gd.getNextChoice();
             iSettings.regularizationType = RegularizationType.valueOf(regularization);
             iSettings.m_EnergyContourLengthCoeff = (float) gd.getNextNumber();
-            iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
             iSettings.m_MaxNbIterations = (int) gd.getNextNumber();
+            iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
             iSettings.m_OscillationThreshold = gd.getNextNumber();
             
             // Initialization
@@ -298,6 +312,12 @@ public class GUI  {
             iSettings.m_AllowFusion = gd.getNextBoolean();
             iSettings.m_AllowFission = gd.getNextBoolean();
             iSettings.m_AllowHandles = gd.getNextBoolean();
+            
+            // DRS settings
+            iSettings.burnInFactor = (float)gd.getNextNumber();
+            iSettings.offBoundarySampleProbability = (float)gd.getNextNumber();
+            iSettings.useBiasedProposal = gd.getNextBoolean();
+            iSettings.usePairProposal = gd.getNextBoolean();
         }
     }
     
