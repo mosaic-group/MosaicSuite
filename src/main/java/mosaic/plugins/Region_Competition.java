@@ -490,7 +490,7 @@ public class Region_Competition implements PlugInFilter {
         initInputImage();
         initLabelImage();
         initEnergies();
-        initStack();
+//        initStack();
         IntensityImage edgeImage = initEdgeImage();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
@@ -508,20 +508,25 @@ public class Region_Competition implements PlugInFilter {
         
         AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSettings);
         
+        
+        int modulo = iSettings.m_MaxNbIterations/ 20; // 5% steps
+        if (modulo < 1) modulo = 1;
+        
         boolean isDone = false;
         int iteration = 0;
         while (iteration < iSettings.m_MaxNbIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
-            IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
+            if (iteration % modulo == 0) {
+                logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.m_MaxNbIterations) + "%");
+                IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
+                IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
+            }
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
             // If aborted pretend that we have finished segmentation (isDone=true)
             isDone = iController.hasAborted() ? true : isDone;
-
-            // Add slice with iteration output
         }
         IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 

@@ -37,15 +37,10 @@ public class AlgorithmDRS {
 
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
 
-    // Parameters
+    // Constant Parameters
     int m_MCMCstepsize = 1;
     float m_MCMCtemperature = 1;
 
-    // ==========================================================
-
-    int vAcceptedMoves = 0;
-    int m_iteration_counter = 0;
-    
     // Input for Algorithm
     private final LabelImage iLabelImage;
     private final IntensityImage iIntensityImage;
@@ -54,6 +49,8 @@ public class AlgorithmDRS {
     private final SettingsDRS iSettings;
 
     int m_Dim;
+    int vAcceptedMoves = 0;
+    int m_iteration_counter = 0;
     
     Rng m_NumberGenerator = new Rng(1212);
     Rng m_NumberGeneratorBoost = new Rng();
@@ -102,7 +99,6 @@ public class AlgorithmDRS {
 
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
 
-
     class LabelImageHistoryEventType {
 
         public LabelImageHistoryEventType(int aIndex, int aLabel) {
@@ -131,11 +127,10 @@ public class AlgorithmDRS {
         iSettings = aSettings;
 
         m_Dim = iLabelImage.getNumOfDimensions();
-        iLabelImage.save("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/testBef.tif");
 
         // Initialize label image
         iLabelImage.initBorder();
-        iLabelImage.initContour();
+//        iLabelImage.initContour();
 
         // init connectivities
         Connectivity connFG = iLabelImage.getConnFG();
@@ -155,10 +150,6 @@ public class AlgorithmDRS {
         m_MCMCEdgeImageDistr = distPair.getSecond();
 
         // Prepare a fast proposal computation:
-        //System.out.println("iSettings.m_MCMCuseBiasedProposal: " + (iSettings.m_MCMCuseBiasedProposal ? "1" : "0") + " " + m_NeighborhoodSize_BG_Connectivity);
-        for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
-            //System.out.println(vN + "_conn: " + m_NeighborsOffsets_BG_Connectivity[vN]);
-        }
         if (iSettings.useBiasedProposal) {
             m_MCMClengthProposalMask = new float[m_NeighborhoodSize_BG_Connectivity];
             for (int i = 0; i < m_NeighborhoodSize_BG_Connectivity; ++i) {
@@ -179,11 +170,11 @@ public class AlgorithmDRS {
         m_MCMCTotalNormalizer = 0.0f;
 
         // TODO: It seems that input label image cannot have negative labels, this code temporary changes it to all positives.
-        final Iterator<Point> ri2 = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
-        while (ri2.hasNext()) {
-            Point p = ri2.next();
-            iLabelImage.setLabel(p, iLabelImage.getLabelAbs(p));
-        }
+//        final Iterator<Point> ri2 = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
+//        while (ri2.hasNext()) {
+//            Point p = ri2.next();
+//            iLabelImage.setLabel(p, iLabelImage.getLabelAbs(p));
+//        }
 
         final Iterator<Point> ri = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
         while (ri.hasNext()) {
@@ -215,32 +206,8 @@ public class AlgorithmDRS {
             }
         }
 
-        //System.out.println("m_MCMCparentsProposalNormalizer: " + m_MCMCparentsProposalNormalizer);
-        //System.out.println("m_MCMCchildrenProposalNormalizer: " + m_MCMCchildrenProposalNormalizer);
-        //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel);
-
-        //System.out.println("CHILDREN:\n" + m_MCMCchildren);
-        //System.out.println("PARENTS:\n" + m_MCMCparents);
-
         initStatistics();
-
-        //System.out.println("INIT STATS:\n" + iLabelStatistics);
-
         prepareEnergies(); // TODO: initEnergies from RC - should be handled differently (energies cleanup)
-
-        // --------------- Main loop ---------------------
-        
-        /* Main loop */
-        
-//        int modulo = iSettings.maxNumOfIterations/ 100;
-//        if (modulo < 1) modulo = 1;
-//        while (iSettings.maxNumOfIterations> m_iteration_counter) {
-//            if (m_iteration_counter % modulo == 0) {
-//                System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
-//            }
-//            m_iteration_counter++;
-//            vAcceptedMoves += MCMCDoIteration() ? 1 : 0;
-//        }
     }
 
     boolean MCMCDoIteration() {
@@ -1915,14 +1882,8 @@ public class AlgorithmDRS {
     }
 
     public boolean performIteration() {
-        int modulo = iSettings.maxNumOfIterations/ 100;
-        if (modulo < 1) modulo = 1;
-        if (m_iteration_counter % modulo == 0) {
-            System.out.println("\n\n\n                    ==================== ITER " + m_iteration_counter + " ===========================\n\n\n");
-        }
         m_iteration_counter++;
         vAcceptedMoves += MCMCDoIteration() ? 1 : 0;
-        
         if (m_iteration_counter == iSettings.maxNumOfIterations) {
             System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
         }
