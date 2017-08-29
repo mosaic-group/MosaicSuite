@@ -5,13 +5,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.Iterator;
 
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
-import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.junit.Test;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
-import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.test.framework.CommonBase;
 

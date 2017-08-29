@@ -14,7 +14,7 @@ public class MinimalParticleIndexedSetTest {
         
         // Basic test
         assertEquals(0, s.size());
-        assertTrue(s.erase(new MinimalParticle(0, 0, 0)) == false);
+        assertTrue(s.erase(new MinimalParticle(0, 0, 0)) == null);
         
         // Prepare some more particles
         MinimalParticle p1 = new MinimalParticle(1, 1, 1);
@@ -24,9 +24,8 @@ public class MinimalParticleIndexedSetTest {
         
         s.insert(p1);
         assertEquals(1, s.size());
-        assertTrue(s.erase(p1) == true);
+        assertTrue(s.erase(p1) != null);
         assertEquals(0, s.size());
-        assertEquals(p1, s.getLastDeletedElement());
         
         
         // Play with larger number of particles
@@ -51,7 +50,6 @@ public class MinimalParticleIndexedSetTest {
         
         // Exchange p1 with p1b (they are same from equals() point of view)
         s.insert(p1b);
-        assertEquals(p1, s.getLastDeletedElement());
         assertEquals(p1b, s.elementAt(0));
 
         // Removing last existing element
@@ -83,6 +81,5 @@ public class MinimalParticleIndexedSetTest {
         s1.join(s2);
         assertEquals(3, s1.size());
         assertEquals(p2b, s1.elementAt(1));
-        assertEquals(p2, s1.getLastDeletedElement());
     }
 }

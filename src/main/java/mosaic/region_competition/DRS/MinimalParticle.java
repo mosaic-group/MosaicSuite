@@ -2,7 +2,7 @@ package mosaic.region_competition.DRS;
 
 
 public class MinimalParticle {
-    public int iIndex;
+    public final int iIndex;
     public int iCandidateLabel;
     public float iProposal;
     

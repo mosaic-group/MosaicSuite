@@ -45,8 +45,10 @@ public class LabelImage extends BaseImage
 
     private Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
-    protected int[] iNeighbourIndexes;
-    protected Point[] iNeighbourBgIndexes;
+    protected Point[] iNeighbourPoints;
+    protected int[] iNeighbourIndices;
+    protected Point[] iNeighbourBgPoints;
+    protected int[] iNeighbourBgIndices;
     
     /**
      * Create a label image from an ImgLib2
@@ -168,16 +170,20 @@ public class LabelImage extends BaseImage
         iConnectivityFG = new Connectivity(numOfDimensions, numOfDimensions - 1);
         iConnectivityBG = iConnectivityFG.getComplementaryConnectivity();
         
-        iNeighbourIndexes = new int[iConnectivityFG.getNumOfNeighbors()];
+        iNeighbourPoints = new Point[iConnectivityFG.getNumOfNeighbors()];
+        iNeighbourIndices = new int[iConnectivityFG.getNumOfNeighbors()];
         int idx = 0;
         for (Point p : iConnectivityFG.iterator()) {
-            iNeighbourIndexes[idx++] = pointToIndex(p);
+            iNeighbourIndices[idx] = pointToIndex(p);
+            iNeighbourPoints[idx++] = p;
         }
 
-        iNeighbourBgIndexes = new Point[iConnectivityBG.getNumOfNeighbors()];
+        iNeighbourBgPoints = new Point[iConnectivityBG.getNumOfNeighbors()];
+        iNeighbourBgIndices = new int[iConnectivityBG.getNumOfNeighbors()];
         idx = 0;
         for (Point p : iConnectivityBG.iterator()) {
-            iNeighbourBgIndexes[idx++] = p;
+            iNeighbourBgIndices[idx] = pointToIndex(p);
+            iNeighbourBgPoints[idx++] = p;
         }
     }
 
@@ -510,11 +516,11 @@ public class LabelImage extends BaseImage
             inputIndex = aIndex;
             Point start = indexToPoint(aIndex);
             max = 0;
-            idxs = new int[iNeighbourIndexes.length];
+            idxs = new int[iNeighbourPoints.length];
             if (isInBound(start)) {
-                for (int i = 0; i < iNeighbourIndexes.length; i++) { 
-                    if (isInBound(start.add(indexToPoint(iNeighbourIndexes[i])))) {
-                        idxs[max++] = iNeighbourIndexes[i] + inputIndex;
+                for (int i = 0; i < iNeighbourPoints.length; i++) { 
+                    if (isInBound(start.add(iNeighbourPoints[i]))) {
+                        idxs[max++] = iNeighbourIndices[i] + inputIndex;
                     }
                 }
             }
@@ -555,11 +561,11 @@ public class LabelImage extends BaseImage
             inputIndex = aIndex;
             Point start = indexToPoint(aIndex);
             max = 0;
-            idxs = new int[iNeighbourBgIndexes.length];
+            idxs = new int[iNeighbourBgPoints.length];
             if (isInBound(start)) {
-                for (int i = 0; i < iNeighbourBgIndexes.length; i++) { 
-                    if (isInBound(start.add(iNeighbourBgIndexes[i]))) {
-                        idxs[max++] = pointToIndex(iNeighbourBgIndexes[i]) + inputIndex;
+                for (int i = 0; i < iNeighbourBgPoints.length; i++) { 
+                    if (isInBound(start.add(iNeighbourBgPoints[i]))) {
+                        idxs[max++] = iNeighbourBgIndices[i] + inputIndex;
                     }
                 }
             }

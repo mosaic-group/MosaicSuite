@@ -34,7 +34,7 @@ public class MinimalParticleIndexedSet {
      * @param aParticle - particle to be inserted
      * @return index of inserted particle
      */
-    int insert(MinimalParticle aParticle) {
+    MinimalParticle insert(MinimalParticle aParticle) {
         Integer index = iMap.get(aParticle);
         if (index == null) {
             index = iMap.size();
@@ -42,12 +42,14 @@ public class MinimalParticleIndexedSet {
             iParticles.add(aParticle);
         }
         else {
+            // new replaced particle might have different proposal, so old one need to be removed first
             iLastRemovedElement = iParticles.get(index);
             iMap.remove(aParticle);
             iMap.put(aParticle, index);
             iParticles.set(index, aParticle);
+            return iLastRemovedElement;
         }
-        return index;
+        return null;
     }
     
     /**
@@ -70,20 +72,13 @@ public class MinimalParticleIndexedSet {
     }
     
     /**
-     * @return last removed element from container
-     */
-    MinimalParticle getLastDeletedElement() {
-        return iLastRemovedElement;
-    }
-    
-    /**
      * Removes aParticle. Change indices to keep them continues so may invalidate previous index to particle.
-     * @return true if aParticle was in container, false otherwise.
+     * @return removed MinimalParticle if existed or null otherwise
      */
-    boolean erase(MinimalParticle aParticle) {
+    MinimalParticle erase(MinimalParticle aParticle) {
         Integer index = iMap.get(aParticle);
         if (index == null) {
-            return false;
+            return null;
         }
         iLastRemovedElement = iParticles.get(index);
 
@@ -96,7 +91,7 @@ public class MinimalParticleIndexedSet {
         iParticles.set(index, iParticles.get(lastElementIndex));
         iParticles.remove(lastElementIndex);
         
-        return true;
+        return iLastRemovedElement;
     }
     
     @Override
