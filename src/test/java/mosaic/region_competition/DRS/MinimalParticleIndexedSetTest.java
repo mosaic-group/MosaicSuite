@@ -53,11 +53,11 @@ public class MinimalParticleIndexedSetTest {
         assertEquals(p1b, s.elementAt(0));
 
         // Removing last existing element
-        assertEquals(true, s.erase(p1b));
+        assertEquals(p1b, s.erase(p1b));
         assertEquals(0, s.size());
         
         // Removing on empty container
-        assertEquals(false, s.erase(p1b));
+        assertEquals(null, s.erase(p1b));
     }
     
     @Test
