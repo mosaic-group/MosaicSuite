@@ -31,6 +31,7 @@ public class Rng extends MersenneTwister {
      * @return random number
      */
     public int GetIntegerVariate(int n) {
+        final long mask = 0xffffffffL;
         // Find which bits are used in n
         long used = n;
         used |= used >> 1;
@@ -43,7 +44,7 @@ public class Rng extends MersenneTwister {
         // Draw numbers until one is found in [0,n]
         long i;
         do {
-            i = (nextInt() & 0xffffffffL) & used; // toss unused bits to shorten search
+            i = (nextInt() & mask) & used; // toss unused bits to shorten search
         }
         while ( i > n );
 

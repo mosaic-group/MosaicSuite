@@ -492,7 +492,6 @@ public class Region_Competition implements PlugInFilter {
         initEnergies();
 //        initStack();
         IntensityImage edgeImage = initEdgeImage();
-        
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
@@ -536,9 +535,8 @@ public class Region_Competition implements PlugInFilter {
         stackProcess = algorithm.createProbabilityImage();
         
         labelImage.show("LabelDRS");
-//        intensityImage.show("IntenDRS");
-//        edgeImage.show("EdgeDRS");
-        
+        intensityImage.show("IntenDRS");
+        edgeImage.show("EdgeDRS");
     }
 
     private IntensityImage initEdgeImage() {
@@ -555,7 +553,8 @@ public class Region_Competition implements PlugInFilter {
         ImagePlus sobelIp = new ImagePlus("XXXX", sobelVolume.getImageStack());
         StackStatistics ss = new StackStatistics(sobelIp);
         sobelIp.setDisplayRange(ss.min,  ss.max);  
-        
+//        ImagePlus ei = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/edgeImage.tif");
+//        return new IntensityImage(ei, false);
         return new IntensityImage(sobelIp);
     }
     

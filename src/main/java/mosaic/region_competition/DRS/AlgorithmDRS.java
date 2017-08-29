@@ -31,6 +31,7 @@ import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
+import mosaic.utils.Debug;
 
 
 public class AlgorithmDRS {
@@ -38,8 +39,8 @@ public class AlgorithmDRS {
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
 
     // Constant Parameters
-    int m_MCMCstepsize = 1;
-    float m_MCMCtemperature = 1;
+    private int m_MCMCstepsize = 1;
+    private float m_MCMCtemperature = 1;
 
     // Input for Algorithm
     private final LabelImage iLabelImage;
@@ -48,36 +49,35 @@ public class AlgorithmDRS {
     private final ImageModel iImageModel;
     private final SettingsDRS iSettings;
 
-    int m_Dim;
-    int vAcceptedMoves = 0;
-    int m_iteration_counter = 0;
+    private int m_Dim;
+    private int vAcceptedMoves = 0;
+    private int m_iteration_counter = 0;
     
-    Rng m_NumberGenerator = new Rng(1212);
-    Rng m_NumberGeneratorBoost = new Rng();
+    private Rng m_NumberGenerator = new Rng(1212);
+    private Rng m_NumberGeneratorBoost = new Rng();
 
     // Connectivities
-    int m_NeighborhoodSize_FG_Connectivity;
-    Point[] m_NeighborsOffsets_FG_Connectivity;
-    int m_NeighborhoodSize_BG_Connectivity;
-    Point[] m_NeighborsOffsets_BG_Connectivity;
-    TopologicalNumber m_TopologicalNumberFunction;
+    private int m_NeighborhoodSize_FG_Connectivity;
+    private Point[] m_NeighborsOffsets_FG_Connectivity;
+    private int m_NeighborhoodSize_BG_Connectivity;
+    private Point[] m_NeighborsOffsets_BG_Connectivity;
+    private TopologicalNumber m_TopologicalNumberFunction;
 
-    float[] m_MCMClengthProposalMask = null;
+    private float[] m_MCMClengthProposalMask = null;
 
-    LabelImage m_MCMCRegularParticlesMap; // originaly boolean but 0 / 1 approach seems to be good
-    double m_MCMCZe = 0.0; // sum of edge image values
-    EnumeratedDistribution<Integer> m_MCMCEdgeImageDistr = null;
+    private LabelImage m_MCMCRegularParticlesMap;
+    private EnumeratedDistribution<Integer> m_MCMCEdgeImageDistr = null;
 
-    List<Integer> m_MCMCRegionLabel = new ArrayList<>();
+    private List<Integer> m_MCMCRegionLabel = new ArrayList<>();
     // ProposalNormalizerMapType
-    Map<Integer, Float> m_MCMCparentsProposalNormalizer = new HashMap<>();
-    Map<Integer, Float> m_MCMCchildrenProposalNormalizer = new HashMap<>();
-    float m_MCMCTotalNormalizer;
+    private Map<Integer, Float> m_MCMCparentsProposalNormalizer = new HashMap<>();
+    private Map<Integer, Float> m_MCMCchildrenProposalNormalizer = new HashMap<>();
+    private float m_MCMCTotalNormalizer;
 
-    Map<Integer, MinimalParticleIndexedSet> m_MCMCchildren = new HashMap<>();
-    Map<Integer, MinimalParticleIndexedSet> m_MCMCparents = new HashMap<>();
+    private Map<Integer, MinimalParticleIndexedSet> m_MCMCchildren = new HashMap<>();
+    private Map<Integer, MinimalParticleIndexedSet> m_MCMCparents = new HashMap<>();
 
-    class ParticleHistoryElement {
+    private class ParticleHistoryElement {
         final MinimalParticle particle;
         final int originalLabel;
         final boolean wasAdded;
@@ -94,12 +94,12 @@ public class AlgorithmDRS {
         }
     }
 
-    List<ParticleHistoryElement> m_MCMCParticleInContainerHistory = new ArrayList<>();
-    List<ParticleHistoryElement> m_MCMCFloatingParticleInContainerHistory = new ArrayList<>();
+    private List<ParticleHistoryElement> m_MCMCParticleInContainerHistory = new ArrayList<>();
+    private List<ParticleHistoryElement> m_MCMCFloatingParticleInContainerHistory = new ArrayList<>();
 
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
 
-    class LabelImageHistoryEventType {
+    private class LabelImageHistoryEventType {
 
         public LabelImageHistoryEventType(int aIndex, int aLabel) {
             first = aIndex;
@@ -110,12 +110,13 @@ public class AlgorithmDRS {
         public int second; // LabelPixelType
     }
 
-    List<LabelImageHistoryEventType> m_MCMCLabelImageHistory = new ArrayList<>();
+    private List<LabelImageHistoryEventType> m_MCMCLabelImageHistory = new ArrayList<>();
 
-    MinimalParticleIndexedSet m_MCMCFloatingParticles = new MinimalParticleIndexedSet();
+    private MinimalParticleIndexedSet m_MCMCFloatingParticles = new MinimalParticleIndexedSet();
 
-    float m_FloatingParticlesProposalNormalizer = 0;
-    int m_MCMCNumberOfSamplesForBiasedPropApprox = 30;
+    private float m_FloatingParticlesProposalNormalizer = 0;
+    private int m_MCMCNumberOfSamplesForBiasedPropApprox = 30;
+    
     
     public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, SettingsDRS aSettings) {
         logger.debug("DRS algorithm created");
@@ -125,6 +126,7 @@ public class AlgorithmDRS {
         iEdgeImage = aEdgeImage;
         iImageModel = aModel;
         iSettings = aSettings;
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
 
         m_Dim = iLabelImage.getNumOfDimensions();
 
@@ -145,9 +147,7 @@ public class AlgorithmDRS {
         // OK.. here starts algorithm
         m_MCMCRegularParticlesMap = new LabelImage(iLabelImage.getDimensions());
 
-        Pair<Double, EnumeratedDistribution<Integer>> distPair = generateDiscreteDistribution(iEdgeImage, m_NumberGeneratorBoost);
-        m_MCMCZe = distPair.getFirst();
-        m_MCMCEdgeImageDistr = distPair.getSecond();
+        m_MCMCEdgeImageDistr = generateDiscreteDistribution(iEdgeImage, m_NumberGeneratorBoost);
 
         // Prepare a fast proposal computation:
         if (iSettings.useBiasedProposal) {
@@ -180,7 +180,7 @@ public class AlgorithmDRS {
         while (ri.hasNext()) {
             final Point point = ri.next();
             int label = iLabelImage.getLabel(point);
-            //System.out.println("------------ Init label: " + label + " at " + point);
+//            //System.out.println("------------ Init label: " + label + " at " + point);
             if (iLabelImage.isBorderLabel(label)) continue;
 
             // Add if not added so far
@@ -201,16 +201,25 @@ public class AlgorithmDRS {
                     MCMCInsertCandidatesToContainers(vPs.elementAt(vI), label, false);
                     iLabelImage.setLabel(point, -labelAbs);
                     m_MCMCRegularParticlesMap.setLabel(vPs.elementAt(vI).iIndex, 1);
-                    m_MCMCZe -= iEdgeImage.get(vPs.elementAt(vI).iIndex);
                 }
             }
         }
 
+        //System.out.println("m_MCMCparentsProposalNormalizer: " + m_MCMCparentsProposalNormalizer);
+        //System.out.println("m_MCMCchildrenProposalNormalizer: " + m_MCMCchildrenProposalNormalizer);
+        //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel);
+        
+        //System.out.println("-------- CHILDREN:\n");
+        //System.out.println(m_MCMCchildren);
+        //System.out.println("-------- PARENTS:");
+        //System.out.println(m_MCMCparents);
+        
+        
         initStatistics();
         prepareEnergies(); // TODO: initEnergies from RC - should be handled differently (energies cleanup)
     }
 
-    boolean MCMCDoIteration() {
+    private boolean MCMCDoIteration() {
         PrepareEnergyCalculationForEachIteration();
 
         float vTotEnergyDiff = 0;
@@ -244,8 +253,8 @@ public class AlgorithmDRS {
         //System.out.println("m_MCMCRegionLabel: " + m_MCMCRegionLabel + " " + vAbsLabelIndex);
         if (iSettings.allowFission && iSettings.allowFusion) {
             // linear annealing
-            float vOffboundaryPerc = iSettings.offBoundarySampleProbability * (1.0f - m_iteration_counter / (iSettings.burnInFactor * iSettings.maxNumOfIterations));
-            //System.out.println("iSettings.m_OffBoundarySampleProbability: " + iSettings.m_OffBoundarySampleProbability + " " + m_iteration_counter + " " + iSettings.m_MCMCburnInFactor + " " + m_MaxNbIterations);
+            float vOffboundaryPerc = iSettings.offBoundarySampleProbability * (1.0f - (m_iteration_counter) / (iSettings.burnInFactor * iSettings.maxNumOfIterations));
+            //System.out.println("iSettings.m_OffBoundarySampleProbability: " + iSettings.offBoundarySampleProbability + " " + m_iteration_counter + " " + iSettings.burnInFactor + " " + iSettings.maxNumOfIterations);
             double rnd = m_NumberGenerator.GetVariate();
 
             // FAKE:
@@ -269,6 +278,7 @@ public class AlgorithmDRS {
         /// Figure out if Particle A will cause growth, shrinkage or be floating particle
         double vProbabilityToProposeAFloatingParticle = // (m_MCMCFloatingParticles.size()>0)?0.9:0;
                 m_FloatingParticlesProposalNormalizer / (m_MCMCTotalNormalizer + m_FloatingParticlesProposalNormalizer);
+        //System.out.println("vProbabilityToProposeAFloatingParticle: " + vProbabilityToProposeAFloatingParticle + " " + m_FloatingParticlesProposalNormalizer + " " + m_MCMCTotalNormalizer + " " + m_FloatingParticlesProposalNormalizer);
         // double vZetaCorrectionFactor = (m_MCMCFloatingParticles.size()>0)?0.5:0;
         boolean vParticleAIsFloating = false;
         MinimalParticleIndexedSet vActiveCandidates = null;
@@ -407,7 +417,7 @@ public class AlgorithmDRS {
                 //System.out.println("distr1: " + vParticleIndex);
 
                 // FAKE:
-                // vParticleIndex = distrFake[distrCnt++];
+//                 vParticleIndex = distrFake[distrCnt++];
 
                 //System.out.println("vParticleIndex1: " + vParticleIndex);
                 vq_A.set(vPC, vAllParticlesFwdProposals.get(vParticleIndex).getSecond().floatValue());
@@ -479,7 +489,7 @@ public class AlgorithmDRS {
         /// a forward praticle and B' the backward particle.
         /// - Qb always assumes backward particles as its arguments! Hence,
         /// Qb_A_B is the probabily Qb(A'|B').
-        //System.out.println("iSettings.m_MCMCusePairProposal: " + iSettings.m_MCMCusePairProposal);
+        //System.out.println("iSettings.m_MCMCusePairProposal: " + iSettings.usePairProposal);
         if (iSettings.usePairProposal) {
 
             /// Iterate over particles A:
@@ -523,7 +533,7 @@ public class AlgorithmDRS {
                     int vCondIndex = vQ_B_A.sample();
 
                     // FAKE:
-                    // vCondIndex = distrFake[distrCnt++];
+//                     vCondIndex = distrFake[distrCnt++];
 
                     //System.out.println("distr2: " + vCondIndex);
 
@@ -871,7 +881,14 @@ public class AlgorithmDRS {
             vAccept = true;
         }
         else {
-            vAccept = (vHastingsRatio > m_NumberGenerator.GetUniformVariate(0, 1));
+//            vAccept = (vHastingsRatio > m_NumberGenerator.GetUniformVariate(0, 1));
+            double rnd =m_NumberGenerator.GetUniformVariate(0, 1);
+//            rnd = rndFake[rndCnt++];
+            if (vHastingsRatio > rnd) {
+                vAccept = true;
+            } else {
+                vAccept = false;
+            }
         }
 
         /// Register the result (if we accept) or rollback to the previous state.
@@ -897,7 +914,7 @@ public class AlgorithmDRS {
         return vAccept;
     }
 
-    void MCMCReject(MinimalParticleIndexedSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
+    private void MCMCReject(MinimalParticleIndexedSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
         /// First, recover the theoretical state:
         /// - recover the label image
         /// - recover the particle set
@@ -940,7 +957,7 @@ public class AlgorithmDRS {
         }
     }
 
-    void MCMCInsertFloatingParticleCumulative(MinimalParticle aParticle, boolean aDoRecord) {
+    private void MCMCInsertFloatingParticleCumulative(MinimalParticle aParticle, boolean aDoRecord) {
 
         int vIndex = m_MCMCFloatingParticles.find(aParticle);
 
@@ -970,10 +987,11 @@ public class AlgorithmDRS {
         }
 
         m_FloatingParticlesProposalNormalizer += aParticle.iProposal;
+        //System.out.println("m_FloatingParticlesProposalNormalizer1: " + m_FloatingParticlesProposalNormalizer);
 
     }
 
-    void MCMCUpdateRegularParticleMapInNeighborhood(int aIndex) {
+    private void MCMCUpdateRegularParticleMapInNeighborhood(int aIndex) {
 
         for (int vI = 0; vI < m_NeighborhoodSize_BG_Connectivity; vI++) {
 
@@ -983,19 +1001,17 @@ public class AlgorithmDRS {
             if (iLabelImage.isBoundaryPoint(vIndex)) {
                 if (0 == m_MCMCRegularParticlesMap.getLabel(vIndex)) {
                     m_MCMCRegularParticlesMap.setLabel(vIndex, 1 /* true */);
-                    m_MCMCZe -= iEdgeImage.get(vIndex);
                 }
             }
             else {
                 if (1 == m_MCMCRegularParticlesMap.getLabel(vIndex)) {
                     m_MCMCRegularParticlesMap.setLabel(vIndex, 0 /* false */);
-                    m_MCMCZe += iEdgeImage.get(vIndex);
                 }
             }
         }
     }
 
-    void MCMCStoreResults(int aCandidateIndex, int aLabelBefore, int aIteration) {
+    private void MCMCStoreResults(int aCandidateIndex, int aLabelBefore, int aIteration) {
         /// Instead of storing the old or the new accepted state we just store
         /// the difference (nothing is stored if we do not accept):
 
@@ -1017,7 +1033,7 @@ public class AlgorithmDRS {
         }
     }
 
-    void MCMCgetParticlesInFGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+    private void MCMCgetParticlesInFGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
         for (int vN = 0; vN < m_NeighborhoodSize_FG_Connectivity; vN++) {
             Point vOff = m_NeighborsOffsets_FG_Connectivity[vN];
 
@@ -1026,14 +1042,14 @@ public class AlgorithmDRS {
         }
     }
 
-    float CalculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
+    private float CalculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
         ContourParticle contourCandidate = new ContourParticle(aCurrentLabel, aImgValue);
         EnergyResult res = iImageModel.calculateDeltaEnergy(iLabelImage.indexToPoint(aIndex), contourCandidate, aToLabel, iLabelStatistics);
 
         return res.energyDifference.floatValue();
     }
 
-    void MCMCApplyParticle(MinimalParticle aCandidateParticle, boolean aDoSimulate) {
+    private void MCMCApplyParticle(MinimalParticle aCandidateParticle, boolean aDoSimulate) {
         //System.out.println("-------------------------------------------------------------------------- MCMCApplyParicle " + aCandidateParticle);
         //System.out.println(mosaic.utils.Debug.getStack(3));
         /// Maintain the regular particle container and the label image:
@@ -1078,7 +1094,7 @@ public class AlgorithmDRS {
     /// The method only ensures that L and the regular particles are correct.
     /// The method expects the label image NOT to be updated already. Else the
     /// operations performed will be wrong.
-    void MCMCAddAndRemoveParticlesWhenMove(MinimalParticle aCandidateParticle) {
+    private void MCMCAddAndRemoveParticlesWhenMove(MinimalParticle aCandidateParticle) {
         // Could be split into the following methods:
         // MCMCRemoveOrphinsAfterMove();
         // MCMCAddNewParentsAfterMove();
@@ -1099,7 +1115,7 @@ public class AlgorithmDRS {
         // vLabelImageIterator.SetLocation(aCandidateParticle.iIndex);
 
         /// Initialize locals from the particle
-        int vAbsLabelFrom = Math.abs(iLabelImage.getLabel(aCandidateParticle.iIndex)); // vLabelImageIterator.GetCenterPixel());
+        int vAbsLabelFrom = iLabelImage.getLabelAbs(aCandidateParticle.iIndex); // vLabelImageIterator.GetCenterPixel());
         int vAbsLabelTo = aCandidateParticle.iCandidateLabel;
 
         /// Initialize a contour index
@@ -1122,22 +1138,26 @@ public class AlgorithmDRS {
         iLabelImage.setLabel(aCandidateParticle.iIndex, -vAbsLabelTo);
         float vProposal = MCMCproposal(vCandidateIndex);
         MinimalParticle vReverseParticle = new MinimalParticle(vCandidateIndex, vAbsLabelFrom, vProposal);
+        //System.out.println("REVERSE PARTI: " + vReverseParticle);
         boolean vReverseParticleIsFloating = MCMCParticleHasFloatingProperty(vReverseParticle.iIndex, vReverseParticle.iCandidateLabel);
 
         iLabelImage.setLabel(aCandidateParticle.iIndex, vStoreLabel); // vLabelImageIterator.SetCenterPixel(vStoreLabel);
 
         int currIdx = aCandidateParticle.iIndex; // TODO : helper var to be removed later
-
+        //System.out.println("REVERSE PARTI: " + vReverseParticle + "isFloating " + vReverseParticleIsFloating);
         /// Insert the reverse particle (if its not floating, see above):
         if (!vReverseParticleIsFloating) {
+            //System.out.println("InsertF: " + vReverseParticle + " " + vAbsLabelTo);
             MCMCInsertCandidatesToContainers(vReverseParticle, vAbsLabelTo, true);
+            //System.out.println("InsertedF: " + vReverseParticle + " " + vAbsLabelTo);
         }
 
         /// erase the currently applied particle (if its floating this will not hurt
         /// to call erase here).
         float vDummyProposal2 = 0;// MCMCproposal(vCandidateIndex, vAbsLabelTo);
+        //System.out.println("EraseCandidate: " + (new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2)) + " " + vAbsLabelFrom);
         MCMCEraseCandidatesFromContainers(new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2), vAbsLabelFrom, true);
-
+        //System.out.println("EraseedCandidate: " + (new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2)) + " " + vAbsLabelFrom);
         /// Since we are storing the parents separately for each region, the
         /// following patch is needed. We need to shift the mother particle into
         /// the parents container of each others region:
@@ -1282,7 +1302,7 @@ public class AlgorithmDRS {
 
     }
 
-    void MCMCupdateProposalsAndFilterTopologyInNeighborhood(MinimalParticle aParticle) {
+    private void MCMCupdateProposalsAndFilterTopologyInNeighborhood(MinimalParticle aParticle) {
         for (int vN = -1; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
             Point vOff = new Point(new int[m_Dim]);
             if (vN < 0) {
@@ -1315,7 +1335,7 @@ public class AlgorithmDRS {
         }
     }
 
-    boolean MCMCEraseCandidatesFromContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {
+    private boolean MCMCEraseCandidatesFromContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {
         boolean vExisted = false;
         MinimalParticle vReplacedParticle = null;
 
@@ -1348,7 +1368,7 @@ public class AlgorithmDRS {
     /// Store an event (a change) on the label image. If the Metropolis algorithm
     /// refuses the current move, the m_MCMCLabelImageHistory will help to
     /// undo the changes on the label image and hence help to undo the move.
-    void MCMCPushLabelImageHistory(int aI) {
+    private void MCMCPushLabelImageHistory(int aI) {
         int vOrigLabel = iLabelImage.getLabel(aI);
         LabelImageHistoryEventType vEvent = new LabelImageHistoryEventType(aI, vOrigLabel);
         m_MCMCLabelImageHistory.add(vEvent);
@@ -1356,13 +1376,13 @@ public class AlgorithmDRS {
 
     /// The same as <code>MCMCPushLabelImageHistory(LabelImageIndexType aI)</code>
     /// but we omit a label image lookup if the original label is known.
-    void MCMCPushLabelImageHistory(int aI, int aOrigLabel) {
+    private void MCMCPushLabelImageHistory(int aI, int aOrigLabel) {
         LabelImageHistoryEventType vEvent = new LabelImageHistoryEventType(aI, aOrigLabel);
         m_MCMCLabelImageHistory.add(vEvent);
     }
 
     // Helper function for creating indexed discrete distributions (starting from 0)
-    EnumeratedDistribution<Integer> discreteDistFromList(ArrayList<Float> aList) {
+    private EnumeratedDistribution<Integer> discreteDistFromList(ArrayList<Float> aList) {
         ArrayList<Pair<Integer, Double>> pmf = new ArrayList<>();
 
         int index = 0;
@@ -1373,7 +1393,7 @@ public class AlgorithmDRS {
         return new EnumeratedDistribution<>(m_NumberGeneratorBoost, pmf);
     }
 
-    void MCMCgetParticlesInBGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+    private void MCMCgetParticlesInBGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
         for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
             Point vOff = m_NeighborsOffsets_BG_Connectivity[vN];
 
@@ -1384,7 +1404,7 @@ public class AlgorithmDRS {
     }
 
     /// Removes all non-simple points from the particle set
-    void MCMCTopologyFiltering(MinimalParticleIndexedSet aParticleSet) {
+    private void MCMCTopologyFiltering(MinimalParticleIndexedSet aParticleSet) {
         ArrayList<MinimalParticle> vParticlesToDelete = new ArrayList<>();
         for (int vI = 0; vI < aParticleSet.size(); vI++) {
             MinimalParticle vP = aParticleSet.elementAt(vI);
@@ -1398,7 +1418,7 @@ public class AlgorithmDRS {
         }
     }
 
-    void MCMCgetPartnerParticleSet(MinimalParticle aParticleA, MinimalParticleIndexedSet aSet) {
+    private void MCMCgetPartnerParticleSet(MinimalParticle aParticleA, MinimalParticleIndexedSet aSet) {
 
         MinimalParticleIndexedSet vConditionalPartsSet = new MinimalParticleIndexedSet();
         MCMCgetParticlesInBGNeighborhood(aParticleA.iIndex, vConditionalPartsSet);
@@ -1419,7 +1439,7 @@ public class AlgorithmDRS {
         aSet.insert(aParticleA);
     }
 
-    boolean MCMCParticleHasFloatingProperty(int aIndex, int aCandLabel) {
+    private boolean MCMCParticleHasFloatingProperty(int aIndex, int aCandLabel) {
         if (aCandLabel > 0) {
             /// This is a daughter. It is floating if there is no mother, i.e. if
             /// there is no corresponding region in the FG neighborhood.
@@ -1432,14 +1452,14 @@ public class AlgorithmDRS {
         return iLabelImage.isEnclosedByLabelBgConnectivity(aIndex, Math.abs(iLabelImage.getLabel(aIndex)));
     }
 
-    float MCMCGetProposalNormalizer(int aCurrentLabel, int aCandidateLabel) {
+    private float MCMCGetProposalNormalizer(int aCurrentLabel, int aCandidateLabel) {
         if (aCandidateLabel == 0) {
             return m_MCMCparentsProposalNormalizer.get(aCurrentLabel);
         }
         return m_MCMCchildrenProposalNormalizer.get(aCandidateLabel);
     }
 
-    boolean MCMCIsRegularParticle(MinimalParticle aParticle, int aCurrentLabel) {
+    private boolean MCMCIsRegularParticle(MinimalParticle aParticle, int aCurrentLabel) {
         if (aParticle.iCandidateLabel == LabelImage.BGLabel) {
             return m_MCMCparents.get(aCurrentLabel).contains(aParticle);
         }
@@ -1452,7 +1472,7 @@ public class AlgorithmDRS {
     /// Set up a vector MCMCRegionLabel that maps natural numbers (index of
     /// the vector to the region labels). We iterate the count statistics keys
     /// to get the region labels.
-    void MCMCUpdateRegionLabelVector() {
+    private void MCMCUpdateRegionLabelVector() {
 
         m_MCMCRegionLabel.clear();
 
@@ -1463,8 +1483,7 @@ public class AlgorithmDRS {
         }
     }
 
-    boolean MCMCOffBoundarySample(boolean aGrowth, int aLabel) {
-
+    private boolean MCMCOffBoundarySample(boolean aGrowth, int aLabel) {
         /// For the insertion and deletion of floating particles, we use a
         /// constant energy, therefore the MH ratio be equal to the FBR.
         /// Note that we also could use the energy as if we would do the job as
@@ -1510,7 +1529,7 @@ public class AlgorithmDRS {
     /**
      * Insert a floating particle only if it didn't exist. If it existed, the return value will be false.
      */
-    boolean MCMCInsertFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
+    private boolean MCMCInsertFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
         int vIndex = m_MCMCFloatingParticles.find(aParticle);
         if (m_MCMCFloatingParticles.size() != vIndex) {
             // the particle already exists
@@ -1525,11 +1544,12 @@ public class AlgorithmDRS {
         }
 
         m_FloatingParticlesProposalNormalizer += aParticle.iProposal;
+        //System.out.println("m_FloatingParticlesProposalNormalizer2: " + m_FloatingParticlesProposalNormalizer);
 
         return true;
     }
 
-    void MCMCEraseFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
+    private void MCMCEraseFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
         int vIndex = m_MCMCFloatingParticles.find(aParticle);
         if (m_MCMCFloatingParticles.size() == vIndex) {
             return;
@@ -1543,7 +1563,11 @@ public class AlgorithmDRS {
 
         if (vUpdatedParticle.iProposal - aParticle.iProposal > Math.ulp(1.0f) * 10) {
             /// the particle has still some proposal left
+            //System.out.println("m_FloatingParticlesProposalNormalizer3bef: " + m_FloatingParticlesProposalNormalizer + " " + aParticle);
+//            mosaic.utils.Debug.printStack();
+//            if (true) throw new RuntimeException();
             m_FloatingParticlesProposalNormalizer -= aParticle.iProposal;
+            //System.out.println("m_FloatingParticlesProposalNormalizer3: " + m_FloatingParticlesProposalNormalizer);
             vUpdatedParticle.iProposal -= aParticle.iProposal;
             m_MCMCFloatingParticles.insert(vUpdatedParticle);
         }
@@ -1551,11 +1575,12 @@ public class AlgorithmDRS {
             /// the particle gets deleted. We only remove the amount from the
             /// normalizer that has been stored in the set.
             m_FloatingParticlesProposalNormalizer -= vUpdatedParticle.iProposal;
+            //System.out.println("m_FloatingParticlesProposalNormalizer4: " + m_FloatingParticlesProposalNormalizer);
             m_MCMCFloatingParticles.erase(vUpdatedParticle);
         }
     }
 
-    int MCMCGetIndexFromEdgeDensity() {
+    private int MCMCGetIndexFromEdgeDensity() {
         int vIndex = -1;
 
         boolean vNonBoundaryPointFound = false;
@@ -1564,7 +1589,7 @@ public class AlgorithmDRS {
             int vLinIndex = m_MCMCEdgeImageDistr.sample();
 
             // FAKE:
-            // vLinIndex = distrFake[distrCnt++];
+//             vLinIndex = distrFake[distrCnt++];
             //System.out.println("distr3: " + vLinIndex);
 
             if (m_Dim == 2 || m_Dim == 3) {
@@ -1581,14 +1606,14 @@ public class AlgorithmDRS {
         return vIndex;
     }
 
-    void PrepareEnergyCalculationForEachIteration() {
+    private void PrepareEnergyCalculationForEachIteration() {
         // Same as in RC algorithm
         if (iSettings.usingDeconvolutionPcEnergy) {
             ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
         }
     }
 
-    void prepareEnergies() {
+    private void prepareEnergies() {
         // TODO: it is a'la initEnergies from RC
         if (iSettings.usingDeconvolutionPcEnergy) {
             // Deconvolution: - Alocate and initialize the 'ideal image'
@@ -1643,7 +1668,7 @@ public class AlgorithmDRS {
 //        labelDispenser.setMaxValueOfUsedLabel(maxUsedLabel);
     }
 
-    double CalculateVariance(double aSumSq, double aMean, int aN) {
+    private double CalculateVariance(double aSumSq, double aMean, int aN) {
         if (aN < 2) return 0; //TODO: what would be appropriate?
         return (aSumSq - aN * aMean * aMean)/(aN - 1.0);
     }
@@ -1668,7 +1693,7 @@ public class AlgorithmDRS {
         fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 
-    boolean MCMCInsertCandidatesToContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {
+    private boolean MCMCInsertCandidatesToContainers(MinimalParticle aParticle, int aCurrentLabel, boolean aDoRecord) {
         boolean vReplace = false;
         MinimalParticle vReplacedParticle = null;
 
@@ -1746,7 +1771,7 @@ public class AlgorithmDRS {
     /// is based on the current state of the label image.
     /// TODO: this method should be changed to achieve full topological control.
     /// now the particle is rejected if it changes somehow the topology.
-    boolean MCMCIsParticleTopoValid(MinimalParticle aParticle) {
+    private boolean MCMCIsParticleTopoValid(MinimalParticle aParticle) {
         // TODO: Currently not effiecient but seems to be correct with output. Must be checked how to find topo number wihtout looping after reults from getTopologicalNumbersForAllAdjacentLabels
         if (!iSettings.allowFission || !iSettings.allowHandles) {
             /// get the correct label to access the container of the particle
@@ -1791,7 +1816,7 @@ public class AlgorithmDRS {
         return true;
     }
 
-    float MCMCproposal(int aIndex) {
+    private float MCMCproposal(int aIndex) {
         if (!iSettings.useBiasedProposal) return 1;
 
         // Length-prior driven proposal:
@@ -1815,7 +1840,7 @@ public class AlgorithmDRS {
         return vLength;
     }
 
-    float MCMCGetUnnormalizedFloatingParticleProposal() {
+    private float MCMCGetUnnormalizedFloatingParticleProposal() {
         // floating particles need a proposal > 0: We take half of the smallest element in the mask
         // (hack:we assume the smallest element to be at position 0).
         if (!iSettings.useBiasedProposal) return 1;
@@ -1827,20 +1852,20 @@ public class AlgorithmDRS {
     // MinimalParticleHashFunctorType,
     // MinimalParticleHashFunctorType> MinimalParticleIndexedSetType;
     //
-    void MCMCgetRegularParticlesAtIndex(int aIndex, MinimalParticleIndexedSet aList) {
+    private void MCMCgetRegularParticlesAtIndex(int aIndex, MinimalParticleIndexedSet aList) {
         int currentLabel = iLabelImage.getLabel(aIndex);
-        //System.out.println(" V: " + iLabelImage.indexToPoint(aIndex) + " = " + currentLabel);
+//        //System.out.println(" V: " + iLabelImage.indexToPoint(aIndex) + " = " + currentLabel);
 
         if (currentLabel == LabelImage.BorderLabel) return;
         int absCurrentLabel = iLabelImage.labelToAbs(currentLabel);
-        //System.out.println("HERE");
+//        //System.out.println("HERE");
         boolean vParentInserted = false; /// just a speed up
         // TODO: Maybe MaskOnSpaceMapper should be used with pre-computed mask.
         for (Integer idx : iLabelImage.iterateNeighbours(aIndex)) {
-            //System.out.println("DEB: " + aIndex + " " + idx);
+//            //System.out.println("DEB: " + aIndex + " " + idx);
             int neighborLabel = iLabelImage.getLabel(idx);
 
-            //System.out.println("idx: " + iLabelImage.indexToPoint(aIndex) + " n: " + iLabelImage.indexToPoint(idx) + " vNeighPixel: " + neighborLabel);
+//            //System.out.println("idx: " + iLabelImage.indexToPoint(aIndex) + " n: " + iLabelImage.indexToPoint(idx) + " vNeighPixel: " + neighborLabel);
 
             int absNeighborLabel = iLabelImage.labelToAbs(neighborLabel);
             if (!iLabelImage.isBorderLabel(neighborLabel) && absNeighborLabel != absCurrentLabel) {
@@ -1867,7 +1892,7 @@ public class AlgorithmDRS {
             for (Integer idx : iLabelImage.iterateBgNeighbours(aIndex)) {
 
                 int vNeighPixel = iLabelImage.getLabel(idx);
-                //System.out.println("--- xxx: " + iLabelImage.indexToPoint(idx) + " " + vNeighPixel);
+//                //System.out.println("--- xxx: " + iLabelImage.indexToPoint(idx) + " " + vNeighPixel);
                 if (iLabelImage.labelToAbs(vNeighPixel) != absCurrentLabel) {
                     /// This is a FG pixel with a neighbor of a different label.
                     /// finally, insert a parent particle
@@ -1886,7 +1911,13 @@ public class AlgorithmDRS {
         vAcceptedMoves += MCMCDoIteration() ? 1 : 0;
         if (m_iteration_counter == iSettings.maxNumOfIterations) {
             System.out.println("Overall acceptance rate: " + ((float) vAcceptedMoves / m_iteration_counter));
+            //System.out.println("iWasThere: " + iWasThere);
         }
+        
+        //System.out.println("-------- CHILDREN:\n");
+        //System.out.println(m_MCMCchildren);
+        //System.out.println("-------- PARENTS:");
+        //System.out.println(m_MCMCparents);
         
         // never done earlier than wanted number of iterations
         return false;
@@ -1898,7 +1929,7 @@ public class AlgorithmDRS {
     
     // ================================= CLEANED UP ===================================================
     
-    class McmcResult {
+    private class McmcResult {
         public int iteration;
         public int previousLabel;
 
@@ -1910,7 +1941,7 @@ public class AlgorithmDRS {
         }
     }
     
-    Map<Integer, List<McmcResult>> iMcmcResults = new HashMap<>(); // point index -> result
+    private Map<Integer, List<McmcResult>> iMcmcResults = new HashMap<>(); // point index -> result
     
     
     /**
@@ -1919,6 +1950,7 @@ public class AlgorithmDRS {
      */
     public SegmentationProcessWindow createProbabilityImage() {
         // Create output stack image
+        //System.out.println("m_MCMCResults:\n" + iMcmcResults);
         int[] dims = iLabelImage.getDimensions();
         SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
 
@@ -1973,9 +2005,9 @@ public class AlgorithmDRS {
      * NOTICE: in case if values in input image are too small (< 10*eps(1)) it will provide flat distribution and will change all pixels of input image to 1.0
      * 
      * @param aImg input image to generate distribution from
-     * @return pair (sum of all pixels in image, generated distribution)
+     * @return generated distribution
      */
-    static Pair<Double, EnumeratedDistribution<Integer>> generateDiscreteDistribution(IntensityImage aImg, Rng am_NumberGeneratorBoost) {
+    static EnumeratedDistribution<Integer> generateDiscreteDistribution(IntensityImage aImg, Rng am_NumberGeneratorBoost) {
         ArrayList<Pair<Integer, Double>> pmf = new ArrayList<>(aImg.getSize());
         
         Iterator<Point> ri = new SpaceIterator(aImg.getDimensions()).getPointIterator();
@@ -2000,8 +2032,6 @@ public class AlgorithmDRS {
             }
         }
 
-        EnumeratedDistribution<Integer> m_MCMCEdgeImageDistr = new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
-
-        return new Pair<>(sumOfPixelValues, m_MCMCEdgeImageDistr);
+        return new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
     }
 }

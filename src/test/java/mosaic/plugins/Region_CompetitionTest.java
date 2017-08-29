@@ -218,6 +218,7 @@ public class Region_CompetitionTest extends CommonBase {
         testDrs4();
         testDrs5();
         testDrs6();
+        testDrs7();
     }
     @Test
     public void testDrs1()  {
@@ -357,6 +358,31 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] expectedFiles     = {};
         final String[] referenceFiles    = {};
 
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testDrs7()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/drs7/";
+        final String setupString         = "run";
+        final String macroOptions        = "labelimage=init___.tif show_and_save_statistics normalize=false";
+        final String inputFile           = "sphere-1.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};        
+        final String[] expectedFiles     = {};
+        final String[] referenceFiles    = {};
+        
         // Create tested plugIn
         final Region_Competition plugin = new Region_Competition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");

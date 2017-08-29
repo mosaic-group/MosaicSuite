@@ -20,7 +20,7 @@ public class MinimalParticle {
     
     MinimalParticle() {
         // set values that are unusual
-        this(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+        this(Integer.MIN_VALUE, Integer.MIN_VALUE, 0);
     }
 
     @Override

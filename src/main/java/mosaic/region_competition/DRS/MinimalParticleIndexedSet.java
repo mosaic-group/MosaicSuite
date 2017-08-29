@@ -85,7 +85,6 @@ public class MinimalParticleIndexedSet {
         if (index == null) {
             return false;
         }
-        
         iLastRemovedElement = iParticles.get(index);
 
         /// We move the last element:
