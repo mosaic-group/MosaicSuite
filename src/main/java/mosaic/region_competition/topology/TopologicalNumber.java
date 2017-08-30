@@ -89,6 +89,32 @@ public class TopologicalNumber {
         
         return topologicalNumsResult; 
     }
+    
+    /**
+     * Calculates topological numbers for specific label in neighborhood of given point
+     * @param aMiddlePoint - around that point connected components are searched (in unit cube)
+     * @param aLabel
+     * @return single result
+     */
+    public List<TopologicalNumberResult> getTopologicalNumbers(Point aMiddlePoint, List<Integer> aLabels) {
+        getSubImage(aMiddlePoint);
+        final Set<Integer> adjacentLabels = findAllLabelsInFgNeighborhood();
+        
+        // Calculate number of connected components for each label in FG and BG
+        final List<TopologicalNumberResult> topologicalNumsResult = new ArrayList<TopologicalNumberResult>(aLabels.size());
+        for (int label : aLabels) {
+            TopologicalNumberResult result = null;
+            if (adjacentLabels.contains(label)) {
+                generateFgAndBgSubImagesForLabel(label);
+                
+                int FGNumber = iFgConnectedComponentsCounter.SetImage(iOneLabelSubImageFg).getNumberOfConnectedComponents();
+                int BGNumber = iBgConnectedComponentsCounter.SetImage(iOneLabelSubImageBg).getNumberOfConnectedComponents();
+                result = new TopologicalNumberResult(label, FGNumber, BGNumber);
+            }
+            topologicalNumsResult.add(result);
+        }
+        return topologicalNumsResult;
+    }
 
     /**
      * Simplified getTopologicalNumbersForAllAdjacentLabels method. Just gives an answer if Point is FG-simple.

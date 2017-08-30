@@ -56,11 +56,9 @@ public class AlgorithmDRS {
     private Rng m_NumberGeneratorBoost = new Rng();
 
     // Connectivities
-    private int m_NeighborhoodSize_FG_Connectivity;
-    private Point[] m_NeighborsOffsets_FG_Connectivity;
-    private int m_NeighborhoodSize_BG_Connectivity;
-    private Point[] m_NeighborsOffsets_BG_Connectivity;
-    private TopologicalNumber m_TopologicalNumberFunction;
+    private Point[] iFgNeighborsOffsets;
+    private Point[] iBgNeighborsOffsets;
+    private TopologicalNumber iTopoFunction;
 
     private float[] m_MCMClengthProposalMask = null;
 
@@ -93,23 +91,10 @@ public class AlgorithmDRS {
         }
     }
 
-    private List<ParticleHistoryElement> m_MCMCParticleInContainerHistory = new ArrayList<>();
+    private List<ParticleHistoryElement> iParticlesHistory = new ArrayList<>();
     private List<ParticleHistoryElement> iFloatingParticlesHistory = new ArrayList<>();
 
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
-
-    private class LabelImageHistoryEventType {
-
-        public LabelImageHistoryEventType(int aIndex, int aLabel) {
-            first = aIndex;
-            second = aLabel;
-        }
-
-        public int first; // LabelImageIndexType
-        public int second; // LabelPixelType
-    }
-
-    private List<LabelImageHistoryEventType> m_MCMCLabelImageHistory = new ArrayList<>();
 
     private MinimalParticleIndexedSet iFloatingParticles = new MinimalParticleIndexedSet();
 
@@ -133,13 +118,11 @@ public class AlgorithmDRS {
 
         // init connectivities
         Connectivity connFG = iLabelImage.getConnFG();
-        m_NeighborhoodSize_FG_Connectivity = connFG.getNumOfNeighbors();
-        m_NeighborsOffsets_FG_Connectivity = connFG.getPointOffsets();
+        iFgNeighborsOffsets = connFG.getPointOffsets();
         Connectivity connBG = iLabelImage.getConnBG();
-        m_NeighborhoodSize_BG_Connectivity = connBG.getNumOfNeighbors();
-        m_NeighborsOffsets_BG_Connectivity = connBG.getPointOffsets();
+        iBgNeighborsOffsets = connBG.getPointOffsets();
         // TODO: m_TopologicalNumberFunction - set / check what is it.
-        m_TopologicalNumberFunction = new TopologicalNumber(iLabelImage);
+        iTopoFunction = new TopologicalNumber(iLabelImage);
 
         // OK.. here starts algorithm
         m_MCMCRegularParticlesMap = new LabelImage(iLabelImage.getDimensions());
@@ -148,9 +131,9 @@ public class AlgorithmDRS {
 
         // Prepare a fast proposal computation:
         if (iSettings.useBiasedProposal) {
-            m_MCMClengthProposalMask = new float[m_NeighborhoodSize_BG_Connectivity];
-            for (int i = 0; i < m_NeighborhoodSize_BG_Connectivity; ++i) {
-                Point offset = m_NeighborsOffsets_BG_Connectivity[i];
+            m_MCMClengthProposalMask = new float[iBgNeighborsOffsets.length];
+            for (int i = 0; i < iBgNeighborsOffsets.length; ++i) {
+                Point offset = iBgNeighborsOffsets[i];
                 m_MCMClengthProposalMask[i] = (float) (1.0 / offset.length());
             }
         }
@@ -189,11 +172,10 @@ public class AlgorithmDRS {
             }
             // // Add all regular particles at this spot:
             MinimalParticleIndexedSet vPs = new MinimalParticleIndexedSet();
-
-            MCMCgetRegularParticlesAtIndex(iLabelImage.pointToIndex(point), vPs);
+            getRegularParticles(iLabelImage.pointToIndex(point), vPs);
 
             for (int vI = 0; vI < vPs.size(); ++vI) {
-                if (MCMCIsParticleTopoValid(vPs.elementAt(vI))) {
+                if (isParticleTopoValid(vPs.elementAt(vI))) {
                     insertCandidatesToContainers(vPs.elementAt(vI), label, false);
                     iLabelImage.setLabel(point, -labelAbs);
                     m_MCMCRegularParticlesMap.setLabel(vPs.elementAt(vI).iIndex, 1);
@@ -213,9 +195,9 @@ public class AlgorithmDRS {
 
         /// These list will help to revert the move in case it gets rejected.
         // ParticleHistoryElementListType vHistoryOfMovedParticles;
-        m_MCMCParticleInContainerHistory.clear();
+        iParticlesHistory.clear();
         iFloatingParticlesHistory.clear();
-        m_MCMCLabelImageHistory.clear();
+        iLabelImageHistory.clear();
 
         /// The following check is theoretically not needed as there should
         /// always be a floating particle somewhere (given the algorithm
@@ -499,7 +481,7 @@ public class AlgorithmDRS {
                 /// proposal (with updated proposals)
                 MinimalParticleIndexedSet vParts_Q_BgivenA = new MinimalParticleIndexedSet();
                 //System.out.println("MCMCgetPartnerParticleSet1: " + vA + " " + vParts_Q_BgivenA);
-                MCMCgetPartnerParticleSet(vA, vParts_Q_BgivenA);
+                getPartnerParticles(vA, vParts_Q_BgivenA);
                 //System.out.println("MCMCgetPartnerParticleSet1 after: " + vA + " " + vParts_Q_BgivenA);
 
                 /// Find B:
@@ -517,26 +499,12 @@ public class AlgorithmDRS {
                     }
                     EnumeratedDistribution<Integer> vQ_B_A = createDiscreteDistrFromValues(vProposalsVector);
                     int vCondIndex = vQ_B_A.sample();
-
-                    // FAKE:
-//                     vCondIndex = distrFake[distrCnt++];
-
-                    //System.out.println("distr2: " + vCondIndex);
-
-                    //System.out.println("vQ_B_A: " + vQ_B_A.getPmf());
-
-                    //System.out.println("vCondIndex: " + vCondIndex);
                     vB = vParts_Q_BgivenA.elementAt(vCondIndex);
                     /// The value m_Proposal of vB is currently equal to Q_B_A.
                     vq_B_A.set(vPC, vB.iProposal / vNormalizer_Q_B_A);
                 }
                 else {
                     int vPartI = iNumberGenerator.GetIntegerVariate(vParts_Q_BgivenA.size() - 1);
-
-                    // FAKE:
-//                     vPartI = (int) rndFake[rndCnt++];
-
-                    //System.out.println("m_NumberGenerator7: " + vPartI);
                     vB = vParts_Q_BgivenA.elementAt(vPartI);
                     vq_B_A.set(vPC, 1.0f / vParts_Q_BgivenA.size());
                 }
@@ -573,7 +541,7 @@ public class AlgorithmDRS {
                 /// containers we can calculate qb_A'_B' as well. We assume now
                 /// that B' was applied and we calculate the probability for A'.
                 MinimalParticleIndexedSet vParts_Qb_AgivenB = new MinimalParticleIndexedSet();
-                MCMCgetPartnerParticleSet(vB, vParts_Qb_AgivenB);
+                getPartnerParticles(vB, vParts_Qb_AgivenB);
 
                 if (iSettings.useBiasedProposal) {
                     //System.out.println("vParts_Qb_AgivenB: " + vParts_Qb_AgivenB);
@@ -676,7 +644,7 @@ public class AlgorithmDRS {
                     /// their proposal values; this is the normalizer for the
                     /// discrete probability Q(A|B)
                     MinimalParticleIndexedSet vParts_Q_AgivenB = new MinimalParticleIndexedSet();
-                    MCMCgetParticlesInFGNeighborhood(vParticleB.iIndex, vParts_Q_AgivenB);
+                    getRegularParticlesInFgNeighborhood(vParticleB.iIndex, vParts_Q_AgivenB);
                     /// add particle B as this is always a candidate as well
                     vParticleB.iProposal = calculateProposal(vParticleB.iIndex);
                     vParts_Q_AgivenB.insert(vParticleB);
@@ -702,7 +670,7 @@ public class AlgorithmDRS {
 
                     /// Calculate Qb(B'|A')
                     MinimalParticleIndexedSet vParts_Qb_BgivenA = new MinimalParticleIndexedSet();
-                    MCMCgetParticlesInFGNeighborhood(vParticleA.iIndex, vParts_Qb_BgivenA);
+                    getRegularParticlesInFgNeighborhood(vParticleA.iIndex, vParts_Qb_BgivenA);
                     vParts_Qb_BgivenA.insert(vReverseParticleA);
                     if (iSettings.useBiasedProposal) {
                         float vNormalizer_Qb_B_A = 0;
@@ -908,8 +876,8 @@ public class AlgorithmDRS {
         /// - recover the statistics (by simulation of the backward particle)
         /// - recover the proposal normalizers (taken care of within the
         /// insertion/deletion methods).
-        for (int i = m_MCMCParticleInContainerHistory.size() - 1; i >= 0; --i) {
-            ParticleHistoryElement phe = m_MCMCParticleInContainerHistory.get(i);
+        for (int i = iParticlesHistory.size() - 1; i >= 0; --i) {
+            ParticleHistoryElement phe = iParticlesHistory.get(i);
             if (phe.wasAdded) {
                 eraseCandidatesFromContainers(phe.particle, phe.originalLabel, false);
             }
@@ -929,9 +897,9 @@ public class AlgorithmDRS {
         }
 
         /// recover the label image:
-        for (int i = m_MCMCLabelImageHistory.size() - 1; i >= 0; --i) {
-            LabelImageHistoryEventType vRLIt = m_MCMCLabelImageHistory.get(i);
-            iLabelImage.setLabel(vRLIt.first, vRLIt.second);
+        for (int i = iLabelImageHistory.size() - 1; i >= 0; --i) {
+            LabelImageHistoryEvent vRLIt = iLabelImageHistory.get(i);
+            iLabelImage.setLabel(vRLIt.index, vRLIt.label);
         }
 
         /// recover the statistics:
@@ -979,9 +947,9 @@ public class AlgorithmDRS {
 
     private void MCMCUpdateRegularParticleMapInNeighborhood(int aIndex) {
 
-        for (int vI = 0; vI < m_NeighborhoodSize_BG_Connectivity; vI++) {
+        for (Point offset : iBgNeighborsOffsets) {
 
-            int vIndex = aIndex + iLabelImage.pointToIndex(m_NeighborsOffsets_BG_Connectivity[vI]);
+            int vIndex = aIndex + iLabelImage.pointToIndex(offset);
             if (iLabelImage.isBorderLabel(iLabelImage.getLabel(vIndex))) continue;
 
             if (iLabelImage.isBoundaryPoint(vIndex)) {
@@ -1019,15 +987,6 @@ public class AlgorithmDRS {
         }
     }
 
-    private void MCMCgetParticlesInFGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
-        for (int vN = 0; vN < m_NeighborhoodSize_FG_Connectivity; vN++) {
-            Point vOff = m_NeighborsOffsets_FG_Connectivity[vN];
-
-            /// append particles in the set
-            MCMCgetRegularParticlesAtIndex(aIndex + iLabelImage.pointToIndex(vOff), aList);
-        }
-    }
-
     private float CalculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
         ContourParticle contourCandidate = new ContourParticle(aCurrentLabel, aImgValue);
         EnergyResult res = iImageModel.calculateDeltaEnergy(iLabelImage.indexToPoint(aIndex), contourCandidate, aToLabel, iLabelStatistics);
@@ -1036,17 +995,12 @@ public class AlgorithmDRS {
     }
 
     private void MCMCApplyParticle(MinimalParticle aCandidateParticle, boolean aDoSimulate) {
-        //System.out.println("-------------------------------------------------------------------------- MCMCApplyParicle " + aCandidateParticle);
-        //System.out.println(mosaic.utils.Debug.getStack(3));
         /// Maintain the regular particle container and the label image:
         MCMCAddAndRemoveParticlesWhenMove(aCandidateParticle);
 
-        ///
         /// Update the label image. The new point is either a contour particle or 0,
         /// therefore the negative label value is set.
         int vFromLabel = Math.abs(iLabelImage.getLabel(aCandidateParticle.iIndex));
-
-        assert (vFromLabel != aCandidateParticle.iCandidateLabel);
 
         int vSign = -1; /// standard sign of the label image of boundary particles
         if (iLabelImage.isEnclosedByLabelBgConnectivity(aCandidateParticle.iIndex, aCandidateParticle.iCandidateLabel)) {
@@ -1054,7 +1008,7 @@ public class AlgorithmDRS {
             vSign = 1;
         }
 
-        MCMCPushLabelImageHistory(aCandidateParticle.iIndex);
+        storeLabelImageHistory(aCandidateParticle.iIndex, iLabelImage.getLabel(aCandidateParticle.iIndex));
         iLabelImage.setLabel(aCandidateParticle.iIndex, vSign * aCandidateParticle.iCandidateLabel);
 
         ///
@@ -1071,7 +1025,7 @@ public class AlgorithmDRS {
         /// Update the proposals for all particles in the neighborhood (as they
         /// might have changed).
         if (iSettings.useBiasedProposal || (!iSettings.allowFission || !iSettings.allowHandles)) {
-            MCMCupdateProposalsAndFilterTopologyInNeighborhood(aCandidateParticle);
+            updateProposalsAndFilterTopologyInNeighborhood(aCandidateParticle);
         }
     }
 
@@ -1081,300 +1035,140 @@ public class AlgorithmDRS {
     /// The method expects the label image NOT to be updated already. Else the
     /// operations performed will be wrong.
     private void MCMCAddAndRemoveParticlesWhenMove(MinimalParticle aCandidateParticle) {
-        // Could be split into the following methods:
+        // TODO: Could be split into the following methods:
         // MCMCRemoveOrphinsAfterMove();
         // MCMCAddNewParentsAfterMove();
         // MCMCRemoveInteriorPointsAfterMove();
         // MCMCAddNewCandidatesAfterMove();
 
-        /// Initilize an neighborhooditerator for fast access to the label image
-        /// in the vicinity of the particle of interest.
-        // typedef NeighborhoodIterator<LabelImageType> LabelImageNeighborhoodIteratorType;
-        // typedef typename LabelImageNeighborhoodIteratorType::RadiusType LabelImageNeighborhoodIteratorRadiusType;
-        //
-        // LabelImageNeighborhoodIteratorRadiusType vLabelImageIteratorRadius;
-        // vLabelImageIteratorRadius.Fill(2);
-        // LabelImageNeighborhoodIteratorType vLabelImageIterator(
-        // vLabelImageIteratorRadius,
-        // m_LabelImage,
-        // m_LabelImage->GetBufferedRegion());
-        // vLabelImageIterator.SetLocation(aCandidateParticle.iIndex);
+        int absLabelFrom = iLabelImage.getLabelAbs(aCandidateParticle.iIndex);
+        int absLabelTo = aCandidateParticle.iCandidateLabel;
+        int candidateIndex = aCandidateParticle.iIndex;
 
-        /// Initialize locals from the particle
-        int vAbsLabelFrom = iLabelImage.getLabelAbs(aCandidateParticle.iIndex); // vLabelImageIterator.GetCenterPixel());
-        int vAbsLabelTo = aCandidateParticle.iCandidateLabel;
-
-        /// Initialize a contour index
-        int vCandidateIndex = aCandidateParticle.iIndex;
-        //System.out.println( " --- LF: " + vAbsLabelFrom + " LT: " + vAbsLabelTo + " vCandidateIndex: " + vCandidateIndex);
-
-        /// We remove the particle and insert the reverse particle:
-        /// Here we cannot decide if the reverse particle is indeed
-        /// a floating particle (this is because we apply B first, then A).
-        /// The solution is that this method only works on the regular particle
-        /// set. Floating particles will be detected and treated outside of
-        /// this method. Here we omit the potential insertion of floating
-        /// particles.
-        /// In order to (maybe) replace the particle with its reverse particle we:
-        /// Simulate the move, calculate the proposal for the backward particle,
-        /// create the backward particle, check if the backward particle is
-        /// floating, and finally restore the label image:
-
-        int vStoreLabel = iLabelImage.getLabel(aCandidateParticle.iIndex);
-        iLabelImage.setLabel(aCandidateParticle.iIndex, -vAbsLabelTo);
-        float vProposal = calculateProposal(vCandidateIndex);
-        MinimalParticle vReverseParticle = new MinimalParticle(vCandidateIndex, vAbsLabelFrom, vProposal);
-        //System.out.println("REVERSE PARTI: " + vReverseParticle);
-        boolean vReverseParticleIsFloating = MCMCParticleHasFloatingProperty(vReverseParticle.iIndex, vReverseParticle.iCandidateLabel);
-
-        iLabelImage.setLabel(aCandidateParticle.iIndex, vStoreLabel); // vLabelImageIterator.SetCenterPixel(vStoreLabel);
-
-        int currIdx = aCandidateParticle.iIndex; // TODO : helper var to be removed later
-        //System.out.println("REVERSE PARTI: " + vReverseParticle + "isFloating " + vReverseParticleIsFloating);
-        /// Insert the reverse particle (if its not floating, see above):
-        if (!vReverseParticleIsFloating) {
-            //System.out.println("InsertF: " + vReverseParticle + " " + vAbsLabelTo);
-            insertCandidatesToContainers(vReverseParticle, vAbsLabelTo, true);
-            //System.out.println("InsertedF: " + vReverseParticle + " " + vAbsLabelTo);
+        // We remove the particle and insert the reverse particle: we cannot decide if the reverse particle is indeed.
+        // The solution is that this method only works on the regular particle set. Floating particles will be detected and treated outside of
+        // this method. Here we omit the potential insertion of floating particles.
+        // In order to (maybe) replace the particle with its reverse particle we: Simulate the move, calculate the proposal for the backward particle,
+        // create the backward particle, check if the backward particle is floating, and finally restore the label image:
+        int savedOrigLabel = iLabelImage.getLabel(candidateIndex);
+        iLabelImage.setLabel(candidateIndex, -absLabelTo);
+        MinimalParticle reverseParticle = new MinimalParticle(candidateIndex, absLabelFrom, calculateProposal(candidateIndex));
+        boolean reverseParticleIsFloating = MCMCParticleHasFloatingProperty(reverseParticle.iIndex, reverseParticle.iCandidateLabel);
+        iLabelImage.setLabel(candidateIndex, savedOrigLabel);
+        if (!reverseParticleIsFloating) {
+            insertCandidatesToContainers(reverseParticle, absLabelTo, true);
         }
 
-        /// erase the currently applied particle (if its floating this will not hurt
-        /// to call erase here).
-        float vDummyProposal2 = 0;// MCMCproposal(vCandidateIndex, vAbsLabelTo);
-        //System.out.println("EraseCandidate: " + (new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2)) + " " + vAbsLabelFrom);
-        eraseCandidatesFromContainers(new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2), vAbsLabelFrom, true);
-        //System.out.println("EraseedCandidate: " + (new MinimalParticle(vCandidateIndex, vAbsLabelTo, vDummyProposal2)) + " " + vAbsLabelFrom);
-        /// Since we are storing the parents separately for each region, the
-        /// following patch is needed. We need to shift the mother particle into
-        /// the parents container of each others region:
-        //System.out.println("BEFORE: " + vAbsLabelFrom + "/" + vAbsLabelTo + " " + m_MCMCchildrenProposalNormalizer);
-        if (vAbsLabelFrom != 0 && vAbsLabelTo != 0) {
-            float vProposal1 = calculateProposal(vCandidateIndex);
-            eraseCandidatesFromContainers(new MinimalParticle(vCandidateIndex, 0, vProposal1), vAbsLabelFrom, true);
-            insertCandidatesToContainers(new MinimalParticle(vCandidateIndex, 0, vProposal1), vAbsLabelTo, true);
-            //System.out.println("AFTER : " + m_MCMCchildrenProposalNormalizer);
+        // erase the currently applied particle (if its floating this will not hurt to call erase here).
+        eraseCandidatesFromContainers(new MinimalParticle(candidateIndex, absLabelTo, 0), absLabelFrom, true);
+        
+        // Since we are storing the parents separately for each region, the following patch is needed. 
+        // We need to shift the mother particle into the parents container of each others region.
+        if (absLabelFrom != 0 && absLabelTo != 0) {
+            MinimalParticle p = new MinimalParticle(candidateIndex, 0, calculateProposal(candidateIndex));
+            eraseCandidatesFromContainers(p, absLabelFrom, true);
+            insertCandidatesToContainers(p, absLabelTo, true);
         }
 
-        /// What particle would be added or removed to the contour lists
-        /// of the currently shrinking region:
-        /// (compare to also AddNeighborsAtRemove(..))
-        if (vAbsLabelFrom != 0) { // a FG region is shrinking
-            //System.out.println("vAbsLabelFrom != 0 ");
-            for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
-                Point vOff = m_NeighborsOffsets_BG_Connectivity[vN];
-                int vL = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff));
-                //System.out.println(" vL:" + vL + " " + vAbsLabelFrom );
-                /// Check if new points enter the contour (internal point becomes a parent):
-                /// Internal points of this region are positive:
-                if (vL > 0 && Math.abs(vL) == vAbsLabelFrom) {
-                    //System.out.println("prop index: " + (vCandidateIndex + iLabelImage.pointToIndex(vOff)) + iLabelImage.indexToPoint(vCandidateIndex + iLabelImage.pointToIndex(vOff)));
-                    float vProposal1 = calculateProposal(vCandidateIndex + iLabelImage.pointToIndex(vOff));
-                    boolean vNotExisted = insertCandidatesToContainers(new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0, vProposal1), vAbsLabelFrom, true);
-                    //System.out.println("P/exist: " + new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0, vProposal1) + " " + vNotExisted);
-                    if (vNotExisted) {
-                        iLabelImage.setLabel(currIdx + iLabelImage.pointToIndex(vOff), -vAbsLabelFrom);
-                        MCMCPushLabelImageHistory(aCandidateParticle.iIndex + iLabelImage.pointToIndex(vOff), vL);
+        // What particle would be added or removed to the contour lists of the currently shrinking region.
+        // FG region is shrinking:
+        if (absLabelFrom != 0) { 
+            for (Point offset : iBgNeighborsOffsets) {
+                int index = candidateIndex + iLabelImage.pointToIndex(offset);
+                int label = iLabelImage.getLabel(index);
+                // Check if new points enter the contour (internal point becomes a parent):
+                // Internal points of this region are positive:
+                if (label > 0 && Math.abs(label) == absLabelFrom) {
+                    boolean notExisted = insertCandidatesToContainers(new MinimalParticle(index, 0, calculateProposal(index)), absLabelFrom, true);
+                    if (notExisted) {
+                        iLabelImage.setLabel(index, -absLabelFrom);
+                        storeLabelImageHistory(index, label);
                     }
                 }
             }
 
-            for (int vN = 0; vN < m_NeighborhoodSize_FG_Connectivity; vN++) {
-                Point vOff = m_NeighborsOffsets_FG_Connectivity[vN];
-                int vL = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff));
-                //System.out.println(" vL2:" + vL);
-                if (iLabelImage.isBorderLabel(vL)) continue;
+            for (Point offset : iFgNeighborsOffsets) {
+                int index = candidateIndex + iLabelImage.pointToIndex(offset);
+                int label = iLabelImage.getLabel(index);
+                if (iLabelImage.isBorderLabel(label)) continue;
 
-                /// check if there are FG-neighbors with no other mother of the
-                // same label --> orphin.
+                /// check if there are FG-neighbors with no other mother of the same label --> orphan.
                 /// we first 'simulate' the move:
-                int vStoreLabel1 = iLabelImage.getLabel(currIdx);
-                iLabelImage.setLabel(currIdx, -vAbsLabelTo);
-                // vLabelImageIterator.SetCenterPixel(-vAbsLabelTo);
+                int savedLabel = iLabelImage.getLabel(candidateIndex);
+                iLabelImage.setLabel(candidateIndex, -absLabelTo);
 
-                if (Math.abs(vL) != vAbsLabelFrom) {
+                if (Math.abs(label) != absLabelFrom) {
                     // check if this neighbor has other mothers from this label:
-                    boolean vHasOtherMother = false;
-                    for (int vM = 0; vM < m_NeighborhoodSize_FG_Connectivity; vM++) {
-                        Point vOff2 = m_NeighborsOffsets_FG_Connectivity[vM];
-                        int vL2 = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff2.add(vOff)));
-                        if (Math.abs(vL2) == vAbsLabelFrom) {
-                            vHasOtherMother = true;
+                    boolean hasOtherMother = false;
+                    for (Point vOff2 : iFgNeighborsOffsets) {
+                        int vL2 = iLabelImage.getLabelAbs(candidateIndex + iLabelImage.pointToIndex(vOff2.add(offset)));
+                        if (vL2 == absLabelFrom) {
+                            hasOtherMother = true;
                             break;
                         }
                     }
-                    if (!vHasOtherMother) {
-                        /// The orphin has label equal to what we read from the
-                        /// label image and has a candidate label of the
-                        /// currently shrinking region.
-
-                        // the proposal is not important; we delete the value
-                        float vProposal1 = 0;// MCMCproposal(vCandidateIndex + vOff, vAbsLabelFrom);
-                        if (eraseCandidatesFromContainers(new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), vAbsLabelFrom, vProposal1), Math.abs(vL), true)) {
-
-                        }
+                    if (!hasOtherMother) {
+                        // The orphin has label equal to what we read from the label image and has a candidate label of the currently shrinking region.
+                        // The proposal is not important; we delete the value
+                        eraseCandidatesFromContainers(new MinimalParticle(index, absLabelFrom, 0), Math.abs(label), true);
                     }
                 }
-                iLabelImage.setLabel(currIdx, vStoreLabel1);
+                iLabelImage.setLabel(candidateIndex, savedLabel);
             }
         }
-        //System.out.println("===========HISTORY:\n" + m_MCMCParticleInContainerHistory + "\n\n");
 
         /// Growing: figure out the changes of candidates for the expanding region
-        if (vAbsLabelTo != 0) { // we are growing
-            /// Neighbors: Figure out what (neighboring)mother points are going
-            /// to be interior points:
-
+        if (absLabelTo != 0) { // we are growing
+            /// Neighbors: Figure out what (neighboring)mother points are going to be interior points:
             /// simulate the move
-            int vStoreLabel1 = iLabelImage.getLabel(currIdx);
-            iLabelImage.setLabel(currIdx, -vAbsLabelTo);
+            int vStoreLabel1 = iLabelImage.getLabel(candidateIndex);
+            iLabelImage.setLabel(candidateIndex, -absLabelTo);
 
-            for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
-                Point vOff = m_NeighborsOffsets_BG_Connectivity[vN];
-                int vL = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff)); // vLabelImageIterator.GetPixel(vOff);
+            for (Point vOff : iBgNeighborsOffsets) {
+                int index = candidateIndex + iLabelImage.pointToIndex(vOff);
+                int vL = iLabelImage.getLabel(index);
                 // TODO: the isEnclosedByLabel method could use the above iterator
-                if (vL == -vAbsLabelTo && iLabelImage.isEnclosedByLabelBgConnectivity(vCandidateIndex + iLabelImage.pointToIndex(vOff), vAbsLabelTo)) {
+                if (vL == -absLabelTo && iLabelImage.isEnclosedByLabelBgConnectivity(index, absLabelTo)) {
                     /// Remove the parent that got enclosed; it had a the label
-                    /// of the currently expanding region and a candidate label
-                    /// of 0.
-                    float vProposal1 = 0;// MCMCproposal(vCandidateIndex + vOff, 0);
-                    if (eraseCandidatesFromContainers(new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), 0, vProposal1), vAbsLabelTo, true)) {
-                        /// nothing
-                    }
-                    /// update the label image (we're not using the update
-                    /// mechanism of the optimizer anymore):
-                    iLabelImage.setLabel(currIdx + iLabelImage.pointToIndex(vOff), Math.abs(vL));
+                    /// of the currently expanding region and a candidate label of 0.
+                    eraseCandidatesFromContainers(new MinimalParticle(index, 0, 0), absLabelTo, true);
+                    
+                    /// update the label image (we're not using the update mechanism of the optimizer anymore):
+                    iLabelImage.setLabel(index, Math.abs(vL));
 
-                    MCMCPushLabelImageHistory(aCandidateParticle.iIndex + iLabelImage.pointToIndex(vOff), vL);
+                    storeLabelImageHistory(index, vL);
                 }
             }
-            iLabelImage.setLabel(currIdx, vStoreLabel1);
+            iLabelImage.setLabel(candidateIndex, vStoreLabel1);
 
-            /// Figure out if a point renders to a candidate. These are
-            /// all the FG-neighbors with a different label that are not yet
+            /// Figure out if a point renders to a candidate. These are all the FG-neighbors with a different label that are not yet
             /// candidates of the currently expanding region.
-            for (int vN = 0; vN < m_NeighborhoodSize_FG_Connectivity; vN++) {
-                Point vOff = m_NeighborsOffsets_FG_Connectivity[vN];
-                int vL = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff));
-                if (Math.abs(vL) != vAbsLabelTo && !iLabelImage.isBorderLabel(Math.abs(vL))) {
-                    /// check if there is no other mother (hence the particle is
-                    /// not in the container yet). This we could do by checking the
-                    /// neighborhood of the label image or by checking the
-                    /// cointainers.
-                    /// Here: we check the (not yet updated!) label image.
+            for (Point vOff : iFgNeighborsOffsets) {
+                int index = candidateIndex + iLabelImage.pointToIndex(vOff);
+                int vL = iLabelImage.getLabel(index);
+                if (Math.abs(vL) != absLabelTo && !iLabelImage.isBorderLabel(Math.abs(vL))) {
+                    // check if there is no other mother (hence the particle is not in the container yet). This we could do by checking the
+                    // neighborhood of the label image or by checking the cointainers.
+                    // Here: we check the (not yet updated!) label image.
                     boolean vHasOtherMother = false;
-                    for (int vM = 0; vM < m_NeighborhoodSize_FG_Connectivity; vM++) {
-                        Point vOff2 = m_NeighborsOffsets_FG_Connectivity[vM];
-                        int vL2 = iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff2.add(vOff)));// vLabelImageIterator.GetPixel(vOff + vOff2);
-                        if (Math.abs(vL2) == vAbsLabelTo) {
+                    for (Point vOff2 : iFgNeighborsOffsets) {
+                        int vL2 = iLabelImage.getLabel(candidateIndex + iLabelImage.pointToIndex(vOff2.add(vOff)));
+                        if (Math.abs(vL2) == absLabelTo) {
                             vHasOtherMother = true;
                             break;
                         }
                     }
                     if (!vHasOtherMother) {
-                        /// This is a new child. It's current label we have to read
-                        /// from the label image, the candidate label is the label of
-                        /// the currently expanding region.
-                        float vProposal1 = calculateProposal(vCandidateIndex + iLabelImage.pointToIndex(vOff));
-                        boolean vNotExisted = insertCandidatesToContainers(new MinimalParticle(vCandidateIndex + iLabelImage.pointToIndex(vOff), vAbsLabelTo, vProposal1), Math.abs(vL), true);
+                        // This is a new child. It's current label we have to read from the label image, the candidate label is the label of the currently expanding region.
+                        boolean vNotExisted = insertCandidatesToContainers(new MinimalParticle(index, absLabelTo, calculateProposal(index)), Math.abs(vL), true);
                         if (vNotExisted) {
-                            iLabelImage.setLabel(currIdx + iLabelImage.pointToIndex(vOff), -Math.abs(iLabelImage.getLabel(currIdx + iLabelImage.pointToIndex(vOff))));
-                            MCMCPushLabelImageHistory(aCandidateParticle.iIndex + iLabelImage.pointToIndex(vOff), vL);
+                            iLabelImage.setLabel(index, -Math.abs(vL));
+                            storeLabelImageHistory(index, vL);
                         }
                     }
                 }
             }
         }
-        //System.out.println("===========HISTORY2:\n" + m_MCMCParticleInContainerHistory + "\n\n");
-
-    }
-
-    private void MCMCupdateProposalsAndFilterTopologyInNeighborhood(MinimalParticle aParticle) {
-        for (int vN = -1; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
-            Point vOff = (vN >= 0) ? m_NeighborsOffsets_BG_Connectivity[vN] : new Point(m_NeighborsOffsets_BG_Connectivity[0]).zero();
-
-            MinimalParticleIndexedSet vParticleSet = new MinimalParticleIndexedSet();
-            MCMCgetRegularParticlesAtIndex(aParticle.iIndex + iLabelImage.pointToIndex(vOff), vParticleSet);
-
-            for (int vI = 0; vI < vParticleSet.size(); vI++) {
-                int vContainerLabel = (vParticleSet.elementAt(vI).iCandidateLabel == 0) ? Math.abs(iLabelImage.getLabel(vParticleSet.elementAt(vI).iIndex))
-                        : vParticleSet.elementAt(vI).iCandidateLabel;
-
-                boolean vTopoOkay = MCMCIsParticleTopoValid(vParticleSet.elementAt(vI));
-
-                if (vTopoOkay) {
-                    /// replace the particle with the new propsal
-                    float vProposal = calculateProposal(vParticleSet.elementAt(vI).iIndex);
-                    MinimalParticle vUpdatedParticle = new MinimalParticle(vParticleSet.elementAt(vI).iIndex, vParticleSet.elementAt(vI).iCandidateLabel, vProposal);
-                    insertCandidatesToContainers(vUpdatedParticle, vContainerLabel, true);
-                }
-                else {
-                    /// remove the particle
-                    eraseCandidatesFromContainers(vParticleSet.elementAt(vI), vContainerLabel, true);
-                }
-            }
-        }
-    }
-
-    /// Store an event (a change) on the label image. If the Metropolis algorithm
-    /// refuses the current move, the m_MCMCLabelImageHistory will help to
-    /// undo the changes on the label image and hence help to undo the move.
-    private void MCMCPushLabelImageHistory(int aI) {
-        int vOrigLabel = iLabelImage.getLabel(aI);
-        LabelImageHistoryEventType vEvent = new LabelImageHistoryEventType(aI, vOrigLabel);
-        m_MCMCLabelImageHistory.add(vEvent);
-    }
-
-    /// The same as <code>MCMCPushLabelImageHistory(LabelImageIndexType aI)</code>
-    /// but we omit a label image lookup if the original label is known.
-    private void MCMCPushLabelImageHistory(int aI, int aOrigLabel) {
-        LabelImageHistoryEventType vEvent = new LabelImageHistoryEventType(aI, aOrigLabel);
-        m_MCMCLabelImageHistory.add(vEvent);
-    }
-
-    private void MCMCgetParticlesInBGNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
-        for (int vN = 0; vN < m_NeighborhoodSize_BG_Connectivity; vN++) {
-            Point vOff = m_NeighborsOffsets_BG_Connectivity[vN];
-
-            /// append particles in the set
-            // TODO: Conversion to index from offset point should be checked? or done nicer?
-            MCMCgetRegularParticlesAtIndex(aIndex + iLabelImage.pointToIndex(vOff), aList);
-        }
-    }
-
-    /// Removes all non-simple points from the particle set
-    private void MCMCTopologyFiltering(MinimalParticleIndexedSet aParticleSet) {
-        ArrayList<MinimalParticle> vParticlesToDelete = new ArrayList<>();
-        for (int vI = 0; vI < aParticleSet.size(); vI++) {
-            MinimalParticle vP = aParticleSet.elementAt(vI);
-            if (!MCMCIsParticleTopoValid(vP)) {
-                vParticlesToDelete.add(vP);
-            }
-        }
-
-        for (int vI = 0; vI < vParticlesToDelete.size(); vI++) {
-            aParticleSet.erase(vParticlesToDelete.get(vI));
-        }
-    }
-
-    private void MCMCgetPartnerParticleSet(MinimalParticle aParticleA, MinimalParticleIndexedSet aSet) {
-
-        MinimalParticleIndexedSet vConditionalPartsSet = new MinimalParticleIndexedSet();
-        MCMCgetParticlesInBGNeighborhood(aParticleA.iIndex, vConditionalPartsSet);
-        //System.out.println("vConditionalPartsSet: " + vConditionalPartsSet);
-        for (int vI = 0; vI < vConditionalPartsSet.size(); vI++) {
-            if (vConditionalPartsSet.elementAt(vI).iCandidateLabel != aParticleA.iCandidateLabel) {
-                aSet.insert(vConditionalPartsSet.elementAt(vI));
-            }
-        }
-
-        /// filter the points to meet topological constraints:
-        if (!iSettings.allowFission || !iSettings.allowHandles) {
-            MCMCTopologyFiltering(aSet);
-        }
-
-        /// Insert particle A in the set for B such that it is possible
-        /// that we have a single particle move.
-        aSet.insert(aParticleA);
     }
 
     private boolean MCMCParticleHasFloatingProperty(int aIndex, int aCandLabel) {
@@ -1401,8 +1195,6 @@ public class AlgorithmDRS {
         if (aParticle.iCandidateLabel == LabelImage.BGLabel) {
             return iParents.get(aCurrentLabel).contains(aParticle);
         }
-        //System.out.println("DEB2: " + aParticle + " " + m_MCMCchildren);
-        //System.out.println("DEB2: " + m_MCMCchildren.get(aParticle.iCandidateLabel));
 
         return iChildren.get(aParticle.iCandidateLabel).contains(aParticle);
     }
@@ -1508,97 +1300,6 @@ public class AlgorithmDRS {
         fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 
-    /// Returns false if topology is changed when applying this particle. This
-    /// is based on the current state of the label image.
-    /// TODO: this method should be changed to achieve full topological control.
-    /// now the particle is rejected if it changes somehow the topology.
-    private boolean MCMCIsParticleTopoValid(MinimalParticle aParticle) {
-        // TODO: Currently not effiecient but seems to be correct with output. Must be checked how to find topo number wihtout looping after reults from getTopologicalNumbersForAllAdjacentLabels
-        if (!iSettings.allowFission || !iSettings.allowHandles) {
-            /// get the correct label to access the container of the particle
-            int vContainerLabel = (aParticle.iCandidateLabel == 0) ? Math.abs(iLabelImage.getLabel(aParticle.iIndex)) : aParticle.iCandidateLabel;
-
-            List<TopologicalNumberResult> topologicalNumbersForAllAdjacentLabels = m_TopologicalNumberFunction.getTopologicalNumbersForAllAdjacentLabels(iLabelImage.indexToPoint(aParticle.iIndex));
-            TopologicalNumberResult vTopoNb = null;
-            for (TopologicalNumberResult tnr : topologicalNumbersForAllAdjacentLabels) {
-                if (tnr.iLabel == vContainerLabel) {
-                    vTopoNb = tnr;
-                    break;
-                }
-            }
-
-            if (vTopoNb == null) {
-                return false;
-            }
-            if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
-                return false;
-            }
-
-            /// if the both labels are not 0, we must calculate the
-            /// topo numbers for the current and the candidate label.
-            if (0 != aParticle.iCandidateLabel) {
-                // vTopoNb = m_TopologicalNumberFunction->EvaluateFGTNOfLabelAtIndex(aParticle.iIndex, aParticle.iCandidateLabel);
-                vTopoNb = null;
-                for (TopologicalNumberResult tnr : topologicalNumbersForAllAdjacentLabels) {
-                    if (tnr.iLabel == aParticle.iCandidateLabel) {
-                        vTopoNb = tnr;
-                        break;
-                    }
-                }
-                if (vTopoNb == null) {
-                    return false;
-                }
-                if (!(vTopoNb.iNumOfConnectedComponentsFG == 1 && vTopoNb.iNumOfConnectedComponentsBG == 1)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private void MCMCgetRegularParticlesAtIndex(int aIndex, MinimalParticleIndexedSet aList) {
-        int currentLabel = iLabelImage.getLabel(aIndex);
-        if (iLabelImage.isBorderLabel(currentLabel)) return;
-        
-        int absCurrentLabel = iLabelImage.labelToAbs(currentLabel);
-        boolean isParentInserted = false;
-        
-        for (Integer idx : iLabelImage.iterateNeighbours(aIndex)) {
-            int neighborLabel = iLabelImage.getLabel(idx);
-            int absNeighborLabel = iLabelImage.labelToAbs(neighborLabel);
-            
-            if (!iLabelImage.isBorderLabel(neighborLabel) && absNeighborLabel != absCurrentLabel) {
-                // here should be a particle since two neighboring pixel have a different label.
-
-                // Insert FG labels have a daughter placed at this spot.
-                if (neighborLabel != LabelImage.BGLabel) {
-                    aList.insert(new MinimalParticle(aIndex, absNeighborLabel, calculateProposal(aIndex)));
-
-                }
-                if (currentLabel != LabelImage.BGLabel && !isParentInserted) {
-                    aList.insert(new MinimalParticle(aIndex, 0, calculateProposal(aIndex)));
-                    isParentInserted = true;
-                }
-            }
-        }
-
-        /// Check the BG neighborhood now if we need to insert a parent.
-        if (!isParentInserted && currentLabel != LabelImage.BGLabel) { /// speed-up
-            for (Integer idx : iLabelImage.iterateBgNeighbours(aIndex)) {
-
-                int vNeighPixel = iLabelImage.getLabel(idx);
-                if (iLabelImage.labelToAbs(vNeighPixel) != absCurrentLabel) {
-                    // This is a FG pixel with a neighbor of a different label. Finally, insert a parent particle.
-                    float vProposal = calculateProposal(aIndex);
-                    aList.insert(new MinimalParticle(aIndex, 0, vProposal));
-                    isParentInserted = true;
-                    break;
-                }
-            }
-        }
-    }
-
     public boolean performIteration() {
         iIterationCounter++;
         iAcceptedMoves += MCMCDoIteration() ? 1 : 0;
@@ -1627,10 +1328,186 @@ public class AlgorithmDRS {
             return "Result{" + iteration + ", " + previousLabel + "}";
         }
     }
+    private Map<Integer, List<McmcResult>> iMcmcResults = new HashMap<>(); // <point index -> result>
     
-    private Map<Integer, List<McmcResult>> iMcmcResults = new HashMap<>(); // point index -> result
+    
+    private class LabelImageHistoryEvent {
+
+        public LabelImageHistoryEvent(int aIndex, int aLabel) { index = aIndex; label = aLabel; }
+
+        public int index;
+        public int label;
+    }
+    private List<LabelImageHistoryEvent> iLabelImageHistory = new ArrayList<>();
     
     // ------------------------- methods -------------------------------------------------------------
+    
+    /**
+     * Store an event (a change) on the label image. If the Metropolis algorithm refuses the current move, the m_MCMCLabelImageHistory will help to
+     * undo the changes on the label image and hence help to undo the move.
+     * @param aIndex
+     * @param aOrigLabel
+     */
+    private void storeLabelImageHistory(int aIndex, int aOrigLabel) {
+        iLabelImageHistory.add(new LabelImageHistoryEvent(aIndex, aOrigLabel));
+    }
+    
+    /**
+     * Check if particle and its neighbors are topologicly valid and update its proposal or removes if not.
+     * @param aParticle
+     */
+    private void updateProposalsAndFilterTopologyInNeighborhood(MinimalParticle aParticle) {
+        for (int i = -1; i < iBgNeighborsOffsets.length; ++i) {
+            // for -1 use 0 offset (position of particle itself)
+            Point offset = (i >= 0) ? iBgNeighborsOffsets[i] : new Point(iBgNeighborsOffsets[0]).zero();
+
+            MinimalParticleIndexedSet particleSet = new MinimalParticleIndexedSet();
+            getRegularParticles(aParticle.iIndex + iLabelImage.pointToIndex(offset), particleSet);
+
+            for (MinimalParticle particle : particleSet) {
+                int label = (particle.iCandidateLabel == 0) ? iLabelImage.getLabelAbs(particle.iIndex) : particle.iCandidateLabel;
+
+                if (isParticleTopoValid(particle)) {
+                    /// replace the particle with the new proposal
+                    MinimalParticle updatedParticle = new MinimalParticle(particle.iIndex, particle.iCandidateLabel, calculateProposal(particle.iIndex));
+                    insertCandidatesToContainers(updatedParticle, label, true);
+                }
+                else {
+                    /// remove the particle
+                    eraseCandidatesFromContainers(particle, label, true);
+                }
+            }
+        }
+    }
+    
+    /**
+     *  Removes all non-simple points from aParticleSet
+     * @param aParticleSet
+     */
+    private void topologyFiltering(MinimalParticleIndexedSet aParticleSet) {
+        // Intentionally from back since then indexes are not invalidated in particle set
+        for (int i = aParticleSet.size() - 1; i >= 0; --i) {
+            MinimalParticle p = aParticleSet.elementAt(i);
+            if (!isParticleTopoValid(p)) {
+                aParticleSet.erase(p);
+            }
+        }
+    }
+    
+    /**
+     * @param aParticle
+     * @return false if topology is changed when applying aParticle. This is based on the current state of the label image.
+     */
+    private boolean isParticleTopoValid(MinimalParticle aParticle) {
+        if (!iSettings.allowFission || !iSettings.allowHandles) {
+            
+            // calculate the topo numbers for the current and the candidate label if they are != 0
+            ArrayList<Integer> labelsToCheck = new ArrayList<>(2);
+            if (aParticle.iCandidateLabel != 0) labelsToCheck.add(aParticle.iCandidateLabel);
+            int particleLabel = iLabelImage.getLabelAbs(aParticle.iIndex);
+            if (particleLabel != 0) labelsToCheck.add(particleLabel);
+            
+            // check if numbers are OK
+            for (TopologicalNumberResult tnr : iTopoFunction.getTopologicalNumbers(iLabelImage.indexToPoint(aParticle.iIndex), labelsToCheck)) {
+                if (tnr == null || !(tnr.iNumOfConnectedComponentsFG == 1 && tnr.iNumOfConnectedComponentsBG == 1)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    
+    /**
+     * Gets regular particles into aList for BG neighborhood of aIndex
+     * @param aIndex
+     * @param aList
+     */
+    private void getRegularParticlesInBgNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+        for (Point offset : iBgNeighborsOffsets) {
+            getRegularParticles(aIndex + iLabelImage.pointToIndex(offset), aList);
+        }
+    }
+    
+    /**
+     * Gets regular particles into aList for FG neighborhood of aIndex
+     * @param aIndex
+     * @param aList
+     */
+    private void getRegularParticlesInFgNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+        for (Point offset : iFgNeighborsOffsets) {
+            getRegularParticles(aIndex + iLabelImage.pointToIndex(offset), aList);
+        }
+    }
+    
+    /**
+     * Inserts to a list all possible candidates from BG neighbors
+     * @param aParticle
+     * @param aSet
+     */
+    private void getPartnerParticles(MinimalParticle aParticle, MinimalParticleIndexedSet aSet) {
+        // Get all correct particles in BG neighborhood
+        MinimalParticleIndexedSet conditionalParticles = new MinimalParticleIndexedSet();
+        getRegularParticlesInBgNeighborhood(aParticle.iIndex, conditionalParticles);
+        for (MinimalParticle p : conditionalParticles) {
+            if (p.iCandidateLabel != aParticle.iCandidateLabel) {
+                aSet.insert(p);
+            }
+        }
+
+        // filter the points to meet topological constraints
+        if (!iSettings.allowFission || !iSettings.allowHandles) {
+            topologyFiltering(aSet);
+        }
+
+        // Insert particle A in the set for B such that it is possible that we have a single particle move.
+        aSet.insert(aParticle);
+    }
+    
+    /**
+     * Inserts to a list possible candidates for particle at aIndex
+     * @param aIndex
+     * @param aList
+     */
+    private void getRegularParticles(int aIndex, MinimalParticleIndexedSet aList) {
+        int currentLabel = iLabelImage.getLabel(aIndex);
+        if (iLabelImage.isBorderLabel(currentLabel)) return;
+        
+        final float proposal = calculateProposal(aIndex);
+        int absCurrentLabel = iLabelImage.labelToAbs(currentLabel);
+        
+        boolean isParentInserted = false;
+        
+        for (Integer idx : iLabelImage.iterateNeighbours(aIndex)) {
+            int neighborLabel = iLabelImage.getLabel(idx);
+            int absNeighborLabel = iLabelImage.labelToAbs(neighborLabel);
+            
+            if (!iLabelImage.isBorderLabel(neighborLabel) && absNeighborLabel != absCurrentLabel) {
+                // here should be a particle since two neighboring pixel have a different label.
+
+                if (neighborLabel != LabelImage.BGLabel) {
+                    // Insert FG labels have a children placed at this spot.
+                    aList.insert(new MinimalParticle(aIndex, absNeighborLabel, proposal));
+                }
+                if (!isParentInserted && currentLabel != LabelImage.BGLabel) {
+                    // this is a non-background pixel with different neighbors, hence there must be a parent in the list
+                    aList.insert(new MinimalParticle(aIndex, 0, proposal));
+                    isParentInserted = true;
+                }
+            }
+        }
+
+        /// Check the BG neighborhood now if we need to insert a parent.
+        if (!isParentInserted && currentLabel != LabelImage.BGLabel) {
+            for (Integer idx : iLabelImage.iterateBgNeighbours(aIndex)) {
+                if (iLabelImage.getLabelAbs(idx) != absCurrentLabel) {
+                    // This is a FG pixel with a neighbor of a different label. Finally, insert a parent particle.
+                    aList.insert(new MinimalParticle(aIndex, 0, proposal));
+                    break;
+                }
+            }
+        }
+    }
     
     /**
      * @return index of non-boundary point sampled from edge density
@@ -1684,9 +1561,9 @@ public class AlgorithmDRS {
             // Note that the order here is important: first insert the particle that gets replaced. 
             // When restoring the state afterwards, the particle history is iterated in reverse order.
             if (replacedParticle != null) {
-                m_MCMCParticleInContainerHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
+                iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
             }
-            m_MCMCParticleInContainerHistory.add(new ParticleHistoryElement(aParticle, aLabel, true));
+            iParticlesHistory.add(new ParticleHistoryElement(aParticle, aLabel, true));
         }
 
         return (replacedParticle == null);
@@ -1720,7 +1597,7 @@ public class AlgorithmDRS {
         }
         
         if (replacedParticle != null && aDoRecord) {
-            m_MCMCParticleInContainerHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
+            iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
         }
 
         return replacedParticle != null;
@@ -1833,8 +1710,8 @@ public class AlgorithmDRS {
         boolean isFloatingParticle = true;
         int label = iLabelImage.getLabelAbs(aIndex);
         Point point = iLabelImage.indexToPoint(aIndex);
-        for (int i = 0; i < m_NeighborhoodSize_BG_Connectivity; ++i) {
-            Point offset = m_NeighborsOffsets_BG_Connectivity[i];
+        for (int i = 0; i < iBgNeighborsOffsets.length; ++i) {
+            Point offset = iBgNeighborsOffsets[i];
             int currLabel = iLabelImage.getLabelAbs(offset.add(point));
             if (currLabel != label) {
                 length += m_MCMClengthProposalMask[i];

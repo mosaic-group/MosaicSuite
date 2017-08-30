@@ -2,10 +2,11 @@ package mosaic.region_competition.DRS;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
-public class MinimalParticleIndexedSet {
+public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     private HashMap<MinimalParticle, Integer> iMap = new HashMap<>();
-    private ArrayList<MinimalParticle> iParticles = new ArrayList<>();
+    ArrayList<MinimalParticle> iParticles = new ArrayList<>();
     private MinimalParticle iLastRemovedElement = null;
     
     /**
@@ -97,5 +98,27 @@ public class MinimalParticleIndexedSet {
     @Override
     public String toString() {
         return " MAP/VECsize: " + iMap.size() +"/" + iParticles.size() + " mapElements:\n" + iMap;
+    }
+
+    @Override
+    public Iterator<MinimalParticle> iterator() {
+        return new Iterator<MinimalParticle>() {
+            private int idx = 0;
+            
+            @Override
+            public boolean hasNext() {
+                return idx < iParticles.size();
+            }
+
+            @Override
+            public MinimalParticle next() {
+                return iParticles.get(idx++);
+            }
+            
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }
