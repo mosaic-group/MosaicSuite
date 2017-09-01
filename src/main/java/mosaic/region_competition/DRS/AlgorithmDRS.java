@@ -1,8 +1,6 @@
 package mosaic.region_competition.DRS;
 
 
-import static mosaic.core.imageUtils.images.LabelImage.BGLabel;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,12 +20,13 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.RC.ContourParticle;
-import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
+import mosaic.region_competition.utils.LabelStatisticToolbox;
+import mosaic.region_competition.utils.LabelStatistics;
 import mosaic.utils.Debug;
 
 
@@ -52,7 +51,7 @@ public class AlgorithmDRS {
         initEdgeDistribution();
         initLenghtProposal();
         initLabels();
-        initStatistics();
+        LabelStatisticToolbox.initStatistics(iLabelImage, iIntensityImage, iLabelStatistics);
         initEnergies();
     }
 
@@ -68,7 +67,7 @@ public class AlgorithmDRS {
     }
 
     public int getBiggestLabel() {
-        return 10;
+        return 10; // TODO: Not handled so far (maybe not necessary)
     }
     
     private void initEdgeDistribution() {
@@ -123,9 +122,9 @@ public class AlgorithmDRS {
                 iChildrenProposalNormalizer.put(labelAbs, 0f);
             }
             // // Add all regular particles at this spot:
-            MinimalParticleIndexedSet regularParticles = getRegularParticles(idx, new MinimalParticleIndexedSet());
+            ParticleSet regularParticles = getRegularParticles(idx, new ParticleSet());
 
-            for (MinimalParticle particle : regularParticles) {
+            for (Particle particle : regularParticles) {
                 if (isParticleTopoValid(particle)) {
                     insertCandidatesToContainers(particle, label, false);
                     iLabelImage.setLabel(idx, -labelAbs);
@@ -193,7 +192,7 @@ public class AlgorithmDRS {
 
         // Find active candidates
         boolean vParticleAIsFloating = false;
-        MinimalParticleIndexedSet vActiveCandidates = null;
+        ParticleSet vActiveCandidates = null;
         double vR = iRng.GetUniformVariate(0.0, 1.0);
         if (vR < probabilityOfFloatingParticle) {
             // We will choose one out of the floating particles
@@ -251,7 +250,7 @@ public class AlgorithmDRS {
                 vParticleIndex = iRng.GetIntegerVariate(vActiveCandidates.size() - 1);
                 vq_A[i] = 1.0f;
             }
-            MinimalParticle vParticle = vActiveCandidates.get(vParticleIndex);
+            Particle vParticle = vActiveCandidates.get(vParticleIndex);
             if (vParticleAIsFloating) {
                 vParticle_A_IsFloating[i] = true;
 
@@ -287,9 +286,9 @@ public class AlgorithmDRS {
         if (iSettings.usePairProposal) {
             // Iterate over particles A:
             for (int i = 0; i < iMcmcStepSize; ++i) {
-                MinimalParticle vPartIt = vCandidateMoveVec[i];
+                Particle vPartIt = vCandidateMoveVec[i];
 
-                MinimalParticle vA = new MinimalParticle(vPartIt);
+                Particle vA = new Particle(vPartIt);
                 vA.iProposal = calculateProposal(vA.iIndex);
 
                 applyParticle(vPartIt, true);
@@ -298,17 +297,17 @@ public class AlgorithmDRS {
                 vParticle_Ab_IsFloating[i] = isParticleFloating(vPartIt.iIndex, vPartIt.iCandidateLabel);
 
                 // Get the particles involved in the second step of the proposal (with updated proposals)
-                MinimalParticleIndexedSet vParts_Q_BgivenA = getPartnerParticles(vA, new MinimalParticleIndexedSet());
+                ParticleSet vParts_Q_BgivenA = getPartnerParticles(vA, new ParticleSet());
 
                 // Find B:
-                MinimalParticle vB;
+                Particle vB;
 
                 // Choose B from Q(B|A) and calculate Q(B|A).
                 if (iSettings.useBiasedProposal) {
                     ArrayList<Float> vProposalsVector = new ArrayList<>(vParts_Q_BgivenA.size());
                     float vNormalizer_Q_B_A = 0;
                     for (int vPI = 0; vPI < vParts_Q_BgivenA.size(); vPI++) {
-                        MinimalParticle vCondParticle = vParts_Q_BgivenA.get(vPI);
+                        Particle vCondParticle = vParts_Q_BgivenA.get(vPI);
                         vProposalsVector.add(vCondParticle.iProposal);
                         vNormalizer_Q_B_A += vCondParticle.iProposal;
                     }
@@ -331,7 +330,7 @@ public class AlgorithmDRS {
                 }
 
                 // Get the reverse particle of A (without proposal update as it is not necessary):
-                MinimalParticle vReverseParticleA = new MinimalParticle(vPartIt);
+                Particle vReverseParticleA = new Particle(vPartIt);
                 vReverseParticleA.iCandidateLabel = vLabelsBeforeJump_A[i];
 
                 // In case that vA == vB, we must already undo the simulated move in order to calculate Q'(B'|A') (== Q'(A'|B'))
@@ -341,7 +340,7 @@ public class AlgorithmDRS {
 
                 // In the current state of the label image and the containers we can calculate qb_A'_B' as well. We assume now
                 // that B' was applied and we calculate the probability for A'.
-                MinimalParticleIndexedSet vParts_Qb_AgivenB = getPartnerParticles(vB, new MinimalParticleIndexedSet());
+                ParticleSet vParts_Qb_AgivenB = getPartnerParticles(vB, new ParticleSet());
 
                 if (iSettings.useBiasedProposal) {
                     float vNormalizer_Qb_A_B = 0;
@@ -377,14 +376,14 @@ public class AlgorithmDRS {
 
         // Currently it is possible that the same candidate is in the move set.
         // Hence we store the applied moves to avoid duplicates.
-        MinimalParticleIndexedSet vAppliedParticles = new MinimalParticleIndexedSet();
+        ParticleSet vAppliedParticles = new ParticleSet();
         ArrayList<Integer> vAppliedParticleOrigLabels = new ArrayList<>();
 
         // Iterate the candidates, calculate the energy and perform the moves.
         float vTotEnergyDiff = 0;
         for (int i = 0; i < iMcmcStepSize; ++i) {
-            MinimalParticle vParticleA = vCandidateMoveVec[i];
-            MinimalParticle vParticleB = vPartnerMoveVec[i];
+            Particle vParticleA = vCandidateMoveVec[i];
+            Particle vParticleB = vPartnerMoveVec[i];
 
             // apply particle A and B, start with B:
             int vN = (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) ? 2 : 1;
@@ -392,7 +391,7 @@ public class AlgorithmDRS {
 
                 // it is necessary that we start with particle B as we have
                 // to calculate Q(A|B) and Qb(B|A).
-                MinimalParticle vCurrentMinimalParticle = null;
+                Particle vCurrentMinimalParticle = null;
                 int vOriginalLabel;
                 if (vN > 1) {
                     vCurrentMinimalParticle = vParticleB;
@@ -420,7 +419,7 @@ public class AlgorithmDRS {
                 // Calculate Q(A|B) and Qb(B|A) in case we moved B only; this is when vN == 2.
                 if (vN == 2) {
                     // Get the neighbors (conditional particles) and sum up  their proposal values; this is the normalizer for the discrete probability Q(A|B)
-                    MinimalParticleIndexedSet vParts_Q_AgivenB = getRegularParticlesInFgNeighborhood(vParticleB.iIndex, new MinimalParticleIndexedSet());
+                    ParticleSet vParts_Q_AgivenB = getRegularParticlesInFgNeighborhood(vParticleB.iIndex, new ParticleSet());
                     // add particle B as this is always a candidate as well
                     vParticleB.iProposal = calculateProposal(vParticleB.iIndex);
                     vParts_Q_AgivenB.insert(vParticleB);
@@ -438,10 +437,10 @@ public class AlgorithmDRS {
                     }
 
                     // create A'
-                    MinimalParticle vReverseParticleA = new MinimalParticle(vParticleA.iIndex, vLabelsBeforeJump_A[i], calculateProposal(vParticleA.iIndex));
+                    Particle vReverseParticleA = new Particle(vParticleA.iIndex, vLabelsBeforeJump_A[i], calculateProposal(vParticleA.iIndex));
 
                     // Calculate Qb(B'|A')
-                    MinimalParticleIndexedSet vParts_Qb_BgivenA = getRegularParticlesInFgNeighborhood(vParticleA.iIndex, new MinimalParticleIndexedSet());
+                    ParticleSet vParts_Qb_BgivenA = getRegularParticlesInFgNeighborhood(vParticleA.iIndex, new ParticleSet());
                     vParts_Qb_BgivenA.insert(vReverseParticleA);
                     if (iSettings.useBiasedProposal) {
                         float vNormalizer_Qb_B_A = 0;
@@ -464,8 +463,8 @@ public class AlgorithmDRS {
             // Correct the containers whenever floating particles were involved: The method moveParticles, for simplicity, only works on the regular particle set.
 
             // First, figure out if A' or B' is floating:
-            MinimalParticle vParticleA = vCandidateMoveVec[i];
-            MinimalParticle vParticleB = vPartnerMoveVec[i];
+            Particle vParticleA = vCandidateMoveVec[i];
+            Particle vParticleB = vPartnerMoveVec[i];
 
             // Figure out if the backward particles are floating:
             if (iSettings.usePairProposal) {
@@ -476,14 +475,14 @@ public class AlgorithmDRS {
                 vParticle_Ab_IsFloating[i] = isParticleFloating(vParticleA.iIndex, vLabelsBeforeJump_A[i]);
             }
 
-            MinimalParticle vReverseFloatingP = null;
+            Particle vReverseFloatingP = null;
             // the first condition is needed when not using pair proposal mode
             if (vParticle_Ab_IsFloating[i]) {
-                vReverseFloatingP = new MinimalParticle(vCandidateMoveVec[i].iIndex, vLabelsBeforeJump_A[i], calculateProposal(vCandidateMoveVec[i].iIndex));
+                vReverseFloatingP = new Particle(vCandidateMoveVec[i].iIndex, vLabelsBeforeJump_A[i], calculateProposal(vCandidateMoveVec[i].iIndex));
             }
             // in pair proposal, if A' is floating, B' is as well (they are (not always) the same particle) - TBI why
             if (iSettings.usePairProposal && vParticle_Bb_IsFloating[i]) {
-                vReverseFloatingP = new MinimalParticle(vPartnerMoveVec[i].iIndex, vLabelsBeforeJump_B[i], calculateProposal(vPartnerMoveVec[i].iIndex));
+                vReverseFloatingP = new Particle(vPartnerMoveVec[i].iIndex, vLabelsBeforeJump_B[i], calculateProposal(vPartnerMoveVec[i].iIndex));
             }
 
             // finally convert the regular particle into a floating particle,  i.e. insert it in the floating DS and remove it from the regular:
@@ -497,8 +496,8 @@ public class AlgorithmDRS {
 
         // We are now in the state x'. Calculate Q'(A) and maybe Q'(B). Note that this has to be done after all particles were applied.
         for (int i = 0; i < iMcmcStepSize; ++i) {
-            MinimalParticle vParticleA = vCandidateMoveVec[i];
-            MinimalParticle vParticleB = vPartnerMoveVec[i];
+            Particle vParticleA = vCandidateMoveVec[i];
+            Particle vParticleB = vPartnerMoveVec[i];
 
             // Calculate vqb_A and vqb_B
             if (!iSettings.useBiasedProposal) {
@@ -580,7 +579,7 @@ public class AlgorithmDRS {
         return vAccept;
     }
 
-    private void rejectParticles(MinimalParticleIndexedSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
+    private void rejectParticles(ParticleSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
         // First, recover the theoretical state:
         // - recover the label image
         // - recover the particle set
@@ -615,15 +614,15 @@ public class AlgorithmDRS {
 
         // recover the statistics:
         for (int i = aOrigLabels.size() - 1; i >= 0; --i) {
-            MinimalParticle vP = aAppliedParticles.get(i);
-            updateLabelStatistics(iIntensityImage.get(vP.iIndex), vP.iCandidateLabel, aOrigLabels.get(i));
+            Particle vP = aAppliedParticles.get(i);
+            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(vP.iIndex), vP.iCandidateLabel, aOrigLabels.get(i), iLabelStatistics);
         }
     }
 
-    private void insertFloatingParticleCumulative(MinimalParticle aParticle, boolean aDoRecord) {
+    private void insertFloatingParticleCumulative(Particle aParticle, boolean aDoRecord) {
         int index = iFloatingParticles.getIndex(aParticle);
 
-        MinimalParticle vParticleInserted = null;
+        Particle vParticleInserted = null;
         if (index == -1) {
             // the particle did not yet exist
             vParticleInserted = aParticle;
@@ -631,7 +630,7 @@ public class AlgorithmDRS {
         else {
             // TODO: Investigate if this else {... } is ever executed 
             // The element did already exist. We add up the proposal and insert the element again (in order to overwrite).
-            vParticleInserted = new MinimalParticle(iFloatingParticles.get(index));
+            vParticleInserted = new Particle(iFloatingParticles.get(index));
             vParticleInserted.iProposal += aParticle.iProposal;
         }
 
@@ -659,7 +658,7 @@ public class AlgorithmDRS {
         return res.energyDifference.floatValue();
     }
 
-    private void applyParticle(MinimalParticle aCandidateParticle, boolean aDoSimulate) {
+    private void applyParticle(Particle aCandidateParticle, boolean aDoSimulate) {
         // Maintain the regular particle container and the label image:
         addAndRemoveParticlesWhenMove(aCandidateParticle);
 
@@ -678,7 +677,7 @@ public class AlgorithmDRS {
 
         // Update the statistics of the propagating and the loser region.
         if (!aDoSimulate) {
-            updateLabelStatistics(iIntensityImage.get(aCandidateParticle.iIndex), vFromLabel, aCandidateParticle.iCandidateLabel);
+            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(aCandidateParticle.iIndex), vFromLabel, aCandidateParticle.iCandidateLabel, iLabelStatistics);
         }
 
         // Update the proposals for all particles in the neighborhood (as they might have changed).
@@ -690,7 +689,7 @@ public class AlgorithmDRS {
     // Updates the DS (label image and the regular particle containers) when applying a particle. Note that floating particles will not be updated!
     // The method only ensures that L and the regular particles are correct. The method expects the label image NOT to be updated already. Else the
     // operations performed will be wrong.
-    private void addAndRemoveParticlesWhenMove(MinimalParticle aCandidateParticle) {
+    private void addAndRemoveParticlesWhenMove(Particle aCandidateParticle) {
         int candidateIndex = aCandidateParticle.iIndex;
         int absLabelTo = aCandidateParticle.iCandidateLabel;
         int absLabelFrom = iLabelImage.getLabelAbs(candidateIndex);
@@ -702,7 +701,7 @@ public class AlgorithmDRS {
         // create the backward particle, check if the backward particle is floating, and finally restore the label image:
         int savedOrigLabel = iLabelImage.getLabel(candidateIndex);
         iLabelImage.setLabel(candidateIndex, -absLabelTo);
-        MinimalParticle reverseParticle = new MinimalParticle(candidateIndex, absLabelFrom, calculateProposal(candidateIndex));
+        Particle reverseParticle = new Particle(candidateIndex, absLabelFrom, calculateProposal(candidateIndex));
         boolean reverseParticleIsFloating = isParticleFloating(reverseParticle.iIndex, reverseParticle.iCandidateLabel);
         iLabelImage.setLabel(candidateIndex, savedOrigLabel);
         if (!reverseParticleIsFloating) {
@@ -710,12 +709,12 @@ public class AlgorithmDRS {
         }
 
         // erase the currently applied particle (if its floating this will not hurt to call erase here).
-        eraseCandidatesFromContainers(new MinimalParticle(candidateIndex, absLabelTo, 0), absLabelFrom, true);
+        eraseCandidatesFromContainers(new Particle(candidateIndex, absLabelTo, 0), absLabelFrom, true);
         
         // Since we are storing the parents separately for each region, the following patch is needed. 
         // We need to shift the mother particle into the parents container of each others region.
         if (absLabelFrom != 0 && absLabelTo != 0) {
-            MinimalParticle p = new MinimalParticle(candidateIndex, 0, calculateProposal(candidateIndex));
+            Particle p = new Particle(candidateIndex, 0, calculateProposal(candidateIndex));
             eraseCandidatesFromContainers(p, absLabelFrom, true);
             insertCandidatesToContainers(p, absLabelTo, true);
         }
@@ -729,7 +728,7 @@ public class AlgorithmDRS {
                 // Check if new points enter the contour (internal point becomes a parent):
                 // Internal points of this region are positive:
                 if (label > 0 && Math.abs(label) == absLabelFrom) {
-                    boolean notExisted = insertCandidatesToContainers(new MinimalParticle(index, 0, calculateProposal(index)), absLabelFrom, true);
+                    boolean notExisted = insertCandidatesToContainers(new Particle(index, 0, calculateProposal(index)), absLabelFrom, true);
                     if (notExisted) {
                         iLabelImage.setLabel(index, -absLabelFrom);
                         storeLabelImageHistory(index, label);
@@ -759,7 +758,7 @@ public class AlgorithmDRS {
                     if (!hasOtherMother) {
                         // The orphin has label equal to what we read from the label image and has a candidate label of the currently shrinking region.
                         // The proposal is not important; we delete the value
-                        eraseCandidatesFromContainers(new MinimalParticle(index, absLabelFrom, 0), Math.abs(label), true);
+                        eraseCandidatesFromContainers(new Particle(index, absLabelFrom, 0), Math.abs(label), true);
                     }
                 }
                 iLabelImage.setLabel(candidateIndex, savedLabel);
@@ -777,7 +776,7 @@ public class AlgorithmDRS {
                 int vL = iLabelImage.getLabel(index);
                 if (vL == -absLabelTo && iLabelImage.isEnclosedByLabelBgConnectivity(index, absLabelTo)) {
                     // Remove the parent that got enclosed; it had a the label of the currently expanding region and a candidate label of 0.
-                    eraseCandidatesFromContainers(new MinimalParticle(index, 0, 0), absLabelTo, true);
+                    eraseCandidatesFromContainers(new Particle(index, 0, 0), absLabelTo, true);
                     
                     // update the label image (we're not using the update mechanism of the optimizer anymore):
                     iLabelImage.setLabel(index, Math.abs(vL));
@@ -807,7 +806,7 @@ public class AlgorithmDRS {
                     }
                     if (!vHasOtherMother) {
                         // This is a new child. It's current label we have to read from the label image, the candidate label is the label of the currently expanding region.
-                        boolean vNotExisted = insertCandidatesToContainers(new MinimalParticle(index, absLabelTo, calculateProposal(index)), absLabel, true);
+                        boolean vNotExisted = insertCandidatesToContainers(new Particle(index, absLabelTo, calculateProposal(index)), absLabel, true);
                         if (vNotExisted) {
                             iLabelImage.setLabel(index, -absLabel);
                             storeLabelImageHistory(index, label);
@@ -834,7 +833,7 @@ public class AlgorithmDRS {
                     iChildrenProposalNormalizer.get(aCandidateLabel);
     }
 
-    private boolean isRegularParticle(MinimalParticle aParticle, int aCurrentLabel) {
+    private boolean isRegularParticle(Particle aParticle, int aCurrentLabel) {
         return (aParticle.iCandidateLabel == LabelImage.BGLabel) ? 
                     iParents.get(aCurrentLabel).contains(aParticle) : 
                     iChildren.get(aParticle.iCandidateLabel).contains(aParticle);
@@ -870,17 +869,17 @@ public class AlgorithmDRS {
     private Map<Integer, Float> iParentsProposalNormalizer = new HashMap<>();
     private Map<Integer, Float> iChildrenProposalNormalizer = new HashMap<>();
     private float iTotalNormalizer;
-    private Map<Integer, MinimalParticleIndexedSet> iChildren = new HashMap<>();
-    private Map<Integer, MinimalParticleIndexedSet> iParents = new HashMap<>();
-    private MinimalParticleIndexedSet iFloatingParticles = new MinimalParticleIndexedSet();
+    private Map<Integer, ParticleSet> iChildren = new HashMap<>();
+    private Map<Integer, ParticleSet> iParents = new HashMap<>();
+    private ParticleSet iFloatingParticles = new ParticleSet();
     private float iFloatingParticlesProposalNormalizer = 0;
 
     private class ParticleHistoryElement {
-        final MinimalParticle particle;
+        final Particle particle;
         final int originalLabel;
         final boolean wasAdded;
 
-        public ParticleHistoryElement(MinimalParticle vReplacedParticle, int aCurrentLabel, boolean b) {
+        public ParticleHistoryElement(Particle vReplacedParticle, int aCurrentLabel, boolean b) {
             particle = vReplacedParticle;
             originalLabel = aCurrentLabel;
             wasAdded = b;
@@ -937,8 +936,8 @@ public class AlgorithmDRS {
     private boolean[] vParticle_Ab_IsFloating = new boolean[iMcmcStepSize];
     private boolean[] vParticle_Bb_IsFloating = new boolean[iMcmcStepSize];
     private boolean[] vParticle_A_IsFloating = new boolean[iMcmcStepSize];
-    private MinimalParticle[] vCandidateMoveVec = new MinimalParticle[iMcmcStepSize];
-    private MinimalParticle[] vPartnerMoveVec = new MinimalParticle[iMcmcStepSize];
+    private Particle[] vCandidateMoveVec = new Particle[iMcmcStepSize];
+    private Particle[] vPartnerMoveVec = new Particle[iMcmcStepSize];
     
     // ------------------------- methods -------------------------------------------------------------
     
@@ -964,19 +963,19 @@ public class AlgorithmDRS {
      * Check if particle and its neighbors are topologically valid and update its proposal or removes if not.
      * @param aParticle
      */
-    private void updateProposalsAndFilterTopologyInNeighborhood(MinimalParticle aParticle) {
+    private void updateProposalsAndFilterTopologyInNeighborhood(Particle aParticle) {
         for (int i = -1; i < iBgNeighborsIndices.length; ++i) {
             // for -1 use 0 offset (position of particle itself)
             int offset = (i >= 0) ? iBgNeighborsIndices[i] : 0;
 
-            MinimalParticleIndexedSet particleSet = getRegularParticles(aParticle.iIndex + offset, new MinimalParticleIndexedSet());
+            ParticleSet particleSet = getRegularParticles(aParticle.iIndex + offset, new ParticleSet());
 
-            for (MinimalParticle particle : particleSet) {
+            for (Particle particle : particleSet) {
                 int label = (particle.iCandidateLabel == 0) ? iLabelImage.getLabelAbs(particle.iIndex) : particle.iCandidateLabel;
 
                 if (isParticleTopoValid(particle)) {
                     // replace the particle with the new proposal
-                    MinimalParticle updatedParticle = new MinimalParticle(particle.iIndex, particle.iCandidateLabel, calculateProposal(particle.iIndex));
+                    Particle updatedParticle = new Particle(particle.iIndex, particle.iCandidateLabel, calculateProposal(particle.iIndex));
                     insertCandidatesToContainers(updatedParticle, label, true);
                 }
                 else {
@@ -991,10 +990,10 @@ public class AlgorithmDRS {
      *  Removes all non-simple points from aParticleSet
      * @param aParticleSet
      */
-    private void topologyFiltering(MinimalParticleIndexedSet aParticleSet) {
+    private void topologyFiltering(ParticleSet aParticleSet) {
         // Intentionally from back since then indexes are not invalidated in particle set
         for (int i = aParticleSet.size() - 1; i >= 0; --i) {
-            MinimalParticle p = aParticleSet.get(i);
+            Particle p = aParticleSet.get(i);
             if (!isParticleTopoValid(p)) {
                 aParticleSet.erase(p);
             }
@@ -1005,7 +1004,7 @@ public class AlgorithmDRS {
      * @param aParticle
      * @return false if topology is changed when applying aParticle. This is based on the current state of the label image.
      */
-    private boolean isParticleTopoValid(MinimalParticle aParticle) {
+    private boolean isParticleTopoValid(Particle aParticle) {
         if (!iSettings.allowFission || !iSettings.allowHandles) {
             
             // calculate the topo numbers for the current and the candidate label if they are != 0
@@ -1030,7 +1029,7 @@ public class AlgorithmDRS {
      * @param aIndex
      * @param aList
      */
-    private MinimalParticleIndexedSet getRegularParticlesInBgNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+    private ParticleSet getRegularParticlesInBgNeighborhood(int aIndex, ParticleSet aList) {
         for (int offset : iBgNeighborsIndices) {
             getRegularParticles(aIndex + offset, aList);
         }
@@ -1042,7 +1041,7 @@ public class AlgorithmDRS {
      * @param aIndex
      * @param aList
      */
-    private MinimalParticleIndexedSet getRegularParticlesInFgNeighborhood(int aIndex, MinimalParticleIndexedSet aList) {
+    private ParticleSet getRegularParticlesInFgNeighborhood(int aIndex, ParticleSet aList) {
         for (int offset : iFgNeighborsIndices) {
             getRegularParticles(aIndex + offset, aList);
         }
@@ -1054,10 +1053,10 @@ public class AlgorithmDRS {
      * @param aParticle
      * @param aSet
      */
-    private MinimalParticleIndexedSet getPartnerParticles(MinimalParticle aParticle, MinimalParticleIndexedSet aSet) {
+    private ParticleSet getPartnerParticles(Particle aParticle, ParticleSet aSet) {
         // Get all correct particles in BG neighborhood
-        MinimalParticleIndexedSet conditionalParticles = getRegularParticlesInBgNeighborhood(aParticle.iIndex, new MinimalParticleIndexedSet());
-        for (MinimalParticle p : conditionalParticles) {
+        ParticleSet conditionalParticles = getRegularParticlesInBgNeighborhood(aParticle.iIndex, new ParticleSet());
+        for (Particle p : conditionalParticles) {
             if (p.iCandidateLabel != aParticle.iCandidateLabel) {
                 aSet.insert(p);
             }
@@ -1078,7 +1077,7 @@ public class AlgorithmDRS {
      * @param aIndex
      * @param aSet
      */
-    private MinimalParticleIndexedSet getRegularParticles(int aIndex, MinimalParticleIndexedSet aSet) {
+    private ParticleSet getRegularParticles(int aIndex, ParticleSet aSet) {
         int currentLabel = iLabelImage.getLabel(aIndex);
         if (iLabelImage.isBorderLabel(currentLabel)) return aSet;
         
@@ -1096,11 +1095,11 @@ public class AlgorithmDRS {
 
                 if (neighborLabel != LabelImage.BGLabel) {
                     // Insert FG labels have a children placed at this spot.
-                    aSet.insert(new MinimalParticle(aIndex, absNeighborLabel, proposal));
+                    aSet.insert(new Particle(aIndex, absNeighborLabel, proposal));
                 }
                 if (!isParentInserted && currentLabel != LabelImage.BGLabel) {
                     // this is a non-background pixel with different neighbors, hence there must be a parent in the list
-                    aSet.insert(new MinimalParticle(aIndex, 0, proposal));
+                    aSet.insert(new Particle(aIndex, 0, proposal));
                     isParentInserted = true;
                 }
             }
@@ -1111,7 +1110,7 @@ public class AlgorithmDRS {
             for (Integer idx : iLabelImage.iterateBgNeighbours(aIndex)) {
                 if (iLabelImage.getLabelAbs(idx) != absCurrentLabel) {
                     // This is a FG pixel with a neighbor of a different label. Finally, insert a parent particle.
-                    aSet.insert(new MinimalParticle(aIndex, 0, proposal));
+                    aSet.insert(new Particle(aIndex, 0, proposal));
                     break;
                 }
             }
@@ -1139,13 +1138,13 @@ public class AlgorithmDRS {
      * @param aDoRecord - should record
      * @return true if new particle was added, false if replaced
      */
-    private boolean insertCandidatesToContainers(MinimalParticle aParticle, int aLabel, boolean aDoRecord) {
-        MinimalParticle replacedParticle = null;
+    private boolean insertCandidatesToContainers(Particle aParticle, int aLabel, boolean aDoRecord) {
+        Particle replacedParticle = null;
 
         if (aParticle.iCandidateLabel == 0) {
-            MinimalParticleIndexedSet particles = iParents.get(aLabel);
+            ParticleSet particles = iParents.get(aLabel);
             if (particles == null) {
-                particles = new MinimalParticleIndexedSet();
+                particles = new ParticleSet();
                 iParents.put(aLabel, particles);
             }
             replacedParticle = particles.insert(aParticle);
@@ -1155,9 +1154,9 @@ public class AlgorithmDRS {
             iTotalNormalizer += diff;
         }
         else {
-            MinimalParticleIndexedSet particles = iChildren.get(aParticle.iCandidateLabel);
+            ParticleSet particles = iChildren.get(aParticle.iCandidateLabel);
             if (particles == null) {
-                particles = new MinimalParticleIndexedSet();
+                particles = new ParticleSet();
                 iChildren.put(aParticle.iCandidateLabel, particles);
             }
             replacedParticle = particles.insert(aParticle);
@@ -1186,11 +1185,11 @@ public class AlgorithmDRS {
      * @param aDoRecord - should keep history
      * @return true if particle existed
      */
-    private boolean eraseCandidatesFromContainers(MinimalParticle aParticle, int aLabel, boolean aDoRecord) {
-        MinimalParticle replacedParticle = null;
+    private boolean eraseCandidatesFromContainers(Particle aParticle, int aLabel, boolean aDoRecord) {
+        Particle replacedParticle = null;
 
         if (aParticle.iCandidateLabel == 0) {
-            MinimalParticleIndexedSet particles = iParents.get(aLabel);
+            ParticleSet particles = iParents.get(aLabel);
             replacedParticle = particles.erase(aParticle);
             if (replacedParticle != null) {
                 iParentsProposalNormalizer.put(aLabel, iParentsProposalNormalizer.get(aLabel) - replacedParticle.iProposal);
@@ -1198,7 +1197,7 @@ public class AlgorithmDRS {
             }
         }
         else {
-            MinimalParticleIndexedSet particles = iChildren.get(aParticle.iCandidateLabel);
+            ParticleSet particles = iChildren.get(aParticle.iCandidateLabel);
             replacedParticle = particles.erase(aParticle);
             if (replacedParticle != null) {
                 iChildrenProposalNormalizer.put(aParticle.iCandidateLabel, iChildrenProposalNormalizer.get(aParticle.iCandidateLabel) - replacedParticle.iProposal);
@@ -1233,7 +1232,7 @@ public class AlgorithmDRS {
      * @param aDoRecord - save info in history container
      * @return If particle existed, the return value will be false.
      */
-    private boolean insertFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
+    private boolean insertFloatingParticle(Particle aParticle, boolean aDoRecord) {
         if (iFloatingParticles.contains(aParticle)) {
             // the particle already exists
             return false;
@@ -1254,14 +1253,14 @@ public class AlgorithmDRS {
      * @param aParticle
      * @param aDoRecord
      */
-    private void eraseFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
+    private void eraseFloatingParticle(Particle aParticle, boolean aDoRecord) {
         int index = iFloatingParticles.getIndex(aParticle);
         if (index == -1) {
             // particle does not exist
             return;
         }
         
-        MinimalParticle updatedParticle = iFloatingParticles.get(index);
+        Particle updatedParticle = iFloatingParticles.get(index);
         if (updatedParticle.iProposal - aParticle.iProposal > Math.ulp(1.0f) * 10) {
             // the particle has still some proposal left so only update particle in a container without removing it
             iFloatingParticlesProposalNormalizer -= aParticle.iProposal;
@@ -1289,7 +1288,7 @@ public class AlgorithmDRS {
         // sample candidate label and location
         int candidateLabel = (iRng.GetUniformVariate(0, 1) > 0.5) ? aLabel : 0;
         int particleIndex = sampleIndexFromEdgeDensity();
-        MinimalParticle particle = new MinimalParticle(particleIndex, candidateLabel, 0);
+        Particle particle = new Particle(particleIndex, candidateLabel, 0);
         
         boolean particleExists = iFloatingParticles.contains(particle);
 
@@ -1424,73 +1423,5 @@ public class AlgorithmDRS {
         }
 
         return new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
-    }
-    
-    // TODO: Belaw is statistics stuff same as in AlgorithmRC - reuse somehow.
-    
-    /**
-     * Initializes statistics. For each found label creates LabelStatistics object and stores it in labelStatistics container. TODO: Same as in AlgorithmRC - reuse somehow.
-     */
-    private int initStatistics() {
-        // First create all LabelStatistics for each found label and calculate values needed for later variance/mean calculations
-        int maxUsedLabel = 0;
-        for (int i = 0; i < iLabelImage.getSize(); ++i) {
-            final int absLabel = iLabelImage.getLabelAbs(i);
-
-            if (!iLabelImage.isBorderLabel(absLabel)) {
-                if (maxUsedLabel < absLabel) maxUsedLabel = absLabel;
-
-                LabelStatistics stats = iLabelStatistics.get(absLabel);
-                if (stats == null) {
-                    stats = new LabelStatistics(absLabel, iLabelImage.getNumOfDimensions());
-                    iLabelStatistics.put(absLabel, stats);
-                }
-                final double val = iIntensityImage.get(i);
-                stats.iSum += val;
-                stats.iSumOfSq += val*val;
-                stats.iLabelCount++;
-            }
-        }
-
-        // If background label do not exist add it to collection
-        LabelStatistics stats = iLabelStatistics.get(BGLabel);
-        if (stats == null) {
-            stats = new LabelStatistics(BGLabel, iLabelImage.getNumOfDimensions());
-            iLabelStatistics.put(BGLabel, stats);
-        }
-
-        // Finally - calculate variance, median and mean for each found label
-        for (LabelStatistics stat : iLabelStatistics.values()) {
-            int n = stat.iLabelCount;
-            stat.iMeanIntensity = n > 0 ? (stat.iSum / n) : 0;
-            stat.iVarIntensity = calculateVariance(stats.iSumOfSq,  stat.iMeanIntensity, n);
-            // Median on start set equal to mean
-            stat.iMedianIntensity = stat.iMeanIntensity;
-        }
-        
-        return maxUsedLabel;
-    }
-
-    private double calculateVariance(double aSumSq, double aMean, int aN) {
-        return (aN < 2) ? 0 : (aSumSq - aN * aMean * aMean) / (aN - 1.0);
-    }
-    
-    private void updateLabelStatistics(double aIntensity, int aFromLabelIdx, int aToLabelIdx) {
-        final LabelStatistics toStats = iLabelStatistics.get(aToLabelIdx);
-        final LabelStatistics fromStats = iLabelStatistics.get(aFromLabelIdx);
-
-        toStats.iSumOfSq += aIntensity*aIntensity;
-        fromStats.iSumOfSq -= aIntensity*aIntensity;
-        toStats.iSum += aIntensity;
-        fromStats.iSum -= aIntensity;
-        
-        toStats.iLabelCount++;
-        fromStats.iLabelCount--;
-        
-        // Update mean/var from updatet sums and label count
-        toStats.iMeanIntensity = (toStats.iSum ) / (toStats.iLabelCount);
-        fromStats.iMeanIntensity = (fromStats.iLabelCount > 0) ? (fromStats.iSum ) / (fromStats.iLabelCount) : 0;
-        toStats.iVarIntensity = calculateVariance(toStats.iSumOfSq, toStats.iMeanIntensity, toStats.iLabelCount);
-        fromStats.iVarIntensity = calculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 }

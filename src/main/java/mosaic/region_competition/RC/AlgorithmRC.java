@@ -28,6 +28,8 @@ import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.topology.TopologicalNumber;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
+import mosaic.region_competition.utils.LabelStatisticToolbox;
+import mosaic.region_competition.utils.LabelStatistics;
 
 public class AlgorithmRC {
 
@@ -104,8 +106,12 @@ public class AlgorithmRC {
         List<Point> contourPoints = iLabelImage.initContour();
         initContourContainer(contourPoints);
 
-        // Initialize standard statistics (mean, variances, length, area etc)
-        initStatistics();
+        
+        int maxUsedLabel = LabelStatisticToolbox.initStatistics(iLabelImage, iIntensityImage, iLabelStatistics);
+        
+        // Make sure that labelDispenser will not produce again any already used label
+        // Safe to search with 'max' we have at least one value in container (background)
+        labelDispenser.setMaxValueOfUsedLabel(maxUsedLabel);
 
         initEnergies();
     }
@@ -120,51 +126,6 @@ public class AlgorithmRC {
         }
     }
 
-    /**
-     * Initializes statistics. For each found label creates LabelStatistics object and stores it in labelStatistics container.
-     */
-    private void initStatistics() {
-        // First create all LabelStatistics for each found label and calculate values needed for later variance/mean calculations
-        int maxUsedLabel = 0;
-        for (int i = 0; i < iLabelImage.getSize(); ++i) {
-            final int absLabel = iLabelImage.getLabelAbs(i);
-
-            if (!iLabelImage.isBorderLabel(absLabel)) {
-                if (maxUsedLabel < absLabel) maxUsedLabel = absLabel;
-
-                LabelStatistics stats = iLabelStatistics.get(absLabel);
-                if (stats == null) {
-                    stats = new LabelStatistics(absLabel, iLabelImage.getNumOfDimensions());
-                    iLabelStatistics.put(absLabel, stats);
-                }
-                final double val = iIntensityImage.get(i);
-                stats.iSum += val;
-                stats.iSumOfSq += val*val;
-                stats.iLabelCount++;
-            }
-        }
-
-        // If background label do not exist add it to collection
-        LabelStatistics stats = iLabelStatistics.get(BGLabel);
-        if (stats == null) {
-            stats = new LabelStatistics(BGLabel, iLabelImage.getNumOfDimensions());
-            iLabelStatistics.put(BGLabel, stats);
-        }
-
-        // Finally - calculate variance, median and mean for each found label
-        for (LabelStatistics stat : iLabelStatistics.values()) {
-            int n = stat.iLabelCount;
-            stat.iMeanIntensity = n > 0 ? (stat.iSum / n) : 0;
-            stat.iVarIntensity = CalculateVariance(stats.iSumOfSq,  stat.iMeanIntensity, n);
-            // Median on start set equal to mean
-            stat.iMedianIntensity = stat.iMeanIntensity;
-        }
-        
-        // Make sure that labelDispenser will not produce again any already used label
-        // Safe to search with 'max' we have at least one value in container (background)
-        labelDispenser.setMaxValueOfUsedLabel(maxUsedLabel);
-    }
-    
     double CalculateVariance(double aSumSq, double aMean, int aN) {
         if (aN < 2) return 0;
         return (aSumSq - aN * aMean * aMean)/(aN - 1.0);
@@ -237,24 +198,6 @@ public class AlgorithmRC {
     }
 
     /**
-     * Removes from statistics labels with 'count == 0'
-     */
-    private void removeEmptyStatistics() {
-        final Iterator<Entry<Integer, LabelStatistics>> labelStatsIt = iLabelStatistics.entrySet().iterator();
-
-        while (labelStatsIt.hasNext()) {
-            final Entry<Integer, LabelStatistics> entry = labelStatsIt.next();
-            if (entry.getValue().iLabelCount == 0) {
-                if (entry.getKey() != BGLabel) {
-                    labelStatsIt.remove();
-                    continue;
-                }
-                logger.error("Tried to remove background label from label statistics!");
-            }
-        }
-    }
-
-    /**
      * Neighbors of point aPoint with aAbsLabel are changed to contour particles and added to CountourParicles container.
      * 
      * @param aPoint changing point
@@ -310,7 +253,7 @@ public class AlgorithmRC {
         iLabelImage.setLabel(aPoint, iLabelImage.labelToNeg(toLabel));
 
         // Update the statistics of the propagating and the loser region.
-        updateLabelStatistics(intensity, fromLabel, toLabel);
+        LabelStatisticToolbox.updateLabelStatistics(intensity, fromLabel, toLabel, iLabelStatistics);
         if (iSettings.usingDeconvolutionPcEnergy) {
             ((E_Deconvolution) iImageModel.getEdata()).UpdateConvolvedImage(aPoint, fromLabel, toLabel, iLabelStatistics);
         }
@@ -373,7 +316,7 @@ public class AlgorithmRC {
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(vIt.getKey(), vIt.getValue());
             }
         }
-        removeEmptyStatistics();
+        LabelStatisticToolbox.removeEmptyStatistics(iLabelStatistics);
     }
     
     /**
@@ -390,7 +333,7 @@ public class AlgorithmRC {
                 removeRegion(label);
             }
         }
-        removeEmptyStatistics();
+        LabelStatisticToolbox.removeEmptyStatistics(iLabelStatistics);
     }
 
     /**
@@ -522,7 +465,7 @@ public class AlgorithmRC {
         for (final int oldLabel : oldLabels) {
             iLabelStatistics.remove(oldLabel);
         }
-        removeEmptyStatistics();
+        LabelStatisticToolbox.removeEmptyStatistics(iLabelStatistics);
     }
     
     /**
@@ -612,7 +555,7 @@ public class AlgorithmRC {
         }
         limitNumberOfCandidates();
         boolean convergence = moveCandidates();
-        removeEmptyStatistics();
+        LabelStatisticToolbox.removeEmptyStatistics(iLabelStatistics);
         
         if (shrinkFirst && convergence) {
             // Done with shrinking, now allow growing
@@ -1079,24 +1022,5 @@ public class AlgorithmRC {
                 }
             }
         }
-    }
-
-    private void updateLabelStatistics(double aIntensity, int aFromLabelIdx, int aToLabelIdx) {
-        final LabelStatistics toStats = iLabelStatistics.get(aToLabelIdx);
-        final LabelStatistics fromStats = iLabelStatistics.get(aFromLabelIdx);
-
-        toStats.iSumOfSq += aIntensity*aIntensity;
-        fromStats.iSumOfSq -= aIntensity*aIntensity;
-        toStats.iSum += aIntensity;
-        fromStats.iSum -= aIntensity;
-        
-        toStats.iLabelCount++;
-        fromStats.iLabelCount--;
-        
-        // Update mean/var from updatet sums and label count
-        toStats.iMeanIntensity = (toStats.iSum ) / (toStats.iLabelCount);
-        fromStats.iMeanIntensity = (fromStats.iLabelCount > 0) ? (fromStats.iSum ) / (fromStats.iLabelCount) : 0;
-        toStats.iVarIntensity = CalculateVariance(toStats.iSumOfSq, toStats.iMeanIntensity, toStats.iLabelCount);
-        fromStats.iVarIntensity = CalculateVariance(fromStats.iSumOfSq, fromStats.iMeanIntensity, fromStats.iLabelCount);
     }
 }

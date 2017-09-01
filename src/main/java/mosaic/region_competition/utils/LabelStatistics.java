@@ -1,4 +1,4 @@
-package mosaic.region_competition.RC;
+package mosaic.region_competition.utils;
 
 
 public class LabelStatistics {

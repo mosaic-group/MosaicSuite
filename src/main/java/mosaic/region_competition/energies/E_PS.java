@@ -9,8 +9,8 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.region_competition.RC.ContourParticle;
-import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
+import mosaic.region_competition.utils.LabelStatistics;
 
 
 public class E_PS extends ExternalEnergy {

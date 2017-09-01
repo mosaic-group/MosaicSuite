@@ -10,17 +10,17 @@ public class MinimalParticleIndexedSetTest {
 
     @Test
     public void testAll() {
-        MinimalParticleIndexedSet s = new MinimalParticleIndexedSet();
+        ParticleSet s = new ParticleSet();
         
         // Basic test
         assertEquals(0, s.size());
-        assertTrue(s.erase(new MinimalParticle(0, 0, 0)) == null);
+        assertTrue(s.erase(new Particle(0, 0, 0)) == null);
         
         // Prepare some more particles
-        MinimalParticle p1 = new MinimalParticle(1, 1, 1);
-        MinimalParticle p1b = new MinimalParticle(1, 1, 4);
-        MinimalParticle p2 = new MinimalParticle(2, 2, 2);
-        MinimalParticle p3 = new MinimalParticle(3, 3, 3);
+        Particle p1 = new Particle(1, 1, 1);
+        Particle p1b = new Particle(1, 1, 4);
+        Particle p2 = new Particle(2, 2, 2);
+        Particle p3 = new Particle(3, 3, 3);
         
         s.insert(p1);
         assertEquals(1, s.size());
@@ -36,7 +36,7 @@ public class MinimalParticleIndexedSetTest {
         
         // Test find method
         assertEquals(1, s.getIndex(p2));
-        assertEquals("If no particle is found -1 should be returned", -1, s.getIndex(new MinimalParticle(4, 4, 4)));
+        assertEquals("If no particle is found -1 should be returned", -1, s.getIndex(new Particle(4, 4, 4)));
         
         // Check if indexes are moved correctly when particle in "middle" is removed
         assertEquals(2, s.getIndex(p3));
@@ -62,13 +62,13 @@ public class MinimalParticleIndexedSetTest {
     
     @Test
     public void testJoin() {
-        MinimalParticle p1 = new MinimalParticle(1, 1, 1);
-        MinimalParticle p2 = new MinimalParticle(2, 2, 2);
-        MinimalParticle p2b = new MinimalParticle(2, 2, 3);
-        MinimalParticle p3 = new MinimalParticle(3, 3, 3);
+        Particle p1 = new Particle(1, 1, 1);
+        Particle p2 = new Particle(2, 2, 2);
+        Particle p2b = new Particle(2, 2, 3);
+        Particle p3 = new Particle(3, 3, 3);
         
-        MinimalParticleIndexedSet s1 = new MinimalParticleIndexedSet();
-        MinimalParticleIndexedSet s2 = new MinimalParticleIndexedSet();
+        ParticleSet s1 = new ParticleSet();
+        ParticleSet s2 = new ParticleSet();
         
         // Create two sets with common element (equal but with different proposal value).
         s1.insert(p1);

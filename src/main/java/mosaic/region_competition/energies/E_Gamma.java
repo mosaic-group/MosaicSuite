@@ -6,8 +6,8 @@ import java.util.HashMap;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.RC.ContourParticle;
-import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
+import mosaic.region_competition.utils.LabelStatistics;
 
 
 public class E_Gamma extends InternalEnergy {

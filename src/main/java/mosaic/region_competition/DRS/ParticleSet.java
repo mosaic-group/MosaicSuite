@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
-    private HashMap<MinimalParticle, Integer> iMap = new HashMap<>();
-    protected ArrayList<MinimalParticle> iParticles = new ArrayList<>();
+public class ParticleSet implements Iterable<Particle> {
+    private HashMap<Particle, Integer> iMap = new HashMap<>();
+    protected ArrayList<Particle> iParticles = new ArrayList<>();
     
     /**
      * @return size of container
@@ -16,7 +16,7 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     /**
      * @return index of aParticle or if not found -1
      */
-    int getIndex(MinimalParticle aParticle) {
+    int getIndex(Particle aParticle) {
         Integer index = iMap.get(aParticle);
         if (index == null) { return -1; }
         return index;
@@ -25,7 +25,7 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     /**
      * @return true if aParticle is in container
      */
-    boolean contains(MinimalParticle aParticle) {
+    boolean contains(Particle aParticle) {
         return iMap.containsKey(aParticle);
     }
     
@@ -34,9 +34,9 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
      * @param aParticle - particle to be inserted
      * @return index of inserted particle
      */
-    MinimalParticle insert(MinimalParticle aParticle) {
+    Particle insert(Particle aParticle) {
         Integer index = iMap.get(aParticle);
-        MinimalParticle lastRemovedElement = null;
+        Particle lastRemovedElement = null;
         if (index == null) {
             iParticles.add(aParticle);
             iMap.put(aParticle, iMap.size());
@@ -51,7 +51,7 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     /**
      * @return particle at aIndex
      */
-    MinimalParticle get(int aIndex) {
+    Particle get(int aIndex) {
         return iParticles.get(aIndex);
     }
     
@@ -59,16 +59,16 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
      * Removes aParticle. Change indices to keep them continues so may invalidate previous index to particle.
      * @return removed MinimalParticle if existed or null otherwise
      */
-    MinimalParticle erase(MinimalParticle aParticle) {
+    Particle erase(Particle aParticle) {
         Integer index = iMap.get(aParticle);
         if (index == null) {
             return null;
         }
-        MinimalParticle lastRemovedElement = iParticles.get(index);
+        Particle lastRemovedElement = iParticles.get(index);
         int lastElementIndex = iParticles.size() - 1;
         if (lastElementIndex != index) {
             // Move last element in a place of removed one.
-            MinimalParticle lastParticle = iParticles.get(lastElementIndex);
+            Particle lastParticle = iParticles.get(lastElementIndex);
             iParticles.set(index, lastParticle);
             iMap.replace(lastParticle, index);
         }
@@ -84,8 +84,8 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     }
 
     @Override
-    public Iterator<MinimalParticle> iterator() {
-        return new Iterator<MinimalParticle>() {
+    public Iterator<Particle> iterator() {
+        return new Iterator<Particle>() {
             private int idx = 0;
             
             @Override
@@ -94,7 +94,7 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
             }
 
             @Override
-            public MinimalParticle next() {
+            public Particle next() {
                 return iParticles.get(idx++);
             }
             
