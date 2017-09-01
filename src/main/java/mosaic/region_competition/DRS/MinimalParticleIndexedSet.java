@@ -7,7 +7,6 @@ import java.util.Iterator;
 public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     private HashMap<MinimalParticle, Integer> iMap = new HashMap<>();
     ArrayList<MinimalParticle> iParticles = new ArrayList<>();
-    private MinimalParticle iLastRemovedElement = null;
     
     /**
      * @return size of container
@@ -37,39 +36,23 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
      */
     MinimalParticle insert(MinimalParticle aParticle) {
         Integer index = iMap.get(aParticle);
+        MinimalParticle lastRemovedElement = null;
         if (index == null) {
-            index = iMap.size();
-            iMap.put(aParticle, index);
             iParticles.add(aParticle);
+            iMap.put(aParticle, iMap.size());
         }
         else {
-            // new replaced particle might have different proposal, so old one need to be removed first
-            iLastRemovedElement = iParticles.get(index);
-            iMap.remove(aParticle);
-            iMap.put(aParticle, index);
-            iParticles.set(index, aParticle);
-            return iLastRemovedElement;
+            lastRemovedElement = iParticles.set(index, aParticle);
+            iMap.replace(aParticle, index);
         }
-        return null;
+        return lastRemovedElement;
     }
     
     /**
      * @return particle at aIndex
      */
-    MinimalParticle elementAt(int aIndex) {
+    MinimalParticle get(int aIndex) {
         return iParticles.get(aIndex);
-    }
-    
-    /**
-     * Join provided aSet to this one.
-     * @param aSet
-     * @return this
-     */
-    MinimalParticleIndexedSet join(MinimalParticleIndexedSet aSet) {
-        for(int i = 0; i < aSet.size(); ++i) {
-            insert(new MinimalParticle(aSet.elementAt(i)));
-        }
-        return this;
     }
     
     /**
@@ -81,18 +64,18 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
         if (index == null) {
             return null;
         }
-        iLastRemovedElement = iParticles.get(index);
-
-        /// We move the last element:
+        MinimalParticle lastRemovedElement = iParticles.get(index);
         int lastElementIndex = iParticles.size() - 1;
-        iMap.replace(iParticles.get(lastElementIndex), index);
-        iMap.remove(aParticle);
-        
-        // Update the vector: move the last element to the element to delete and remove the last element.
-        iParticles.set(index, iParticles.get(lastElementIndex));
+        if (lastElementIndex != index) {
+            // Move last element in a place of removed one.
+            MinimalParticle lastParticle = iParticles.get(lastElementIndex);
+            iParticles.set(index, lastParticle);
+            iMap.replace(lastParticle, index);
+        }
         iParticles.remove(lastElementIndex);
-        
-        return iLastRemovedElement;
+        iMap.remove(aParticle);
+
+        return lastRemovedElement;
     }
     
     @Override

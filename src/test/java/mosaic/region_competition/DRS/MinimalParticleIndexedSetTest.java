@@ -50,7 +50,7 @@ public class MinimalParticleIndexedSetTest {
         
         // Exchange p1 with p1b (they are same from equals() point of view)
         s.insert(p1b);
-        assertEquals(p1b, s.elementAt(0));
+        assertEquals(p1b, s.get(0));
 
         // Removing last existing element
         assertEquals(p1b, s.erase(p1b));
@@ -78,8 +78,5 @@ public class MinimalParticleIndexedSetTest {
         s2.insert(p3);
         
         assertEquals(2, s1.size());
-        s1.join(s2);
-        assertEquals(3, s1.size());
-        assertEquals(p2b, s1.elementAt(1));
     }
 }
