@@ -535,8 +535,8 @@ public class Region_Competition implements PlugInFilter {
         stackProcess = algorithm.createProbabilityImage();
         
         labelImage.show("LabelDRS");
-        intensityImage.show("IntenDRS");
-        edgeImage.show("EdgeDRS");
+//        intensityImage.show("IntenDRS");
+//        edgeImage.show("EdgeDRS");
     }
 
     private IntensityImage initEdgeImage() {
