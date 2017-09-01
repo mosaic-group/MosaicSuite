@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     private HashMap<MinimalParticle, Integer> iMap = new HashMap<>();
-    ArrayList<MinimalParticle> iParticles = new ArrayList<>();
+    protected ArrayList<MinimalParticle> iParticles = new ArrayList<>();
     
     /**
      * @return size of container
@@ -14,11 +14,11 @@ public class MinimalParticleIndexedSet implements Iterable<MinimalParticle> {
     int size() { return iMap.size(); }
     
     /**
-     * @return index of aParticle or if not found first not used index (size of container)
+     * @return index of aParticle or if not found -1
      */
-    int find(MinimalParticle aParticle) {
+    int getIndex(MinimalParticle aParticle) {
         Integer index = iMap.get(aParticle);
-        if (index == null) { return iMap.size(); }
+        if (index == null) { return -1; }
         return index;
     }
     

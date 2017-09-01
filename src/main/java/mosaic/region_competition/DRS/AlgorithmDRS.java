@@ -621,10 +621,10 @@ public class AlgorithmDRS {
     }
 
     private void insertFloatingParticleCumulative(MinimalParticle aParticle, boolean aDoRecord) {
-        int index = iFloatingParticles.find(aParticle);
+        int index = iFloatingParticles.getIndex(aParticle);
 
         MinimalParticle vParticleInserted = null;
-        if (iFloatingParticles.size() == index) {
+        if (index == -1) {
             // the particle did not yet exist
             vParticleInserted = aParticle;
         }
@@ -1255,8 +1255,8 @@ public class AlgorithmDRS {
      * @param aDoRecord
      */
     private void eraseFloatingParticle(MinimalParticle aParticle, boolean aDoRecord) {
-        int index = iFloatingParticles.find(aParticle);
-        if (iFloatingParticles.size() == index) {
+        int index = iFloatingParticles.getIndex(aParticle);
+        if (index == -1) {
             // particle does not exist
             return;
         }

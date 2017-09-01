@@ -35,14 +35,14 @@ public class MinimalParticleIndexedSetTest {
         assertEquals(3, s.size());
         
         // Test find method
-        assertEquals(1, s.find(p2));
-        assertEquals("If no particle is found size of container should be returned", 3, s.find(new MinimalParticle(4, 4, 4)));
+        assertEquals(1, s.getIndex(p2));
+        assertEquals("If no particle is found -1 should be returned", -1, s.getIndex(new MinimalParticle(4, 4, 4)));
         
         // Check if indexes are moved correctly when particle in "middle" is removed
-        assertEquals(2, s.find(p3));
+        assertEquals(2, s.getIndex(p3));
         s.erase(p2);
         assertEquals(2, s.size());
-        assertEquals(1, s.find(p3));
+        assertEquals(1, s.getIndex(p3));
         
         // Leve only one element in a container
         s.erase(p3);
