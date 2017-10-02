@@ -62,12 +62,8 @@ public class AlgorithmDRS {
             logger.info("Overall acceptance rate: " + ((float) iAcceptedMoves / iIterationCounter));
         }
         
-        // never done earlier than wanted number of iterations
+        // never finish earlier than wanted number of iterations
         return false;
-    }
-
-    public int getBiggestLabel() {
-        return 10; // TODO: Not handled so far (maybe not necessary)
     }
     
     private void initEdgeDistribution() {
