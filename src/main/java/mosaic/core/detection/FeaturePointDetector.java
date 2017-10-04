@@ -197,6 +197,11 @@ public class FeaturePointDetector {
         /* loop over all pixels */
         final int height = ips.getHeight();
         final int width = ips.getWidth();
+        
+        // Since the pixel coordinate system has half-integer values in center of a pixel
+        // use shift when we are dealing with image that has depth. For 2D images use 0.0
+        float depthShift = ips.getSize() > 1 ? 0.5f : 0.0f;
+        
         for (int s = 0; s < ips.getSize(); s++) {
             final float[] ips_pixels = (float[]) ips.getProcessor(s + 1).getPixels();
             final float[] ips_dilated_pixels = (float[]) dilated_ips.getProcessor(s + 1).getPixels();
@@ -206,7 +211,7 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1));
+                        iParticles.add(new Particle(j + .5f, i + .5f, s + depthShift, -1));
                     }
                 }
             }
