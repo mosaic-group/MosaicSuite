@@ -82,8 +82,8 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "linkStraight.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"Traj_linkStraight.tif.xml", "Traj_linkStraight.tif.txt", "Traj_linkStraight.tif.csv"};
-        final String[] referenceFiles    = {"linkStraight.xml", "linkStraight.txt", "linkStraight.csv"};
+        final String[] expectedFiles     = {"Traj_linkStraight.tif.csv", "Traj_linkStraight.tif.xml", "Traj_linkStraight.tif.txt"};
+        final String[] referenceFiles    = {"linkStraight.csv", "linkStraight.xml", "linkStraight.txt"};
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
@@ -105,8 +105,8 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "threeFramesVirusMovie.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"Traj_threeFramesVirusMovie.tif.xml", "Traj_threeFramesVirusMovie.tif.csv"};
-        final String[] referenceFiles    = {"threeFramesVirusMovieMssMsd.xml", "threeFramesVirusMovieTrajectories.csv"};
+        final String[] expectedFiles     = {"Traj_threeFramesVirusMovie.tif.csv", "Traj_threeFramesVirusMovie.tif.xml"};
+        final String[] referenceFiles    = {"threeFramesVirusMovieTrajectories.csv", "threeFramesVirusMovieMssMsd.xml"};
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
 
@@ -274,8 +274,8 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           = "Regions_size_5_5_100_100.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"Traj_Regions_size_5_5_100_100.tif.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
-        final String[] referenceFiles    = {"report.xml", "Traj_Regions_size_5_5_100_100.tif.txt", "Traj_Regions_size_5_5_100_100.tif.csv"};
+        final String[] expectedFiles     = {"Traj_Regions_size_5_5_100_100.tif.csv", "Traj_Regions_size_5_5_100_100.tif.xml", "Traj_Regions_size_5_5_100_100.tif.txt"};
+        final String[] referenceFiles    = {"Traj_Regions_size_5_5_100_100.tif.csv", "report.xml", "Traj_Regions_size_5_5_100_100.tif.txt"};
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
