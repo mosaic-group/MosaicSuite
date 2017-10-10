@@ -127,8 +127,8 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         final String inputFile           =  "ArtificialTest.tif";
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
-        final String[] expectedFiles     = {"Traj_ArtificialTest.tif.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv", "TrajMss_ArtificialTest.tif.csv"};
-        final String[] referenceFiles    = {"ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv", "TrajMss_ArtificialTest.tif.csv"};
+        final String[] expectedFiles     = {"TrajMss_ArtificialTest.tif.csv", "Traj_ArtificialTest.tif.xml", "Traj_ArtificialTest.tif.txt", "Traj_ArtificialTest.tif.csv"};
+        final String[] referenceFiles    = {"TrajMss_ArtificialTest.tif.csv", "ArtificialTestMssMsd.xml", "ArtificialTestReport.txt", "ArtificialTestTrajectories.csv"};
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();

@@ -1,6 +1,7 @@
 package mosaic.core.detection;
 
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -13,6 +14,7 @@ import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import mosaic.core.utils.DilateImage;
 import mosaic.utils.ImgUtils;
+import volume.Kernel1D;
 import volume.Kernel2D;
 import volume.Kernel3D;
 import volume.VolumeFloat;
@@ -455,15 +457,36 @@ public class FeaturePointDetector {
         // --------------------------------- run restoration (Gauss + Car-Box)
         VolumeFloat v = new VolumeFloat(restored.getWidth(), restored.getHeight(), restored.getSize() /*depth*/);
         v.load(restored, 0);
+        
         if (restored.getSize() > 1) {
-            Kernel3D k = new RestorationKernel3D(1, iRadius);
-            v.convolvexyz(k);
+            // In 3D use separable filters - working much faster but introducing also much bigger
+            // calculation error than using full kernel
+            // TODO: Implement convolution basing on double primitives - it should give same result as with full kernel.
+            //       Then both 2D and 3D can use separable filters
+            VolumeFloat background = new VolumeFloat(v);
+            
+            Kernel1D gauss = new GaussSeparable1D(1, iRadius);
+            v.convolvex(new VolumeFloat(v), gauss);
+            v.convolvey(new VolumeFloat(v), gauss);
+            v.convolvez(new VolumeFloat(v), gauss);
+            
+            Kernel1D carbox = new CarBoxSeparable1D(iRadius);
+            background.convolvex(new VolumeFloat(background), carbox);
+            background.convolvey(new VolumeFloat(background), carbox);
+            background.convolvez(new VolumeFloat(background), carbox);
+            
+            v.sub(background);
+            v.mul(1.0/calculateK0(3, 1, iRadius));
+//            Kernel3D k = new RestorationKernel3D(1, iRadius);
+//            v.convolvexyz(k);
         }
         else {
             Kernel2D k = new RestorationKernel2D(1, iRadius);
             v.convolvexy(k);
         }
         restored = v.getImageStack();
+        
+        
 
         // --------------------------------- un-pad restored image
         if (is.getSize() > 1) {
@@ -480,6 +503,61 @@ public class FeaturePointDetector {
         return restored;
     }
 
+    public double calculateK0(int dimension, int lambda, int radius) {
+        // Calculate B normalization
+        double B = 0.0; 
+        for(int i = -radius; i <= radius; i++) { 
+            B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
+        }
+        B = Math.pow(B, dimension);
+    
+        // Calculate K0 normalization
+        double K0 = 0.0; 
+        for(int i = -radius; i <= radius; i++) { 
+            K0 += Math.exp(-(i * i)/(2.0 * lambda * lambda));
+        }
+        int width = (2 * radius) + 1; 
+        K0 = Math.pow(K0, dimension) / B - B / Math.pow(width, dimension);
+        
+        return K0;
+    }
+    
+    public class GaussSeparable1D extends Kernel1D
+    {
+        public GaussSeparable1D(int lambda, int radius) {
+            k = gaussSeparable1D(lambda, radius);
+            halfwidth = k.length / 2;
+        }
+        
+        private double[] gaussSeparable1D(double lambda, int radius) {
+            int width = (2 * radius) + 1; 
+            double[] kernel = new double[width];
+
+            // Calculate B normalization
+            double B = 0.0; 
+            for(int i = -radius; i <= radius; ++i) { 
+                B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
+            }
+            
+            // Calculate kernel
+            for (int i = -radius; i <= radius; ++i) {
+                kernel[i + radius] = (1.0 / B) * Math.exp(-((i * i) / (4.0 * lambda * lambda)));
+            }    
+
+            return kernel;
+        }
+    }
+    
+    public class CarBoxSeparable1D extends Kernel1D
+    {
+        public CarBoxSeparable1D(int radius) {
+            int width = (2 * radius) + 1; 
+            k = new double[width];
+            Arrays.fill(k, 1.0 / width);
+            halfwidth = radius;
+        }
+    }
+    
     public class RestorationKernel2D extends Kernel2D
     {
         public RestorationKernel2D(int lambda, int radius) {
