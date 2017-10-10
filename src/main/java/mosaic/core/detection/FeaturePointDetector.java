@@ -1,6 +1,7 @@
 package mosaic.core.detection;
 
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -8,13 +9,15 @@ import org.apache.log4j.Logger;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Measurements;
-import ij.plugin.filter.Convolver;
-import ij.process.Blitter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import mosaic.core.utils.DilateImage;
 import mosaic.utils.ImgUtils;
+import volume.Kernel1D;
+import volume.Kernel2D;
+import volume.Kernel3D;
+import volume.VolumeFloat;
 
 
 /**
@@ -76,6 +79,7 @@ public class FeaturePointDetector {
 
         /* Image Restoration - Step 1 of the algorithm */
         restored_fps = imageRestoration(restored_fps);
+        
         // new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
         /* Estimation of the point location - Step 2 of the algorithm */
@@ -197,6 +201,11 @@ public class FeaturePointDetector {
         /* loop over all pixels */
         final int height = ips.getHeight();
         final int width = ips.getWidth();
+        
+        // Since the pixel coordinate system has half-integer values in center of a pixel
+        // use shift when we are dealing with image that has depth. For 2D images use 0.0
+        float depthShift = ips.getSize() > 1 ? 0.5f : 0.0f;
+        
         for (int s = 0; s < ips.getSize(); s++) {
             final float[] ips_pixels = (float[]) ips.getProcessor(s + 1).getPixels();
             final float[] ips_dilated_pixels = (float[]) dilated_ips.getProcessor(s + 1).getPixels();
@@ -206,7 +215,7 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1));
+                        iParticles.add(new Particle(j + 0.5f, i + .5f, s + depthShift, -1));
                     }
                 }
             }
@@ -266,7 +275,6 @@ public class FeaturePointDetector {
                             int x = (int) currentParticle.iX + l;
                             
                             float c = pixels[y * imageWidth + x] * iMask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
-
                             epsx += l * c;
                             epsy += k * c;
                             epsz += s * c;
@@ -279,7 +287,6 @@ public class FeaturePointDetector {
                         }
                     }
                 }
-
                 epsx /= currentParticle.m0;
                 epsy /= currentParticle.m0;
                 epsz /= currentParticle.m0;
@@ -435,7 +442,7 @@ public class FeaturePointDetector {
     private ImageStack imageRestoration(ImageStack is) {
         ImageStack restored = null;
 
-        // pad the imagestack
+        // --------------------------------- pad input image
         if (is.getSize() > 1) {
             // 3D mode
             restored = ImgUtils.padImageStack3D(is, iRadius);
@@ -447,13 +454,41 @@ public class FeaturePointDetector {
             restored.addSlice("", rp);
         }
 
-        // Old switch statement for:  case BOX_CAR_AVG:
-        // There was found to be a 2*lambda_n for the sigma of the Gaussian kernel.
-        // Set it back to 1*lambda_n to match the 2D implementation.
-        final float lambda_n = 1;
-        GaussBlur3D(restored, 1 * lambda_n);
-        boxCarBackgroundSubtractor(restored);
+        // --------------------------------- run restoration (Gauss + Car-Box)
+        VolumeFloat v = new VolumeFloat(restored.getWidth(), restored.getHeight(), restored.getSize() /*depth*/);
+        v.load(restored, 0);
+        
+        if (restored.getSize() > 1) {
+            // In 3D use separable filters - working much faster but introducing also much bigger
+            // calculation error than using full kernel
+            // TODO: Implement convolution basing on double primitives - it should give same result as with full kernel.
+            //       Then both 2D and 3D can use separable filters
+            VolumeFloat background = new VolumeFloat(v);
+            
+            Kernel1D gauss = new GaussSeparable1D(1, iRadius);
+            v.convolvex(new VolumeFloat(v), gauss);
+            v.convolvey(new VolumeFloat(v), gauss);
+            v.convolvez(new VolumeFloat(v), gauss);
+            
+            Kernel1D carbox = new CarBoxSeparable1D(iRadius);
+            background.convolvex(new VolumeFloat(background), carbox);
+            background.convolvey(new VolumeFloat(background), carbox);
+            background.convolvez(new VolumeFloat(background), carbox);
+            
+            v.sub(background);
+            v.mul(1.0/calculateK0(3, 1, iRadius));
+//            Kernel3D k = new RestorationKernel3D(1, iRadius);
+//            v.convolvexyz(k);
+        }
+        else {
+            Kernel2D k = new RestorationKernel2D(1, iRadius);
+            v.convolvexy(k);
+        }
+        restored = v.getImageStack();
+        
+        
 
+        // --------------------------------- un-pad restored image
         if (is.getSize() > 1) {
             // again, 3D crop
             restored = ImgUtils.cropImageStack3D(restored, iRadius);
@@ -468,87 +503,145 @@ public class FeaturePointDetector {
         return restored;
     }
 
-    private void GaussBlur3D(ImageStack is, float aSigma) {
-        final float[] vKernel = CalculateNormalizedGaussKernel(aSigma);
-        int kernel_radius = vKernel.length / 2;
-        final int nSlices = is.getSize();
-        final int vWidth = is.getWidth();
-        for (int i = 1; i <= nSlices; i++) {
-            final ImageProcessor restored_proc = is.getProcessor(i);
-            final Convolver convolver = new Convolver();
-            // no need to normalize the kernel - its already normalized
-            convolver.setNormalize(false);
-            // the gaussian kernel is separable and can done in 3x 1D convolutions.
-            convolver.convolve(restored_proc, vKernel, vKernel.length, 1);
-            convolver.convolve(restored_proc, vKernel, 1, vKernel.length);
+    public double calculateK0(int dimension, int lambda, int radius) {
+        // Calculate B normalization
+        double B = 0.0; 
+        for(int i = -radius; i <= radius; i++) { 
+            B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
         }
-        // 2D mode, abort here; the rest is unnecessary
-        if (is.getSize() == 1) {
-            return;
+        B = Math.pow(B, dimension);
+    
+        // Calculate K0 normalization
+        double K0 = 0.0; 
+        for(int i = -radius; i <= radius; i++) { 
+            K0 += Math.exp(-(i * i)/(2.0 * lambda * lambda));
         }
+        int width = (2 * radius) + 1; 
+        K0 = Math.pow(K0, dimension) / B - B / Math.pow(width, dimension);
+        
+        return K0;
+    }
+    
+    public class GaussSeparable1D extends Kernel1D
+    {
+        public GaussSeparable1D(int lambda, int radius) {
+            k = gaussSeparable1D(lambda, radius);
+            halfwidth = k.length / 2;
+        }
+        
+        private double[] gaussSeparable1D(double lambda, int radius) {
+            int width = (2 * radius) + 1; 
+            double[] kernel = new double[width];
 
-        kernel_radius = vKernel.length / 2;
-        // to speed up the method, store the processor in an array (not invoke getProcessor()):
-        final float[][] vOrigProcessors = new float[nSlices][];
-        final float[][] vRestoredProcessors = new float[nSlices][];
-        for (int s = 0; s < nSlices; s++) {
-            vOrigProcessors[s] = (float[]) is.getProcessor(s + 1).getPixelsCopy();
-            vRestoredProcessors[s] = (float[]) is.getProcessor(s + 1).getPixels();
-        }
-        // convolution with 1D gaussian in 3rd dimension:
-        for (int y = kernel_radius; y < is.getHeight() - kernel_radius; y++) {
-            for (int x = kernel_radius; x < is.getWidth() - kernel_radius; x++) {
-                for (int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {
-                    float sum = 0;
-                    for (int i = -kernel_radius; i <= kernel_radius; i++) {
-                        sum += vKernel[i + kernel_radius] * vOrigProcessors[s + i - 1][y * vWidth + x];
-                    }
-                    vRestoredProcessors[s - 1][y * vWidth + x] = sum;
-                }
+            // Calculate B normalization
+            double B = 0.0; 
+            for(int i = -radius; i <= radius; ++i) { 
+                B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
             }
+            
+            // Calculate kernel
+            for (int i = -radius; i <= radius; ++i) {
+                kernel[i + radius] = (1.0 / B) * Math.exp(-((i * i) / (4.0 * lambda * lambda)));
+            }    
+
+            return kernel;
         }
     }
-
-    private void boxCarBackgroundSubtractor(ImageStack is) {
-        final Convolver convolver = new Convolver();
-        final float[] kernel = new float[iRadius * 2 + 1];
-        final int n = kernel.length;
-        for (int i = 0; i < kernel.length; i++) {
-            kernel[i] = 1f / n;
-        }
-        for (int s = 1; s <= is.getSize(); s++) {
-            final ImageProcessor bg_proc = is.getProcessor(s).duplicate();
-            convolver.convolveFloat(bg_proc, kernel, 1, n);
-            convolver.convolveFloat(bg_proc, kernel, n, 1);
-            is.getProcessor(s).copyBits(bg_proc, 0, 0, Blitter.SUBTRACT);
+    
+    public class CarBoxSeparable1D extends Kernel1D
+    {
+        public CarBoxSeparable1D(int radius) {
+            int width = (2 * radius) + 1; 
+            k = new double[width];
+            Arrays.fill(k, 1.0 / width);
+            halfwidth = radius;
         }
     }
+    
+    public class RestorationKernel2D extends Kernel2D
+    {
+        public RestorationKernel2D(int lambda, int radius) {
+            k = resorationKernel2D(lambda, radius);
+            int width = k[0].length;
+            halfwidth = width / 2;
+        }
+        
+        private double[][] resorationKernel2D(float lambda, int radius) {
+            int width = (2 * radius) + 1; 
+            double[][] kernel = new double[width][width];
 
-    private float[] CalculateNormalizedGaussKernel(float aSigma) {
-        int vL = (int) aSigma * 3 * 2 + 1;
-        if (vL < 3) {
-            vL = 3;
-        }
-        final float[] vKernel = new float[vL];
-        final int vM = vKernel.length / 2;
-        for (int vI = 0; vI < vM; vI++) {
-            vKernel[vI] = (float) (1f / (2f * Math.PI * aSigma * aSigma) * Math.exp(-(float) ((vM - vI) * (vM - vI)) / (2f * aSigma * aSigma)));
-            vKernel[vKernel.length - vI - 1] = vKernel[vI];
-        }
-        vKernel[vM] = (float) (1f / (2f * Math.PI * aSigma * aSigma));
+            // Calculate B normalization
+            double B = 0.0; 
+            for(int i = -radius; i <= radius; i++) { 
+                B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
+            }
+            B = B * B;
 
-        // normalize the kernel numerically:
-        float vSum = 0;
-        for (int vI = 0; vI < vKernel.length; vI++) {
-            vSum += vKernel[vI];
+            // Calculate K0 normalization
+            double K0 = 0.0; 
+            for(int i = -radius; i <= radius; i++) { 
+                K0 += Math.exp(-(i * i)/(2.0 * lambda * lambda));
+            }
+            K0 = K0 * K0 / B - B / (width * width);
+
+            // Calculate kernel
+            for (int i = -radius; i <= radius; i++) {
+                for (int j = -radius; j <= radius; j++) {
+                    kernel[i + radius][ j + radius] = (1.0f / B) * Math.exp(-((i * i + j * j) / (4.0f * lambda * lambda))) - (1.0f / (width * width));
+                    kernel[i + radius][ j + radius] /= K0;
+                }    
+            }            
+
+            return kernel;
         }
-        final float vScale = 1.0f / vSum;
-        for (int vI = 0; vI < vKernel.length; vI++) {
-            vKernel[vI] *= vScale;
-        }
-        return vKernel;
+        
+        @Override
+        public String toString() { return "Gauss/BoxCar 2D"; }
     }
+    
+    public class RestorationKernel3D extends Kernel3D
+    {
+        public RestorationKernel3D(int lambda, int radius) {
+            k = resorationKernel3D(lambda, radius);
+            int width = k[0].length;
+            halfwidth = width / 2;
+        }
 
+        private double[][][] resorationKernel3D(float lambda, int radius) {
+            int width = (2 * radius) + 1; 
+            double[][][] kernel = new double[width][width][width];
+
+            // Calculate B normalization
+            double B = 0.0; 
+            for(int i = -radius; i <= radius; i++) { 
+                B += Math.exp(-(i * i)/(4.0 * lambda * lambda));
+            }
+            B = B * B * B;
+
+            // Calculate K0 normalization
+            double K0 = 0.0; 
+            for(int i = -radius; i <= radius; i++) { 
+                K0 += Math.exp(-(i * i)/(2.0 * lambda * lambda));
+            }
+            K0 = K0 * K0 * K0 / B - B / (width * width * width);
+
+            // Calculate kernel
+            for (int i = -radius; i <= radius; i++) {
+                for (int j = -radius; j <= radius; j++) {
+                    for (int k = -radius; k <= radius; k++) {
+                        kernel[i + radius][ j + radius][k + radius] = (1.0f / B) * Math.exp(-((i * i + j * j + k * k) / (4.0f * lambda * lambda))) - (1.0f / (width * width * width));
+                        kernel[i + radius][ j + radius][k + radius] /= K0;
+                    }
+                }    
+            }            
+
+            return kernel;
+        }
+
+        @Override
+        public String toString() { return "Gauss/BoxCar 3D"; }
+    }
+    
     /**
      * (Re)Initialize the binary and weighted masks. This is necessary if the radius changed.
      * @param mask_radius

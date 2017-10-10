@@ -202,6 +202,7 @@ public class CommonBase extends Info {
         logger.debug("Comparing output of two text files:");
         logger.debug("    ref: [" + refFile + "]");
         logger.debug("    test:[" + testFile + "]");
+        logger.debug(" cp " + testFile + " " + refFile);
         String expected = readFile(refFile);
         String result = readFile(testFile);
         assertEquals("Files differ!", expected, result);
@@ -212,6 +213,7 @@ public class CommonBase extends Info {
         logger.debug("Comparing output of two CSV files:");
         logger.debug("    ref: [" + refFile + "]");
         logger.debug("    test:[" + testFile +"]");
+        logger.debug(" cp " + testFile + " " + refFile);
         try {
             List<String> ref = readLines(refFile);
             List<String> test = readLines(testFile);
