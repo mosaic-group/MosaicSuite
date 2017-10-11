@@ -77,7 +77,7 @@ public class Convolver {
         }  
     }
     
-    public void sub(Convolver aConvolver) {
+    public Convolver sub(Convolver aConvolver) {
         for (int z = 0; z < iDepth; ++z) {
             for (int y = 0; y < iHeight; ++y) {
                 for (int x = 0; x < iWidth; ++x) {
@@ -85,6 +85,8 @@ public class Convolver {
                 }
             }
         }
+        
+        return this;
     }
     
     public void mul(double aConst) {
@@ -97,8 +99,9 @@ public class Convolver {
         }
     }
     
-    public void div(double aConst) {
+    public Convolver div(double aConst) {
         mul(1.0/aConst);
+        return this;
     }
     
     public void x1D(Kernel1D aKernel) {

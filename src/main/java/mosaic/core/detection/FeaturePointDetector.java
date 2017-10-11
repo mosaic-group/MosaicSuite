@@ -438,28 +438,29 @@ public class FeaturePointDetector {
      * @return the restored <code>ImageProcessor</code>
      */
     private ImageStack imageRestoration(ImageStack is) {
-        Convolver v = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
-        v.initFromImageStack(is);
+        Convolver img = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
+        img.initFromImageStack(is);
         
-        Convolver background = new Convolver(v);
-        
+        Convolver gaussImg = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
         Kernel1D gauss = new GaussSeparable1D(1, iRadius);
-        v.x1D(gauss);
-        v.y1D(gauss);
+        gaussImg.x1D(img, gauss);
+        gaussImg.y1D(gauss);
         
+        Convolver backgroundImg = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
         Kernel1D carbox = new CarBoxSeparable1D(iRadius);
-        background.x1D(carbox);
-        background.y1D(carbox);
+        backgroundImg.x1D(img, carbox);
+        backgroundImg.y1D(carbox);
         
-        if (is.getSize() > 1) { // 3D
-            v.z1D(new Convolver(v), gauss);
-            background.z1D(carbox);
+        boolean is3D = is.getSize() > 1;
+        if (is3D) { // for 3D handle also z-direction
+            gaussImg.z1D(gauss);
+            backgroundImg.z1D(carbox);
         }
         
-        v.sub(background);
-        v.div(calculateK0(is.getSize() > 1 ? 3 : 2, 1, iRadius));
+        // Calculate final result = (1/K0) * (IMG*G - IMG*B)
+        gaussImg.sub(backgroundImg).div(calculateK0(is3D ? 3 : 2, 1, iRadius));
         
-        return v.getImageStack();
+        return gaussImg.getImageStack();
     }
 
     public double calculateK0(int dimension, int lambda, int radius) {
