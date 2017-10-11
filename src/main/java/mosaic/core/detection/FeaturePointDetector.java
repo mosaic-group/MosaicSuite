@@ -14,8 +14,8 @@ import ij.process.StackStatistics;
 import mosaic.core.imageUtils.convolution.Convolver;
 import mosaic.core.imageUtils.convolution.Kernel1D;
 import mosaic.core.imageUtils.convolution.Kernel2D;
+import mosaic.core.imageUtils.convolution.Kernel3D;
 import mosaic.core.utils.DilateImage;
-import volume.Kernel3D;
 
 
 /**
@@ -439,25 +439,25 @@ public class FeaturePointDetector {
      */
     private ImageStack imageRestoration(ImageStack is) {
         Convolver v = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
-        v.load(is);
+        v.initFromImageStack(is);
         
         Convolver background = new Convolver(v);
         
         Kernel1D gauss = new GaussSeparable1D(1, iRadius);
-        v.convolvex(new Convolver(v), gauss);
-        v.convolvey(new Convolver(v), gauss);
+        v.x1D(gauss);
+        v.y1D(gauss);
         
         Kernel1D carbox = new CarBoxSeparable1D(iRadius);
-        background.convolvex(new Convolver(background), carbox);
-        background.convolvey(new Convolver(background), carbox);
+        background.x1D(carbox);
+        background.y1D(carbox);
         
-        if (is.getSize() > 1) {
-            v.convolvez(new Convolver(v), gauss);
-            background.convolvez(new Convolver(background), carbox);
+        if (is.getSize() > 1) { // 3D
+            v.z1D(new Convolver(v), gauss);
+            background.z1D(carbox);
         }
         
         v.sub(background);
-        v.mul(1.0/calculateK0(is.getSize() > 1 ? 3 : 2, 1, iRadius));
+        v.div(calculateK0(is.getSize() > 1 ? 3 : 2, 1, iRadius));
         
         return v.getImageStack();
     }
@@ -485,7 +485,7 @@ public class FeaturePointDetector {
     {
         public GaussSeparable1D(int lambda, int radius) {
             k = gaussSeparable1D(lambda, radius);
-            halfwidth = k.length / 2;
+            iHalfWidth = k.length / 2;
         }
         
         private double[] gaussSeparable1D(double lambda, int radius) {
@@ -513,7 +513,7 @@ public class FeaturePointDetector {
             int width = (2 * radius) + 1; 
             k = new double[width];
             Arrays.fill(k, 1.0 / width);
-            halfwidth = radius;
+            iHalfWidth = radius;
         }
     }
     
@@ -522,7 +522,7 @@ public class FeaturePointDetector {
         public RestorationKernel2D(int lambda, int radius) {
             k = resorationKernel2D(lambda, radius);
             int width = k[0].length;
-            halfwidth = width / 2;
+            iHalfWidth = width / 2;
         }
         
         private double[][] resorationKernel2D(float lambda, int radius) {
@@ -563,7 +563,7 @@ public class FeaturePointDetector {
         public RestorationKernel3D(int lambda, int radius) {
             k = resorationKernel3D(lambda, radius);
             int width = k[0].length;
-            halfwidth = width / 2;
+            iHalfWidth = width / 2;
         }
 
         private double[][][] resorationKernel3D(float lambda, int radius) {

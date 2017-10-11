@@ -2,15 +2,17 @@ package mosaic.core.imageUtils.convolution;
 
 import org.junit.Test;
 
-public class ConvolverTest {
+import mosaic.test.framework.CommonBase;
+
+public class ConvolverTest extends CommonBase {
 
     @Test
-    public void test() {
+    public void test2D() {
         double[][] d = new double [][] {
             {0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 2, 0, 0, 0},
+            {0, 0, 0, 1, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
@@ -19,24 +21,59 @@ public class ConvolverTest {
         
         Kernel2D k = new Kernel2D() {{
             k = new double[][] {{1,1,1}, {1,1,1}, {1,1,1}};
-            halfwidth = 1;
+            iHalfWidth = 1;
         }};
         Convolver c = new Convolver(d);
-        c.convolvexy(new Convolver(c), k);
-        c.convolvexy(new Convolver(c), k);
-
-        System.out.println("\n-----------\n");
+        c.xy2D(new Convolver(c), k);
+        c.xy2D(new Convolver(c), k);
         
         Kernel1D k2 = new Kernel1D() {{
             k = new double[] {1,1,1};
-            halfwidth = 1;
+            iHalfWidth = 1;
         }};
         Convolver c2 = new Convolver(d);
-        c2.convolvex(new Convolver(c2), k2);
-        c2.convolvey(new Convolver(c2), k2);
-        c2.convolvex(new Convolver(c2), k2);
-        c2.convolvey(new Convolver(c2), k2);
+        c2.x1D(new Convolver(c2), k2);
+        c2.y1D(new Convolver(c2), k2);
+        c2.x1D(new Convolver(c2), k2);
+        c2.y1D(new Convolver(c2), k2);
+        
+        CommonBase.compareArrays(c.getData(), c2.getData());
     }
     
-
+    @Test
+    public void test3D() {
+        double[][][] d = new double [][][] {
+                    {{1, 0, 0},
+                     {0, 2, 0},
+                     {0, 0, 3}},
+                    {{1, 2, 3},
+                     {1, 2, 3},
+                     {1, 2, 3}},
+                    {{1, 0, 0},
+                     {0, 2, 0},
+                     {0, 0, 3}},
+            };
+        
+        Kernel3D k = new Kernel3D() {{
+            k = new double[][][] { {{1,1,1}, {1,1,1}, {1,1,1}}, {{1,1,1}, {1,1,1}, {1,1,1}}, {{1,1,1}, {1,1,1}, {1,1,1}}};
+            iHalfWidth = 1;
+        }};
+        Convolver c = new Convolver(d);
+        c.xyz3D(new Convolver(c), k);
+        c.xyz3D(k);
+        
+        Kernel1D k2 = new Kernel1D() {{
+            k = new double[] {1,1,1};
+            iHalfWidth = 1;
+        }};
+        Convolver c2 = new Convolver(d);
+        c2.x1D(new Convolver(c2), k2);
+        c2.y1D(new Convolver(c2), k2);
+        c2.z1D(new Convolver(c2), k2);
+        c2.x1D(k2);
+        c2.y1D(k2);
+        c2.z1D(k2);
+        
+        CommonBase.compareArrays(c.getData(), c2.getData());
+    }
 }
