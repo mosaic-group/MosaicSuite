@@ -9,15 +9,13 @@ import org.apache.log4j.Logger;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Measurements;
-import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
+import mosaic.core.imageUtils.convolution.Convolver;
+import mosaic.core.imageUtils.convolution.Kernel1D;
+import mosaic.core.imageUtils.convolution.Kernel2D;
+import mosaic.core.imageUtils.convolution.Kernel3D;
 import mosaic.core.utils.DilateImage;
-import mosaic.utils.ImgUtils;
-import volume.Kernel1D;
-import volume.Kernel2D;
-import volume.Kernel3D;
-import volume.VolumeFloat;
 
 
 /**
@@ -440,67 +438,28 @@ public class FeaturePointDetector {
      * @return the restored <code>ImageProcessor</code>
      */
     private ImageStack imageRestoration(ImageStack is) {
-        ImageStack restored = null;
-
-        // --------------------------------- pad input image
-        if (is.getSize() > 1) {
-            // 3D mode
-            restored = ImgUtils.padImageStack3D(is, iRadius);
-        }
-        else {
-            // we're in 2D mode
-            final ImageProcessor rp = ImgUtils.padImageProcessor(is.getProcessor(1), iRadius);
-            restored = new ImageStack(rp.getWidth(), rp.getHeight());
-            restored.addSlice("", rp);
-        }
-
-        // --------------------------------- run restoration (Gauss + Car-Box)
-        VolumeFloat v = new VolumeFloat(restored.getWidth(), restored.getHeight(), restored.getSize() /*depth*/);
-        v.load(restored, 0);
+        Convolver v = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
+        v.initFromImageStack(is);
         
-        if (restored.getSize() > 1) {
-            // In 3D use separable filters - working much faster but introducing also much bigger
-            // calculation error than using full kernel
-            // TODO: Implement convolution basing on double primitives - it should give same result as with full kernel.
-            //       Then both 2D and 3D can use separable filters
-            VolumeFloat background = new VolumeFloat(v);
-            
-            Kernel1D gauss = new GaussSeparable1D(1, iRadius);
-            v.convolvex(new VolumeFloat(v), gauss);
-            v.convolvey(new VolumeFloat(v), gauss);
-            v.convolvez(new VolumeFloat(v), gauss);
-            
-            Kernel1D carbox = new CarBoxSeparable1D(iRadius);
-            background.convolvex(new VolumeFloat(background), carbox);
-            background.convolvey(new VolumeFloat(background), carbox);
-            background.convolvez(new VolumeFloat(background), carbox);
-            
-            v.sub(background);
-            v.mul(1.0/calculateK0(3, 1, iRadius));
-//            Kernel3D k = new RestorationKernel3D(1, iRadius);
-//            v.convolvexyz(k);
-        }
-        else {
-            Kernel2D k = new RestorationKernel2D(1, iRadius);
-            v.convolvexy(k);
-        }
-        restored = v.getImageStack();
+        Convolver background = new Convolver(v);
         
+        Kernel1D gauss = new GaussSeparable1D(1, iRadius);
+        v.x1D(gauss);
+        v.y1D(gauss);
         
-
-        // --------------------------------- un-pad restored image
-        if (is.getSize() > 1) {
-            // again, 3D crop
-            restored = ImgUtils.cropImageStack3D(restored, iRadius);
-        }
-        else {
-            // 2D crop
-            final ImageProcessor rp = ImgUtils.cropImageProcessor(restored.getProcessor(1), iRadius);
-            restored = new ImageStack(rp.getWidth(), rp.getHeight());
-            restored.addSlice("", rp);
+        Kernel1D carbox = new CarBoxSeparable1D(iRadius);
+        background.x1D(carbox);
+        background.y1D(carbox);
+        
+        if (is.getSize() > 1) { // 3D
+            v.z1D(new Convolver(v), gauss);
+            background.z1D(carbox);
         }
         
-        return restored;
+        v.sub(background);
+        v.div(calculateK0(is.getSize() > 1 ? 3 : 2, 1, iRadius));
+        
+        return v.getImageStack();
     }
 
     public double calculateK0(int dimension, int lambda, int radius) {
@@ -526,7 +485,7 @@ public class FeaturePointDetector {
     {
         public GaussSeparable1D(int lambda, int radius) {
             k = gaussSeparable1D(lambda, radius);
-            halfwidth = k.length / 2;
+            iHalfWidth = k.length / 2;
         }
         
         private double[] gaussSeparable1D(double lambda, int radius) {
@@ -554,7 +513,7 @@ public class FeaturePointDetector {
             int width = (2 * radius) + 1; 
             k = new double[width];
             Arrays.fill(k, 1.0 / width);
-            halfwidth = radius;
+            iHalfWidth = radius;
         }
     }
     
@@ -563,7 +522,7 @@ public class FeaturePointDetector {
         public RestorationKernel2D(int lambda, int radius) {
             k = resorationKernel2D(lambda, radius);
             int width = k[0].length;
-            halfwidth = width / 2;
+            iHalfWidth = width / 2;
         }
         
         private double[][] resorationKernel2D(float lambda, int radius) {
@@ -604,7 +563,7 @@ public class FeaturePointDetector {
         public RestorationKernel3D(int lambda, int radius) {
             k = resorationKernel3D(lambda, radius);
             int width = k[0].length;
-            halfwidth = width / 2;
+            iHalfWidth = width / 2;
         }
 
         private double[][][] resorationKernel3D(float lambda, int radius) {
