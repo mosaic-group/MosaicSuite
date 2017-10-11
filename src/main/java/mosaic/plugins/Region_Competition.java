@@ -11,10 +11,10 @@ import ij.ImageStack;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
-import ij.plugin.filter.Convolver;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
+import mosaic.core.imageUtils.convolution.Convolver;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
@@ -23,7 +23,6 @@ import mosaic.region_competition.Settings;
 import mosaic.region_competition.Settings.SegmentationType;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SettingsDRS;
-import mosaic.region_competition.DRS.SobelVolume;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
@@ -543,13 +542,23 @@ public class Region_Competition implements PlugInFilter {
         ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().duplicate().convertToFloat());
         sobelInput = ImgUtils.convertToNormalizedGloballyFloatType(sobelInput);
         gaussBlur3D(sobelInput.getImageStack(), 1.5f);
-        SobelVolume sobelVolume = new SobelVolume(sobelInput);
-        if (inputImageChosenByUser.getNSlices() == 1) { 
-            sobelVolume.sobel2D();
+        
+//        SobelVolume sobelVolume = new SobelVolume(sobelInput);
+//        if (inputImageChosenByUser.getNSlices() == 1) { 
+//            sobelVolume.sobel2D();
+//        }
+//        else {
+//            sobelVolume.sobel3D();
+//        }
+        Convolver sobelVolume = new Convolver(sobelInput.getWidth(), sobelInput.getHeight(), sobelInput.getNSlices());
+        sobelVolume.initFromImageStack(sobelInput.getImageStack());
+        if (inputImageChosenByUser.getNSlices() == 1) {
+            sobelVolume.sobel2D(new Convolver(sobelVolume));
         }
         else {
-            sobelVolume.sobel3D();
+            sobelVolume.sobel3D(new Convolver(sobelVolume));
         }
+        
         ImagePlus sobelIp = new ImagePlus("XXXX", sobelVolume.getImageStack());
         StackStatistics ss = new StackStatistics(sobelIp);
         sobelIp.setDisplayRange(ss.min,  ss.max);  
@@ -566,7 +575,7 @@ public class Region_Competition implements PlugInFilter {
         final int vWidth = is.getWidth();
         for (int i = 1; i <= nSlices; i++){
             final ImageProcessor restored_proc = is.getProcessor(i);
-            final Convolver convolver = new Convolver();
+            final ij.plugin.filter.Convolver convolver = new ij.plugin.filter.Convolver();
             // no need to normalize the kernel - its already normalized
             convolver.setNormalize(false);
             //the gaussian kernel is separable and can done in 3x 1D convolutions!

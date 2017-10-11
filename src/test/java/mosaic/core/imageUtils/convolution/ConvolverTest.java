@@ -2,7 +2,10 @@ package mosaic.core.imageUtils.convolution;
 
 import org.junit.Test;
 
+import ij.ImagePlus;
+import mosaic.region_competition.DRS.SobelVolume;
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.ConvertArray;
 
 public class ConvolverTest extends CommonBase {
 
@@ -75,5 +78,50 @@ public class ConvolverTest extends CommonBase {
         c2.z1D(k2);
         
         CommonBase.compareArrays(c.getData(), c2.getData());
+    }
+    
+    @Test
+    public void sobel2D() {
+        double[][] d = new double [][] {
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 2, 0, 0, 0},
+            {0, 0, 0, 1, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 0, 0, 0},
+            {1, 0, 0, 0, 0, 0, 0, 0}
+        };
+
+        Convolver c = new Convolver(d);
+        SobelVolume sv = new SobelVolume(new ImagePlus("", c.getImageStack()));
+        sv.sobel2D();
+        
+        c.sobel2D(new Convolver(c));
+        
+        CommonBase.compareArrays(c.getData(), ConvertArray.toDouble(sv.v));
+    }
+    
+    @Test
+    public void sobel3D() {
+        double[][][] d = new double [][][] {
+            {{1, 0, 0},
+             {0, 2, 0},
+             {0, 0, 3}},
+            {{1, 2, 3},
+             {1, 2, 3},
+             {1, 2, 3}},
+            {{1, 0, 0},
+             {0, 2, 0},
+             {0, 0, 3}},
+    };
+
+        Convolver c = new Convolver(d);
+        SobelVolume sv = new SobelVolume(new ImagePlus("", c.getImageStack()));
+        sv.sobel3D();
+        
+        c.sobel3D(new Convolver(c));
+        
+        CommonBase.compareArrays(c.getData(), ConvertArray.toDouble(sv.v));
     }
 }
