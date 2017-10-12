@@ -178,6 +178,14 @@ public class Convolver {
     public void xyz3D(Kernel3D aKernel) {
         xyz3D(new Convolver(this), aKernel);
     }
+    
+    public void sobel2D() {
+        sobel2D(new Convolver(this));
+    }
+    
+    public void sobel3D() {
+        sobel3D(new Convolver(this));
+    }
 
     public void x1D(Convolver aSrcConv, Kernel1D aKernel) {
         int hw = aKernel.iHalfWidth;
@@ -270,23 +278,7 @@ public class Convolver {
     
     
     public void sobel2D(Convolver aSrcConv) {
-        /*
-         * Faster implementation of volume-based approach:
-         * 
-         * VolumeFloat v = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-         * v.load(img.getImageStack(), 0);
-         * VolumeFloat dx = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-         * VolumeFloat dy = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-         * Kernel2D k = new Sobel();
-         * dx.convolvex(v, k);
-         * dy.convolvey(v, k);
-         * dx.mul(dx);
-         * dy.mul(dy);
-         * dx.add(dy);
-         * dx.sqrt();
-         * float[][][] volumeImg = dx.getVolume();
-         * ImageStack imageStack = dx.getImageStack();
-         */
+        // TODO how to handle pixels at the boundary of img? extend them, crop or..?
         Kernel2D aKernel = new Kernel2D() {{
             int width = 3;
             iHalfWidth = width / 2;
@@ -300,33 +292,35 @@ public class Convolver {
             k[1][0] = -2.0/9; k[1][1] = 0; k[1][2] = 2.0/9;
             k[2][0] = -1.0/9; k[2][1] = 0; k[2][2] = 1.0/9;
         }};
-        
+
         // Alias things for easier use
         double[][][] volume = aSrcConv.iData;
         double[][] kernel = aKernel.k;
-        int kernelWidth = aKernel.iHalfWidth;
+        int kw = aKernel.iHalfWidth;
         
         // Image still can have depth for 2D. In such case each layer is treated as a seperate 2D image.
         for (int z = 0; z < iDepth; z++) {
-            int vz = z + 0;
             for (int y = 0; y < iHeight; y++) {
                 for (int x = 0; x < iWidth; x++) {
-                    if (x >= kernelWidth && y >= kernelWidth && x < iWidth - kernelWidth && y < iHeight - kernelWidth) {
+                    if (x >= kw && y >= kw && x < iWidth - kw && y < iHeight - kw) {
                         double dx = 0;
                         double dy = 0;
-                        for (int l = -kernelWidth; l <= kernelWidth; l++) {
-                            int kx = l + kernelWidth;
+                        for (int l = -kw; l <= kw; l++) {
+                            int kx = l + kw;
                             int vy = y + l;
-                            for (int k = -kernelWidth; k <= kernelWidth; k++) {
-                                int ky = k + kernelWidth;
+//                            int vy = y + l; if (vy < 0) vy = 0; else if (vy >= iHeight) vy = iHeight - 1;
+                            for (int k = -kw; k <= kw; k++) {
+                                int ky = k + kw;
                                 int vx = x + k;
-                                double val = volume[vz][vy][vx];
-                                
+//                                int vx = x + k; if (vx < 0) vx = 0; else if (vx >= iWidth) vx = iWidth - 1;
+                                double val = volume[z][vy][vx];
                                 dx += val * kernel[kx][ky];
                                 dy += val * kernel[ky][kx];
                             }
                         }
-                        iData[z][y][x] = (float) Math.sqrt(dx*dx + dy*dy);
+                        // TODO: remove (float) cast, it is kept for test currently
+                        //       since it is compared with other sobel output
+                        iData[z][y][x] = (float)Math.sqrt(dx*dx + dy*dy);
                     }
                     else {
                         iData[z][y][x] = 0;
@@ -337,22 +331,21 @@ public class Convolver {
     }
     
     public void sobel3D(Convolver aSrcConv) {
-//      Implementation using original VolumeFloat does not work since valid(x,y) is used instead valid(x,y,z):
-//      
-//      VolumeFloat dx = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-//      VolumeFloat dy = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-//      VolumeFloat dz = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
-//      Kernel3D k = new Sobel3D();
-//      dx.convolvex(v, k);
-//      dy.convolvey(v, k);
-//      dz.convolvez(v, k);
-//      dx.mul(dx);
-//      dy.mul(dy);
-//      dz.mul(dz);
-//      dx.add(dy);
-//      dx.add(dz);
-//      dx.sqrt();
-//        
+        //      VolumeFloat dx = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+        //      VolumeFloat dy = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+        //      VolumeFloat dz = new VolumeFloat(img.getWidth(), img.getHeight(), img.getNSlices());
+        //      Kernel3D k = new Sobel3D();
+        //      dx.convolvex(v, k);
+        //      dy.convolvey(v, k);
+        //      dz.convolvez(v, k);
+        //      dx.mul(dx);
+        //      dy.mul(dy);
+        //      dz.mul(dz);
+        //      dx.add(dy);
+        //      dx.add(dz);
+        //      dx.sqrt();
+        
+        // TODO how to handle pixels at the boundary of img? extend them, crop or..?
         Kernel3D aKernel = new Kernel3D() {{
             int width = 3;
             iHalfWidth = width / 2;
@@ -387,7 +380,7 @@ public class Convolver {
                         double dz = 0;
                         for (int m = -kernelWidth; m <= kernelWidth; ++m) {
                             int kx = m + kernelWidth;
-                            int vz = z + 0+m;
+                            int vz = z +m;
                             for (int l = -kernelWidth; l <= kernelWidth; ++l) {
                                 int ky = l + kernelWidth;
                                 int vy = y + l;
@@ -402,6 +395,8 @@ public class Convolver {
                                 }
                             }
                         }
+                        // TODO: remove (float) cast, it is kept for test currently
+                        //       since it is compared with other sobel output
                         iData[z][y][x] = (float)Math.sqrt(dx*dx + dy*dy + dz*dz);
                     }
                     else {

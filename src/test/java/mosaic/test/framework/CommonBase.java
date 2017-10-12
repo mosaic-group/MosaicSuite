@@ -595,6 +595,28 @@ public class CommonBase extends Info {
         }
     }
     
+    static protected void printArray(double[][][] aExpected, int aPrecision) {
+        for (int z = 0; z < aExpected.length; ++z) {
+            for (int i = 0; i < aExpected[0].length; ++i) {
+                for (int j = 0; j < aExpected[0][0].length; ++j) {
+                    System.out.print("\t" + IJ.d2s(aExpected[z][i][j], aPrecision));
+                }
+                System.out.println();
+            }
+            System.out.println();
+        }
+    }
+
+    static protected void printArray(double[][] aArray, int aPrecision) {
+        for (int i = 0; i < aArray.length; ++i) {
+            for (int j = 0; j < aArray[0].length; ++j) {
+                System.out.print("\t" + IJ.d2s(aArray[i][j], aPrecision));
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
     static protected void sleep(int aMilliseconds) {
         try {
             Thread.sleep(aMilliseconds);
