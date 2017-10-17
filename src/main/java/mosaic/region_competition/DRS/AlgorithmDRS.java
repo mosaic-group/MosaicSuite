@@ -14,7 +14,13 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.convolution.Convolver;
+import mosaic.core.imageUtils.convolution.Gauss1D;
+import mosaic.core.imageUtils.convolution.Kernel1D;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
@@ -28,19 +34,20 @@ import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberRes
 import mosaic.region_competition.utils.LabelStatisticToolbox;
 import mosaic.region_competition.utils.LabelStatistics;
 import mosaic.utils.Debug;
+import mosaic.utils.ImgUtils;
 
 
 public class AlgorithmDRS {
 
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
 
-    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, IntensityImage aEdgeImage, ImageModel aModel, SettingsDRS aSettings) {
+    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, SettingsDRS aSettings) {
         logger.debug("DRS algorithm created with settings:" + Debug.getJsonString(aSettings));
 
         // Save input parameters
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
-        iEdgeImage = aEdgeImage;
+        iEdgeImage = generateEdgeImage(iIntensityImage.convertToImg(""));
         iImageModel = aModel;
         iSettings = aSettings;
 
@@ -1419,5 +1426,32 @@ public class AlgorithmDRS {
         }
 
         return new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
+    }
+    
+    private IntensityImage generateEdgeImage(ImagePlus aImage) {
+        ImageStack inputImgStack = aImage.getImageStack();
+        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImgStack);
+        sobelInput = ImgUtils.convertToNormalizedGloballyFloatType(sobelInput);
+        
+        ImageStack is = sobelInput.getImageStack();
+        Convolver img = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
+        img.initFromImageStack(is);
+        // Parameters of Gaussian kernel same as in C-code
+        Kernel1D gauss = new Gauss1D(1.5, 7);
+        img.x1D(gauss);
+        img.y1D(gauss);
+        if (inputImgStack.getSize() > 1) { //3D
+            img.z1D(gauss); // run Gaussian blur also in z-direction
+            img.sobel3D();
+        }
+        else {
+            img.sobel2D();
+        }
+        
+        ImagePlus sobelIp = new ImagePlus("EdgeImage", img.getImageStack());
+        StackStatistics ss = new StackStatistics(sobelIp);
+        sobelIp.setDisplayRange(ss.min,  ss.max);
+        
+        return new IntensityImage(sobelIp);
     }
 }

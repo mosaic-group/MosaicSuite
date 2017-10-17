@@ -18,6 +18,8 @@ public class GaussPsf {
         double sum = 0;
         for (int y = 0; y < yl; ++y) {
             for (int x = 0; x < xl; ++x) {
+                // e^( - ((x-mx)^2 + (y-my)^2) / 2*sigma^2 ) 
+                // skip 1/sqrt(2*pi*sigma^2) since kernel is normalized anyway and this is just constant
                 final double val = Math.exp(-(Math.pow(x-middlex, 2) + Math.pow(y-middley, 2))/(2 * sigma * sigma));
                 psf[y][x] = val;
                 sum += val;

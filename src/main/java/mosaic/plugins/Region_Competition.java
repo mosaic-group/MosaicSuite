@@ -13,8 +13,6 @@ import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import ij.process.StackStatistics;
-import mosaic.core.imageUtils.convolution.Convolver;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
@@ -233,6 +231,8 @@ public class Region_Competition implements PlugInFilter {
             
             //TODO: save probability image
             if (segmentationType == SegmentationType.DRS && outputProbabilityImgFileNameNoExt != null) {
+                ImagePlus outImgStack = stackProcess.getImage();
+                outImgStack.setStack(ImgUtils.crop(outImgStack.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
                 logger.debug("Probability file name with dir: " + outputProbabilityImgFileNameNoExt);
                 IJ.save(stackProcess.getImage(), outputProbabilityImgFileNameNoExt);
             }
@@ -350,11 +350,11 @@ public class Region_Competition implements PlugInFilter {
                 throw new RuntimeException(s);
             }
             ImagePlus workImg = inputImageChosenByUser;
-            if (segmentationType == SegmentationType.RC) {
+//            if (segmentationType == SegmentationType.RC) {
                 ImageStack padedIs = ImgUtils.pad(inputImageChosenByUser.getStack(), iPadSize, inputImageChosenByUser.getNDimensions() > 2);
                 workImg = inputImageChosenByUser.duplicate();
                 workImg.setStack(padedIs);
-            }
+//            }
             intensityImage = new IntensityImage(workImg, normalize_ip);
             inputImageChosenByUser.show();
         }
@@ -393,11 +393,11 @@ public class Region_Competition implements PlugInFilter {
             case File: {
                 if (inputLabelImageChosenByUser != null) {
                     ImagePlus labelImg = inputLabelImageChosenByUser;
-                    if (segmentationType == SegmentationType.RC) {
+//                    if (segmentationType == SegmentationType.RC) {
                         ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
                         labelImg = inputLabelImageChosenByUser.duplicate();
                         labelImg.setStack(padedIs);
-                    }
+//                    }
                     labelImage.initWithImg(labelImg);
                     labelImage.initBorder();
                     labelImage.connectedComponents();
@@ -490,7 +490,6 @@ public class Region_Competition implements PlugInFilter {
         initLabelImage();
         initEnergies();
 //        initStack();
-        IntensityImage edgeImage = initEdgeImage();
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
@@ -504,10 +503,10 @@ public class Region_Competition implements PlugInFilter {
                                                   iSettings.burnInFactor,
                                                   iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
         
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, drsSettings);
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, imageModel, drsSettings);
         
         
-        int modulo = iSettings.m_MaxNbIterations/ 20; // 5% steps
+        int modulo = iSettings.m_MaxNbIterations / 20; // 5% steps
         if (modulo < 1) modulo = 1;
         
         boolean isDone = false;
@@ -533,108 +532,10 @@ public class Region_Competition implements PlugInFilter {
         
         stackProcess = algorithm.createProbabilityImage();
         
-        labelImage.show("LabelDRS");
+        ImagePlus show = labelImage.show("LabelDRS");
+        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
+        
 //        intensityImage.show("IntenDRS");
 //        edgeImage.show("EdgeDRS");
-    }
-
-    private IntensityImage initEdgeImage() {
-        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().duplicate().convertToFloat());
-        sobelInput = ImgUtils.convertToNormalizedGloballyFloatType(sobelInput);
-        gaussBlur3D(sobelInput.getImageStack(), 1.5f);
-        
-//        SobelVolume sobelVolume = new SobelVolume(sobelInput);
-//        if (inputImageChosenByUser.getNSlices() == 1) { 
-//            sobelVolume.sobel2D();
-//        }
-//        else {
-//            sobelVolume.sobel3D();
-//        }
-        Convolver sobelVolume = new Convolver(sobelInput.getWidth(), sobelInput.getHeight(), sobelInput.getNSlices());
-        sobelVolume.initFromImageStack(sobelInput.getImageStack());
-        if (inputImageChosenByUser.getNSlices() == 1) {
-            sobelVolume.sobel2D(new Convolver(sobelVolume));
-        }
-        else {
-            sobelVolume.sobel3D(new Convolver(sobelVolume));
-        }
-        
-        ImagePlus sobelIp = new ImagePlus("XXXX", sobelVolume.getImageStack());
-        StackStatistics ss = new StackStatistics(sobelIp);
-        sobelIp.setDisplayRange(ss.min,  ss.max);  
-//        ImagePlus ei = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/repo/DRS/here/edgeImage.tif");
-//        return new IntensityImage(ei, false);
-        return new IntensityImage(sobelIp);
-    }
-    
-    // TODO GaussBlur & Kernel methods are repeated at lest 3x times in code -> move into some utils
-    private void gaussBlur3D(ImageStack is, float aRadius) {
-        final float[] vKernel = CalculateNormalizedGaussKernel(aRadius);
-        int kernel_radius = vKernel.length / 2;
-        final int nSlices = is.getSize();
-        final int vWidth = is.getWidth();
-        for (int i = 1; i <= nSlices; i++){
-            final ImageProcessor restored_proc = is.getProcessor(i);
-            final ij.plugin.filter.Convolver convolver = new ij.plugin.filter.Convolver();
-            // no need to normalize the kernel - its already normalized
-            convolver.setNormalize(false);
-            //the gaussian kernel is separable and can done in 3x 1D convolutions!
-            convolver.convolve(restored_proc, vKernel, vKernel.length , 1);
-            convolver.convolve(restored_proc, vKernel, 1 , vKernel.length);
-        }
-        //2D mode, abort here; the rest is unnecessary
-        if (is.getSize() == 1) {
-            return;
-        }
-
-        //TODO: which kernel? since lambda_n = 1 pixel, it does not depend on the resolution -->not rescale
-        //rescale the kernel for z dimension
-        //          vKernel = CalculateNormalizedGaussKernel((float)(aRadius / (original_imp.getCalibration().pixelDepth / original_imp.getCalibration().pixelWidth)));
-
-        kernel_radius = vKernel.length / 2;
-        //to speed up the method, store the processor in an array (not invoke getProcessor()):
-        final float[][] vOrigProcessors = new float[nSlices][];
-        final float[][] vRestoredProcessors = new float[nSlices][];
-        for (int s = 0; s < nSlices; s++) {
-            vOrigProcessors[s] = (float[])is.getProcessor(s + 1).getPixelsCopy();
-            vRestoredProcessors[s] = (float[])is.getProcessor(s + 1).getPixels();
-        }
-        //begin convolution with 1D gaussian in 3rd dimension:
-        for (int y = kernel_radius; y < is.getHeight() - kernel_radius; y++){
-            for (int x = kernel_radius; x < is.getWidth() - kernel_radius; x++){
-                for (int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {
-                    float sum = 0;
-                    for (int i = -kernel_radius; i <= kernel_radius; i++) {
-                        sum += vKernel[i + kernel_radius] * vOrigProcessors[s + i - 1][y*vWidth+x];
-                    }
-                    vRestoredProcessors[s-1][y*vWidth+x] = sum;
-                }
-            }
-        }
-    }
-
-    private float[] CalculateNormalizedGaussKernel(float aRadius){
-        int vL = (int)aRadius * 3 * 2 + 1;
-        if (vL < 3) {
-            vL = 3;
-        }
-        final float[] vKernel = new float[vL];
-        final int vM = vKernel.length/2;
-        for (int vI = 0; vI < vM; vI++){
-            vKernel[vI] = (float)(1f/(2f*Math.PI*aRadius*aRadius) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f*aRadius*aRadius)));
-            vKernel[vKernel.length - vI - 1] = vKernel[vI];
-        }
-        vKernel[vM] = (float)(1f/(2f*Math.PI*aRadius*aRadius));
-
-        //normalize the kernel numerically:
-        float vSum = 0;
-        for (int vI = 0; vI < vKernel.length; vI++){
-            vSum += vKernel[vI];
-        }
-        final float vScale = 1.0f/vSum;
-        for (int vI = 0; vI < vKernel.length; vI++){
-            vKernel[vI] *= vScale;
-        }
-        return vKernel;
     }
 }

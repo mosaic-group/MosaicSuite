@@ -736,7 +736,6 @@ public class ImgUtils {
         StackStatistics stackStats = new StackStatistics(aImage);
         double minimum = stackStats.min;
         double maximum = stackStats.max;
-        System.out.println("min/max " + minimum + "/" + maximum);
         // Adjust data in case when maximum = minimum
         double range = maximum - minimum;
         if (range == 0.0) {
