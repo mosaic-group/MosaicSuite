@@ -401,4 +401,33 @@ public class BregmanGLM_BatchTest extends CommonBase {
             compareCsvFiles(refFile, testFile);
         }
     }
+    
+    
+    @Test
+    public void testFullMacroOnlyParameters() {
+        // Define test data
+        final String tcDirName           = "Squassh/Test2dFullMacro/";
+        final String setupString         = "run";
+        final String macroOptions        = "remove_background rolling_ball_window_size_(in_pixels)=22 regularization_(>0)_ch1=0.111 regularization_(>0)_ch2=0.222 minimum_object_intensity_channel_1_(0_to_1)=0.033 _channel_2_(0_to_1)=0.044 exclude_z_edge standard_deviation_xy=0.61 standard_deviation_z=1.01 remove_region_with_intensities_<=1 remove_region_with_size_<=1 local_intensity_estimation=Automatic noise_model=Poisson threshold_channel_1=0.0012 threshold_channel_2=0.0013 colored_objects objects_intensities labeled_objects outlines_overlay soft_mask save_objects_characteristics number=1";
+        final String inputFile           = "test2d.tif";
+        final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip", "__intensities_c1.zip/test2d_intensities_c1.zip",
+                                            "__mask_c1.zip/test2d_mask_c1.zip", "__seg_c1.zip/test2d_seg_c1.zip"};
+        final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip", "__intensities_c1.zip/test2d_intensities_c1.zip",
+                                            "__mask_c1.zip/test2d_mask_c1.zip", "__seg_c1.zip/test2d_seg_c1.zip"};
+        final String[] expectedFiles     = {"__ImageData.csv/test2d_ImageData.csv", "__ObjectData.csv/test2d_ObjectData.csv"};
+        final String[] referenceFiles    = {"__ImageData.csv/test2d_ImageData.csv", "__ObjectData.csv/test2d_ObjectData.csv"};
+
+        // Create tested plugIn
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        
+        // Copy fake config to check if it is *not* used
+        copyTestResources("spb_settings.json", getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }
