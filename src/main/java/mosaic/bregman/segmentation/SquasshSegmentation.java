@@ -121,6 +121,7 @@ public class SquasshSegmentation {
         iLabeledRegions = ipatches.getLabeledRegions();
         
         relabelRegions(iRegionsList, iLabeledRegions);
+        setProgress(100);
     }
     
     private void relabelRegions(ArrayList<Region> aRegionsList, short[][][] aLabeledRegions) {

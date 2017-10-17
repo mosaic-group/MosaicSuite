@@ -39,6 +39,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private static final String SettingsFilepath = SysOps.getTmpPath() + "spb_settings.json";
     private static final String ConfigPrefix = "===> Conf: ";
     private boolean iIsConfigReadFromArguments = false;
+    private boolean iIsMacro = false;
     
     private enum DataSource {
         IMAGE,            // image provided by Fiji/ImageJ via plugin interface 
@@ -64,8 +65,8 @@ public class BregmanGLM_Batch implements Segmentation {
 
         // ==============================================================================
         // Read settings 
-        boolean isMacro = IJ.isMacro() || Interpreter.batchMode;
-        if (isMacro) {
+        iIsMacro = IJ.isMacro() || Interpreter.batchMode;
+        if (iIsMacro) {
             aArgs = Macro.getOptions();
         }
         logger.info("Input options: [" + aArgs + "]");
@@ -106,10 +107,11 @@ public class BregmanGLM_Batch implements Segmentation {
         // ==============================================================================
         // Run GUI and take input from user
         boolean isHeadlessMode = GraphicsEnvironment.isHeadless();
-        boolean iGuiModeEnabled = !(isMacro || isHeadlessMode);
+        boolean iGuiModeEnabled = !(iIsMacro || isHeadlessMode);
         logger.info("headlessMode = " + isHeadlessMode + ", isMacro = " + IJ.isMacro() + ", batchMode = " + Interpreter.batchMode);
-        GenericGUI window = new GenericGUI(iInputImage, iGuiModeEnabled, iParameters);
+        GenericGUI window = new GenericGUI(iInputImage, iGuiModeEnabled, iParameters, iIsConfigReadFromArguments);
         RunMode runMode = window.drawStandardWindow(workDir, iProcessOnCluster);
+        logger.info(iParameters);
         
         logger.info("Runmode = " + runMode);
         if (runMode == RunMode.STOP) {
@@ -359,17 +361,24 @@ public class BregmanGLM_Batch implements Segmentation {
     }
 
     private Parameters readConfiguration(String aArgs) {
-        String config = MosaicUtils.parseString("config", aArgs);
-        if (config != null) {
-            logger.info(ConfigPrefix + "Reading config provided in arguments [" + config + "]");
+        String configFile = MosaicUtils.parseString("config", aArgs);
+        
+        if (configFile != null) {
+            logger.info(ConfigPrefix + "Reading config provided in arguments [" + configFile + "]");
             iIsConfigReadFromArguments = true;
         }
-        else {
-            config = SettingsFilepath;
-            logger.info(ConfigPrefix + "Reading default config [" + config + "]");
+        else if (!iIsMacro) {
+            configFile = SettingsFilepath;
+            logger.info(ConfigPrefix + "Reading default config [" + configFile + "]");
         }
-        Parameters parameters = getConfigHandler().LoadFromFile(config, Parameters.class, new Parameters());
-        logger.info(parameters);
+        
+        Parameters parameters = null;
+        if (configFile != null) {
+            parameters = getConfigHandler().LoadFromFile(configFile, Parameters.class, new Parameters());
+        } else {
+            logger.info(ConfigPrefix + "Setting config to hardcoded default.");
+            parameters = new Parameters();
+        }
         
         return parameters;
     }

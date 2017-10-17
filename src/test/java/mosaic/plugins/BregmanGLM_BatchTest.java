@@ -18,7 +18,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/psfCircleLowIntensity/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "psf.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/psf_outline_overlay_c1.zip", "__intensities_c1.zip/psf_intensities_c1.zip",
                                             "__mask_c1.zip/psf_mask_c1.zip", "__seg_c1.zip/psf_seg_c1.zip"};
@@ -48,7 +48,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/psfCircleMediumIntensity/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "psf.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/psf_outline_overlay_c1.zip", "__intensities_c1.zip/psf_intensities_c1.zip",
                                             "__mask_c1.zip/psf_mask_c1.zip", "__seg_c1.zip/psf_seg_c1.zip"};
@@ -75,7 +75,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/Test2dFull/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "test2d.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip", "__intensities_c1.zip/test2d_intensities_c1.zip",
                                             "__mask_c1.zip/test2d_mask_c1.zip", "__seg_c1.zip/test2d_seg_c1.zip"};
@@ -102,7 +102,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/2channelsWithMasks/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "moImg.tif";
         final String[] expectedImgFiles  = {"__coloc.zip/moImg_ch_0_1_coloc.zip", 
                                             "__intensities_c1.zip/moImg_intensities_c1.zip", "__intensities_c2.zip/moImg_intensities_c2.zip", 
@@ -135,7 +135,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/Sphere3D/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "sphereSmall.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/sphereSmall_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/sphereSmall_outline_overlay_c1.zip"};
@@ -160,7 +160,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/Video3D/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "dropletVideoSmall.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/dropletVideoSmall_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/dropletVideoSmall_outline_overlay_c1.zip"};
@@ -185,7 +185,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/ScriptR/";
         final String setupString         = "run";
-        final String macroOptions        = "input=/tmp/test";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/1 Ctrl 1_outline_overlay_c1.zip", 
                                             "__outline_overlay_c1.zip/1 Ctrl 2_outline_overlay_c1.zip", 
@@ -244,7 +244,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/Colocalization/";
         final String setupString         = "run";
-        final String macroOptions        = "";
+        final String macroOptions        = "config=/tmp/spb_settings.json";
         final String inputFile           = "coloc_test.tif";
         final String[] expectedImgFiles  = {"coloc_test_intensities_c1.zip",
                                             "coloc_test_intensities_c2.zip",
@@ -284,7 +284,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/cluster/";
         final String setupString         = "run";
-        final String macroOptions        = "process username=" + System.getProperty("user.name");
+        final String macroOptions        = "process config=/tmp/spb_settings.json username=" + System.getProperty("user.name");
         final String inputFile           = null;
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/droplet_1_outline_overlay_c1.zip",
                                             "__outline_overlay_c1.zip/droplet_2_outline_overlay_c1.zip",
@@ -361,7 +361,7 @@ public class BregmanGLM_BatchTest extends CommonBase {
         // Define test data
         final String tcDirName           = "Squassh/test2dCluster/";
         final String setupString         = "run";
-        final String macroOptions        = "process username=" + System.getProperty("user.name");
+        final String macroOptions        = "config=/tmp/spb_settings.json process username=" + System.getProperty("user.name");
         final String inputFile           = "test2d.tif";
         final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
         final String[] referenceImgFiles = {"__outline_overlay_c1.zip/test2d_outline_overlay_c1.zip"};
