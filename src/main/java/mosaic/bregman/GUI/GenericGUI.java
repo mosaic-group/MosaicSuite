@@ -36,14 +36,16 @@ public class GenericGUI {
     protected final Parameters iParameters;
     protected ImagePlus iInputImage;
     private static boolean iUseGui = true;
+    private boolean iIsConfigReadFromArguments;
 
     private String iInputField = "";
     protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     
-    public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters) {
+    public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters, boolean aIsConfigReadFromArguments) {
         iParameters = aParameters;
         iInputImage = aInputImg;
         iUseGui = aUseGui;
+        iIsConfigReadFromArguments = aIsConfigReadFromArguments;
     }
 
     public RunMode drawStandardWindow(String aImgPath, boolean aRunOnCluster) {
@@ -113,7 +115,14 @@ public class GenericGUI {
         if (gd.wasCanceled()) {
             return RunMode.STOP;
         }
-    
+        
+        if (!iUseGui && !iIsConfigReadFromArguments) {
+            System.out.println("============== REDING GUI ==================== " + iUseGui + " " + iIsConfigReadFromArguments );
+            BackgroundSubGUI.getParameters(iParameters);
+            SegmentationGUI.getParameters(iParameters);
+            new ColocalizationGUI(iInputImage, imgch2, iParameters).run();
+            VisualizationGUI.getParameters(iParameters);
+        }
         iInputField = gd.getNextString();
     
         RunMode runMode = (gd.getNextBoolean() == true) ? RunMode.CLUSTER : RunMode.LOCAL;
