@@ -139,7 +139,7 @@ public class GUI  {
         iMainDialogWin.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
         
         p = new Panel();
-        b = new Button("Reset Parameters");
+        b = new Button("Reset Settings");
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
