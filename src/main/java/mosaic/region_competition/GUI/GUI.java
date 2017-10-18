@@ -140,7 +140,7 @@ public class GUI  {
         iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
 
         p = new Panel();
-        b = new Button("Reset");
+        b = new Button("Reset Settings");
         b.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

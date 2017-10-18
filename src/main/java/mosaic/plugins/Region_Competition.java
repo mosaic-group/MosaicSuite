@@ -255,7 +255,6 @@ public class Region_Competition implements PlugInFilter {
 
         if (settings == null) {
             // load default config file
-            configFilePath();
             settings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
         }
     }

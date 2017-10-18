@@ -58,9 +58,18 @@ public class GenericGUI {
     
         Panel p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
         addButton(p, "Select File/Folder", new FileOpenerActionListener(gd.getStringFields(), 0));
-        addButton(p, "Help", new HelpOpenerActionListener(gd));
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
     
+        p = new Panel(new FlowLayout(FlowLayout.LEFT, 75, 3));
+        addButton(p, "Reset Settings", new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    iParameters.copy(new Parameters());
+                }
+            });
+        addButton(p, "     Help     ", new HelpOpenerActionListener(gd));
+        gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
+        
         p = new Panel();
         addLabel(p, "Background subtraction");
         addButton(p, "Options", new ActionListener() {

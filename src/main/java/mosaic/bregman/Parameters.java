@@ -2,6 +2,7 @@ package mosaic.bregman;
 
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 
 public class Parameters implements Serializable {
@@ -13,7 +14,7 @@ public class Parameters implements Serializable {
     
     // ================================ parameters changed in GUI
     // Segmentation options
-    final public double lreg_[] = { 0.05, 0.05 };
+    public double lreg_[] = { 0.05, 0.05 };
     public double min_intensity = 0.15;
     public double min_intensityY = 0.15;
     public boolean subpixel = false;
@@ -52,6 +53,52 @@ public class Parameters implements Serializable {
     public int[] nbimages = { 1 }; // number images per group, extended if needed in Rscriptlistener
     public String[] groupnames = { "Condition 1 name" };
     
+    public void copy(Parameters s) {
+        // ================================ General parameters
+        wd = s.wd;
+        nthreads = s.nthreads;
+        
+        // ================================ parameters changed in GUI
+        // Segmentation options
+        lreg_ = Arrays.copyOf(s.lreg_, s.lreg_.length);
+        min_intensity = s.min_intensity;
+        min_intensityY = s.min_intensityY;
+        subpixel = s.subpixel;
+        exclude_z_edges = s.exclude_z_edges;
+        mode_intensity = s.mode_intensity;
+        noise_model = s.noise_model;
+        sigma_gaussian = s.sigma_gaussian;
+        zcorrec = s.zcorrec;
+        min_region_filter_intensities = s.min_region_filter_intensities;
+        min_region_filter_size = s.min_region_filter_size;
+        patches_from_file = s.patches_from_file;
+
+        // Background subtracter
+        removebackground = s.removebackground;
+        size_rollingball = s.size_rollingball;
+        
+        // Colocalization / Cell masks
+        usecellmaskX = s.usecellmaskX;
+        usecellmaskY = s.usecellmaskY;
+        thresholdcellmask = s.thresholdcellmask;
+        thresholdcellmasky = s.thresholdcellmasky;
+
+        // Visualization    
+        livedisplay = s.livedisplay;
+        dispcolors = s.dispcolors;
+        dispint = s.dispint;
+        displabels = s.displabels;
+        dispoutline = s.dispoutline;
+        dispSoftMask = s.dispSoftMask;
+        save_images = s.save_images;
+        nbconditions = s.nbconditions;
+        
+        // Set condition names... RScriptWindow
+        ch1 = s.ch1;
+        ch2 = s.ch2;
+        nbimages = Arrays.copyOf(s.nbimages, s.nbimages.length);
+        groupnames = Arrays.copyOf(s.groupnames, s.groupnames.length);
+    }
     
     @Override
     public String toString() {
