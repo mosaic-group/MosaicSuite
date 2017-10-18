@@ -126,7 +126,6 @@ public class GenericGUI {
         }
         
         if (!iUseGui && !iIsConfigReadFromArguments) {
-            System.out.println("============== REDING GUI ==================== " + iUseGui + " " + iIsConfigReadFromArguments );
             BackgroundSubGUI.getParameters(iParameters);
             SegmentationGUI.getParameters(iParameters);
             new ColocalizationGUI(iInputImage, imgch2, iParameters).run();
