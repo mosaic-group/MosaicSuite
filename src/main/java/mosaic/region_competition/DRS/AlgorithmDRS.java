@@ -43,7 +43,6 @@ public class AlgorithmDRS {
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
         logger.debug("Generating edge image");
-//        iEdgeImage = generateEdgeImage(iIntensityImage.convertToImg(""));
         iEdgeImage = generateEdgeImage(iIntensityImage);
         iImageModel = aModel;
         iSettings = aSettings;
@@ -241,12 +240,12 @@ public class AlgorithmDRS {
                 }
             }
         }
-        IndexedDiscreteDistribution vDiscreteDistr = (allParticlesFwdProposals != null) ? new IndexedDiscreteDistribution(iDistrRng, allParticlesFwdProposals) : null;
 
         // Find particle A:
         for (int i = 0; i < iMcmcStepSize; ++i) {
             int vParticleIndex;
-            if (iSettings.useBiasedProposal && !vParticleAIsFloating && vDiscreteDistr != null) {
+            if (iSettings.useBiasedProposal && !vParticleAIsFloating && allParticlesFwdProposals != null) {
+                IndexedDiscreteDistribution vDiscreteDistr =  new IndexedDiscreteDistribution(iDistrRng, allParticlesFwdProposals);
                 vParticleIndex = vDiscreteDistr.sample();
                 vq_A[i] = (float) allParticlesFwdProposals[vParticleIndex];
 
@@ -1436,12 +1435,6 @@ public class AlgorithmDRS {
         else {
             imgConvolver.sobel2D();
         }
-        
-        // DEBUG: uncomment those lines to show edge image.
-//        ImagePlus sobelIp = new ImagePlus("EdgeImage", img.getImageStack());
-//        StackStatistics ss = new StackStatistics(sobelIp);
-//        sobelIp.setDisplayRange(ss.min,  ss.max);
-//        sobelIp.show();
         
         imgConvolver.getIntensityImage(img);
         return img;

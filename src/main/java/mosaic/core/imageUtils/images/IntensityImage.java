@@ -8,7 +8,6 @@ import ij.ImageStack;
 import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
 import mosaic.utils.ArrayOps;
-import mosaic.utils.ImgUtils;
 
 
 /**

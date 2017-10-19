@@ -1,7 +1,6 @@
 package mosaic.plugins;
 
 import java.io.File;
-import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -212,7 +211,6 @@ public class Region_CompetitionTest extends CommonBase {
     //TODO: this 'test' is to be removed after refactoring - used only in test phase for easy running seleected tests.
     @Test
     public void runAllDrs() {
-//        sleep(12000);
         testDrs1();
         testDrs2();
         testDrs3();
@@ -395,18 +393,5 @@ public class Region_CompetitionTest extends CommonBase {
                    setupString, inputFile,
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void xyz() {
-        double[] n = {1,2,3,4};
-        System.out.println(Arrays.binarySearch(n, -1));
-        System.out.println(Arrays.binarySearch(n, 0));
-        System.out.println(Arrays.binarySearch(n, 1));
-        System.out.println(Arrays.binarySearch(n, 2));
-        System.out.println(Arrays.binarySearch(n, 2.5));
-        System.out.println(Arrays.binarySearch(n, 3.5));
-        System.out.println(Arrays.binarySearch(n, 4));
-        System.out.println(Arrays.binarySearch(n, 5));
     }
 }

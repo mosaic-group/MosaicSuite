@@ -3,7 +3,6 @@ package mosaic.core.imageUtils.convolution;
 import ij.ImageStack;
 import ij.process.FloatProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
-import mosaic.core.imageUtils.images.LabelImage;
 
 /**
  * Convolver class for 2D/3D data
