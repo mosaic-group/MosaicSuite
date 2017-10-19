@@ -35,7 +35,7 @@ public class StatisticsUtils {
     }
     
     /**
-     * Calculates a PDF from given CDF
+     * Calculates a CDF from given PDF
      * @param aPdf - input PDF
      * @param aNormalize - should values be normalized?
      * @return CDF

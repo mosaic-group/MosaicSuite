@@ -10,13 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.math3.distribution.EnumeratedDistribution;
-import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.convolution.Convolver;
 import mosaic.core.imageUtils.convolution.Gauss1D;
@@ -34,7 +29,7 @@ import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberRes
 import mosaic.region_competition.utils.LabelStatisticToolbox;
 import mosaic.region_competition.utils.LabelStatistics;
 import mosaic.utils.Debug;
-import mosaic.utils.ImgUtils;
+import mosaic.utils.math.IndexedDiscreteDistribution;
 
 
 public class AlgorithmDRS {
@@ -47,18 +42,26 @@ public class AlgorithmDRS {
         // Save input parameters
         iLabelImage = aLabelImage;
         iIntensityImage = aIntensityImage;
-        iEdgeImage = generateEdgeImage(iIntensityImage.convertToImg(""));
+        logger.debug("Generating edge image");
+//        iEdgeImage = generateEdgeImage(iIntensityImage.convertToImg(""));
+        iEdgeImage = generateEdgeImage(iIntensityImage);
         iImageModel = aModel;
         iSettings = aSettings;
 
         // Initialize label image
         iLabelImage.initBorder();
 
+        logger.debug("Initializing conectivities");
         initConnectivities();
+        logger.debug("Initializing distribution");
         initEdgeDistribution();
+        logger.debug("Initializing length proposal");
         initLenghtProposal();
+        logger.debug("Initializing labels");
         initLabels();
+        logger.debug("Initializing statistics");
         LabelStatisticToolbox.initStatistics(iLabelImage, iIntensityImage, iLabelStatistics);
+        logger.debug("Initializing energies");
         initEnergies();
     }
 
@@ -218,32 +221,34 @@ public class AlgorithmDRS {
 
         // For each particle within the region, calculate the proposal and create a discrete distribution over particles
         int vIndexOffset = 0;
-        ArrayList<Pair<Integer, Double>> allParticlesFwdProposals = new ArrayList<>();
+        double[] allParticlesFwdProposals = null;
         boolean vApproxedIndex = false;
         if (iSettings.useBiasedProposal && !vParticleAIsFloating) {
             final int NumberOfSamplesForBiasedPropApprox = 30; // must be >= 1
             if (vActiveCandidates.size() < NumberOfSamplesForBiasedPropApprox) {
+                allParticlesFwdProposals = new double[vActiveCandidates.size()];
                 for (int i = 0; i < vActiveCandidates.size(); ++i) {
-                    allParticlesFwdProposals.add(new Pair<>(i, (double) vActiveCandidates.get(i).iProposal));
+                    allParticlesFwdProposals[i] = vActiveCandidates.get(i).iProposal;
                 }
             }
             else {
                 vApproxedIndex = true;
                 vIndexOffset = iRng.GetIntegerVariate(vActiveCandidates.size() - 1);
+                allParticlesFwdProposals = new double[NumberOfSamplesForBiasedPropApprox];
                 for (int i = 0; i < NumberOfSamplesForBiasedPropApprox; ++i) {
                     int vApproxParticleIndex = (vIndexOffset + i) % vActiveCandidates.size();
-                    allParticlesFwdProposals.add(new Pair<>(i, (double) vActiveCandidates.get(vApproxParticleIndex).iProposal));
+                    allParticlesFwdProposals[i] = vActiveCandidates.get(vApproxParticleIndex).iProposal;
                 }
             }
         }
-        EnumeratedDistribution<Integer> vDiscreteDistr = (allParticlesFwdProposals.size() > 0) ? new EnumeratedDistribution<>(iDistrRng, allParticlesFwdProposals) : null;
+        IndexedDiscreteDistribution vDiscreteDistr = (allParticlesFwdProposals != null) ? new IndexedDiscreteDistribution(iDistrRng, allParticlesFwdProposals) : null;
 
         // Find particle A:
         for (int i = 0; i < iMcmcStepSize; ++i) {
             int vParticleIndex;
             if (iSettings.useBiasedProposal && !vParticleAIsFloating && vDiscreteDistr != null) {
                 vParticleIndex = vDiscreteDistr.sample();
-                vq_A[i] = allParticlesFwdProposals.get(vParticleIndex).getSecond().floatValue();
+                vq_A[i] = (float) allParticlesFwdProposals[vParticleIndex];
 
                 if (vApproxedIndex) {
                     vParticleIndex = (vIndexOffset + vParticleIndex) % vActiveCandidates.size();
@@ -307,14 +312,14 @@ public class AlgorithmDRS {
 
                 // Choose B from Q(B|A) and calculate Q(B|A).
                 if (iSettings.useBiasedProposal) {
-                    ArrayList<Float> vProposalsVector = new ArrayList<>(vParts_Q_BgivenA.size());
+                    double[] vProposalsVector = new double[vParts_Q_BgivenA.size()];
                     float vNormalizer_Q_B_A = 0;
                     for (int vPI = 0; vPI < vParts_Q_BgivenA.size(); vPI++) {
                         Particle vCondParticle = vParts_Q_BgivenA.get(vPI);
-                        vProposalsVector.add(vCondParticle.iProposal);
+                        vProposalsVector[vPI] = vCondParticle.iProposal;
                         vNormalizer_Q_B_A += vCondParticle.iProposal;
                     }
-                    EnumeratedDistribution<Integer> vQ_B_A = createDiscreteDistrFromValues(vProposalsVector);
+                    IndexedDiscreteDistribution vQ_B_A = new IndexedDiscreteDistribution(iDistrRng, vProposalsVector);
                     vB = vParts_Q_BgivenA.get(vQ_B_A.sample());
                     // The value iProposal of vB is currently equal to Q_B_A.
                     vq_B_A[i] = vB.iProposal / vNormalizer_Q_B_A;
@@ -866,7 +871,7 @@ public class AlgorithmDRS {
 
     private float[] iLengthProposalMask = null;
 
-    private EnumeratedDistribution<Integer> iEdgeImageDistr = null;
+    private IndexedDiscreteDistribution iEdgeImageDistr = null;
 
     private List<Integer> iLabels = new ArrayList<>();
     private Map<Integer, Float> iParentsProposalNormalizer = new HashMap<>();
@@ -1216,20 +1221,6 @@ public class AlgorithmDRS {
     }
     
     /**
-     * Helper function for creating indexed discrete distributions (starting indices from 0)
-     * @param aList - list of values/probabilities
-     * @return discrete distribution
-     */
-    private EnumeratedDistribution<Integer> createDiscreteDistrFromValues(ArrayList<Float> aList) {
-        ArrayList<Pair<Integer, Double>> pmf = new ArrayList<>(aList.size());
-        for (int index = 0; index < aList.size(); ++index) {
-            pmf.add(new Pair<>(index, (double) aList.get(index)));
-        }
-
-        return new EnumeratedDistribution<>(iDistrRng, pmf);
-    }
-    
-    /**
      * Insert a floating particle only if it didn't exist. 
      * @param aParticle
      * @param aDoRecord - save info in history container
@@ -1400,8 +1391,8 @@ public class AlgorithmDRS {
      * @param aImg input image to generate distribution from
      * @return generated distribution
      */
-    static EnumeratedDistribution<Integer> generateDiscreteDistribution(IntensityImage aImg, Rng am_NumberGeneratorBoost) {
-        ArrayList<Pair<Integer, Double>> pmf = new ArrayList<>(aImg.getSize());
+    static IndexedDiscreteDistribution generateDiscreteDistribution(IntensityImage aImg, Rng am_NumberGeneratorBoost) {
+        double[] pmf = new double[aImg.getSize()];
         
         Iterator<Point> ri = new SpaceIterator(aImg.getDimensions()).getPointIterator();
         int index = 0;
@@ -1410,7 +1401,7 @@ public class AlgorithmDRS {
             final Point point = ri.next();
             double value = aImg.get(point);
             sumOfPixelValues += value;
-            pmf.add(new Pair<Integer, Double>(index++, value));
+            pmf[index++] = value;
         }
         // if sum of all pixels is too small (< 10 * epislon(1f) as in original code) then just use flat distribution
         if (sumOfPixelValues < 10 * Math.ulp(1.0f)) {
@@ -1420,38 +1411,40 @@ public class AlgorithmDRS {
             while (ri.hasNext()) {
                 final Point point = ri.next();
                 aImg.set(point, 1.0f);
-                pmf.set(index, new Pair<Integer, Double>(index, 1.0));
+                pmf[index] = 1.0;
                 ++index;
             }
         }
 
-        return new EnumeratedDistribution<>(am_NumberGeneratorBoost, pmf);
+        return new IndexedDiscreteDistribution(am_NumberGeneratorBoost, pmf);
     }
     
-    private IntensityImage generateEdgeImage(ImagePlus aImage) {
-        ImageStack inputImgStack = aImage.getImageStack();
-        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImgStack);
-        sobelInput = ImgUtils.convertToNormalizedGloballyFloatType(sobelInput);
+    private IntensityImage generateEdgeImage(IntensityImage aImage) {
+        IntensityImage img = new IntensityImage(aImage);
+        img.normalize();
         
-        ImageStack is = sobelInput.getImageStack();
-        Convolver img = new Convolver(is.getWidth(), is.getHeight(), is.getSize() /*depth*/);
-        img.initFromImageStack(is);
+        Convolver imgConvolver = new Convolver(img.getWidth(), img.getHeight(), img.getDepth() /*depth*/);
+        imgConvolver.initFromIntensityImage(img);
         // Parameters of Gaussian kernel same as in C-code
         Kernel1D gauss = new Gauss1D(1.5, 7);
-        img.x1D(gauss);
-        img.y1D(gauss);
-        if (inputImgStack.getSize() > 1) { //3D
-            img.z1D(gauss); // run Gaussian blur also in z-direction
-            img.sobel3D();
+        imgConvolver.x1D(gauss);
+        imgConvolver.y1D(gauss);
+        if (img.getDepth() > 1) { //3D
+            imgConvolver.z1D(gauss); // run Gaussian blur also in z-direction
+            imgConvolver.sobel3D();
         }
         else {
-            img.sobel2D();
+            imgConvolver.sobel2D();
         }
         
-        ImagePlus sobelIp = new ImagePlus("EdgeImage", img.getImageStack());
-        StackStatistics ss = new StackStatistics(sobelIp);
-        sobelIp.setDisplayRange(ss.min,  ss.max);
+        // DEBUG: uncomment those lines to show edge image.
+//        ImagePlus sobelIp = new ImagePlus("EdgeImage", img.getImageStack());
+//        StackStatistics ss = new StackStatistics(sobelIp);
+//        sobelIp.setDisplayRange(ss.min,  ss.max);
+//        sobelIp.show();
         
-        return new IntensityImage(sobelIp);
+        imgConvolver.getIntensityImage(img);
+        return img;
     }
+
 }

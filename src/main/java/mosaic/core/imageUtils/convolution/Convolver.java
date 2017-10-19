@@ -2,6 +2,8 @@ package mosaic.core.imageUtils.convolution;
 
 import ij.ImageStack;
 import ij.process.FloatProcessor;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 
 /**
  * Convolver class for 2D/3D data
@@ -72,6 +74,32 @@ public class Convolver {
             for (int y= 0; y < iHeight; ++y) {
                 for (int x = 0; x < iWidth; ++x) {
                     iData[z][y][x] = p[offset++];
+                }
+            }
+        }  
+    }
+    
+    public void getIntensityImage(IntensityImage aImg) {
+        float[] p = aImg.getDataIntensity();
+        for (int z = 0; z < aImg.getDepth(); ++z) {
+            int offset = 0;
+            int sliceOffset = z * iHeight * iWidth;
+            for (int y= 0; y < iHeight; ++y) {
+                for (int x = 0; x < iWidth; ++x) {
+                    p[sliceOffset + offset++] = (float) iData[z][y][x];
+                }
+            }
+        }  
+    }
+    
+    public void initFromIntensityImage(IntensityImage aImg) {
+        float[] p = aImg.getDataIntensity();
+        for (int z = 0; z < aImg.getDepth(); ++z) {
+            int offset = 0;
+            int sliceOffset = z * iHeight * iWidth;
+            for (int y= 0; y < iHeight; ++y) {
+                for (int x = 0; x < iWidth; ++x) {
+                    iData[z][y][x] = p[sliceOffset + offset++];
                 }
             }
         }  
