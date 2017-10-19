@@ -392,11 +392,9 @@ public class Region_Competition implements PlugInFilter {
             case File: {
                 if (inputLabelImageChosenByUser != null) {
                     ImagePlus labelImg = inputLabelImageChosenByUser;
-//                    if (segmentationType == SegmentationType.RC) {
-                        ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
-                        labelImg = inputLabelImageChosenByUser.duplicate();
-                        labelImg.setStack(padedIs);
-//                    }
+                    ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
+                    labelImg = inputLabelImageChosenByUser.duplicate();
+                    labelImg.setStack(padedIs);
                     labelImage.initWithImg(labelImg);
                     labelImage.initBorder();
                     labelImage.connectedComponents();
@@ -488,7 +486,6 @@ public class Region_Competition implements PlugInFilter {
         initInputImage();
         initLabelImage();
         initEnergies();
-//        initStack();
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
@@ -533,8 +530,5 @@ public class Region_Competition implements PlugInFilter {
         
         ImagePlus show = labelImage.show("LabelDRS");
         show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
-        
-//        intensityImage.show("IntenDRS");
-//        edgeImage.show("EdgeDRS");
     }
 }

@@ -75,14 +75,21 @@ abstract public class BaseImage {
     }
     
     /**
-     * @return Returns width (dimension index 1)
+     * @return Returns height (dimension index 1)
      */
     public int getHeight() {
         return iIterator.getDimensions()[1];
     }
     
     /**
-     * @return Returns width (dimension index 1)
+     * @return Returns depth (dimension index 2)
+     */
+    public int getDepth() {
+        return getNumOfSlices();
+    }
+    
+    /**
+     * @return Returns depth / num of slices (dimension index 2)
      */
     public int getNumOfSlices() {
         return getNumOfDimensions() == 2 ? 1 : iIterator.getDimensions()[2];

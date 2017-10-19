@@ -609,6 +609,21 @@ public class LabelImage extends BaseImage
             ip.setValue(1);
             ip.fill(aRoi);
         }
+        else { //3D
+            int sizeOfSlice = getWidth() * getHeight();
+            int[] slice = new int[sizeOfSlice];
+            
+            ImageProcessor ip = new ColorProcessor(getWidth(), getHeight(), slice);
+            ip.setValue(1);
+            ip.fill(aRoi);
+            
+            int idx = 0;
+            for (int z = 0; z < getDepth(); ++z) {
+                for (int i = 0; i < sizeOfSlice; ++i) {
+                    iDataLabel[idx++] = slice[idx % sizeOfSlice];
+                }
+            }
+        }
     }
     
     public int getMax() {
