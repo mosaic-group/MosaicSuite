@@ -33,6 +33,16 @@ public class IndexIteratorTest {
             assertEquals(new Point(1,1), ii.indexToPoint(5));
         }
         {
+            SpaceIterator ii = new SpaceIterator(4, 3);
+            assertEquals(-4, ii.pointToIndex(new Point(0,-1)));
+            assertEquals(new Point(0,-1), ii.indexToPoint(-4));
+        }
+        {
+            SpaceIterator ii = new SpaceIterator(4, 3);
+            assertEquals(-5, ii.pointToIndex(new Point(-1,-1)));
+            assertEquals(new Point(-1,-1), ii.indexToPoint(-5));
+        }
+        {
             SpaceIterator ii = new SpaceIterator(3, 4);
             assertEquals(4, ii.pointToIndex(new Point(1,1)));
             assertEquals(new Point(1,1), ii.indexToPoint(4));

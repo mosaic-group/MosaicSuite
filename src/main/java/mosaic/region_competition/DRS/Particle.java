@@ -1,15 +1,26 @@
 package mosaic.region_competition.DRS;
 
 
-public class MinimalParticle {
-    public int iIndex;
+public class Particle {
+    public final int iIndex;
     public int iCandidateLabel;
     public float iProposal;
     
-    MinimalParticle(int aIndex, int aCandidateLabel, float aProposal) {
+    Particle(int aIndex, int aCandidateLabel, float aProposal) {
         iIndex = aIndex;
         iCandidateLabel = aCandidateLabel; 
         iProposal = aProposal;
+    }
+    
+    Particle(Particle aMp) {
+        iIndex = aMp.iIndex;
+        iCandidateLabel = aMp.iCandidateLabel; 
+        iProposal = aMp.iProposal;
+    }
+    
+    Particle() {
+        // set values that are unusual
+        this(Integer.MIN_VALUE, Integer.MIN_VALUE, 0);
     }
 
     @Override
@@ -26,7 +37,7 @@ public class MinimalParticle {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        MinimalParticle other = (MinimalParticle) obj;
+        Particle other = (Particle) obj;
         if (iCandidateLabel != other.iCandidateLabel) return false;
         if (iIndex != other.iIndex) return false;
         return true;

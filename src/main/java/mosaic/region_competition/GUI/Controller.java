@@ -1,7 +1,7 @@
 package mosaic.region_competition.GUI;
 
 public class Controller {
-    private ControllerWindow controllerFrame = null;
+    protected ControllerWindow controllerFrame = null;
     private final Object pauseMonitor = new Object();
     private boolean pause = false;
     private boolean abort = false;
@@ -15,8 +15,22 @@ public class Controller {
     
     public void close() {
         if (controllerFrame != null) {
-            controllerFrame.dispose();
-            controllerFrame = null;
+            // If closing not done in thread then it is not possible to run plugin once again since it hangs on dispose() method.
+            Thread closeThread = new Thread() {
+                @Override
+                public void run() {
+                    controllerFrame.dispose();
+                    controllerFrame = null;
+                }
+            };
+            try {
+                Thread.sleep(0);
+                closeThread.start();
+//                closeThread.join();
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
     

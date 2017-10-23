@@ -13,25 +13,27 @@ import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import ij.process.StackStatistics;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.region_competition.Settings;
+import mosaic.region_competition.Settings.SegmentationType;
 import mosaic.region_competition.DRS.AlgorithmDRS;
-import mosaic.region_competition.DRS.SobelVolume;
+import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.RC.ClusterModeRC;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.RC.SettingsRC;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.E_Gamma;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
+import mosaic.region_competition.energies.E_PC_Gauss;
 import mosaic.region_competition.energies.E_PS;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
@@ -62,22 +64,18 @@ public class Region_Competition implements PlugInFilter {
     }
 
     public enum EnergyFunctionalType {
-        e_PC, e_PS, e_DeconvolutionPC
+        e_PC, e_PS, e_DeconvolutionPC, e_PC_Gauss
     }
 
     public enum RegularizationType {
         Sphere_Regularization, Approximative, None,
     }
     
-    public static enum SegmentationType {
-        RC, DRS
-    }
-
     // Output file names
-    private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
+    private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif", "*_prob_c1.tif" };
 
     // Settings
-    private Settings settings = null;
+    private Settings iSettings = null;
     private String outputSegmentedImageLabelFilename = null;
     private boolean normalize_ip = true;
     private boolean showGUI = true;
@@ -114,7 +112,7 @@ public class Region_Competition implements PlugInFilter {
         initSettingsAndParseMacroOptions();
     
         // Get information from user
-        userDialog = new GUI(settings, originalInputImage);
+        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
         userDialog.showDialog();
         if (!userDialog.configurationValid()) {
             return DONE;
@@ -129,6 +127,7 @@ public class Region_Competition implements PlugInFilter {
         if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
         useCluster = userDialog.useCluster();
         segmentationType = userDialog.getSegmentationType();
+        normalize_ip = userDialog.getNormalize();
         
         logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
         if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
@@ -137,11 +136,12 @@ public class Region_Competition implements PlugInFilter {
                     ", showAllFrames: " + showAllFrames + 
                     ", useCluster: " + useCluster +
                     ", segmentationType: " + segmentationType +
-                    ", showGui: " + showGUI);
-        logger.debug("Settings:\n" + Debug.getJsonString(settings));
+                    ", showGui: " + showGUI +
+                    ", normalize: " + normalize_ip);
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
         
         // Save new settings from user input.
-        getConfigHandler().SaveToFile(configFilePath(), settings);
+        getConfigHandler().SaveToFile(configFilePath(), iSettings);
     
         // If there were no input image when plugin was started then return NO_IMAGE_REQUIRED 
         // since user must have chosen image in dialog - they will be processed later.
@@ -158,7 +158,7 @@ public class Region_Competition implements PlugInFilter {
         if (useCluster == true) {
             ClusterModeRC.runClusterMode(inputImageChosenByUser, 
                                          inputLabelImageChosenByUser,
-                                         settings, 
+                                         iSettings, 
                                          outputFileNamesSuffixes);
             
             // Finish - nothing to do more here...
@@ -217,15 +217,25 @@ public class Region_Competition implements PlugInFilter {
 
     private void saveSegmentedImage() {
         String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
-        logger.debug("Absolute file name: " + absoluteFileNameNoExt);
+        String outputProbabilityImgFileNameNoExt = null;
+        logger.debug("Absolute file name with dir: " + absoluteFileNameNoExt);
         if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
                 outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
+                outputProbabilityImgFileNameNoExt = absoluteFileNameNoExt + outputFileNamesSuffixes[2].replace("*", "");
         }
         if (outputSegmentedImageLabelFilename != null) { 
             logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
             ImagePlus outImg = labelImage.convertToImg("ResultWindow");
             outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
             IJ.save(outImg, outputSegmentedImageLabelFilename);
+            
+            //TODO: save probability image
+            if (segmentationType == SegmentationType.DRS && outputProbabilityImgFileNameNoExt != null) {
+                ImagePlus outImgStack = stackProcess.getImage();
+                outImgStack.setStack(ImgUtils.crop(outImgStack.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
+                logger.debug("Probability file name with dir: " + outputProbabilityImgFileNameNoExt);
+                IJ.save(stackProcess.getImage(), outputProbabilityImgFileNameNoExt);
+            }
         }
         else {
             logger.error("Cannot save segmentation result. Filename for saving not available!");
@@ -233,7 +243,7 @@ public class Region_Competition implements PlugInFilter {
     }
 
     private void initSettingsAndParseMacroOptions() {
-        settings = null;
+        iSettings = null;
         
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
@@ -247,15 +257,15 @@ public class Region_Competition implements PlugInFilter {
 
             String path = MosaicUtils.parseString("config", options);
             if (path != null) {
-                settings = getConfigHandler().LoadFromFile(path, Settings.class);
+                iSettings = getConfigHandler().LoadFromFile(path, Settings.class);
             }
 
             outputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
         }
 
-        if (settings == null) {
+        if (iSettings == null) {
             // load default config file
-            settings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
+            iSettings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
         }
     }
 
@@ -269,14 +279,14 @@ public class Region_Competition implements PlugInFilter {
     private void initEnergies() {
         ExternalEnergy e_data;
         ExternalEnergy e_merge = null;
-        switch (settings.m_EnergyFunctional) {
+        switch (iSettings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV();
-                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, settings.m_RegionMergingThreshold);
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, iSettings.m_RegionMergingThreshold);
                 break;
             }
             case e_PS: {
-                e_data = new E_PS(labelImage, intensityImage, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
+                e_data = new E_PS(labelImage, intensityImage, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.m_RegionMergingThreshold);
                 break;
             }
             case e_DeconvolutionPC: {
@@ -290,6 +300,11 @@ public class Region_Competition implements PlugInFilter {
                 e_data = new E_Deconvolution(intensityImage, image_psf);
                 break;
             }
+            case e_PC_Gauss: {
+                e_data = new E_PC_Gauss();
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, iSettings.m_RegionMergingThreshold);
+                break;
+            }
             default: {
                 final String s = "Unsupported Energy functional";
                 IJ.showMessage(s);
@@ -298,9 +313,9 @@ public class Region_Competition implements PlugInFilter {
         }
 
         InternalEnergy e_length;
-        switch (settings.regularizationType) {
+        switch (iSettings.regularizationType) {
             case Sphere_Regularization: {
-                e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, inputImageCalibration);
+                e_length = new E_CurvatureFlow(labelImage, (int)iSettings.m_CurvatureMaskRadius, inputImageCalibration);
                 break;
             }
             case Approximative: {
@@ -318,7 +333,7 @@ public class Region_Competition implements PlugInFilter {
             }
         }
 
-        imageModel = new ImageModel(e_data, e_length, e_merge, settings);
+        imageModel = new ImageModel(e_data, e_length, e_merge, iSettings.m_EnergyContourLengthCoeff);
     }
 
     private void initInputImage() {
@@ -334,11 +349,11 @@ public class Region_Competition implements PlugInFilter {
                 throw new RuntimeException(s);
             }
             ImagePlus workImg = inputImageChosenByUser;
-            if (segmentationType == SegmentationType.RC) {
+//            if (segmentationType == SegmentationType.RC) {
                 ImageStack padedIs = ImgUtils.pad(inputImageChosenByUser.getStack(), iPadSize, inputImageChosenByUser.getNDimensions() > 2);
                 workImg = inputImageChosenByUser.duplicate();
                 workImg.setStack(padedIs);
-            }
+//            }
             intensityImage = new IntensityImage(workImg, normalize_ip);
             inputImageChosenByUser.show();
         }
@@ -352,7 +367,7 @@ public class Region_Competition implements PlugInFilter {
     private void initLabelImage() {
         labelImage = new LabelImage(intensityImage.getDimensions());
 
-        InitializationType input = settings.labelImageInitType;
+        InitializationType input = iSettings.labelImageInitType;
 
         switch (input) {
             case ROI_2D: {
@@ -361,27 +376,25 @@ public class Region_Competition implements PlugInFilter {
             }
             case Rectangle: {
                 final BoxInitializer bi = new BoxInitializer(labelImage);
-                bi.initialize(settings.l_BoxRatio);
+                bi.initialize(iSettings.l_BoxRatio);
                 break;
             }
             case Bubbles: {
                 final BubbleInitializer bi = new BubbleInitializer(labelImage);
-                bi.initialize(settings.m_BubblesRadius, settings.m_BubblesDispl);
+                bi.initialize(iSettings.m_BubblesRadius, iSettings.m_BubblesDispl);
                 break;
             }
             case LocalMax: {
-                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_Sigma, settings.l_Tolerance, settings.l_BubblesRadius, settings.l_RegionTolerance);
+                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
                 mb.initialize();
                 break;
             }
             case File: {
                 if (inputLabelImageChosenByUser != null) {
                     ImagePlus labelImg = inputLabelImageChosenByUser;
-                    if (segmentationType == SegmentationType.RC) {
-                        ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
-                        labelImg = inputLabelImageChosenByUser.duplicate();
-                        labelImg.setStack(padedIs);
-                    }
+                    ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
+                    labelImg = inputLabelImageChosenByUser.duplicate();
+                    labelImg.setStack(padedIs);
                     labelImage.initWithImg(labelImg);
                     labelImage.initBorder();
                     labelImage.connectedComponents();
@@ -407,6 +420,7 @@ public class Region_Competition implements PlugInFilter {
         final int height = dims[1];
         
         stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
+        stackProcess.setImageTitle("Stack_" + (inputImageChosenByUser.getTitle() == null ? "DRS" : inputImageChosenByUser.getTitle()));
       
         stackProcess.addSliceToStack(labelImage, "init without contours", 0);
         labelImage.initBorder();
@@ -422,15 +436,22 @@ public class Region_Competition implements PlugInFilter {
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, settings);
+        SettingsRC rcSettings = new SettingsRC(iSettings.m_AllowFusion, 
+                                               iSettings.m_AllowFission, 
+                                               iSettings.m_AllowHandles, 
+                                               iSettings.m_MaxNbIterations, 
+                                               iSettings.m_OscillationThreshold, 
+                                               iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+        
+        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, rcSettings);
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < settings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
-            IJ.showProgress(iteration, settings.m_MaxNbIterations);
+            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
+            IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
@@ -440,7 +461,7 @@ public class Region_Competition implements PlugInFilter {
             // Add slice with iteration output
             stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
-        IJ.showProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
@@ -465,55 +486,49 @@ public class Region_Competition implements PlugInFilter {
         initInputImage();
         initLabelImage();
         initEnergies();
-        initStack();
-        IntensityImage edgeImage = initEdgeImage();
-        
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, edgeImage, imageModel, new mosaic.region_competition.DRS.Settings());
+        SettingsDRS drsSettings = new SettingsDRS(iSettings.m_AllowFusion, 
+                                                  iSettings.m_AllowFission, 
+                                                  iSettings.m_AllowHandles, 
+                                                  iSettings.m_MaxNbIterations, 
+                                                  iSettings.offBoundarySampleProbability,
+                                                  iSettings.useBiasedProposal,
+                                                  iSettings.usePairProposal,
+                                                  iSettings.burnInFactor,
+                                                  iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+        
+        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, imageModel, drsSettings);
+        
+        
+        int modulo = iSettings.m_MaxNbIterations / 20; // 5% steps
+        if (modulo < 1) modulo = 1;
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < settings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
-            IJ.showProgress(iteration, settings.m_MaxNbIterations);
+            if (iteration % modulo == 0) {
+                logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.m_MaxNbIterations) + "%");
+                IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
+                IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
+            }
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
             // If aborted pretend that we have finished segmentation (isDone=true)
             isDone = iController.hasAborted() ? true : isDone;
-
-            // Add slice with iteration output
-            stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
-        IJ.showProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
-        stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         iController.close();
         
-        labelImage.show("LabelDRS");
-        intensityImage.show("IntenDRS");
-        edgeImage.show("EdgeDRS");
+        stackProcess = algorithm.createProbabilityImage();
         
-    }
-
-    private IntensityImage initEdgeImage() {
-        ImagePlus sobelInput = new ImagePlus("sobelInput", inputImageChosenByUser.getImageStack().convertToFloat());
-        SobelVolume sobelVolume = new SobelVolume(sobelInput);
-        if (inputImageChosenByUser.getNSlices() == 1) { 
-            sobelVolume.sobel2D();
-        }
-        else {
-            sobelVolume.sobel3D();
-        }
-        ImagePlus sobelIp = new ImagePlus("XXXX", sobelVolume.getImageStack());
-        StackStatistics ss = new StackStatistics(sobelIp);
-        sobelIp.setDisplayRange(ss.min,  ss.max);  
-        
-        return new IntensityImage(sobelIp);
+        ImagePlus show = labelImage.show("LabelDRS");
+        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
     }
 }

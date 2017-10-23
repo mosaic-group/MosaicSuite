@@ -45,8 +45,10 @@ public class LabelImage extends BaseImage
 
     private Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
-    protected int[] iNeighbourIndexes;
-    protected int[] iNeighbourBgIndexes;
+    protected Point[] iNeighbourPoints;
+    protected int[] iNeighbourIndices;
+    protected Point[] iNeighbourBgPoints;
+    protected int[] iNeighbourBgIndices;
     
     /**
      * Create a label image from an ImgLib2
@@ -168,16 +170,20 @@ public class LabelImage extends BaseImage
         iConnectivityFG = new Connectivity(numOfDimensions, numOfDimensions - 1);
         iConnectivityBG = iConnectivityFG.getComplementaryConnectivity();
         
-        iNeighbourIndexes = new int[iConnectivityFG.getNumOfNeighbors()];
+        iNeighbourPoints = new Point[iConnectivityFG.getNumOfNeighbors()];
+        iNeighbourIndices = new int[iConnectivityFG.getNumOfNeighbors()];
         int idx = 0;
         for (Point p : iConnectivityFG.iterator()) {
-            iNeighbourIndexes[idx++] = pointToIndex(p);
+            iNeighbourIndices[idx] = pointToIndex(p);
+            iNeighbourPoints[idx++] = p;
         }
 
-        iNeighbourBgIndexes = new int[iConnectivityBG.getNumOfNeighbors()];
+        iNeighbourBgPoints = new Point[iConnectivityBG.getNumOfNeighbors()];
+        iNeighbourBgIndices = new int[iConnectivityBG.getNumOfNeighbors()];
         idx = 0;
         for (Point p : iConnectivityBG.iterator()) {
-            iNeighbourBgIndexes[idx++] = pointToIndex(p);
+            iNeighbourBgIndices[idx] = pointToIndex(p);
+            iNeighbourBgPoints[idx++] = p;
         }
     }
 
@@ -340,14 +346,21 @@ public class LabelImage extends BaseImage
         final Set<Integer> newLabels = new HashSet<Integer>();
         // relabel connected components
         final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
-        aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        if (minLabel < BGLabel && maxLabel > BGLabel) {
+            // Case when we initialize with previous segmentation result (it contains +/- label values and we cannot
+            // take BGLabel into range of threshold).
+            aMultiThsFunctionPtr.AddThresholdBetween(BGLabel + 1, maxLabel);
+            aMultiThsFunctionPtr.AddThresholdBetween(minLabel, BGLabel - 1);
+        }
+        else {
+            aMultiThsFunctionPtr.AddThresholdBetween(minLabel, maxLabel);
+        }
         // labels can be also negative, in such case start from 1
         int newLabel = Math.max(maxLabel + 1, 1);
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);
             if (oldLabels.contains(label)) {
                 final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
-    
                 // set region to new label
                 for (final int p : ff) {
                     setLabel(p, newLabel);
@@ -370,6 +383,16 @@ public class LabelImage extends BaseImage
     }
 
     /**
+     * Is the point at the boundary
+     * @param aPoint point to be checked
+     * @return true if is at the boundary false otherwise
+     */
+    public boolean isBoundaryPoint(int aIndex) {
+        final int inLabel = getLabel(aIndex);
+        return !isEnclosedByLabel(aIndex, inLabel);
+    }
+
+    /**
      * Is aPoint surrounded by points of the given aLabel
      * @return true if yes
      */
@@ -384,6 +407,34 @@ public class LabelImage extends BaseImage
     public boolean isEnclosedByLabel(Integer aIndex, int aLabel) {
         final int absLabel = labelToAbs(aLabel);
         for (final int idx : iterateNeighbours(aIndex)) {
+            if (getLabelAbs(idx) != absLabel) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Is point with aIndex single (not having FG neighbour with same abs label)
+     * @return true if yes
+     */
+    public boolean isSingleFgPoint(Integer aIndex, int aLabel) {
+        final int absLabel = labelToAbs(aLabel);
+        for (final int idx : iterateNeighbours(aIndex)) {
+            if (getLabelAbs(idx) == absLabel) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Is point with aIndex surrounded with BG connectivity by points of the given aLabel 
+     * @return true if yes
+     */
+    public boolean isEnclosedByLabelBgConnectivity(Integer aIndex, int aLabel) {
+        final int absLabel = labelToAbs(aLabel);
+        for (final int idx : iterateBgNeighbours(aIndex)) {
             if (getLabelAbs(idx) != absLabel) {
                 return false;
             }
@@ -459,19 +510,30 @@ public class LabelImage extends BaseImage
     private class NeighbourConnIterator implements Iterator<Integer> {
         private int cursor = 0;
         private final int inputIndex;
-        
+        int max = 0;
+        int[] idxs = null;
         NeighbourConnIterator(Integer aIndex) {
             inputIndex = aIndex;
+            Point start = indexToPoint(aIndex);
+            max = 0;
+            idxs = new int[iNeighbourPoints.length];
+            if (isInBound(start)) {
+                for (int i = 0; i < iNeighbourPoints.length; i++) { 
+                    if (isInBound(start.add(iNeighbourPoints[i]))) {
+                        idxs[max++] = iNeighbourIndices[i] + inputIndex;
+                    }
+                }
+            }
         }
         
         @Override
         public boolean hasNext() {
-            return (cursor < iNeighbourIndexes.length);
+              return cursor < max;
         }
 
         @Override
         public Integer next() {
-            return inputIndex + iNeighbourIndexes[cursor++];
+            return idxs[cursor++];
         }
         
         @Override
@@ -493,19 +555,30 @@ public class LabelImage extends BaseImage
     private class BgNeighbourConnIterator implements Iterator<Integer> {
         private int cursor = 0;
         private final int inputIndex;
-        
+        int max = 0;
+        int[] idxs = null;
         BgNeighbourConnIterator(Integer aIndex) {
             inputIndex = aIndex;
+            Point start = indexToPoint(aIndex);
+            max = 0;
+            idxs = new int[iNeighbourBgPoints.length];
+            if (isInBound(start)) {
+                for (int i = 0; i < iNeighbourBgPoints.length; i++) { 
+                    if (isInBound(start.add(iNeighbourBgPoints[i]))) {
+                        idxs[max++] = iNeighbourBgIndices[i] + inputIndex;
+                    }
+                }
+            }
         }
         
         @Override
         public boolean hasNext() {
-            return (cursor < iNeighbourBgIndexes.length);
+            return cursor < max;
         }
 
         @Override
         public Integer next() {
-            return inputIndex + iNeighbourBgIndexes[cursor++];
+            return idxs[cursor++];
         }
         
         @Override
@@ -516,7 +589,7 @@ public class LabelImage extends BaseImage
     
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
-    // TODO: It should be verify if this is the best place for them after ImageLabelRC is cleaned up
+    // TODO: It should be verify if this is the best place for them
     //
     
     /**
@@ -536,6 +609,29 @@ public class LabelImage extends BaseImage
             ip.setValue(1);
             ip.fill(aRoi);
         }
+        else { //3D
+            int sizeOfSlice = getWidth() * getHeight();
+            int[] slice = new int[sizeOfSlice];
+            
+            ImageProcessor ip = new ColorProcessor(getWidth(), getHeight(), slice);
+            ip.setValue(1);
+            ip.fill(aRoi);
+            
+            int idx = 0;
+            for (int z = 0; z < getDepth(); ++z) {
+                for (int i = 0; i < sizeOfSlice; ++i) {
+                    iDataLabel[idx++] = slice[idx % sizeOfSlice];
+                }
+            }
+        }
+    }
+    
+    public int getMax() {
+        int max = Integer.MIN_VALUE;
+        for (int v : iDataLabel) {
+            if (max < v) max = v;
+        }
+        return max;
     }
     
     /**

@@ -7,7 +7,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.StackStatistics;
 import mosaic.core.imageUtils.Point;
-import mosaic.utils.ImgUtils;
+import mosaic.utils.ArrayOps;
 
 
 /**
@@ -27,6 +27,18 @@ public class IntensityImage extends BaseImage {
     public IntensityImage(ImagePlus aInputImg) {
         this(aInputImg, true);
     }
+    
+    /**
+     * Initialize an intensity image from an IntensityImage
+     *
+     * @param aInputImg
+     */
+    public IntensityImage(IntensityImage aInputImg) {
+        this(aInputImg.getDimensions());
+        for (int i = 0; i < aInputImg.getSize(); ++i) {
+            iDataIntensity[i] = aInputImg.iDataIntensity[i];
+        }
+    }
 
     /**
      * Initialize an intensity image from an Image Plus
@@ -37,13 +49,10 @@ public class IntensityImage extends BaseImage {
      */
     public IntensityImage(ImagePlus aInputImg, boolean aShouldNormalize) {
         super(getDimensions(aInputImg), /* max num of dimensions */ 3);
-        
-        if (aShouldNormalize == true) {
-            iInputImg = ImgUtils.convertToNormalizedGloballyFloatType(aInputImg);
-        } else {
-            iInputImg = aInputImg;
-        }
+        iInputImg = aInputImg;
         initIntensityData(iInputImg);
+        
+        if (aShouldNormalize == true) normalize();
     }
 
     /**
@@ -64,9 +73,17 @@ public class IntensityImage extends BaseImage {
     
     /**
      * @return original ImagePlus from which intensity data were taken
+     * TODO: This should be removed and IntensityImage should not keep ImagePlus related stuff.
      */
     public ImagePlus getImage() {
         return iInputImg;
+    }
+    
+    /**
+     * Normalize this IntensityImage
+     */
+    public void normalize() {
+        ArrayOps.normalize(iDataIntensity);
     }
 
     /**
@@ -120,7 +137,9 @@ public class IntensityImage extends BaseImage {
      */
     private void initIntensityData(ImagePlus aImage) {
         if (aImage.getType() != ImagePlus.GRAY32) {
-            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
+            aImage.setStack(aImage.getStack().convertToFloat());
+            //TODO: temprarily - tbi
+//            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
         }
         
         // Create container for image data and fill it
@@ -155,9 +174,9 @@ public class IntensityImage extends BaseImage {
     }
     
     /**
-     * Converts LabelImage to a stack of ShortProcessors
+     * Converts LabelImage to a stack of FloatProcessors
      */
-    private ImageStack getFloatStack() {
+    public ImageStack getFloatStack() {
         int w = getWidth();
         int h = getHeight();
         final int area = w * h;

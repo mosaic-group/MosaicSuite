@@ -3,7 +3,7 @@
   "m_EnergyFunctional": "e_PS",
   "m_GaussPSEnergyRadius": 8,
   "m_RegionMergingThreshold": 0.02,
-  "m_BalloonForceCoeff": 0.003,
+  "m_BalloonForceCoeff": 0.33,
   "regularizationType": "Approximative",
   "m_CurvatureMaskRadius": 4.0,
   "m_EnergyContourLengthCoeff": 0.015,

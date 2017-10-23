@@ -18,6 +18,7 @@ public class ControllerWindow extends JFrame {
     
     public ControllerWindow(final Controller aController) {
         iController = aController;
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         JPanel panel = new JPanel();
         panel.add(addPauseResumeButton());
         panel.add(addStopButton());

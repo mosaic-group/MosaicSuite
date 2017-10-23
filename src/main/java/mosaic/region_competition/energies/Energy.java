@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.RC.ContourParticle;
-import mosaic.region_competition.RC.LabelStatistics;
+import mosaic.region_competition.utils.LabelStatistics;
 
 
 public abstract class Energy {
@@ -16,12 +16,15 @@ public abstract class Energy {
      */
     public abstract EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap);
 
+    public void initEnergy() { /* override if needed */}
+    public void updateEnergy() { /*override if needed */}
+    
     public static class EnergyResult {
         EnergyResult(Double energy, Boolean merge) {
             this.energyDifference = energy;
             this.merge = merge;
         }
-
+        
         public final Double energyDifference;
         public final Boolean merge;
     }

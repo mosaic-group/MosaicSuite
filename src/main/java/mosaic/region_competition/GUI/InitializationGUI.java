@@ -2,29 +2,29 @@ package mosaic.region_competition.GUI;
 
 
 import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.region_competition.RC.Settings;
+import mosaic.region_competition.Settings;
 
 
 abstract class InitializationGUI extends SettingsBaseGUI {
 
-    protected InitializationGUI(Settings settings) {
-        super(settings);
+    protected InitializationGUI(Settings aSettings) {
+        super(aSettings);
     }
 
-    public static InitializationGUI factory(Settings settings, InitializationType type) {
+    public static InitializationGUI factory(Settings aSettings, InitializationType type) {
         InitializationGUI result = null;
 
         switch (type) {
             case Bubbles: {
-                result = new BubblesInitGUI(settings);
+                result = new BubblesInitGUI(aSettings);
                 break;
             }
             case Rectangle: {
-                result = new BoxInitGUI(settings);
+                result = new BoxInitGUI(aSettings);
                 break;
             }
             case LocalMax: {
-                result = new LocalMaxGUI(settings);
+                result = new LocalMaxGUI(aSettings);
                 break;
             }
             case File:
@@ -37,9 +37,9 @@ abstract class InitializationGUI extends SettingsBaseGUI {
         return result;
     }
 
-    public static InitializationGUI factory(Settings settings, String s) {
+    public static InitializationGUI factory(Settings aSettings, String s) {
         final InitializationType type = InitializationType.valueOf(s);
-        final InitializationGUI result = factory(settings, type);
+        final InitializationGUI result = factory(aSettings, type);
         return result;
     }
 
@@ -47,15 +47,15 @@ abstract class InitializationGUI extends SettingsBaseGUI {
 
 class BubblesInitGUI extends InitializationGUI {
 
-    protected BubblesInitGUI(Settings settings) {
-        super(settings);
+    protected BubblesInitGUI(Settings aSettings) {
+        super(aSettings);
         gd.setTitle("It's bubble Time");
     }
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Bubble_Radius", settings.m_BubblesRadius, 0);
-        gd.addNumericField("Bubble_Padding", settings.m_BubblesDispl, 0);
+        gd.addNumericField("Bubble_Radius", iSettings.m_BubblesRadius, 0);
+        gd.addNumericField("Bubble_Padding", iSettings.m_BubblesDispl, 0);
     }
 
     @Override
@@ -64,21 +64,21 @@ class BubblesInitGUI extends InitializationGUI {
             return;
         }
 
-        settings.m_BubblesRadius = (int) gd.getNextNumber();
-        settings.m_BubblesDispl = (int) gd.getNextNumber();
+        iSettings.m_BubblesRadius = (int) gd.getNextNumber();
+        iSettings.m_BubblesDispl = (int) gd.getNextNumber();
     }
 }
 
 class BoxInitGUI extends InitializationGUI {
 
-    protected BoxInitGUI(Settings settings) {
-        super(settings);
+    protected BoxInitGUI(Settings aSettings) {
+        super(aSettings);
         gd.setTitle("Box Initialization");
     }
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Box fill ratio", settings.l_BoxRatio, 2);
+        gd.addNumericField("Box fill ratio", iSettings.l_BoxRatio, 2);
 
     }
 
@@ -88,23 +88,23 @@ class BoxInitGUI extends InitializationGUI {
             return;
         }
 
-        settings.l_BoxRatio = gd.getNextNumber();
+        iSettings.l_BoxRatio = gd.getNextNumber();
     }
 }
 
 class LocalMaxGUI extends InitializationGUI {
 
-    protected LocalMaxGUI(Settings settings) {
-        super(settings);
+    protected LocalMaxGUI(Settings aSettings) {
+        super(aSettings);
         gd.setTitle("Local Max Initialization");
     }
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Radius", settings.l_BubblesRadius, 1);
-        gd.addNumericField("Sigma", settings.l_Sigma, 1);
-        gd.addNumericField("Tolerance (0-1)", settings.l_Tolerance, 5);
-        gd.addNumericField("Region Tol", settings.l_RegionTolerance, 1);
+        gd.addNumericField("Radius", iSettings.l_BubblesRadius, 1);
+        gd.addNumericField("Sigma", iSettings.l_Sigma, 1);
+        gd.addNumericField("Tolerance (0-1)", iSettings.l_Tolerance, 5);
+        gd.addNumericField("Region Tol", iSettings.l_RegionTolerance, 1);
     }
 
     @Override
@@ -113,10 +113,10 @@ class LocalMaxGUI extends InitializationGUI {
             return;
         }
 
-        settings.l_BubblesRadius = (int) gd.getNextNumber();
-        settings.l_Sigma = (int) gd.getNextNumber();
-        settings.l_Tolerance = gd.getNextNumber();
-        settings.l_RegionTolerance = (int) gd.getNextNumber();
+        iSettings.l_BubblesRadius = (int) gd.getNextNumber();
+        iSettings.l_Sigma = (int) gd.getNextNumber();
+        iSettings.l_Tolerance = gd.getNextNumber();
+        iSettings.l_RegionTolerance = (int) gd.getNextNumber();
     }
 }
 

@@ -8,7 +8,9 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.StackWindow;
+import ij.process.FloatProcessor;
 import ij.process.ShortProcessor;
+import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 
 /**
@@ -30,15 +32,55 @@ public class SegmentationProcessWindow {
      * @param aHeight
      * @param aShouldKeepAllSlices - Should stack keep all added slices or only last added?
      */
-    public SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices) {
+    public SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices, boolean aFloat) {
         iShouldKeepAllSlices = aShouldKeepAllSlices;
 
-        iImage = new ImagePlus(null, new ShortProcessor(aWidth, aHeight));
+        iImage = aFloat == false ? new ImagePlus(null, new ShortProcessor(aWidth, aHeight)) :
+                                   new ImagePlus(null, new FloatProcessor(aWidth, aHeight));
         iStack = iImage.createEmptyStack();
         
         if (iImage.getWindow() != null) {
             // Add listener in case when window is created (not in macro/batch mode)
             iImage.getWindow().addWindowListener(new StackWindowListener());
+        }
+    }
+    
+    public SegmentationProcessWindow(int aWidth, int aHeight, boolean aShouldKeepAllSlices) {
+        this(aWidth, aHeight, aShouldKeepAllSlices, false);
+    }
+    
+    public void setImageTitle(String aTitle) {
+        iImage.setTitle(aTitle);
+    }
+    
+    public ImagePlus getImage() {
+        return iImage;
+    }
+    
+    /**
+     * Adds new LabelImageRC to stack
+     * @param aLabelImage - image to add
+     * @param aTitle - title for image
+     * @param aBiggestLabelSoFar - maximum label value used so far
+     */
+    public void addSliceToStack(IntensityImage aLabelImage, String aTitle) {
+        if (iStack == null) {
+            // stack was closed by user, don't reopen
+            return;
+        }
+        
+        if (aLabelImage.getNumOfDimensions() <= 3) {
+            addStack(aTitle, aLabelImage.getFloatStack());
+        }
+        else {
+            throw new RuntimeException("Unsupported dimensions: " + aLabelImage.getNumOfDimensions());
+        }
+        
+        if (iIsThatFirstPass) {
+            // We have first slices in stack so we can add it to image (it is impossible to add empty stack).
+            iIsThatFirstPass = false;
+            iImage.setStack(iStack);
+            iImage.show();
         }
     }
     

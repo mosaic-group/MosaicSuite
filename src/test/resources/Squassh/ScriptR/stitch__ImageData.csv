@@ -11,15 +11,15 @@ FileName;Frame;Channel;NumOfObjects;MeanSize;MeanSurface;MeanLength
 %background:/tmp/test/4 OA1.tif
 %background:/tmp/test/4 OA3.tif
 %background:/tmp/test/4 OA4.tif
-1 Ctrl 1.tif;0;0;9;179.7777;58.0;13.6666
+1 Ctrl 1.tif;0;0;10;161.8;52.2;12.3
 1 Ctrl 1.tif;0;1;16;9.625;13.875;1.875
 1 Ctrl 2.tif;0;0;16;25.125;19.9375;3.3125
-1 Ctrl 2.tif;0;1;27;16.3333;18.4444;3.2962
+1 Ctrl 2.tif;0;1;28;15.75;17.7857;3.1785
 1 Ctrl 3.tif;0;0;11;77.0;36.5454;8.0
 1 Ctrl 3.tif;0;1;23;14.4347;17.826;2.826
 2 OA1.tif;0;0;13;192.6923;54.5384;6.923
 2 OA1.tif;0;1;15;46.7333;32.8;3.7333
-2 OA2.tif;0;0;8;393.5;79.875;11.625
+2 OA2.tif;0;0;10;314.8;63.9;9.3
 2 OA2.tif;0;1;10;34.4;27.8;4.7
 2 OA4.tif;0;0;12;281.5;69.1666;6.8333
 2 OA4.tif;0;1;8;15.875;17.25;1.75

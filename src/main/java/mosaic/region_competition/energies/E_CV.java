@@ -5,8 +5,8 @@ import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.RC.ContourParticle;
-import mosaic.region_competition.RC.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
+import mosaic.region_competition.utils.LabelStatistics;
 
 
 public class E_CV extends ExternalEnergy {
@@ -27,8 +27,8 @@ public class E_CV extends ExternalEnergy {
         final float aValue = contourParticle.intensity;
         final LabelStatistics toStats = labelMap.get(toLabel);
         final LabelStatistics fromStats = labelMap.get(fromLabel);
-        final double newToMean = (toStats.iMeanIntensity * toStats.iLabelCount + aValue) / (toStats.iLabelCount + 1);
-        final double energy = Math.pow(aValue - newToMean, 2) - Math.pow(aValue - fromStats.iMeanIntensity, 2);
+        final double newToMean = (toStats.iSum + aValue) / (toStats.iLabelCount + 1);
+        final double energy = (aValue - newToMean) * (aValue - newToMean) - (aValue - fromStats.iMeanIntensity) * (aValue - fromStats.iMeanIntensity);
         return new EnergyResult(energy, false);
     }
 }
