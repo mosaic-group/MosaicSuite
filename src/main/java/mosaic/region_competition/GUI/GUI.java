@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -69,8 +68,6 @@ public class GUI  {
     private boolean iShowNormalized = true;
     private boolean iShowAndSaveStatistics = true;
     private boolean iUseCluster = false;
-    private static final String SegmentationTypes[] = {"Region Competition", "Discrete Region Sampling"};
-    private SegmentationType iSegmentationType = SegmentationType.RC;
     
     // Intermediate variables handling image inputs from Choise and TextArea elements
     private String iInputImageFromTextArea;
@@ -82,15 +79,16 @@ public class GUI  {
     boolean isConfigurationValid = false;
     boolean isConfigurationReadAlready = false;
     
-    // TODO: Temporary variable to turn off DRS from GUI - it must be removed in a final version!
-    boolean showDrsSettings = true;
+    // RC vs DRS
+    boolean iInRcMode = true;
     
     /**
      * Create main GUI of RC plugin
      */
-    public GUI(Settings aSettings, ImagePlus aInputImg) {
+    public GUI(Settings aSettings, ImagePlus aInputImg, boolean aInRcMode) {
         iSettings = aSettings;
         iInputImg = aInputImg;
+        iInRcMode = aInRcMode;
         
         final String[] strings = new String[] { "Keep_Frames", "Normalize_input_image", "Show_and_save_Statistics", "Process on computer cluster"};
         if (IJ.isMacro() == true) {
@@ -98,7 +96,7 @@ public class GUI  {
             logger.info("GUI - macro mode");
             // Must be 'false' since headless mode of Fiji cannot handle this window.
             iKeepAllFrames = false;
-            iMainDialogWin = new GenericDialog("RC MACRO MODE");
+            iMainDialogWin = new GenericDialog("RC/DRS MACRO MODE");
             // in case of script just add two argument for parsing them
             iMainDialogWin.addStringField("text1", "");
             iMainDialogWin.addStringField("text2", "");
@@ -108,7 +106,7 @@ public class GUI  {
         
         logger.info("GUI - regular mode");
         
-        iMainDialogWin = new CustomDialog("Region Competition");
+        iMainDialogWin = new CustomDialog(iInRcMode ? "Region Competition" : "Discrete Region Sampling");
         final Font bf = new Font(null, Font.BOLD, 12);
         
         iMainDialogWin.addMessage("Input and Label image", bf);
@@ -151,16 +149,13 @@ public class GUI  {
 
         iMainDialogWin.addMessage("Output and processing settings", bf);
         final boolean[] bools = new boolean[] { iKeepAllFrames, iShowNormalized, iShowAndSaveStatistics, false};
-        iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
-
-        
-        String s = SegmentationTypes[Arrays.asList(SegmentationType.values()).indexOf(iSettings.segmentationType)];
-        
-        if (showDrsSettings) {
-            iMainDialogWin.addMessage("Segmentation Type:", bf);
-            iMainDialogWin.addRadioButtonGroup(null, SegmentationTypes, 1, SegmentationTypes.length, s);
+        if (iInRcMode == false) {
+            iMainDialogWin.addCheckboxGroup(2, 1, new String[] {strings[1]}, new boolean[] {bools[1]});
         }
-
+        else {
+            iMainDialogWin.addCheckboxGroup(2, strings.length, strings, bools);
+        }
+        
         p = new Panel();
         p.add(new JLabel("<html>Please refer to and cite:<br><br>" + 
                          "J. Cardinale, G. Paul, and I. F. Sbalzarini.<br>" + 
@@ -272,15 +267,17 @@ public class GUI  {
         gd.addNumericField("Max_Iterations", iSettings.m_MaxNbIterations, 0, 8, "");
         gd.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { iSettings.m_AllowFusion, iSettings.m_AllowFission, iSettings.m_AllowHandles });
 
-        gd.addMessage("\nRegion Competition only", bf);
-        gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4, 8, "");
-        gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4, 8, "");
-
-        gd.addMessage("\nDiscrete Region Sampling only", bf);
-        gd.addNumericField("Burn-in factor [0-1]", iSettings.burnInFactor, 4, 8, "");
-        gd.addNumericField("Off-boundary probability [0-1]", iSettings.offBoundarySampleProbability, 4, 8, "");
-        gd.addCheckboxGroup(1, 2, new String[] { "biased proposal", "pair proposal" }, new boolean[] { iSettings.useBiasedProposal, iSettings.usePairProposal });
-
+        if (iInRcMode) {
+//            gd.addMessage("\nRegion Competition only", bf);
+            gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4, 8, "");
+            gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4, 8, "");
+        }
+        else {
+//            gd.addMessage("\nDiscrete Region Sampling only", bf);
+            gd.addNumericField("Burn-in factor [0-1]", iSettings.burnInFactor, 4, 8, "");
+            gd.addNumericField("Off-boundary probability [0-1]", iSettings.offBoundarySampleProbability, 4, 8, "");
+            gd.addCheckboxGroup(1, 2, new String[] { "biased proposal", "pair proposal" }, new boolean[] { iSettings.useBiasedProposal, iSettings.usePairProposal });
+        }
         gd.showDialog();
 
         // On OK, read parameters
@@ -297,9 +294,11 @@ public class GUI  {
             iSettings.regularizationType = RegularizationType.valueOf(regularization);
             iSettings.m_EnergyContourLengthCoeff = (float) gd.getNextNumber();
             iSettings.m_MaxNbIterations = (int) gd.getNextNumber();
-            iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
-            iSettings.m_OscillationThreshold = gd.getNextNumber();
             
+            if (iInRcMode) {
+                iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
+                iSettings.m_OscillationThreshold = gd.getNextNumber();
+            }
             // Initialization
             final String initialization = gd.getNextChoice();
             final InitializationType type = InitializationType.valueOf(initialization);
@@ -314,10 +313,12 @@ public class GUI  {
             iSettings.m_AllowHandles = gd.getNextBoolean();
             
             // DRS settings
-            iSettings.burnInFactor = (float)gd.getNextNumber();
-            iSettings.offBoundarySampleProbability = (float)gd.getNextNumber();
-            iSettings.useBiasedProposal = gd.getNextBoolean();
-            iSettings.usePairProposal = gd.getNextBoolean();
+            if (!iInRcMode) {
+                iSettings.burnInFactor = (float)gd.getNextNumber();
+                iSettings.offBoundarySampleProbability = (float)gd.getNextNumber();
+                iSettings.useBiasedProposal = gd.getNextBoolean();
+                iSettings.usePairProposal = gd.getNextBoolean();
+            }
         }
     }
     
@@ -400,14 +401,15 @@ public class GUI  {
         iInputImageTitleFromChoice = iMainDialogWin.getNextChoice();
         iInputLabelImageTitleFromChoice = iMainDialogWin.getNextChoice();
         
-        iKeepAllFrames = iMainDialogWin.getNextBoolean();
-        iShowNormalized = iMainDialogWin.getNextBoolean();
-        iShowAndSaveStatistics = iMainDialogWin.getNextBoolean();
-        if (showDrsSettings) {
-            iSegmentationType = SegmentationType.values()[Arrays.asList(SegmentationTypes).indexOf(iMainDialogWin.getNextRadioButton())];
-            iSettings.segmentationType = iSegmentationType;
+        if (iInRcMode) {
+            iKeepAllFrames = iMainDialogWin.getNextBoolean();
         }
-        iUseCluster = iMainDialogWin.getNextBoolean();
+        iShowNormalized = iMainDialogWin.getNextBoolean();
+        if (iInRcMode) {
+            iShowAndSaveStatistics = iMainDialogWin.getNextBoolean();
+            iSettings.segmentationType = iInRcMode ? SegmentationType.RC : SegmentationType.DRS;
+            iUseCluster = iMainDialogWin.getNextBoolean();
+        }
         
         return true;
     }
@@ -433,7 +435,7 @@ public class GUI  {
     }
     
     public SegmentationType getSegmentationType() {
-        return iSegmentationType;
+        return iInRcMode ? SegmentationType.RC : SegmentationType.DRS;
     }
 
     public boolean showAndSaveStatistics() {

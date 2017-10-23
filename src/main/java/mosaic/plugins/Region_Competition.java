@@ -112,7 +112,7 @@ public class Region_Competition implements PlugInFilter {
         initSettingsAndParseMacroOptions();
     
         // Get information from user
-        userDialog = new GUI(iSettings, originalInputImage);
+        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
         userDialog.showDialog();
         if (!userDialog.configurationValid()) {
             return DONE;

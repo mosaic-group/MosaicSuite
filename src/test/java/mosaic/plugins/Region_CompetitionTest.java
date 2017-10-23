@@ -225,8 +225,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs1/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -250,8 +250,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs2/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -275,8 +275,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs3/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -300,8 +300,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs4/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -325,8 +325,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs5/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -350,8 +350,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs6/";
-        final String setupString         = "run";
-        final String macroOptions        = "show_and_save_statistics normalize_input_image";
+        final String setupString         = "DRS";
+        final String macroOptions        = "normalize_input_image";
         final String inputFile           = "squareWithHole2100pts.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
@@ -375,8 +375,8 @@ public class Region_CompetitionTest extends CommonBase {
         
         // Define test data
         final String tcDirName           = "Region_Competition/drs7/";
-        final String setupString         = "run";
-        final String macroOptions        = "labelimage=init___.tif show_and_save_statistics normalize=false";
+        final String setupString         = "DRS";
+        final String macroOptions        = "labelimage=init___.tif normalize=false";
         final String inputFile           = "sphere-1.tif";
         final String[] expectedImgFiles  = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};
         final String[] referenceImgFiles = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};        
