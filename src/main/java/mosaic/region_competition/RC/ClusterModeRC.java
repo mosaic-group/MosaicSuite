@@ -10,9 +10,10 @@ import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.plugins.Region_Competition;
+import mosaic.plugins.RegionCompetition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
+import mosaic.region_competition.PluginSettingsRC;
 import mosaic.region_competition.Settings;
 import mosaic.utils.ImgUtils;
 
@@ -23,7 +24,7 @@ import mosaic.utils.ImgUtils;
 public class ClusterModeRC {
     private static final Logger logger = Logger.getLogger(ClusterModeRC.class);
 
-    public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, Settings iSettings, String[] out) {
+    public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, PluginSettingsRC iSettings, String[] out) {
         // The only modification to old implementation:
         String labelImageFilename = ImgUtils.getImageAbsolutePath(aImp);
         String inputImageFilename = ImgUtils.getImageAbsolutePath(labelImage);
@@ -32,7 +33,7 @@ public class ClusterModeRC {
         logger.info("Running RC on cluster");
         
         // We run on cluster - saving config file
-        Region_Competition.getConfigHandler().SaveToFile(ClusterSession.DefaultSettingsFileName, iSettings);
+        RegionCompetition.getConfigHandler().SaveToFile(ClusterSession.DefaultSettingsFileName, iSettings);
 
         final ClusterGUI cg = new ClusterGUI();
         ClusterSession ss = cg.getClusterSession();

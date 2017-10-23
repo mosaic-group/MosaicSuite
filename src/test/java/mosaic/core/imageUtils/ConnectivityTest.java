@@ -146,8 +146,9 @@ public class ConnectivityTest {
      * It is expected that all elements are found in container and after removing all elements given
      * by iterator container will be empty.
      * @param aIterator
-     * @param aContainer
+     * @param aContain
      */
+    @SuppressWarnings("unlikely-arg-type")
     private void verifyIfAllElementsAdded(Iterable<?> aIterator, List<?> aContainer) {
         for (Object i : aIterator) {
             assertTrue("Element [" + i + "] not found", aContainer.remove(i));

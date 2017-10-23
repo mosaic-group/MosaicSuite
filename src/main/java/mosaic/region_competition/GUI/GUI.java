@@ -42,16 +42,13 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.Settings.SegmentationType;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
  */
-public class GUI  {
+public abstract class GUI  {
     private static final Logger logger = Logger.getLogger(GUI.class);
     
     // Input stuff
@@ -85,7 +82,7 @@ public class GUI  {
     /**
      * Create main GUI of RC plugin
      */
-    public GUI(Settings aSettings, ImagePlus aInputImg, boolean aInRcMode) {
+    public GUI(String aWindowName, Settings aSettings, ImagePlus aInputImg, boolean aInRcMode) {
         iSettings = aSettings;
         iInputImg = aInputImg;
         iInRcMode = aInRcMode;
@@ -106,7 +103,7 @@ public class GUI  {
         
         logger.info("GUI - regular mode");
         
-        iMainDialogWin = new CustomDialog(iInRcMode ? "Region Competition" : "Discrete Region Sampling");
+        iMainDialogWin = new CustomDialog(aWindowName);
         final Font bf = new Font(null, Font.BOLD, 12);
         
         iMainDialogWin.addMessage("Input and Label image", bf);
@@ -164,169 +161,13 @@ public class GUI  {
         iMainDialogWin.addPanel(p);
     }
 
-    /**
-     * Create parameters dialog
-     */
-    protected void createParametersDialog() {
-        GenericDialog gd = new GenericDialog("Region Competition Parameters");
-        final Font bf = new Font(null, Font.BOLD, 12);
-        
-        int gridy = 1;
-        final int gridx = 2;
+    abstract protected void createParametersDialog();
 
-        gd.addMessage("Energy and initialization settings", bf);
-        // Energy Functional
-        final EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
-        final String[] energyItems = new String[energyValues.length];
-        for (int i = 0; i < energyValues.length; ++i) {
-            energyItems[i] = energyValues[i].name();
-        }
-        gd.addChoice("E_data", energyItems, iSettings.m_EnergyFunctional.name());
-        Choice choiceEnergy = (Choice) gd.getChoices().lastElement();
-        {
-            Button optionButton = new Button("Options");
-            GridBagConstraints c = new GridBagConstraints();
-            c.gridx = gridx;
-            c.gridy = gridy++;
-            c.anchor = GridBagConstraints.EAST;
-            gd.add(optionButton, c);
-
-            optionButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    final String energy = choiceEnergy.getSelectedItem();
-                    SettingsBaseGUI energyGUI = EnergyGUI.factory(iSettings, energy);
-                    energyGUI.createDialog();
-                    energyGUI.showDialog();
-                    energyGUI.processDialog();
-                }
-            });
-        }
-
-        // Regularization
-        final RegularizationType[] regularizationValues = RegularizationType.values();
-        final String[] regularizationItems = new String[regularizationValues.length];
-        for (int i = 0; i < regularizationValues.length; ++i) {
-            regularizationItems[i] = regularizationValues[i].name();
-        }
-        gd.addChoice("E_length", regularizationItems, iSettings.regularizationType.name());
-        
-        Choice choiceRegularization = (Choice) gd.getChoices().lastElement();
-        {
-            Button optionButton = new Button("Options");
-            GridBagConstraints c = new GridBagConstraints();
-            c.anchor = GridBagConstraints.EAST;
-            c.gridx = gridx;
-            c.gridy = gridy++;
-            gd.add(optionButton, c);
-
-            optionButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    final String type = choiceRegularization.getSelectedItem();
-                    final SettingsBaseGUI gui = RegularizationGUI.factory(iSettings, type);
-                    gui.createDialog();
-                    gui.showDialog();
-                    gui.processDialog();
-                }
-            });
-        }
-
-        // Label Image Initialization
-        final InitializationType[] initTypes = InitializationType.values();
-        final String[] initializationItems = new String[initTypes.length];
-        for (int i = 0; i < initTypes.length; ++i) {
-            initializationItems[i] = initTypes[i].name();
-        }
-        gd.addChoice("Initialization", initializationItems, iSettings.labelImageInitType.name());
-        
-        // save reference to this choice, so we can handle it
-        Choice initializationChoice = (Choice) gd.getChoices().lastElement();
-
-        Button optionButton = new Button("Options");
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridx = gridx;
-        c.gridy = gridy++;
-        c.anchor = GridBagConstraints.EAST;
-        gd.add(optionButton, c);
-
-        optionButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final String type = initializationChoice.getSelectedItem();
-                final SettingsBaseGUI gui = InitializationGUI.factory(iSettings, type);
-                gui.createDialog();
-                gui.showDialog();
-                gui.processDialog();
-            }
-        });
-        
-        gd.addMessage("\nGeneral settings", bf);
-        gd.addNumericField("Lambda E_length", iSettings.m_EnergyContourLengthCoeff, 4, 8, "");
-        gd.addNumericField("Max_Iterations", iSettings.m_MaxNbIterations, 0, 8, "");
-        gd.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { iSettings.m_AllowFusion, iSettings.m_AllowFission, iSettings.m_AllowHandles });
-
-        if (iInRcMode) {
-//            gd.addMessage("\nRegion Competition only", bf);
-            gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4, 8, "");
-            gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4, 8, "");
-        }
-        else {
-//            gd.addMessage("\nDiscrete Region Sampling only", bf);
-            gd.addNumericField("Burn-in factor [0-1]", iSettings.burnInFactor, 4, 8, "");
-            gd.addNumericField("Off-boundary probability [0-1]", iSettings.offBoundarySampleProbability, 4, 8, "");
-            gd.addCheckboxGroup(1, 2, new String[] { "biased proposal", "pair proposal" }, new boolean[] { iSettings.useBiasedProposal, iSettings.usePairProposal });
-        }
-        gd.showDialog();
-
-        // On OK, read parameters
-        if (gd.wasOKed()) {
-            // Energy Choice
-            final String energy = gd.getNextChoice();
-            iSettings.m_EnergyFunctional = EnergyFunctionalType.valueOf(energy);
-            final EnergyGUI eg = EnergyGUI.factory(iSettings, iSettings.m_EnergyFunctional);
-            eg.createDialog();
-            eg.processDialog();
-            
-            // Regularization Choice
-            final String regularization = gd.getNextChoice();
-            iSettings.regularizationType = RegularizationType.valueOf(regularization);
-            iSettings.m_EnergyContourLengthCoeff = (float) gd.getNextNumber();
-            iSettings.m_MaxNbIterations = (int) gd.getNextNumber();
-            
-            if (iInRcMode) {
-                iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
-                iSettings.m_OscillationThreshold = gd.getNextNumber();
-            }
-            // Initialization
-            final String initialization = gd.getNextChoice();
-            final InitializationType type = InitializationType.valueOf(initialization);
-            iSettings.labelImageInitType = type;
-            final InitializationGUI ig = InitializationGUI.factory(iSettings, iSettings.labelImageInitType);
-            ig.createDialog();
-            ig.processDialog();
-            
-            // Topological constraints
-            iSettings.m_AllowFusion = gd.getNextBoolean();
-            iSettings.m_AllowFission = gd.getNextBoolean();
-            iSettings.m_AllowHandles = gd.getNextBoolean();
-            
-            // DRS settings
-            if (!iInRcMode) {
-                iSettings.burnInFactor = (float)gd.getNextNumber();
-                iSettings.offBoundarySampleProbability = (float)gd.getNextNumber();
-                iSettings.useBiasedProposal = gd.getNextBoolean();
-                iSettings.usePairProposal = gd.getNextBoolean();
-            }
-        }
-    }
-    
     public void showDialog() {
         isConfigurationReadAlready = false;
         iMainDialogWin.showDialog();
-        
     }
+    
     public boolean configurationValid() {
         if (!isConfigurationReadAlready) {
             isConfigurationValid = processInput();
@@ -407,7 +248,6 @@ public class GUI  {
         iShowNormalized = iMainDialogWin.getNextBoolean();
         if (iInRcMode) {
             iShowAndSaveStatistics = iMainDialogWin.getNextBoolean();
-            iSettings.segmentationType = iInRcMode ? SegmentationType.RC : SegmentationType.DRS;
             iUseCluster = iMainDialogWin.getNextBoolean();
         }
         
@@ -434,10 +274,6 @@ public class GUI  {
         return iKeepAllFrames;
     }
     
-    public SegmentationType getSegmentationType() {
-        return iInRcMode ? SegmentationType.RC : SegmentationType.DRS;
-    }
-
     public boolean showAndSaveStatistics() {
         return iShowAndSaveStatistics;
     }

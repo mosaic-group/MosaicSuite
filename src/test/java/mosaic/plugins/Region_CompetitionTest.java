@@ -24,7 +24,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/dot_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
@@ -49,7 +49,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/uc_data_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("psf_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("psf_file_settings.dat", getTestDataPath() + tcDirName, "/tmp");
@@ -77,7 +77,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/1thing_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
@@ -102,7 +102,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/sphere_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
@@ -127,7 +127,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/twoBars_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
@@ -152,7 +152,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/object_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         copyTestResources("label.tif", getTestDataPath() + tcDirName, tmpPath);
         
@@ -182,7 +182,7 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/dot_ObjectsData_c1.csv"};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
+        final RegionCompetition plugin = new RegionCompetition();
         copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
@@ -221,6 +221,12 @@ public class Region_CompetitionTest extends CommonBase {
     }
     
     @Test
+    public void runAllTypes() {
+        testDrs1();
+        testDot();
+    }
+    
+    @Test
     public void testDrs1()  {
         
         // Define test data
@@ -234,8 +240,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -259,8 +265,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -284,8 +290,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -309,8 +315,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -334,8 +340,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -359,8 +365,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
 
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -384,8 +390,8 @@ public class Region_CompetitionTest extends CommonBase {
         final String[] referenceFiles    = {};
         
         // Create tested plugIn
-        final Region_Competition plugin = new Region_Competition();
-        copyTestResources("rc_settings.dat", getTestDataPath() + tcDirName, "/tmp");
+        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
+        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
         
         // Test it
         testPlugin(plugin, tcDirName,

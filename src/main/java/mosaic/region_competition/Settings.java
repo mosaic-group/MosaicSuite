@@ -11,12 +11,6 @@ import mosaic.plugins.Region_Competition.RegularizationType;
 public class Settings implements Serializable {
     private static final long serialVersionUID = 1777976540627904860L;
     
-    public static enum SegmentationType {
-        RC, DRS
-    }
-    
-    public SegmentationType segmentationType = SegmentationType.RC;
-    
     // Init Label Image ---------------------------------------------------------------------------
     // Init Type / ClusterMode
     public InitializationType labelImageInitType = InitializationType.Bubbles;
@@ -57,17 +51,7 @@ public class Settings implements Serializable {
     public boolean m_AllowHandles = true;
     public int m_MaxNbIterations = 300;
     
-    // RC only
-    public double m_OscillationThreshold = 0.02;
-    
-    // DRS only - MCMC parameters
-    public float offBoundarySampleProbability = 0.00f;
-    public boolean useBiasedProposal = false;
-    public boolean usePairProposal = false;
-    public float burnInFactor = 0.3f;
-
     public void copy(Settings s) {
-        segmentationType = s.segmentationType;
         labelImageInitType = s.labelImageInitType;
         
         l_BoxRatio = s.l_BoxRatio;
@@ -95,13 +79,6 @@ public class Settings implements Serializable {
         m_AllowFission = s.m_AllowFission;
         m_AllowHandles = s.m_AllowHandles;
         m_MaxNbIterations = s.m_MaxNbIterations;
-        
-        m_OscillationThreshold = s.m_OscillationThreshold;
-        
-        offBoundarySampleProbability = s.offBoundarySampleProbability;
-        useBiasedProposal = s.useBiasedProposal;
-        usePairProposal = s.usePairProposal;
-        burnInFactor = s.burnInFactor;
     }
 
     public Settings() {}

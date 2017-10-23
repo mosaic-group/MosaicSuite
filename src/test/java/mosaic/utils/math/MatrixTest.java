@@ -708,6 +708,7 @@ public class MatrixTest extends CommonBase {
     }
 
     @Test
+    @SuppressWarnings("unlikely-arg-type")
     public void testCompareEquals() {
         {
             final Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
