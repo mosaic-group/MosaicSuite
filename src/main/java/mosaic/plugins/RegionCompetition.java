@@ -5,15 +5,20 @@ import org.apache.log4j.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
+import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsRC;
+import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI_RC;
+import mosaic.region_competition.GUI.SegmentationProcessWindow;
+import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.RC.ClusterModeRC;
 import mosaic.region_competition.RC.SettingsRC;
+import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
@@ -23,8 +28,14 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
     private static final Logger logger = Logger.getLogger(RegionCompetition.class);
     
     static String ConfigFilename = "rc_settings.dat";
-    
+    protected GUI_RC userDialog;
     private PluginSettingsRC iSettings = null;
+    protected boolean useCluster = false;
+    
+    // Get some more settings and images from dialog
+    protected boolean showAndSaveStatistics; 
+    protected boolean showAllFrames;
+    
     
     private void initSettingsAndParseMacroOptions() {
         iSettings = null;
@@ -53,6 +64,39 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         }
     }
     
+    protected void initStack() {
+        final int[] dims = labelImage.getDimensions();
+        final int width = dims[0];
+        final int height = dims[1];
+        
+        stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
+        stackProcess.setImageTitle("Stack_" + (inputImageChosenByUser.getTitle() == null ? "DRS" : inputImageChosenByUser.getTitle()));
+      
+        stackProcess.addSliceToStack(labelImage, "init without contours", 0);
+        labelImage.initBorder();
+        stackProcess.addSliceToStack(labelImage, "init with contours", 0);
+    }
+    
+    protected void saveStatistics(AlgorithmRC algorithm) {
+        if (showAndSaveStatistics) {
+            String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
+            if (absoluteFileNameNoExt == null) {
+                logger.error("Cannot save segmentation statistics. Filename for saving not available!");
+                return;
+            }
+            String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
+    
+            algorithm.calculateRegionsCenterOfMass();
+            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
+            logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
+            statisticsTable.save(absoluteFileName);
+            if (showGUI) {
+                statisticsTable.show("statistics");
+            }
+        }
+    }
+    
+    
     /**
      * Returns handler for (un)serializing Settings objects.
      */
@@ -72,7 +116,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         // Read settings and macro options
         initSettingsAndParseMacroOptions();
         
-        userDialog = new GUI_RC(iSettings, imp, true);
+        userDialog = new GUI_RC(iSettings, imp);
         
         if (!setupDeep(imp, iSettings)) return DONE;
         
@@ -87,6 +131,41 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         return DOES_ALL + NO_CHANGES;
     }
 
+    public boolean setupDeep(ImagePlus aImp, Settings iSettings) {
+        // Save input stuff
+        originalInputImage = aImp;
+
+        // Get information from user
+//        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
+        userDialog.showDialog();
+        if (!userDialog.configurationValid()) {
+            return false;
+        }
+        
+        // Get some more settings and images
+        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
+        showAndSaveStatistics = userDialog.showAndSaveStatistics();
+        showAllFrames = userDialog.showAllFrames();
+        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
+        inputImageChosenByUser = userDialog.getInputImage();
+        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
+        useCluster = userDialog.useCluster();
+        normalize_ip = userDialog.getNormalize();
+        
+        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
+        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
+                    ", showAllFrames: " + showAllFrames + 
+                    ", useCluster: " + useCluster +
+                    ", showGui: " + showGUI +
+                    ", normalize: " + normalize_ip);
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
+        
+
+        return true;
+    }
+    
     @Override
     public void run(ImageProcessor aIp) {
         if (useCluster == true) {

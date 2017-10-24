@@ -8,17 +8,12 @@ import org.apache.log4j.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.region_competition.Settings;
-import mosaic.region_competition.GUI.GUI;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
-import mosaic.region_competition.GUI.StatisticsTable;
-import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -32,7 +27,6 @@ import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.MaximaBubbles;
-import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import net.imglib2.img.Img;
@@ -46,8 +40,6 @@ import net.imglib2.type.numeric.real.FloatType;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public abstract class Region_Competition {
-    private static final Logger logger = Logger.getLogger(Region_Competition.class);
-
     public enum InitializationType {
         Rectangle, Bubbles, LocalMax, ROI_2D, File
     }
@@ -68,14 +60,9 @@ public abstract class Region_Competition {
     protected String outputSegmentedImageLabelFilename = null;
     protected boolean normalize_ip = true;
     protected boolean showGUI = true;
-    protected boolean useCluster = false;
-    
-    // Get some more settings and images from dialog
-    private boolean showAndSaveStatistics; 
-    private boolean showAllFrames;
 
     // Images to be processed
-    private Calibration inputImageCalibration;
+    protected Calibration inputImageCalibration;
     protected ImagePlus originalInputImage;
     protected ImagePlus inputImageChosenByUser;
     protected ImagePlus inputLabelImageChosenByUser;
@@ -88,44 +75,9 @@ public abstract class Region_Competition {
     
     // User interfaces
     protected SegmentationProcessWindow stackProcess;
-    protected GUI userDialog;
+
     
     
-    public boolean setupDeep(ImagePlus aImp, Settings iSettings) {
-        // Save input stuff
-        originalInputImage = aImp;
-
-        // Get information from user
-//        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
-        userDialog.showDialog();
-        if (!userDialog.configurationValid()) {
-            return false;
-        }
-        
-        // Get some more settings and images
-        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
-        showAndSaveStatistics = userDialog.showAndSaveStatistics();
-        showAllFrames = userDialog.showAllFrames();
-        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
-        inputImageChosenByUser = userDialog.getInputImage();
-        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
-        useCluster = userDialog.useCluster();
-        normalize_ip = userDialog.getNormalize();
-        
-        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
-        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
-        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
-        logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
-                    ", showAllFrames: " + showAllFrames + 
-                    ", useCluster: " + useCluster +
-                    ", showGui: " + showGUI +
-                    ", normalize: " + normalize_ip);
-        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
-        
-
-        return true;
-    }
-
     public void runDeep() {
         // ================= Run segmentation ==============================
         runIt();
@@ -144,25 +96,6 @@ public abstract class Region_Competition {
 
     protected abstract void runIt();
     
-    protected void saveStatistics(AlgorithmRC algorithm) {
-        if (showAndSaveStatistics) {
-            String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
-            if (absoluteFileNameNoExt == null) {
-                logger.error("Cannot save segmentation statistics. Filename for saving not available!");
-                return;
-            }
-            String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
-    
-            algorithm.calculateRegionsCenterOfMass();
-            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
-            logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
-            statisticsTable.save(absoluteFileName);
-            if (showGUI) {
-                statisticsTable.show("statistics");
-            }
-        }
-    }
-
     protected abstract void saveSegmentedImage();
     protected abstract String configFilePath();
 
@@ -301,19 +234,6 @@ public abstract class Region_Competition {
                 throw new RuntimeException("No valid input option in User Input. Abort");
             }
         }
-    }
-
-    protected void initStack() {
-        final int[] dims = labelImage.getDimensions();
-        final int width = dims[0];
-        final int height = dims[1];
-        
-        stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
-        stackProcess.setImageTitle("Stack_" + (inputImageChosenByUser.getTitle() == null ? "DRS" : inputImageChosenByUser.getTitle()));
-      
-        stackProcess.addSliceToStack(labelImage, "init without contours", 0);
-        labelImage.initBorder();
-        stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
 
     /**

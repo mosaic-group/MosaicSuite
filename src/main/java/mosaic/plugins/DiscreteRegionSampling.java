@@ -5,14 +5,17 @@ import org.apache.log4j.Logger;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
+import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsDRS;
+import mosaic.region_competition.Settings;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI_DRS;
+import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
@@ -22,7 +25,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     private static final Logger logger = Logger.getLogger(DiscreteRegionSampling.class);
     
     static String ConfigFilename = "drs_settings.json";
-    
+    protected GUI_DRS userDialog;
     private PluginSettingsDRS iSettings = null;
     
     private void initSettingsAndParseMacroOptions() {
@@ -71,7 +74,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         
         // Read settings and macro options
         initSettingsAndParseMacroOptions();
-        userDialog = new GUI_DRS(iSettings, imp, false);
+        userDialog = new GUI_DRS(iSettings, imp);
         if (!setupDeep(imp, iSettings)) return DONE;
         
         // Save new settings from user input.
@@ -83,6 +86,35 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
             return NO_IMAGE_REQUIRED;
         } 
         return DOES_ALL + NO_CHANGES;
+    }
+    
+    public boolean setupDeep(ImagePlus aImp, Settings iSettings) {
+        // Save input stuff
+        originalInputImage = aImp;
+
+        // Get information from user
+//        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
+        userDialog.showDialog();
+        if (!userDialog.configurationValid()) {
+            return false;
+        }
+        
+        // Get some more settings and images
+        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
+        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
+        inputImageChosenByUser = userDialog.getInputImage();
+        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
+        normalize_ip = userDialog.getNormalize();
+        
+        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
+        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("showGui: " + showGUI +
+                    ", normalize: " + normalize_ip);
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
+        
+
+        return true;
     }
 
     @Override
