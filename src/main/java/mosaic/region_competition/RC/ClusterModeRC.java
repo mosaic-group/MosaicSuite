@@ -14,7 +14,6 @@ import mosaic.plugins.RegionCompetition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.PluginSettingsRC;
-import mosaic.region_competition.Settings;
 import mosaic.utils.ImgUtils;
 
 /**
@@ -127,18 +126,18 @@ public class ClusterModeRC {
         return (aImp.getNSlices() == 1) ? 2 : 3;
     }
 
-    private static String getOptions(File f, Settings aSettings) {
+    private static String getOptions(File f, PluginSettingsRC aSettings) {
         final int d = getDimension(f);
         return generateParameters(d, aSettings);
     }
 
 
-    private static String getOptions(ImagePlus aImp, Settings aSettings) {
+    private static String getOptions(ImagePlus aImp, PluginSettingsRC aSettings) {
         final int d = getDimension(aImp);
         return generateParameters(d, aSettings);
     }
 
-    private static String generateParameters(final int aDimension, Settings aSettings) {
+    private static String generateParameters(final int aDimension, PluginSettingsRC aSettings) {
         String par = "Dimensions=" + aDimension + " ";
         
         // if deconvolving create a PSF generator window

@@ -36,9 +36,6 @@ public class Settings implements Serializable {
     public int m_GaussPSEnergyRadius = 8;
     public float m_BalloonForceCoeff = 0.0f;
 
-    // All energies
-    public float m_RegionMergingThreshold = 0.02f;
-    
     // Other --------------------------------------------------------------------------------------
     // Image Model
     public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
@@ -68,8 +65,6 @@ public class Settings implements Serializable {
         
         m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
         m_BalloonForceCoeff = s.m_BalloonForceCoeff;
-        
-        m_RegionMergingThreshold = s.m_RegionMergingThreshold;
         
         m_EnergyFunctional = s.m_EnergyFunctional;
         regularizationType = s.regularizationType;

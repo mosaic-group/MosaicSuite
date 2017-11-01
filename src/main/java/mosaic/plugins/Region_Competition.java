@@ -3,8 +3,6 @@ package mosaic.plugins;
 
 import java.awt.GraphicsEnvironment;
 
-import org.apache.log4j.Logger;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;

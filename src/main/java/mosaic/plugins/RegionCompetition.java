@@ -10,7 +10,6 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsRC;
-import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GUI_RC;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
@@ -131,7 +130,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         return DOES_ALL + NO_CHANGES;
     }
 
-    public boolean setupDeep(ImagePlus aImp, Settings iSettings) {
+    public boolean setupDeep(ImagePlus aImp, PluginSettingsRC iSettings) {
         // Save input stuff
         originalInputImage = aImp;
 

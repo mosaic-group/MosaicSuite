@@ -10,7 +10,6 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsDRS;
-import mosaic.region_competition.Settings;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.GUI.Controller;
@@ -88,7 +87,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         return DOES_ALL + NO_CHANGES;
     }
     
-    public boolean setupDeep(ImagePlus aImp, Settings iSettings) {
+    public boolean setupDeep(ImagePlus aImp, PluginSettingsDRS iSettings) {
         // Save input stuff
         originalInputImage = aImp;
 
@@ -126,7 +125,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     protected void runIt() {
         initInputImage();
         initLabelImage(iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        initEnergies(iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        initEnergies(iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
