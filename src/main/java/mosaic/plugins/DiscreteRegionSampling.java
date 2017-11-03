@@ -35,8 +35,8 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     private int iPadSize = 1;
 
     // User images to be processed
-    private ImagePlus inputImageChosenByUser;
-    private ImagePlus inputLabelImageChosenByUser;
+    private ImagePlus iInputImageChosenByUser;
+    private ImagePlus iInputLabelImageChosenByUser;
     
     // User interfaces
     private GuiDRS iUserGui;
@@ -59,13 +59,13 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         
         // Get some more settings and images
         iShowGui = !(IJ.isMacro() || Interpreter.batchMode);
-        inputLabelImageChosenByUser = iUserGui.getInputLabelImage();
-        inputImageChosenByUser = iUserGui.getInputImage();
+        iInputLabelImageChosenByUser = iUserGui.getInputLabelImage();
+        iInputImageChosenByUser = iUserGui.getInputImage();
         iNormalizeInputImg = iUserGui.getNormalize();
         
-        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
-        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
-        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("Input image [" + (iInputImageChosenByUser != null ? iInputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (iInputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(iInputImageChosenByUser));
+        logger.info("Label image [" + (iInputLabelImageChosenByUser != null ? iInputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
         logger.info("showGui: " + iShowGui +
                     ", normalize: " + iNormalizeInputImg);
         logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
@@ -74,7 +74,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         getConfigHandler().SaveToFile(configFilePath(), iSettings);
         
         // If there were no input image when plugin was started but user selected it after then return NO_IMAGE_REQUIRED
-        return (inputImageChosenByUser != null  && aInputImg == null) ? NO_IMAGE_REQUIRED : DOES_ALL + NO_CHANGES;
+        return (iInputImageChosenByUser != null  && aInputImg == null) ? NO_IMAGE_REQUIRED : DOES_ALL + NO_CHANGES;
     }
 
     @Override
@@ -119,11 +119,11 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     }
     
     private boolean runSegmentation() {
-        IntensityImage iIntensityImage = initInputImage(inputImageChosenByUser, iNormalizeInputImg, iPadSize);
+        IntensityImage iIntensityImage = initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
         if (iIntensityImage == null) return false; // Abort execution
-        iLabelImage = initLabelImage(iIntensityImage, inputImageChosenByUser, inputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        iLabelImage = initLabelImage(iIntensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
         if (iLabelImage == null) return false; // Abort execution
-        ImageModel iImageModel = initEnergies(iIntensityImage, iLabelImage, inputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        ImageModel iImageModel = initEnergies(iIntensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
@@ -173,10 +173,10 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     }
     
     private void saveSegmentedImage() {
-        final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
+        final String directory = ImgUtils.getImageDirectory(iInputImageChosenByUser);
         
         if (directory != null) {
-            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
+            final String fileNameNoExt = SysOps.removeExtension(iInputImageChosenByUser.getTitle());
             
             // Probability image
             ImagePlus outImgStack = iProbabilityImage.getImage();

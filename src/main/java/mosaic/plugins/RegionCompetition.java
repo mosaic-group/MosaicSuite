@@ -8,7 +8,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
-import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
@@ -33,38 +32,84 @@ import mosaic.utils.io.serialize.JsonDataFile;
 public class RegionCompetition extends Region_Competition implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(RegionCompetition.class);
     
-    static final private String ConfigFilename = "rc_settings.dat";
-    
     // Output file names
-    protected final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif", "*_prob_c1.tif" };
+    private final static String[] iOutputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
     
-    private GuiRC userDialog;
     private PluginSettingsRC iSettings = null;
-    private boolean useCluster = false;
-    
-    // Get some more settings and images from dialog
-    private boolean showAndSaveStatistics; 
-    private boolean showAllFrames;
-    
-    // Settings
-    private String outputSegmentedImageLabelFilename = null;
-    private boolean normalize_ip = true;
-    private boolean showGUI = true;
+    private boolean iNormalizeInputImg = true;
+    private boolean iShowGui = true;
+    private boolean iUseCluster = false;
+    private boolean iShowAndSaveStatistics; 
+    private boolean iShowAllSteps;
+    private int iPadSize = 1;
+    private String iOutputSegmentedImageLabelFilename = null;
 
     // Images to be processed
-    private Calibration inputImageCalibration;
-    private ImagePlus originalInputImage;
-    private ImagePlus inputImageChosenByUser;
-    private ImagePlus inputLabelImageChosenByUser;
-    private int iPadSize = 1;
-    
-    // Algorithm and its input stuff
-    private LabelImage labelImage;
-    private IntensityImage intensityImage;
-    private ImageModel imageModel;
+    private ImagePlus iInputImageChosenByUser;
+    private ImagePlus iInputLabelImageChosenByUser;
     
     // User interfaces
-    private SegmentationProcessWindow stackProcess;
+    private GuiRC iUserGui;
+    private LabelImage iLabelImage;
+    private SegmentationProcessWindow iLabelImageStack;
+
+    @Override
+    public int setup(String arg, ImagePlus originalInputImage) {
+        logger.info("Starting RegionCompetition");
+        
+        // Read settings and macro options
+        initSettingsAndParseMacroOptions();
+        
+        iUserGui = new GuiRC(iSettings, originalInputImage);
+        
+        // Get information from user
+        iUserGui.showDialog();
+        if (!iUserGui.configurationValid()) {
+            return DONE;
+        }
+        
+        // Get some more settings and images
+        iShowGui = !(IJ.isMacro() || Interpreter.batchMode);
+        iShowAndSaveStatistics = iUserGui.showAndSaveStatistics();
+        iShowAllSteps = iUserGui.showAllFrames();
+        iInputLabelImageChosenByUser = iUserGui.getInputLabelImage();
+        iInputImageChosenByUser = iUserGui.getInputImage();
+        iUseCluster = iUserGui.useCluster();
+        iNormalizeInputImg = iUserGui.getNormalize();
+        
+        logger.info("Input image [" + (iInputImageChosenByUser != null ? iInputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (iInputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(iInputImageChosenByUser));
+        logger.info("Label image [" + (iInputLabelImageChosenByUser != null ? iInputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("showAndSaveStatistics: " + iShowAndSaveStatistics + 
+                    ", showAllFrames: " + iShowAllSteps + 
+                    ", useCluster: " + iUseCluster +
+                    ", showGui: " + iShowGui +
+                    ", normalize: " + iNormalizeInputImg);
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
+        
+        // Save new settings from user input.
+        getConfigHandler().SaveToFile(configFilePath(), iSettings);
+        
+        // If there were no input image when plugin was started but user selected it after then return NO_IMAGE_REQUIRED
+        return (iInputImageChosenByUser != null  && originalInputImage == null) ? NO_IMAGE_REQUIRED : DOES_ALL + NO_CHANGES;
+    }
+
+    @Override
+    public void run(ImageProcessor aIp) {
+        if (iUseCluster == true) {
+            ClusterModeRC.runClusterMode(iInputImageChosenByUser, 
+                                         iInputLabelImageChosenByUser,
+                                         iSettings, 
+                                         iOutputFileNamesSuffixes);
+            
+            // Finish - nothing to do more here...
+            return;
+        }
+        
+        // Running locally
+        runSegmentation();
+        saveSegmentedImage();
+    }
     
     private void initSettingsAndParseMacroOptions() {
         iSettings = null;
@@ -72,11 +117,9 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
         if (options != null) {
-            // Command line interface
-            
             String normalizeString = MosaicUtils.parseString("normalize", options);
             if (normalizeString != null) {
-                normalize_ip = Boolean.parseBoolean(normalizeString);
+                iNormalizeInputImg = Boolean.parseBoolean(normalizeString);
             }
 
             String path = MosaicUtils.parseString("config", options);
@@ -84,7 +127,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
                 iSettings = getConfigHandler().LoadFromFile(path, PluginSettingsRC.class);
             }
 
-            outputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
+            iOutputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
         }
 
         if (iSettings == null) {
@@ -93,38 +136,34 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         }
     }
     
-    protected void initStack() {
-        final int[] dims = labelImage.getDimensions();
-        final int width = dims[0];
-        final int height = dims[1];
+    private void initStack() {
+        final int width = iLabelImage.getWidth();
+        final int height = iLabelImage.getHeight();
         
-        stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
-        stackProcess.setImageTitle("Stack_" + (inputImageChosenByUser.getTitle() == null ? "DRS" : inputImageChosenByUser.getTitle()));
+        iLabelImageStack = new SegmentationProcessWindow(width, height, iShowAllSteps);
+        iLabelImageStack.setImageTitle("Stack_" + (iInputImageChosenByUser.getTitle() == null ? "DRS" : iInputImageChosenByUser.getTitle()));
       
-        stackProcess.addSliceToStack(labelImage, "init without contours", 0);
-        labelImage.initBorder();
-        stackProcess.addSliceToStack(labelImage, "init with contours", 0);
+        iLabelImageStack.addSliceToStack(iLabelImage, "init without contours", 0);
+        iLabelImage.initBorder();
+        iLabelImageStack.addSliceToStack(iLabelImage, "init with contours", 0);
     }
     
-    protected void saveStatistics(AlgorithmRC algorithm) {
-        if (showAndSaveStatistics) {
-            String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
-            if (absoluteFileNameNoExt == null) {
-                logger.error("Cannot save segmentation statistics. Filename for saving not available!");
-                return;
-            }
-            String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
-    
-            algorithm.calculateRegionsCenterOfMass();
-            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
-            logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
-            statisticsTable.save(absoluteFileName);
-            if (showGUI) {
-                statisticsTable.show("statistics");
-            }
+    private void saveStatistics(AlgorithmRC algorithm) {
+        String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(iInputImageChosenByUser, true);
+        if (absoluteFileNameNoExt == null) {
+            logger.error("Cannot save segmentation statistics. Filename for saving not available!");
+            return;
+        }
+        String absoluteFileName = absoluteFileNameNoExt + iOutputFileNamesSuffixes[0].replace("*", "");
+
+        algorithm.calculateRegionsCenterOfMass();
+        StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
+        logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
+        statisticsTable.save(absoluteFileName);
+        if (iShowGui) {
+            statisticsTable.show("statistics");
         }
     }
-    
     
     /**
      * Returns handler for (un)serializing Settings objects.
@@ -133,99 +172,17 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         return new JsonDataFile<PluginSettingsRC>();
     }
     
-    protected String configFilePath() {
-        return SysOps.getTmpPath() + ConfigFilename;
+    private String configFilePath() {
+        return SysOps.getTmpPath() + "rc_settings.dat";
     }
     
-    @Override
-    public int setup(String arg, ImagePlus imp) {
-        logger.info("Starting RegionCompetition");
-        
-        // Read settings and macro options
-        initSettingsAndParseMacroOptions();
-        
-        userDialog = new GuiRC(iSettings, imp);
-        
-        if (!setupDeep(imp, iSettings)) return DONE;
-        
-        // Save new settings from user input.
-        getConfigHandler().SaveToFile(configFilePath(), iSettings);
-        
-        // If there were no input image when plugin was started then return NO_IMAGE_REQUIRED 
-        // since user must have chosen image in dialog - they will be processed later.
-        if (inputImageChosenByUser != null && originalInputImage == null) {
-            return NO_IMAGE_REQUIRED;
-        }
-        return DOES_ALL + NO_CHANGES;
-    }
-
-    public boolean setupDeep(ImagePlus aImp, PluginSettingsRC iSettings) {
-        // Save input stuff
-        originalInputImage = aImp;
-
-        // Get information from user
-        userDialog.showDialog();
-        if (!userDialog.configurationValid()) {
-            return false;
-        }
-        
-        // Get some more settings and images
-        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
-        showAndSaveStatistics = userDialog.showAndSaveStatistics();
-        showAllFrames = userDialog.showAllFrames();
-        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
-        inputImageChosenByUser = userDialog.getInputImage();
-        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
-        useCluster = userDialog.useCluster();
-        normalize_ip = userDialog.getNormalize();
-        
-        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
-        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
-        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
-        logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
-                    ", showAllFrames: " + showAllFrames + 
-                    ", useCluster: " + useCluster +
-                    ", showGui: " + showGUI +
-                    ", normalize: " + normalize_ip);
-        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
-        
-
-        return true;
-    }
-    
-    @Override
-    public void run(ImageProcessor aIp) {
-        if (useCluster == true) {
-            ClusterModeRC.runClusterMode(inputImageChosenByUser, 
-                                         inputLabelImageChosenByUser,
-                                         iSettings, 
-                                         outputFileNamesSuffixes);
-            
-            // Finish - nothing to do more here...
-            return;
-        }
-        // ================= Run segmentation ==============================
-        runIt();
-        
-        // ================= Save segmented image =========================
-        //
-        saveSegmentedImage();
-        
-        final boolean headless_check = GraphicsEnvironment.isHeadless();
-        if (headless_check == false) {
-            final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
-            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
-            MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
-        }
-    }
-
-    protected void runIt() {
-        intensityImage = initInputImage(inputImageChosenByUser, normalize_ip, iPadSize);
-        labelImage = initLabelImage(intensityImage, inputImageChosenByUser, inputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        imageModel = initEnergies(intensityImage, labelImage, inputImageCalibration, iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+    private void runSegmentation() {
+        IntensityImage intensityImage = initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
+        iLabelImage = initLabelImage(intensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        ImageModel imageModel = initEnergies(intensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         initStack();
         
-        Controller iController = new Controller(/* aShowWindow */ showGUI);
+        Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
         SettingsRC rcSettings = new SettingsRC(iSettings.m_AllowFusion, 
@@ -235,7 +192,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
                                                iSettings.m_OscillationThreshold, 
                                                iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
         
-        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, labelImage, imageModel, rcSettings);
+        AlgorithmRC algorithm = new AlgorithmRC(intensityImage, iLabelImage, imageModel, rcSettings);
         
         boolean isDone = false;
         int iteration = 0;
@@ -251,34 +208,40 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
             isDone = iController.hasAborted() ? true : isDone;
 
             // Add slice with iteration output
-            stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
+            iLabelImageStack.addSliceToStack(iLabelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
         IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
 
         // Do some post process stuff
-        stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
+        iLabelImageStack.addSliceToStack(iLabelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
         
-        ImagePlus show = labelImage.show("LabelRC");
-        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
+        ImagePlus show = iLabelImage.show("LabelRC");
+        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
         
         iController.close();
-        saveStatistics(algorithm);
+        if (iShowAndSaveStatistics) saveStatistics(algorithm);
     }
     
-    protected void saveSegmentedImage() {
-        String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
+    private void saveSegmentedImage() {
+        String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(iInputImageChosenByUser, true);
         logger.debug("Absolute file name with dir: " + absoluteFileNameNoExt);
-        if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
-                outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
+        if (iOutputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
+                iOutputSegmentedImageLabelFilename = absoluteFileNameNoExt + iOutputFileNamesSuffixes[1].replace("*", "");
         }
-        if (outputSegmentedImageLabelFilename != null) { 
-            logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
-            ImagePlus outImg = labelImage.convertToImg("ResultWindow");
-            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
-            IJ.save(outImg, outputSegmentedImageLabelFilename);
+        if (iOutputSegmentedImageLabelFilename != null) { 
+            logger.info("Saving segmented image [" + iOutputSegmentedImageLabelFilename + "]");
+            ImagePlus outImg = iLabelImage.convertToImg("ResultWindow");
+            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+            IJ.save(outImg, iOutputSegmentedImageLabelFilename);
         }
         else {
             logger.error("Cannot save segmentation result. Filename for saving not available!");
+        }
+        
+        if (GraphicsEnvironment.isHeadless() == false) { // we are not on cluster
+            final String directory = ImgUtils.getImageDirectory(iInputImageChosenByUser);
+            final String fileNameNoExt = SysOps.removeExtension(iInputImageChosenByUser.getTitle());
+            MosaicUtils.reorganize(iOutputFileNamesSuffixes, fileNameNoExt, directory, 1);
         }
     }
 }
