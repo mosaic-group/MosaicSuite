@@ -440,14 +440,13 @@ public class MosaicUtils {
     public static void reorganize(String output[], String base, String sv, int nf) {
         // Crate directories
         for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
-            final String dirName = sv + "/" + tmp.replace("*", "_");
+            final String dirName = sv + "/" + output[j].replace("*", "_");
             SysOps.createDir(dirName);
         }
 
         // Copy all existing files
         for (int j = 0; j < output.length; j++) {
-            final String tmp = new String(output[j]);
+            final String tmp = output[j];
 
             for (int k = 0; k < nf; k++) {
                 String src = "";
@@ -474,8 +473,9 @@ public class MosaicUtils {
                 SysOps.removeDir(dir);
             }
         }
-
     }
+    
+    
 
     /**
      * Reorganize the data in the directories inside sv, following the file

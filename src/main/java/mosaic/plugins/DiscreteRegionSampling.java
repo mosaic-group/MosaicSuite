@@ -8,12 +8,17 @@ import ij.Macro;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsDRS;
+import mosaic.region_competition.Region_Competition;
 import mosaic.region_competition.DRS.AlgorithmDRS;
 import mosaic.region_competition.DRS.SettingsDRS;
 import mosaic.region_competition.GUI.Controller;
-import mosaic.region_competition.GUI.GUI_DRS;
+import mosaic.region_competition.GUI.GuiDRS;
+import mosaic.region_competition.GUI.SegmentationProcessWindow;
+import mosaic.region_competition.energies.ImageModel;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
@@ -23,9 +28,61 @@ import mosaic.utils.io.serialize.JsonDataFile;
 public class DiscreteRegionSampling extends Region_Competition implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(DiscreteRegionSampling.class);
     
-    static String ConfigFilename = "drs_settings.json";
-    protected GUI_DRS userDialog;
+    // Settings
     private PluginSettingsDRS iSettings = null;
+    private boolean iNormalizeInputImg = true;
+    private boolean iShowGui = true;
+    private int iPadSize = 1;
+
+    // User images to be processed
+    private ImagePlus inputImageChosenByUser;
+    private ImagePlus inputLabelImageChosenByUser;
+    
+    // User interfaces
+    private GuiDRS iUserGui;
+    private LabelImage iLabelImage;
+    private SegmentationProcessWindow iProbabilityImage;
+    
+    @Override
+    public int setup(String aInputArgs, ImagePlus aInputImg) {
+        logger.info("Starting DiscreteRegionSampling");
+        
+        // Read settings and macro options
+        initSettingsAndParseMacroOptions();
+        iUserGui = new GuiDRS(iSettings, aInputImg);
+        
+        // Get information from user
+        iUserGui.showDialog();
+        if (!iUserGui.configurationValid()) {
+            return DONE;
+        }
+        
+        // Get some more settings and images
+        iShowGui = !(IJ.isMacro() || Interpreter.batchMode);
+        inputLabelImageChosenByUser = iUserGui.getInputLabelImage();
+        inputImageChosenByUser = iUserGui.getInputImage();
+        iNormalizeInputImg = iUserGui.getNormalize();
+        
+        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
+        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
+        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("showGui: " + iShowGui +
+                    ", normalize: " + iNormalizeInputImg);
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
+        
+        // Save new settings from user input.
+        getConfigHandler().SaveToFile(configFilePath(), iSettings);
+        
+        // If there were no input image when plugin was started but user selected it after then return NO_IMAGE_REQUIRED
+        return (inputImageChosenByUser != null  && aInputImg == null) ? NO_IMAGE_REQUIRED : DOES_ALL + NO_CHANGES;
+    }
+
+    @Override
+    public void run(ImageProcessor aIp) {
+        if (runSegmentation()) {
+            saveSegmentedImage();
+        }
+    }
     
     private void initSettingsAndParseMacroOptions() {
         iSettings = null;
@@ -33,19 +90,15 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
         if (options != null) {
-            // Command line interface
-            
             String normalizeString = MosaicUtils.parseString("normalize", options);
             if (normalizeString != null) {
-                normalize_ip = Boolean.parseBoolean(normalizeString);
+                iNormalizeInputImg = Boolean.parseBoolean(normalizeString);
             }
 
             String path = MosaicUtils.parseString("config", options);
             if (path != null) {
                 iSettings = getConfigHandler().LoadFromFile(path, PluginSettingsDRS.class);
             }
-
-            outputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
         }
 
         if (iSettings == null) {
@@ -57,76 +110,21 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     /**
      * Returns handler for (un)serializing Settings objects.
      */
-    public static DataFile<PluginSettingsDRS> getConfigHandler() {
+    private static DataFile<PluginSettingsDRS> getConfigHandler() {
         return new JsonDataFile<PluginSettingsDRS>();
     }
 
-    
-    @Override
-    protected String configFilePath() {
-        return SysOps.getTmpPath() + ConfigFilename;
+    private String configFilePath() {
+        return SysOps.getTmpPath() + "drs_settings.json";
     }
     
-    @Override
-    public int setup(String arg, ImagePlus imp) {
-        logger.info("Starting DiscreteRegionSampling");
-        
-        // Read settings and macro options
-        initSettingsAndParseMacroOptions();
-        userDialog = new GUI_DRS(iSettings, imp);
-        if (!setupDeep(imp, iSettings)) return DONE;
-        
-        // Save new settings from user input.
-        getConfigHandler().SaveToFile(configFilePath(), iSettings);
-        
-        // If there were no input image when plugin was started then return NO_IMAGE_REQUIRED 
-        // since user must have chosen image in dialog - they will be processed later.
-        if (inputImageChosenByUser != null && originalInputImage == null) {
-            return NO_IMAGE_REQUIRED;
-        } 
-        return DOES_ALL + NO_CHANGES;
-    }
-    
-    public boolean setupDeep(ImagePlus aImp, PluginSettingsDRS iSettings) {
-        // Save input stuff
-        originalInputImage = aImp;
-
-        // Get information from user
-//        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
-        userDialog.showDialog();
-        if (!userDialog.configurationValid()) {
-            return false;
-        }
-        
-        // Get some more settings and images
-        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
-        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
-        inputImageChosenByUser = userDialog.getInputImage();
-        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
-        normalize_ip = userDialog.getNormalize();
-        
-        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
-        if (inputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(inputImageChosenByUser));
-        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
-        logger.info("showGui: " + showGUI +
-                    ", normalize: " + normalize_ip);
-        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
-        
-
-        return true;
-    }
-
-    @Override
-    public void run(ImageProcessor aIp) {
-        runDeep();
-    }
-    
-    @Override
-    protected void runIt() {
-        initInputImage();
-        initLabelImage(iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        initEnergies(iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
-        Controller iController = new Controller(/* aShowWindow */ showGUI);
+    private boolean runSegmentation() {
+        IntensityImage iIntensityImage = initInputImage(inputImageChosenByUser, iNormalizeInputImg, iPadSize);
+        if (iIntensityImage == null) return false; // Abort execution
+        iLabelImage = initLabelImage(iIntensityImage, inputImageChosenByUser, inputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        if (iLabelImage == null) return false; // Abort execution
+        ImageModel iImageModel = initEnergies(iIntensityImage, iLabelImage, inputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
         SettingsDRS drsSettings = new SettingsDRS(iSettings.m_AllowFusion, 
@@ -139,7 +137,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
                                                   iSettings.burnInFactor,
                                                   iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
         
-        AlgorithmDRS algorithm = new AlgorithmDRS(intensityImage, labelImage, imageModel, drsSettings);
+        AlgorithmDRS algorithm = new AlgorithmDRS(iIntensityImage, iLabelImage, iImageModel, drsSettings);
         
         
         int modulo = iSettings.m_MaxNbIterations / 20; // 5% steps
@@ -166,38 +164,37 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
         // Do some post process stuff
         iController.close();
         
-        stackProcess = algorithm.createProbabilityImage();
+        iProbabilityImage = algorithm.createProbabilityImage();
         
-        ImagePlus show = labelImage.show("LabelDRS");
-        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
+        ImagePlus show = iLabelImage.show("LabelDRS");
+        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+        
+        return true;
     }
     
-    @Override
-    protected void saveSegmentedImage() {
-        String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
-        String outputProbabilityImgFileNameNoExt = null;
-        logger.debug("Absolute file name with dir: " + absoluteFileNameNoExt);
-        if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
-                outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
-                outputProbabilityImgFileNameNoExt = absoluteFileNameNoExt + outputFileNamesSuffixes[2].replace("*", "");
-        }
-        if (outputSegmentedImageLabelFilename != null) { 
-            logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
-            ImagePlus outImg = labelImage.convertToImg("ResultWindow");
-            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
-            IJ.save(outImg, outputSegmentedImageLabelFilename);
+    private void saveSegmentedImage() {
+        final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
+        
+        if (directory != null) {
+            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
             
-            //TODO: save probability image
-            if (outputProbabilityImgFileNameNoExt != null) {
-                ImagePlus outImgStack = stackProcess.getImage();
-                outImgStack.setStack(ImgUtils.crop(outImgStack.getStack(), iPadSize, labelImage.getNumOfDimensions() > 2));
-                logger.debug("Probability file name with dir: " + outputProbabilityImgFileNameNoExt);
-                IJ.save(stackProcess.getImage(), outputProbabilityImgFileNameNoExt);
-            }
-        }
-        else {
-            logger.error("Cannot save segmentation result. Filename for saving not available!");
+            // Probability image
+            ImagePlus outImgStack = iProbabilityImage.getImage();
+            outImgStack.setStack(ImgUtils.crop(outImgStack.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+            saveImage(directory, fileNameNoExt, "_prob_c1.tif", outImgStack);
+            
+            // Label image
+            ImagePlus outImg = iLabelImage.convertToImg("ResultWindow");
+            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+            saveImage(directory, fileNameNoExt, "_seg_c1.tif", outImg);
         }
     }
-
+    
+    private void saveImage(String aOutputDir, String aFileNameNoExt, String aTag, ImagePlus aImage) {
+        String dirNameProb = aOutputDir + "_" + aTag;
+        SysOps.createDir(dirNameProb);
+        String outputImgFileName = dirNameProb + "/" + aFileNameNoExt + aTag;
+        logger.debug("Saving file: [" + outputImgFileName + "]");
+        IJ.save(aImage, outputImgFileName);
+    }
 }

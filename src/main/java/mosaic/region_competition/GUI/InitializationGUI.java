@@ -1,8 +1,8 @@
 package mosaic.region_competition.GUI;
 
 
-import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.Region_Competition.InitializationType;
 
 
 abstract class InitializationGUI extends SettingsBaseGUI {

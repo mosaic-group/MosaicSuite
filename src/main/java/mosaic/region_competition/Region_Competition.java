@@ -1,7 +1,5 @@
-package mosaic.plugins;
+package mosaic.region_competition;
 
-
-import java.awt.GraphicsEnvironment;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -11,7 +9,6 @@ import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -26,7 +23,6 @@ import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.utils.ImgUtils;
-import mosaic.utils.SysOps;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -50,57 +46,11 @@ public abstract class Region_Competition {
         Sphere_Regularization, Approximative, None,
     }
     
-    // Output file names
-    protected final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif", "*_prob_c1.tif" };
-
-    // Settings
-//    private Settings iSettings = null;
-    protected String outputSegmentedImageLabelFilename = null;
-    protected boolean normalize_ip = true;
-    protected boolean showGUI = true;
-
-    // Images to be processed
-    protected Calibration inputImageCalibration;
-    protected ImagePlus originalInputImage;
-    protected ImagePlus inputImageChosenByUser;
-    protected ImagePlus inputLabelImageChosenByUser;
-    protected int iPadSize = 1;
-    
-    // Algorithm and its input stuff
-    protected LabelImage labelImage;
-    protected IntensityImage intensityImage;
-    protected ImageModel imageModel;
-    
-    // User interfaces
-    protected SegmentationProcessWindow stackProcess;
-
-    
-    
-    public void runDeep() {
-        // ================= Run segmentation ==============================
-        runIt();
-        
-        // ================= Save segmented image =========================
-        //
-        saveSegmentedImage();
-        
-        final boolean headless_check = GraphicsEnvironment.isHeadless();
-        if (headless_check == false) {
-            final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
-            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
-            MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
-        }
-    }
-
-    protected abstract void runIt();
-    
-    protected abstract void saveSegmentedImage();
-    protected abstract String configFilePath();
-
     /**
      * Initialize the energy function
+     * @return 
      */
-    protected void initEnergies(EnergyFunctionalType m_EnergyFunctional, float m_RegionMergingThreshold, int m_GaussPSEnergyRadius, float m_BalloonForceCoeff, RegularizationType regularizationType, float m_CurvatureMaskRadius, float m_EnergyContourLengthCoeff) {
+    protected ImageModel initEnergies(IntensityImage intensityImage, LabelImage labelImage, Calibration inputImageCalibration, EnergyFunctionalType m_EnergyFunctional, float m_RegionMergingThreshold, int m_GaussPSEnergyRadius, float m_BalloonForceCoeff, RegularizationType regularizationType, float m_CurvatureMaskRadius, float m_EnergyContourLengthCoeff) {
         ExternalEnergy e_data;
         ExternalEnergy e_merge = null;
         switch (m_EnergyFunctional) {
@@ -115,7 +65,7 @@ public abstract class Region_Competition {
             }
             case e_DeconvolutionPC: {
                 final GeneratePSF gPsf = new GeneratePSF();
-                Img<FloatType> image_psf = gPsf.generate(inputImageChosenByUser.getNSlices() == 1 ? 2 : 3);
+                Img<FloatType> image_psf = gPsf.generate(labelImage.getDepth());
                 
                 // Normalize PSF to overall sum equal 1.0
                 final double Vol = MosaicUtils.volume_image(image_psf);
@@ -157,16 +107,16 @@ public abstract class Region_Competition {
             }
         }
 
-        imageModel = new ImageModel(e_data, e_length, e_merge, m_EnergyContourLengthCoeff);
+        return new ImageModel(e_data, e_length, e_merge, m_EnergyContourLengthCoeff);
     }
 
-    protected void initInputImage() {
+    protected IntensityImage initInputImage(ImagePlus inputImageChosenByUser, boolean normalize_ip, int iPadSize) {
         // We should have a image or...
         if (inputImageChosenByUser != null) {
             int c = inputImageChosenByUser.getNChannels();
             int f = inputImageChosenByUser.getNFrames();
             if (c != 1 || f != 1) {
-                String s = "Region Competition is not able to segment correctly multichannel or multiframe images.\n" +
+                String s = "Plugin is not able to segment correctly multichannel or multiframe images.\n" +
                         "Current input file info: number of channels=" + c +
                         "number of frames=" + f + "\nPlease use as a input only 2D or 3D single image.";
                 IJ.showMessage(s);
@@ -176,22 +126,20 @@ public abstract class Region_Competition {
             ImageStack padedIs = ImgUtils.pad(inputImageChosenByUser.getStack(), iPadSize, inputImageChosenByUser.getNDimensions() > 2);
             workImg = inputImageChosenByUser.duplicate();
             workImg.setStack(padedIs);
-            intensityImage = new IntensityImage(workImg, normalize_ip);
             inputImageChosenByUser.show();
+            return new IntensityImage(workImg, normalize_ip);
         }
-        else {
-            // ... we have failed to load anything
-            IJ.noImage();
-            throw new RuntimeException("Failed to load an input image.");
-        }
+        // ... we have failed to load anything
+        IJ.noImage();
+        return null;
     }
 
-    protected void initLabelImage(InitializationType labelImageInitType, double l_BoxRatio, int m_BubblesRadius, int m_BubblesDispl, double l_Sigma, double l_Tolerance, int l_BubblesRadius, int l_RegionTolerance) {
-        labelImage = new LabelImage(intensityImage.getDimensions());
+    protected LabelImage initLabelImage(IntensityImage intensityImage, ImagePlus inputImageChosenByUser, ImagePlus inputLabelImageChosenByUser, int iPadSize, InitializationType labelImageInitType, double l_BoxRatio, int m_BubblesRadius, int m_BubblesDispl, double l_Sigma, double l_Tolerance, int l_BubblesRadius, int l_RegionTolerance) {
+        LabelImage labelImage = new LabelImage(intensityImage.getDimensions());
 
         switch (labelImageInitType) {
             case ROI_2D: {
-                initializeRoi(labelImage);
+                initializeRoi(labelImage, inputImageChosenByUser);
                 break;
             }
             case Rectangle: {
@@ -222,7 +170,7 @@ public abstract class Region_Competition {
                 else {
                     final String msg = "No valid label image given.";
                     IJ.showMessage(msg);
-                    throw new RuntimeException(msg);
+                    return null;
                 }
 
                 break;
@@ -232,12 +180,13 @@ public abstract class Region_Competition {
                 throw new RuntimeException("No valid input option in User Input. Abort");
             }
         }
+        return labelImage;
     }
 
     /**
      * Initializes labelImage with ROI <br>
      */
-    private void initializeRoi(final LabelImage labelImg) {
+    private void initializeRoi(final LabelImage labelImg, ImagePlus inputImageChosenByUser) {
         labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
         labelImg.initBorder();
         labelImg.connectedComponents();

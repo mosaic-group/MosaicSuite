@@ -26,7 +26,6 @@ public class Controller {
             try {
                 Thread.sleep(0);
                 closeThread.start();
-//                closeThread.join();
             }
             catch (InterruptedException e) {
                 e.printStackTrace();

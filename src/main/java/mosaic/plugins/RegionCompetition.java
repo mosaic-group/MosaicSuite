@@ -1,22 +1,29 @@
 package mosaic.plugins;
 
+import java.awt.GraphicsEnvironment;
+
 import org.apache.log4j.Logger;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
+import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.PluginSettingsRC;
+import mosaic.region_competition.Region_Competition;
 import mosaic.region_competition.GUI.Controller;
-import mosaic.region_competition.GUI.GUI_RC;
+import mosaic.region_competition.GUI.GuiRC;
 import mosaic.region_competition.GUI.SegmentationProcessWindow;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.RC.AlgorithmRC;
 import mosaic.region_competition.RC.ClusterModeRC;
 import mosaic.region_competition.RC.SettingsRC;
+import mosaic.region_competition.energies.ImageModel;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
@@ -26,15 +33,38 @@ import mosaic.utils.io.serialize.JsonDataFile;
 public class RegionCompetition extends Region_Competition implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(RegionCompetition.class);
     
-    static String ConfigFilename = "rc_settings.dat";
-    protected GUI_RC userDialog;
+    static final private String ConfigFilename = "rc_settings.dat";
+    
+    // Output file names
+    protected final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif", "*_prob_c1.tif" };
+    
+    private GuiRC userDialog;
     private PluginSettingsRC iSettings = null;
-    protected boolean useCluster = false;
+    private boolean useCluster = false;
     
     // Get some more settings and images from dialog
-    protected boolean showAndSaveStatistics; 
-    protected boolean showAllFrames;
+    private boolean showAndSaveStatistics; 
+    private boolean showAllFrames;
     
+    // Settings
+    private String outputSegmentedImageLabelFilename = null;
+    private boolean normalize_ip = true;
+    private boolean showGUI = true;
+
+    // Images to be processed
+    private Calibration inputImageCalibration;
+    private ImagePlus originalInputImage;
+    private ImagePlus inputImageChosenByUser;
+    private ImagePlus inputLabelImageChosenByUser;
+    private int iPadSize = 1;
+    
+    // Algorithm and its input stuff
+    private LabelImage labelImage;
+    private IntensityImage intensityImage;
+    private ImageModel imageModel;
+    
+    // User interfaces
+    private SegmentationProcessWindow stackProcess;
     
     private void initSettingsAndParseMacroOptions() {
         iSettings = null;
@@ -103,7 +133,6 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         return new JsonDataFile<PluginSettingsRC>();
     }
     
-    @Override
     protected String configFilePath() {
         return SysOps.getTmpPath() + ConfigFilename;
     }
@@ -115,7 +144,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         // Read settings and macro options
         initSettingsAndParseMacroOptions();
         
-        userDialog = new GUI_RC(iSettings, imp);
+        userDialog = new GuiRC(iSettings, imp);
         
         if (!setupDeep(imp, iSettings)) return DONE;
         
@@ -135,7 +164,6 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         originalInputImage = aImp;
 
         // Get information from user
-//        userDialog = new GUI(iSettings, originalInputImage, aArgs.equals("DRS") ? false : true);
         userDialog.showDialog();
         if (!userDialog.configurationValid()) {
             return false;
@@ -176,14 +204,25 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
             // Finish - nothing to do more here...
             return;
         }
-        runDeep();
+        // ================= Run segmentation ==============================
+        runIt();
+        
+        // ================= Save segmented image =========================
+        //
+        saveSegmentedImage();
+        
+        final boolean headless_check = GraphicsEnvironment.isHeadless();
+        if (headless_check == false) {
+            final String directory = ImgUtils.getImageDirectory(inputImageChosenByUser);
+            final String fileNameNoExt = SysOps.removeExtension(inputImageChosenByUser.getTitle());
+            MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
+        }
     }
 
-    @Override
     protected void runIt() {
-        initInputImage();
-        initLabelImage(iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        initEnergies(iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        intensityImage = initInputImage(inputImageChosenByUser, normalize_ip, iPadSize);
+        labelImage = initLabelImage(intensityImage, inputImageChosenByUser, inputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        imageModel = initEnergies(intensityImage, labelImage, inputImageCalibration, iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         initStack();
         
         Controller iController = new Controller(/* aShowWindow */ showGUI);
@@ -226,7 +265,6 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
         saveStatistics(algorithm);
     }
     
-    @Override
     protected void saveSegmentedImage() {
         String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(inputImageChosenByUser, true);
         logger.debug("Absolute file name with dir: " + absoluteFileNameNoExt);

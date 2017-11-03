@@ -58,7 +58,6 @@ public class CurvatureBasedFlow {
         else {
             throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
         }
-//        //System.out.println("CURV VOLUME/RADIUS: " + vVolume + "/" + rad);
     }
 
     /**
@@ -68,11 +67,6 @@ public class CurvatureBasedFlow {
     public double generateData(Point origin, int aFrom, int aTo) {
         int vNto = 0;
         int vNFrom = 0;
-
-        /*
-         * Point half = (new Point(m_Size)).div(2);
-         * Point start = origin.sub(half); // "upper left point"
-         */
 
         sphereIt.setMiddlePoint(origin);
 
@@ -98,7 +92,6 @@ public class CurvatureBasedFlow {
             else if (dim == 3) {
                 vCurvatureFlow -= 16.0f / (3.0f * rad) * ((vN) / vVolume - 0.5f);
             }
-            //System.out.println("CURV1: " + vVolume + " " + "COEF OUTSIDE" + " " + vCurvatureFlow + " " + vN );
         }
         else {
             if (aTo == LabelImage.BGLabel) // proper shrinking
@@ -124,9 +117,7 @@ public class CurvatureBasedFlow {
                     vCurvatureFlow += 16.0f / (3.0f * rad) * ((vNFrom) / vVolume - 0.5f);
                 }
             }
-            //System.out.println("CURV2: " + vVolume + " " + "COEF OUTSIDE" + " " + vCurvatureFlow + " " + vNto + " " + vNFrom );
         }
-        //System.out.println("CURV: " + vVolume + " " + "COEF OUTSIDE" + " " + vCurvatureFlow);
         return vCurvatureFlow;
     }
 }

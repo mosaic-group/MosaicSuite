@@ -42,17 +42,17 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.PluginSettingsRC;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.Region_Competition.EnergyFunctionalType;
+import mosaic.region_competition.Region_Competition.InitializationType;
+import mosaic.region_competition.Region_Competition.RegularizationType;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
  */
-public class GUI_RC  {
-    private static final Logger logger = Logger.getLogger(GUI_RC.class);
+public class GuiRC  {
+    private static final Logger logger = Logger.getLogger(GuiRC.class);
     
     // Input stuff
     final protected PluginSettingsRC iSettings;
@@ -82,7 +82,7 @@ public class GUI_RC  {
     /**
      * Create main GUI of RC plugin
      */
-    public GUI_RC(PluginSettingsRC aSettings, ImagePlus aInputImg) {
+    public GuiRC(PluginSettingsRC aSettings, ImagePlus aInputImg) {
         iSettings = aSettings;
         iInputImg = aInputImg;
         
@@ -526,9 +526,9 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 {
     private final TextArea textArea;
     private final String defaultText;
-    private final GUI_RC gd;
+    private final GuiRC gd;
 
-    protected TextAreaListener(GUI_RC gd, TextArea ta, String defaulftTxt) {
+    protected TextAreaListener(GuiRC gd, TextArea ta, String defaulftTxt) {
         this.gd = gd;
         this.textArea = ta;
         this.defaultText = defaulftTxt;
@@ -657,10 +657,10 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
         else {
             // there was a non-default change in the textfield.
             // set input choice to file if it was TextArea for labelImage
-            if (defaultText.equals(GUI_RC.TextDefaultLabelImage)) {
+            if (defaultText.equals(GuiRC.TextDefaultLabelImage)) {
                 gd.setLabelImageChoiceEmpty();
             }
-            if (defaultText.equals(GUI_RC.TextDefaultInputImage)) {
+            if (defaultText.equals(GuiRC.TextDefaultInputImage)) {
                 gd.setInputImageChoiceEmpty();
             }
         }

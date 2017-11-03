@@ -42,16 +42,16 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.PluginSettingsDRS;
+import mosaic.region_competition.Region_Competition.EnergyFunctionalType;
+import mosaic.region_competition.Region_Competition.InitializationType;
+import mosaic.region_competition.Region_Competition.RegularizationType;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
  */
-public class GUI_DRS  {
-    private static final Logger logger = Logger.getLogger(GUI_RC.class);
+public class GuiDRS  {
+    private static final Logger logger = Logger.getLogger(GuiRC.class);
     
     // Input stuff
     final protected PluginSettingsDRS iSettings;
@@ -78,7 +78,7 @@ public class GUI_DRS  {
     /**
      * Create main GUI of DRS plugin
      */
-    public GUI_DRS(PluginSettingsDRS aSettings, ImagePlus aInputImg) {
+    public GuiDRS(PluginSettingsDRS aSettings, ImagePlus aInputImg) {
         iSettings = aSettings;
         iInputImg = aInputImg;
         
@@ -508,9 +508,9 @@ public class GUI_DRS  {
     {
         private final TextArea textArea;
         private final String defaultText;
-        private final GUI_DRS gd;
+        private final GuiDRS gd;
         
-        protected TextAreaListener(GUI_DRS gd, TextArea ta, String defaulftTxt) {
+        protected TextAreaListener(GuiDRS gd, TextArea ta, String defaulftTxt) {
             this.gd = gd;
             this.textArea = ta;
             this.defaultText = defaulftTxt;
@@ -639,10 +639,10 @@ public class GUI_DRS  {
             else {
                 // there was a non-default change in the textfield.
                 // set input choice to file if it was TextArea for labelImage
-                if (defaultText.equals(GUI_RC.TextDefaultLabelImage)) {
+                if (defaultText.equals(GuiRC.TextDefaultLabelImage)) {
                     gd.setLabelImageChoiceEmpty();
                 }
-                if (defaultText.equals(GUI_RC.TextDefaultInputImage)) {
+                if (defaultText.equals(GuiRC.TextDefaultInputImage)) {
                     gd.setInputImageChoiceEmpty();
                 }
             }
