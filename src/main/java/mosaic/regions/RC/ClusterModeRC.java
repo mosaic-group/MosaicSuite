@@ -11,7 +11,6 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.RegionCompetition;
-import mosaic.regions.PluginSettingsRC;
 import mosaic.regions.RegionsUtils.EnergyFunctionalType;
 import mosaic.regions.RegionsUtils.InitializationType;
 import mosaic.utils.ImgUtils;

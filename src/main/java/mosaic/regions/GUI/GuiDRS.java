@@ -42,7 +42,7 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.regions.PluginSettingsDRS;
+import mosaic.regions.DRS.PluginSettingsDRS;
 import mosaic.regions.RegionsUtils.EnergyFunctionalType;
 import mosaic.regions.RegionsUtils.InitializationType;
 import mosaic.regions.RegionsUtils.RegularizationType;

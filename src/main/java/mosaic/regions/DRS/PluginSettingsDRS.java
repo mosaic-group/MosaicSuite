@@ -1,5 +1,6 @@
-package mosaic.regions;
+package mosaic.regions.DRS;
 
+import mosaic.regions.Settings;
 
 public class PluginSettingsDRS extends Settings {
     private static final long serialVersionUID = 8823942643993425909L;

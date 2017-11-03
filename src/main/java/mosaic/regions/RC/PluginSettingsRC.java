@@ -1,5 +1,6 @@
-package mosaic.regions;
+package mosaic.regions.RC;
 
+import mosaic.regions.Settings;
 
 public class PluginSettingsRC extends Settings {
     private static final long serialVersionUID = 4308398423861694904L;
