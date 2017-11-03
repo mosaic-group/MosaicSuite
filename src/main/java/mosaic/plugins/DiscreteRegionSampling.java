@@ -121,37 +121,37 @@ public class DiscreteRegionSampling implements PlugInFilter {
     private boolean runSegmentation() {
         IntensityImage iIntensityImage = RegionsUtils.initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
         if (iIntensityImage == null) return false; // Abort execution
-        iLabelImage = RegionsUtils.initLabelImage(iIntensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        iLabelImage = RegionsUtils.initLabelImage(iIntensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.initType, iSettings.initBoxRatio, iSettings.initBubblesRadius, iSettings.initBubblesDisplacement, iSettings.initLocalMaxGaussBlurSigma, iSettings.initLocalMaxTolerance, iSettings.initLocalMaxBubblesRadius, iSettings.initLocalMaxMinimumRegionSize);
         if (iLabelImage == null) return false; // Abort execution
-        ImageModel iImageModel = RegionsUtils.initEnergies(iIntensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        ImageModel iImageModel = RegionsUtils.initEnergies(iIntensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.energyFunctional, 0 /* merging not used in DRS */, iSettings.energyPsGaussEnergyRadius, iSettings.energyPsBalloonForceCoeff, iSettings.regularizationType, iSettings.energyCurvatureMaskRadius, iSettings.energyContourLengthCoeff);
         Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
-        SettingsDRS drsSettings = new SettingsDRS(iSettings.m_AllowFusion, 
-                                                  iSettings.m_AllowFission, 
-                                                  iSettings.m_AllowHandles, 
-                                                  iSettings.m_MaxNbIterations, 
+        SettingsDRS drsSettings = new SettingsDRS(iSettings.allowFusion, 
+                                                  iSettings.allowFission, 
+                                                  iSettings.allowHandles, 
+                                                  iSettings.maxNumOfIterations, 
                                                   iSettings.offBoundarySampleProbability,
                                                   iSettings.useBiasedProposal,
                                                   iSettings.usePairProposal,
                                                   iSettings.burnInFactor,
-                                                  iSettings.m_EnergyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
+                                                  iSettings.energyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
         
         AlgorithmDRS algorithm = new AlgorithmDRS(iIntensityImage, iLabelImage, iImageModel, drsSettings);
         
         
-        int modulo = iSettings.m_MaxNbIterations / 20; // 5% steps
+        int modulo = iSettings.maxNumOfIterations / 20; // 5% steps
         if (modulo < 1) modulo = 1;
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.maxNumOfIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
             if (iteration % modulo == 0) {
-                logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.m_MaxNbIterations) + "%");
-                IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
-                IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
+                logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.maxNumOfIterations) + "%");
+                IJ.showStatus("Iteration: " + iteration + "/" + iSettings.maxNumOfIterations);
+                IJ.showProgress(iteration, iSettings.maxNumOfIterations);
             }
             isDone = algorithm.performIteration();
             
@@ -159,7 +159,7 @@ public class DiscreteRegionSampling implements PlugInFilter {
             // If aborted pretend that we have finished segmentation (isDone=true)
             isDone = iController.hasAborted() ? true : isDone;
         }
-        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.maxNumOfIterations, iSettings.maxNumOfIterations);
 
         // Do some post process stuff
         iController.close();

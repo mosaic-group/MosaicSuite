@@ -45,12 +45,12 @@ class CurvatureFlowGUI extends RegularizationGUI {
     @Override
     public void createDialog() {
         gd.setTitle("Curvature Based Gradient Flow Options");
-        gd.addNumericField("R_k", iSettings.m_CurvatureMaskRadius, 0);
+        gd.addNumericField("R_k", iSettings.energyCurvatureMaskRadius, 0);
     }
 
     @Override
     public void process() {
-        iSettings.m_CurvatureMaskRadius = (int) gd.getNextNumber();
+        iSettings.energyCurvatureMaskRadius = (int) gd.getNextNumber();
     }
 }
 

@@ -178,29 +178,29 @@ public class RegionCompetition implements PlugInFilter {
     
     private void runSegmentation() {
         IntensityImage intensityImage = RegionsUtils.initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
-        iLabelImage = RegionsUtils.initLabelImage(intensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        ImageModel imageModel = RegionsUtils.initEnergies(intensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        iLabelImage = RegionsUtils.initLabelImage(intensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.initType, iSettings.initBoxRatio, iSettings.initBubblesRadius, iSettings.initBubblesDisplacement, iSettings.initLocalMaxGaussBlurSigma, iSettings.initLocalMaxTolerance, iSettings.initLocalMaxBubblesRadius, iSettings.initLocalMaxMinimumRegionSize);
+        ImageModel imageModel = RegionsUtils.initEnergies(intensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.energyFunctional, iSettings.energyRegionMergingThreshold, iSettings.energyPsGaussEnergyRadius, iSettings.energyPsBalloonForceCoeff, iSettings.regularizationType, iSettings.energyCurvatureMaskRadius, iSettings.energyContourLengthCoeff);
         initStack();
         
         Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
-        SettingsRC rcSettings = new SettingsRC(iSettings.m_AllowFusion, 
-                                               iSettings.m_AllowFission, 
-                                               iSettings.m_AllowHandles, 
-                                               iSettings.m_MaxNbIterations, 
-                                               iSettings.m_OscillationThreshold, 
-                                               iSettings.m_EnergyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
+        SettingsRC rcSettings = new SettingsRC(iSettings.allowFusion, 
+                                               iSettings.allowFission, 
+                                               iSettings.allowHandles, 
+                                               iSettings.maxNumOfIterations, 
+                                               iSettings.oscillationThreshold, 
+                                               iSettings.energyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
         
         AlgorithmRC algorithm = new AlgorithmRC(intensityImage, iLabelImage, imageModel, rcSettings);
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < iSettings.m_MaxNbIterations && !isDone) {
+        while (iteration < iSettings.maxNumOfIterations && !isDone) {
             // Perform one iteration of RC
             ++iteration;
-            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.m_MaxNbIterations);
-            IJ.showProgress(iteration, iSettings.m_MaxNbIterations);
+            IJ.showStatus("Iteration: " + iteration + "/" + iSettings.maxNumOfIterations);
+            IJ.showProgress(iteration, iSettings.maxNumOfIterations);
             isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
@@ -210,7 +210,7 @@ public class RegionCompetition implements PlugInFilter {
             // Add slice with iteration output
             iLabelImageStack.addSliceToStack(iLabelImage, "iteration " + iteration, algorithm.getBiggestLabel());
         }
-        IJ.showProgress(iSettings.m_MaxNbIterations, iSettings.m_MaxNbIterations);
+        IJ.showProgress(iSettings.maxNumOfIterations, iSettings.maxNumOfIterations);
 
         // Do some post process stuff
         iLabelImageStack.addSliceToStack(iLabelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());

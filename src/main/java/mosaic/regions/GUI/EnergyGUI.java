@@ -45,14 +45,14 @@ class PS_GUI extends EnergyGUI {
     @Override
     public void createDialog() {
         gd.setTitle("Gauss PS Options");
-        gd.addNumericField("Radius", iSettings.m_GaussPSEnergyRadius, 0);
-        gd.addNumericField("Beta E_Balloon", iSettings.m_BalloonForceCoeff, 4);
+        gd.addNumericField("Radius", iSettings.energyPsGaussEnergyRadius, 0);
+        gd.addNumericField("Beta E_Balloon", iSettings.energyPsBalloonForceCoeff, 4);
     }
 
     @Override
     public void process() {
-        iSettings.m_GaussPSEnergyRadius = (int) gd.getNextNumber();
-        iSettings.m_BalloonForceCoeff = (float) gd.getNextNumber();
+        iSettings.energyPsGaussEnergyRadius = (int) gd.getNextNumber();
+        iSettings.energyPsBalloonForceCoeff = (float) gd.getNextNumber();
     }
 }
 

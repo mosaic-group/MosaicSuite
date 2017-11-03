@@ -172,7 +172,7 @@ public class GuiRC  {
         for (int i = 0; i < energyValues.length; ++i) {
             energyItems[i] = energyValues[i].name();
         }
-        gd.addChoice("E_data", energyItems, iSettings.m_EnergyFunctional.name());
+        gd.addChoice("E_data", energyItems, iSettings.energyFunctional.name());
         Choice choiceEnergy = (Choice) gd.getChoices().lastElement();
         {
             Button optionButton = new Button("Options");
@@ -229,7 +229,7 @@ public class GuiRC  {
         for (int i = 0; i < initTypes.length; ++i) {
             initializationItems[i] = initTypes[i].name();
         }
-        gd.addChoice("Initialization", initializationItems, iSettings.labelImageInitType.name());
+        gd.addChoice("Initialization", initializationItems, iSettings.initType.name());
         
         // save reference to this choice, so we can handle it
         Choice initializationChoice = (Choice) gd.getChoices().lastElement();
@@ -254,44 +254,44 @@ public class GuiRC  {
         });
         
         gd.addMessage("\nGeneral settings", bf);
-        gd.addNumericField("Lambda E_length", iSettings.m_EnergyContourLengthCoeff, 4, 8, "");
-        gd.addNumericField("Max_Iterations", iSettings.m_MaxNbIterations, 0, 8, "");
-        gd.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { iSettings.m_AllowFusion, iSettings.m_AllowFission, iSettings.m_AllowHandles });
+        gd.addNumericField("Lambda E_length", iSettings.energyContourLengthCoeff, 4, 8, "");
+        gd.addNumericField("Max_Iterations", iSettings.maxNumOfIterations, 0, 8, "");
+        gd.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { iSettings.allowFusion, iSettings.allowFission, iSettings.allowHandles });
 
-        gd.addNumericField("Theta E_merge", iSettings.m_RegionMergingThreshold, 4, 8, "");
-        gd.addNumericField("Oscillation threshold (Convergence)", iSettings.m_OscillationThreshold, 4, 8, "");
+        gd.addNumericField("Theta E_merge", iSettings.energyRegionMergingThreshold, 4, 8, "");
+        gd.addNumericField("Oscillation threshold (Convergence)", iSettings.oscillationThreshold, 4, 8, "");
         gd.showDialog();
 
         // On OK, read parameters
         if (gd.wasOKed()) {
             // Energy Choice
             final String energy = gd.getNextChoice();
-            iSettings.m_EnergyFunctional = EnergyFunctionalType.valueOf(energy);
-            final EnergyGUI eg = EnergyGUI.factory(iSettings, iSettings.m_EnergyFunctional);
+            iSettings.energyFunctional = EnergyFunctionalType.valueOf(energy);
+            final EnergyGUI eg = EnergyGUI.factory(iSettings, iSettings.energyFunctional);
             eg.createDialog();
             eg.processDialog();
             
             // Regularization Choice
             final String regularization = gd.getNextChoice();
             iSettings.regularizationType = RegularizationType.valueOf(regularization);
-            iSettings.m_EnergyContourLengthCoeff = (float) gd.getNextNumber();
-            iSettings.m_MaxNbIterations = (int) gd.getNextNumber();
+            iSettings.energyContourLengthCoeff = (float) gd.getNextNumber();
+            iSettings.maxNumOfIterations = (int) gd.getNextNumber();
             
-            iSettings.m_RegionMergingThreshold = (float) gd.getNextNumber();
-            iSettings.m_OscillationThreshold = gd.getNextNumber();
+            iSettings.energyRegionMergingThreshold = (float) gd.getNextNumber();
+            iSettings.oscillationThreshold = gd.getNextNumber();
             
             // Initialization
             final String initialization = gd.getNextChoice();
             final InitializationType type = InitializationType.valueOf(initialization);
-            iSettings.labelImageInitType = type;
-            final InitializationGUI ig = InitializationGUI.factory(iSettings, iSettings.labelImageInitType);
+            iSettings.initType = type;
+            final InitializationGUI ig = InitializationGUI.factory(iSettings, iSettings.initType);
             ig.createDialog();
             ig.processDialog();
             
             // Topological constraints
-            iSettings.m_AllowFusion = gd.getNextBoolean();
-            iSettings.m_AllowFission = gd.getNextBoolean();
-            iSettings.m_AllowHandles = gd.getNextBoolean();
+            iSettings.allowFusion = gd.getNextBoolean();
+            iSettings.allowFission = gd.getNextBoolean();
+            iSettings.allowHandles = gd.getNextBoolean();
         }
     }
     
@@ -474,7 +474,7 @@ public class GuiRC  {
                       isConfigurationValid = processInput();
                       isConfigurationReadAlready = true;
                   }
-                  if (iSettings.labelImageInitType == InitializationType.ROI_2D) {
+                  if (iSettings.initType == InitializationType.ROI_2D) {
                       Roi roi = null;
                       ImagePlus iChosenInputImage = getInputImage();
                       if (iChosenInputImage == null) {

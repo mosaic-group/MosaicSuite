@@ -54,8 +54,8 @@ class BubblesInitGUI extends InitializationGUI {
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Bubble_Radius", iSettings.m_BubblesRadius, 0);
-        gd.addNumericField("Bubble_Padding", iSettings.m_BubblesDispl, 0);
+        gd.addNumericField("Bubble_Radius", iSettings.initBubblesRadius, 0);
+        gd.addNumericField("Bubble_Padding", iSettings.initBubblesDisplacement, 0);
     }
 
     @Override
@@ -64,8 +64,8 @@ class BubblesInitGUI extends InitializationGUI {
             return;
         }
 
-        iSettings.m_BubblesRadius = (int) gd.getNextNumber();
-        iSettings.m_BubblesDispl = (int) gd.getNextNumber();
+        iSettings.initBubblesRadius = (int) gd.getNextNumber();
+        iSettings.initBubblesDisplacement = (int) gd.getNextNumber();
     }
 }
 
@@ -78,7 +78,7 @@ class BoxInitGUI extends InitializationGUI {
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Box fill ratio", iSettings.l_BoxRatio, 2);
+        gd.addNumericField("Box fill ratio", iSettings.initBoxRatio, 2);
 
     }
 
@@ -88,7 +88,7 @@ class BoxInitGUI extends InitializationGUI {
             return;
         }
 
-        iSettings.l_BoxRatio = gd.getNextNumber();
+        iSettings.initBoxRatio = gd.getNextNumber();
     }
 }
 
@@ -101,10 +101,10 @@ class LocalMaxGUI extends InitializationGUI {
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Radius", iSettings.l_BubblesRadius, 1);
-        gd.addNumericField("Sigma", iSettings.l_Sigma, 1);
-        gd.addNumericField("Tolerance (0-1)", iSettings.l_Tolerance, 5);
-        gd.addNumericField("Region Tol", iSettings.l_RegionTolerance, 1);
+        gd.addNumericField("Radius", iSettings.initLocalMaxBubblesRadius, 1);
+        gd.addNumericField("Sigma", iSettings.initLocalMaxGaussBlurSigma, 1);
+        gd.addNumericField("Tolerance (0-1)", iSettings.initLocalMaxTolerance, 5);
+        gd.addNumericField("Region Tol", iSettings.initLocalMaxMinimumRegionSize, 1);
     }
 
     @Override
@@ -113,10 +113,10 @@ class LocalMaxGUI extends InitializationGUI {
             return;
         }
 
-        iSettings.l_BubblesRadius = (int) gd.getNextNumber();
-        iSettings.l_Sigma = (int) gd.getNextNumber();
-        iSettings.l_Tolerance = gd.getNextNumber();
-        iSettings.l_RegionTolerance = (int) gd.getNextNumber();
+        iSettings.initLocalMaxBubblesRadius = (int) gd.getNextNumber();
+        iSettings.initLocalMaxGaussBlurSigma = (int) gd.getNextNumber();
+        iSettings.initLocalMaxTolerance = gd.getNextNumber();
+        iSettings.initLocalMaxMinimumRegionSize = (int) gd.getNextNumber();
     }
 }
 

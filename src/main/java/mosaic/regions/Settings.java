@@ -12,68 +12,68 @@ public class Settings implements Serializable {
     private static final long serialVersionUID = 1777976540627904860L;
     
     // Init Label Image ---------------------------------------------------------------------------
-    // Init Type / ClusterMode
-    public InitializationType labelImageInitType = InitializationType.Bubbles;
+    // Init Type
+    public InitializationType initType = InitializationType.Bubbles;
     
     // Box Init / Init Label Image
-    public double l_BoxRatio = 0.8;
+    public double initBoxRatio = 0.8;
     
     // Bubbles Init / Label Image
-    public int m_BubblesRadius = 10;
-    public int m_BubblesDispl = 10;
+    public int initBubblesRadius = 10;
+    public int initBubblesDisplacement = 10;
     
     // Local Max / Init Label Image
-    public int l_BubblesRadius = 5;
-    public double l_Sigma = 2;
-    public double l_Tolerance = 0.005; // 0 - 1.0
-    public int l_RegionTolerance = 4;
+    public double initLocalMaxGaussBlurSigma = 2;
+    public double initLocalMaxTolerance = 0.005; // 0 - 1.0
+    public int initLocalMaxMinimumRegionSize = 4;
+    public int initLocalMaxBubblesRadius = 5;
 
     // Init Energies ------------------------------------------------------------------------------
     // Curvature Flow Energy (internal)
-    public float m_CurvatureMaskRadius = 8;
+    public float energyCurvatureMaskRadius = 8;
 
     // E_PS Energy (external)
-    public int m_GaussPSEnergyRadius = 8;
-    public float m_BalloonForceCoeff = 0.0f;
+    public int energyPsGaussEnergyRadius = 8;
+    public float energyPsBalloonForceCoeff = 0.0f;
 
     // Other --------------------------------------------------------------------------------------
     // Image Model
-    public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
+    public EnergyFunctionalType energyFunctional = EnergyFunctionalType.e_PC;
     public RegularizationType regularizationType = RegularizationType.Sphere_Regularization;
-    public float m_EnergyContourLengthCoeff = 0.04f;
+    public float energyContourLengthCoeff = 0.04f;
     
     // RC and DRS
-    public boolean m_AllowFusion = true;
-    public boolean m_AllowFission = true;
-    public boolean m_AllowHandles = true;
-    public int m_MaxNbIterations = 300;
+    public boolean allowFusion = true;
+    public boolean allowFission = true;
+    public boolean allowHandles = true;
+    public int maxNumOfIterations = 300;
     
     public void copy(Settings s) {
-        labelImageInitType = s.labelImageInitType;
+        initType = s.initType;
         
-        l_BoxRatio = s.l_BoxRatio;
+        initBoxRatio = s.initBoxRatio;
         
-        m_BubblesRadius = s.m_BubblesRadius;
-        m_BubblesDispl = s.m_BubblesDispl;
+        initBubblesRadius = s.initBubblesRadius;
+        initBubblesDisplacement = s.initBubblesDisplacement;
         
-        l_BubblesRadius = s.l_BubblesRadius;
-        l_Sigma = s.l_Sigma;
-        l_Tolerance = s.l_Tolerance;
-        l_RegionTolerance = s.l_RegionTolerance;
+        initLocalMaxGaussBlurSigma = s.initLocalMaxGaussBlurSigma;
+        initLocalMaxTolerance = s.initLocalMaxTolerance;
+        initLocalMaxMinimumRegionSize = s.initLocalMaxMinimumRegionSize;
+        initLocalMaxBubblesRadius = s.initLocalMaxBubblesRadius;
         
-        m_CurvatureMaskRadius = s.m_CurvatureMaskRadius;
+        energyCurvatureMaskRadius = s.energyCurvatureMaskRadius;
         
-        m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
-        m_BalloonForceCoeff = s.m_BalloonForceCoeff;
+        energyPsGaussEnergyRadius = s.energyPsGaussEnergyRadius;
+        energyPsBalloonForceCoeff = s.energyPsBalloonForceCoeff;
         
-        m_EnergyFunctional = s.m_EnergyFunctional;
+        energyFunctional = s.energyFunctional;
         regularizationType = s.regularizationType;
-        m_EnergyContourLengthCoeff = s.m_EnergyContourLengthCoeff;
+        energyContourLengthCoeff = s.energyContourLengthCoeff;
         
-        m_AllowFusion = s.m_AllowFusion;
-        m_AllowFission = s.m_AllowFission;
-        m_AllowHandles = s.m_AllowHandles;
-        m_MaxNbIterations = s.m_MaxNbIterations;
+        allowFusion = s.allowFusion;
+        allowFission = s.allowFission;
+        allowHandles = s.allowHandles;
+        maxNumOfIterations = s.maxNumOfIterations;
     }
 
     public Settings() {}

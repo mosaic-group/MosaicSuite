@@ -47,7 +47,7 @@ public class ClusterModeRC {
                 // we have a directory
 
                 String opt = getOptions(fl, iSettings);
-                if (iSettings.labelImageInitType == InitializationType.File) {
+                if (iSettings.initType == InitializationType.File) {
                     // upload label images
 
                     ss = cg.getClusterSession();
@@ -63,7 +63,7 @@ public class ClusterModeRC {
             }
             else if (fl.isFile()) {
                 String opt = getOptions(fl, iSettings);
-                if (iSettings.labelImageInitType == InitializationType.File) {
+                if (iSettings.initType == InitializationType.File) {
                     // upload label images
                     ss = cg.getClusterSession();
                     fileslist = new File[1];
@@ -82,7 +82,7 @@ public class ClusterModeRC {
             // It is an image
             String opt = getOptions(aImp, iSettings);
 
-            if (iSettings.labelImageInitType == InitializationType.File) {
+            if (iSettings.initType == InitializationType.File) {
                 // upload label images
 
                 ss = cg.getClusterSession();
@@ -140,7 +140,7 @@ public class ClusterModeRC {
         String par = "Dimensions=" + aDimension + " ";
         
         // if deconvolving create a PSF generator window
-        if (aSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+        if (aSettings.energyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
             final GeneratePSF psf = new GeneratePSF();
             psf.generate(aDimension);
             par += psf.getParameters();

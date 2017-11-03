@@ -208,24 +208,6 @@ public class Region_CompetitionTest extends CommonBase {
         }
     }
     
-    //TODO: this 'test' is to be removed after refactoring - used only in test phase for easy running seleected tests.
-    @Test
-    public void runAllDrs() {
-        testDrs1();
-        testDrs2();
-        testDrs3();
-        testDrs4();
-        testDrs5();
-        testDrs6();
-        testDrs7();
-    }
-    
-    @Test
-    public void runAllTypes() {
-        testDrs1();
-        testDot();
-    }
-    
     @Test
     public void testDrs1()  {
         
