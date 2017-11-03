@@ -1,4 +1,4 @@
-package mosaic.region_competition.DRS;
+package mosaic.regions.DRS;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

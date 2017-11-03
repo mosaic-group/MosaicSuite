@@ -1,4 +1,4 @@
-package mosaic.region_competition.topology;
+package mosaic.regions.topology;
 
 import static org.junit.Assert.*;
 

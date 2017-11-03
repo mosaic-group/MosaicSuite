@@ -1,4 +1,4 @@
-package mosaic.region_competition.utils;
+package mosaic.regions.utils;
 
 import static org.junit.Assert.*;
 
