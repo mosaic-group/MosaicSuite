@@ -13,23 +13,23 @@ import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.region_competition.PluginSettingsRC;
-import mosaic.region_competition.Region_Competition;
-import mosaic.region_competition.GUI.Controller;
-import mosaic.region_competition.GUI.GuiRC;
-import mosaic.region_competition.GUI.SegmentationProcessWindow;
-import mosaic.region_competition.GUI.StatisticsTable;
-import mosaic.region_competition.RC.AlgorithmRC;
-import mosaic.region_competition.RC.ClusterModeRC;
-import mosaic.region_competition.RC.SettingsRC;
-import mosaic.region_competition.energies.ImageModel;
+import mosaic.regions.PluginSettingsRC;
+import mosaic.regions.RegionsUtils;
+import mosaic.regions.GUI.Controller;
+import mosaic.regions.GUI.GuiRC;
+import mosaic.regions.GUI.SegmentationProcessWindow;
+import mosaic.regions.GUI.StatisticsTable;
+import mosaic.regions.RC.AlgorithmRC;
+import mosaic.regions.RC.ClusterModeRC;
+import mosaic.regions.RC.SettingsRC;
+import mosaic.regions.energies.ImageModel;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 
-public class RegionCompetition extends Region_Competition implements PlugInFilter {
+public class RegionCompetition implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(RegionCompetition.class);
     
     // Output file names
@@ -177,9 +177,9 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
     }
     
     private void runSegmentation() {
-        IntensityImage intensityImage = initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
-        iLabelImage = initLabelImage(intensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
-        ImageModel imageModel = initEnergies(intensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        IntensityImage intensityImage = RegionsUtils.initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
+        iLabelImage = RegionsUtils.initLabelImage(intensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        ImageModel imageModel = RegionsUtils.initEnergies(intensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, iSettings.m_RegionMergingThreshold, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         initStack();
         
         Controller iController = new Controller(/* aShowWindow */ iShowGui);
@@ -190,7 +190,7 @@ public class RegionCompetition extends Region_Competition implements PlugInFilte
                                                iSettings.m_AllowHandles, 
                                                iSettings.m_MaxNbIterations, 
                                                iSettings.m_OscillationThreshold, 
-                                               iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+                                               iSettings.m_EnergyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
         
         AlgorithmRC algorithm = new AlgorithmRC(intensityImage, iLabelImage, imageModel, rcSettings);
         

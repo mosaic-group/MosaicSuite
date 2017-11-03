@@ -3,7 +3,7 @@ package mosaic.core.imageUtils.convolution;
 import org.junit.Test;
 
 import ij.ImagePlus;
-import mosaic.region_competition.DRS.SobelVolume;
+import mosaic.regions.DRS.SobelVolume;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.ConvertArray;
 

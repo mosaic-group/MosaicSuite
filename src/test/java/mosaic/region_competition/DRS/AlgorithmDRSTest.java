@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.regions.DRS.AlgorithmDRS;
+import mosaic.regions.DRS.Rng;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.math.IndexedDiscreteDistribution;
 

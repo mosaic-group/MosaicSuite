@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import mosaic.core.imageUtils.Connectivity;
+import mosaic.regions.topology.UnitCubeConnectedComponenetsCounter;
 
 
 public class UnitCubeConnectedComponenetsCounterTest {

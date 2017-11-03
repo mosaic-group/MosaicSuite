@@ -11,21 +11,21 @@ import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.region_competition.PluginSettingsDRS;
-import mosaic.region_competition.Region_Competition;
-import mosaic.region_competition.DRS.AlgorithmDRS;
-import mosaic.region_competition.DRS.SettingsDRS;
-import mosaic.region_competition.GUI.Controller;
-import mosaic.region_competition.GUI.GuiDRS;
-import mosaic.region_competition.GUI.SegmentationProcessWindow;
-import mosaic.region_competition.energies.ImageModel;
+import mosaic.regions.PluginSettingsDRS;
+import mosaic.regions.RegionsUtils;
+import mosaic.regions.DRS.AlgorithmDRS;
+import mosaic.regions.DRS.SettingsDRS;
+import mosaic.regions.GUI.Controller;
+import mosaic.regions.GUI.GuiDRS;
+import mosaic.regions.GUI.SegmentationProcessWindow;
+import mosaic.regions.energies.ImageModel;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 import mosaic.utils.SysOps;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 
-public class DiscreteRegionSampling extends Region_Competition implements PlugInFilter {
+public class DiscreteRegionSampling implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(DiscreteRegionSampling.class);
     
     // Settings
@@ -119,11 +119,11 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
     }
     
     private boolean runSegmentation() {
-        IntensityImage iIntensityImage = initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
+        IntensityImage iIntensityImage = RegionsUtils.initInputImage(iInputImageChosenByUser, iNormalizeInputImg, iPadSize);
         if (iIntensityImage == null) return false; // Abort execution
-        iLabelImage = initLabelImage(iIntensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
+        iLabelImage = RegionsUtils.initLabelImage(iIntensityImage, iInputImageChosenByUser, iInputLabelImageChosenByUser, iPadSize, iSettings.labelImageInitType, iSettings.l_BoxRatio, iSettings.m_BubblesRadius, iSettings.m_BubblesDispl, iSettings.l_Sigma, iSettings.l_Tolerance, iSettings.l_BubblesRadius, iSettings.l_RegionTolerance);
         if (iLabelImage == null) return false; // Abort execution
-        ImageModel iImageModel = initEnergies(iIntensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
+        ImageModel iImageModel = RegionsUtils.initEnergies(iIntensityImage, iLabelImage, iInputImageChosenByUser.getCalibration(), iSettings.m_EnergyFunctional, 0 /* merging not used in DRS */, iSettings.m_GaussPSEnergyRadius, iSettings.m_BalloonForceCoeff, iSettings.regularizationType, iSettings.m_CurvatureMaskRadius, iSettings.m_EnergyContourLengthCoeff);
         Controller iController = new Controller(/* aShowWindow */ iShowGui);
 
         // Run segmentation
@@ -135,7 +135,7 @@ public class DiscreteRegionSampling extends Region_Competition implements PlugIn
                                                   iSettings.useBiasedProposal,
                                                   iSettings.usePairProposal,
                                                   iSettings.burnInFactor,
-                                                  iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC);
+                                                  iSettings.m_EnergyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
         
         AlgorithmDRS algorithm = new AlgorithmDRS(iIntensityImage, iLabelImage, iImageModel, drsSettings);
         

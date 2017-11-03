@@ -5,6 +5,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import mosaic.regions.DRS.Particle;
+import mosaic.regions.DRS.ParticleSet;
+
 
 public class MinimalParticleIndexedSetTest {
 

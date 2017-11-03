@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.Test;
 
 import mosaic.core.imageUtils.Point;
+import mosaic.regions.utils.MaximumFinder3D;
 
 
 public class MaximumFinder3DTest {

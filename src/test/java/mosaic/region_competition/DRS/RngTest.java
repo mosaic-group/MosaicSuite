@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import mosaic.regions.DRS.Rng;
+
 
 public class RngTest {
 

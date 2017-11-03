@@ -8,7 +8,8 @@ import org.junit.Test;
 
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
+import mosaic.regions.topology.TopologicalNumber;
+import mosaic.regions.topology.TopologicalNumber.TopologicalNumberResult;
 
 
 public class TopologicalNumberTest {
