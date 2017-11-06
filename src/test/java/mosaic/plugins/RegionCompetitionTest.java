@@ -8,13 +8,13 @@ import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 
 
-public class Region_CompetitionTest extends CommonBase {
+public class RegionCompetitionTest extends CommonBase {
 
     @Test
     public void testDot()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/dot/";
+        final String tcDirName           = "RegionCompetition/dot/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image normalize=true";
         final String inputFile           = "dot.tif";
@@ -39,7 +39,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testPsf()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/uc_psf/";
+        final String tcDirName           = "RegionCompetition/uc_psf/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image";
         final String inputFile           = "uc_data.tif";
@@ -67,7 +67,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testFusionCheck()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/fusionCheck/";
+        final String tcDirName           = "RegionCompetition/fusionCheck/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image";
         final String inputFile           = "1thing.tif";
@@ -92,7 +92,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testSphere3D()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/sphere_3d/";
+        final String tcDirName           = "RegionCompetition/sphere_3d/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image";
         final String inputFile           = "sphere.tif";
@@ -117,7 +117,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testTwoBars()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/twoBars/";
+        final String tcDirName           = "RegionCompetition/twoBars/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image";
         final String inputFile           = "twoBars.tif";
@@ -142,7 +142,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testLabelImageFromFile()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/labelImgFromFile/";
+        final String tcDirName           = "RegionCompetition/labelImgFromFile/";
         final String setupString         = "run";
         final String macroOptions        = "labelimage=label.tif show_and_save_statistics normalize_input_image";
         final String inputFile           = "object.tif";
@@ -172,7 +172,7 @@ public class Region_CompetitionTest extends CommonBase {
     public void testDotCluster()  {
         
         // Define test data
-        final String tcDirName           = "Region_Competition/dotCluster/";
+        final String tcDirName           = "RegionCompetition/dotCluster/";
         final String setupString         = "run";
         final String macroOptions        = "show_and_save_statistics normalize_input_image process username=" + System.getProperty("user.name");
         final String inputFile           = "dot.tif";
@@ -206,180 +206,5 @@ public class Region_CompetitionTest extends CommonBase {
             String testFile = findJobFile(expectedFiles[i], testDir).getAbsoluteFile().toString();
             compareCsvFiles(refFile, testFile);
         }
-    }
-    
-    @Test
-    public void testDrs1()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs1/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs2()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs2/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs3()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs3/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs4()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs4/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs5()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs5/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs6()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs6/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "normalize_input_image";
-        final String inputFile           = "squareWithHole2100pts.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/squareWithHole2100pts_seg_c1.tif", "__prob_c1.tif/squareWithHole2100pts_prob_c1.tif"};
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
-    }
-    
-    @Test
-    public void testDrs7()  {
-        
-        // Define test data
-        final String tcDirName           = "Region_Competition/drs7/";
-        final String setupString         = "DRS";
-        final String macroOptions        = "labelimage=init___.tif normalize=false";
-        final String inputFile           = "sphere-1.tif";
-        final String[] expectedImgFiles  = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};
-        final String[] referenceImgFiles = {"__seg_c1.tif/sphere-1_seg_c1.tif", "__prob_c1.tif/sphere-1_prob_c1.tif"};        
-        final String[] expectedFiles     = {};
-        final String[] referenceFiles    = {};
-        
-        // Create tested plugIn
-        final DiscreteRegionSampling plugin = new DiscreteRegionSampling();
-        copyTestResources("drs_settings.json", getTestDataPath() + tcDirName, "/tmp");
-        
-        // Test it
-        testPlugin(plugin, tcDirName,
-                   macroOptions, 
-                   setupString, inputFile,
-                   expectedImgFiles, referenceImgFiles,
-                   expectedFiles, referenceFiles);
     }
 }
