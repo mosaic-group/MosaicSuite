@@ -134,11 +134,4 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0, ht.iPvalue, 0);
         assertEquals(true, ht.iNullHypothesisRejected);
     }
-    
-//    @Test
-//    public void testIt() {
-//           
-//        InteractionAnalysisGui.runIt();
-//        sleep(521000);
-//    }
 }

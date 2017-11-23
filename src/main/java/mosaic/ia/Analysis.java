@@ -106,7 +106,7 @@ public class Analysis {
             
             // evaluate mean value as it is the best estimate for the optimum
             cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX()));
-            printCmaResultInfo(cma);
+            logCmaResultInfo(cma);
 
             bestFunctionValue[cmaRunNumber] = cma.getBestFunctionValue();
             if (bestFunctionValue[cmaRunNumber] < bestFitness) {
@@ -140,8 +140,7 @@ public class Analysis {
             strength = aBestPointFound[0];
             thresholdOrScale = aBestPointFound[1];
         }
-        double residual = aBestFunctionValue;
-        aResultsOutput.add(new CmaResult(strength, thresholdOrScale, residual));
+        aResultsOutput.add(new CmaResult(strength, thresholdOrScale, aBestFunctionValue));
     }
 
     private void printCurrentIterationInfo(final CMAEvolutionStrategy cma) {
@@ -199,7 +198,7 @@ public class Analysis {
         return cma;
     }
 
-    private void printCmaResultInfo(final CMAEvolutionStrategy cma) {
+    private void logCmaResultInfo(final CMAEvolutionStrategy cma) {
         logger.debug(cma.getPrintLine());
         logger.debug("Terminated due to:");
         for (final String s : cma.stopConditions.getMessages()) {
