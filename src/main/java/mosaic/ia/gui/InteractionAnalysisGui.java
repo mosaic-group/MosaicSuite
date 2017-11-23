@@ -20,7 +20,7 @@ import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
-import mosaic.ia.Analysis.Result;
+import mosaic.ia.Analysis.CmaResult;
 import mosaic.ia.FileUtils;
 import mosaic.ia.Potentials;
 import mosaic.ia.Potentials.Potential;
@@ -109,12 +109,12 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         int numReRuns = Integer.parseInt(reRuns.getText());
         Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
         iAnalysis.setPotentialType(potential); // for the first time
-        List<Result> results = new ArrayList<Result>();
+        List<CmaResult> results = new ArrayList<CmaResult>();
         iAnalysis.cmaOptimization(results, numReRuns, false);
         mosaic.utils.Debug.print(results);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
-            for (Analysis.Result r : results) {
+            for (Analysis.CmaResult r : results) {
                 rt.incrementCounter();
                 if (getPotential() != PotentialType.NONPARAM) {
                     rt.addValue("Strength", r.iStrength);
@@ -295,5 +295,78 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
         
         return image3d;
+    }
+    
+    
+    
+    static Point3d[] filter(double maxx, double maxy, Point3d[] input) {
+        ArrayList<Point3d> out = new ArrayList<>(input.length);
+        for (Point3d p : input) {
+            if (p.x <= maxx && p.y <= maxy) {
+                out.add(p);
+            }
+        }
+        return out.toArray(new Point3d[0]);
+    }
+    
+    //TODO: To be removed after testing
+    public static void runIt() {
+        
+        
+        InteractionAnalysisGui ia = new InteractionAnalysisGui();
+        ia.tabbedPane.setSelectedIndex(1);
+        ia.potentialComboBox.setSelectedIndex(1);
+        ia.gridSize.setText("0.5");
+        ia.kernelWeightP.setText("0.082");
+//        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
+//        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
+//        ia.iCsvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
+        Point3d[] csvX = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/GreenNewRandom.csv2");
+        
+//        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/green.csv2");
+//        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/orange.csv2");
+//        ia.iCsvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/red.csv2");
+        Point3d[] csvY = FileUtils.openCsvFile(null, "/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/RedNewRandom.csv2");
+        ia.iMaskImg = IJ.openImage("/Users/gonciarz/Documents/MOSAIC/work/tasks/IAproblem/mask2.tif");
+        double xmin = Double.MAX_VALUE;
+        double ymin = Double.MAX_VALUE;
+        double zmin = Double.MAX_VALUE;
+        double xmax = -Double.MAX_VALUE; 
+        double ymax = -Double.MAX_VALUE;
+        double zmax = -Double.MAX_VALUE;
+        
+        Point3d[][] coordinates = {csvX, csvY}; 
+        for (Point3d[] coords : coordinates) {
+            if (coords != null) {
+                for (Point3d p : coords) {
+                    if (p.x < xmin) xmin = p.x;
+                    if (p.x > xmax) xmax = p.x;
+                    if (p.y < ymin) ymin = p.y;
+                    if (p.y > ymax) ymax = p.y;
+                    if (p.z < zmin) zmin = p.z;
+                    if (p.z > zmax) zmax = p.z;
+                }
+            }
+        }
+        System.out.println("INPUT SIZE OF X/Y: " + csvX.length + " " + csvY.length);
+        
+        int num = 4;
+        for (int i = 1; i <= num; ++i) {
+            double maxx = i * (xmax - xmin) / num + xmin;
+            double maxy = ymax;//i * (ymax - ymin) / num + ymin;
+            ia.iCsvX = filter(maxx, maxy, csvX);
+            ia.iCsvY = filter(maxx, maxy, csvY);
+            System.out.println("SIZE OF X/Y: " + ia.iCsvX.length + " " + ia.iCsvY.length);
+//            ia.iCsvX = csvX;
+//            ia.iCsvY = csvY;
+            ia.setMinMaxCoordinates();
+            ia.calculateDistances();
+
+            ia.reRuns.setText("7");
+            ia.estimatePotential();
+            ia.testHypothesis();
+            break;
+        }
+        
     }
 }

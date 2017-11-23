@@ -2,6 +2,7 @@ package mosaic.ia;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,8 @@ import org.junit.Test;
 import org.scijava.vecmath.Point3d;
 
 import ij.macro.Interpreter;
-import mosaic.ia.Analysis.Result;
+import mosaic.ia.Analysis.CmaResult;
+import mosaic.ia.HypothesisTesting.TestResult;
 import mosaic.ia.Potentials.PotentialType;
 import mosaic.test.framework.CommonBase;
 
@@ -53,16 +55,20 @@ public class AnalysisTest extends CommonBase {
         assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.HERNQUIST));
-        List<Result> results = new ArrayList<Result>();
+        List<CmaResult> results = new ArrayList<CmaResult>();
         analysis.cmaOptimization(results, 1, true);
         
         epsilon = 1e-6;
-        assertEquals(36.723224, results.get(0).iStrength, epsilon);
-        assertEquals(241.636178, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.001396, results.get(0).iResidual, epsilon);
+        assertEquals(36.545593028698356, results.get(0).iStrength, epsilon);
+        assertEquals(241.88547240925368, results.get(0).iThresholdScale, epsilon);
+        assertEquals(0.02415571005054869, results.get(0).iResidual, epsilon);
         
-        // No testing anything - just running to catch any unwanted null things..
-        analysis.hypothesisTesting(100, 0.01);
+        TestResult ht = analysis.hypothesisTesting(100, 0.01);
+        assertEquals(100, ht.iRank);
+        assertEquals(100, ht.iMcmcRuns);
+        assertEquals(0.01, ht.iAlpha, 0);
+        assertEquals(0, ht.iPvalue, 0);
+        assertEquals(true, ht.iNullHypothesisRejected);
     }
 
     private Analysis prepereIaForTest() {
@@ -91,16 +97,16 @@ public class AnalysisTest extends CommonBase {
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.NONPARAM, analysis.getMinDistance(), analysis.getMaxDistance(), 41, 0.1));
         
-        List<Result> results = new ArrayList<Result>();
+        List<CmaResult> results = new ArrayList<CmaResult>();
         analysis.cmaOptimization(results, 1, true);
 
         epsilon = 1e-6;
         assertEquals(0.0, results.get(0).iStrength, epsilon);
         assertEquals(0.0, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.007918, results.get(0).iResidual, epsilon);
+        assertEquals(0.04359304691851186, results.get(0).iResidual, epsilon);
         
-        // No testing anything - just running to catch any unwanted null things..
-        analysis.hypothesisTesting(100, 0.01);
+        TestResult ht = analysis.hypothesisTesting(100, 0.01);
+        assertNull(ht);
     }
     
     @Test
@@ -113,15 +119,26 @@ public class AnalysisTest extends CommonBase {
         assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.STEP));
         
-        List<Result> results = new ArrayList<Result>();
+        List<CmaResult> results = new ArrayList<CmaResult>();
         analysis.cmaOptimization(results, 1, true);
         
         epsilon = 1e-6;
-        assertEquals(2.439648, results.get(0).iStrength, epsilon);
-        assertEquals(6.678545, results.get(0).iThresholdScale, epsilon);
-        assertEquals(0.002117, results.get(0).iResidual, epsilon);
+        assertEquals(2.4113236274803262, results.get(0).iStrength, epsilon);
+        assertEquals(6.450512767074827, results.get(0).iThresholdScale, epsilon);
+        assertEquals(0.03679266785699289, results.get(0).iResidual, epsilon);
         
-        // No testing anything - just running to catch any unwanted null things..
-        analysis.hypothesisTesting(100, 0.01);
+        TestResult ht = analysis.hypothesisTesting(100, 0.01);
+        assertEquals(100, ht.iRank);
+        assertEquals(100, ht.iMcmcRuns);
+        assertEquals(0.01, ht.iAlpha, 0);
+        assertEquals(0, ht.iPvalue, 0);
+        assertEquals(true, ht.iNullHypothesisRejected);
     }
+    
+//    @Test
+//    public void testIt() {
+//           
+//        InteractionAnalysisGui.runIt();
+//        sleep(521000);
+//    }
 }

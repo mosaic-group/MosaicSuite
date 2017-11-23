@@ -4,11 +4,15 @@ package mosaic.ia;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import mosaic.ia.Potentials.Potential;
 
 
 class HypothesisTesting {
+    private static final Logger logger = Logger.getLogger(HypothesisTesting.class);
+    
     // Input Distributions
     private final double[] iContextQdCdf;
     private final double[] iContextQdDistancesGrid;
@@ -32,7 +36,7 @@ class HypothesisTesting {
         iAlpha = aAlpha;
     }
 
-    public void rankTest() {
+    public TestResult rankTest() {
         double[] T = calculateT();
         double observedT = -1 * Math.signum(iBestPointFound[0]) * iPotential.calculateWithoutEpsilon(iNearestNeighborDistancesXtoY, iBestPointFound).getSumPotential();
         int i = 0;
@@ -41,7 +45,7 @@ class HypothesisTesting {
             ++i;
         }
         
-        System.out.println("minT=" + T[0] + " maxT=" + T[iNumOfMcRuns - 1] + " observedT=" + observedT + " found at rank:" + i + "/" + iNumOfMcRuns);
+        logger.debug("minT=" + T[0] + " maxT=" + T[iNumOfMcRuns - 1] + " observedT=" + observedT + " found at rank:" + i + "/" + iNumOfMcRuns);
         
         String s = "";
         if (i > (int) ((1 - iAlpha) * iNumOfMcRuns)) {
@@ -53,8 +57,37 @@ class HypothesisTesting {
             s = "Null hypothesis accepted, rank: " + i + " out of " + iNumOfMcRuns + " MC runs with alpha= " + iAlpha + " p-value: " + ((double) iNumOfMcRuns - i) / iNumOfMcRuns;
         }
         
-        System.out.println(s);
+        logger.debug(s);
         IJ.showMessage(s);
+        
+        return new TestResult (
+                        i,
+                        iNumOfMcRuns,
+                        iAlpha,
+                        ((double) iNumOfMcRuns - i) / iNumOfMcRuns,
+                        i > (int) ((1 - iAlpha) * iNumOfMcRuns)
+                    );
+    }
+    
+    static public class TestResult {
+        TestResult(int aRank, int aMcmcRuns, double aAlpha, double aPvalue, boolean aNullHypothesisRejected) {
+            iRank = aRank;
+            iMcmcRuns = aMcmcRuns;
+            iAlpha = aAlpha;
+            iPvalue = aPvalue;
+            iNullHypothesisRejected = aNullHypothesisRejected;
+        }
+        
+        int iRank; 
+        int iMcmcRuns; 
+        double iAlpha; 
+        double iPvalue; 
+        boolean iNullHypothesisRejected;
+        
+        @Override
+        public String toString() {
+            return "Rank=" + iRank + "/" + iMcmcRuns + " alpha=" + iAlpha + " p-value=" + iPvalue + " NullHyptothesisRejected=" + iNullHypothesisRejected;
+        }
     }
 
     private double[] calculateT() {

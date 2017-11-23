@@ -1,6 +1,8 @@
 package mosaic.ia;
 
 
+import org.apache.log4j.Logger;
+
 import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialNoParam;
@@ -13,6 +15,8 @@ import mosaic.utils.math.StatisticsUtils.MinMaxMean;
  * and observed NN distances PDF (calculated for given potential).
  */
 class FitFunction extends AbstractObjectiveFunction {
+    private static final Logger logger = Logger.getLogger(FitFunction.class);
+    
     private final double[] iContextQdPdf;
     private final double[] iContextQdDistancesGrid;
     private final double[] iNearestNeighborDistancesXtoYPdf;
@@ -36,7 +40,7 @@ class FitFunction extends AbstractObjectiveFunction {
         MinMaxMean mmmNNDistances = StatisticsUtils.getMinMaxMean(iNearestNeighborDistancesXtoY);
         iLowRange = Math.max(Math.min(mmmDistanceGrid.min, mmmNNDistances.min), MachineEpsilon);
         iHighRange = Math.max(mmmDistanceGrid.max, mmmNNDistances.max);
-        System.out.println("FIT RANGE: " + iLowRange+ " <= x[1] <= " + iHighRange);
+        logger.debug("Fit function range: " + iLowRange+ " <= x[1] <= " + iHighRange);
     }
     
     public double[] getObservedModelFitPdPdf() {
@@ -75,10 +79,26 @@ class FitFunction extends AbstractObjectiveFunction {
         double value = 0;
         for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
             iObservedModelFitPdPdf[i] = gibbsPotential[i] * iContextQdPdf[i] * (1 / Z);
+            // Sum squared errors
             value += Math.pow((iObservedModelFitPdPdf[i] - iNearestNeighborDistancesXtoYPdf[i]), 2);
         }
         
         return value;
+    }
+    
+    private double calculateNormalizationConstantZ(double[] aGibbsPotential) {
+        final double[] support = new double[iContextQdDistancesGrid.length];
+        for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
+            support[i] = aGibbsPotential[i] * iContextQdPdf[i];
+        }
+        
+        // Integrate
+        double Z = 0;
+        for (int i = 0; i < iContextQdDistancesGrid.length - 1; i++) {
+            Z += (support[i] + support[i + 1]) / 2 * (iContextQdDistancesGrid[i+1] - iContextQdDistancesGrid[i]);
+        }
+        
+        return Z;
     }
     
     private double nonParamPenalty(double[] x, double aSmoothness) {
@@ -92,18 +112,4 @@ class FitFunction extends AbstractObjectiveFunction {
         return sum * Math.pow(aSmoothness, 2);
     }
 
-    private double calculateNormalizationConstantZ(double[] aGibbsPotential) {
-        final double[] support = new double[iContextQdDistancesGrid.length];
-        for (int i = 0; i < iContextQdDistancesGrid.length; i++) {
-            support[i] = aGibbsPotential[i] * iContextQdPdf[i];
-        }
-        
-        double Z = 0;
-        for (int i = 0; i < iContextQdDistancesGrid.length - 1; i++) {
-            Z += (support[i] + support[i + 1]) / 2;
-        }
-        Z += support[0] / 2 + support[iContextQdDistancesGrid.length - 1] / 2;
-
-        return Z;
-    }
 }

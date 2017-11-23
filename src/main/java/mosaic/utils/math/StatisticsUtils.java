@@ -36,21 +36,21 @@ public class StatisticsUtils {
     
     /**
      * Calculates a CDF from given PDF
-     * @param aPdf - input PDF
+     * @param aPmf - input PMF
      * @param aNormalize - should values be normalized?
      * @return CDF
      */
-    public static double[] calculateCdf(double[] aPdf, boolean aNormalize) {
-        final double[] cdf = new double[aPdf.length];
+    public static double[] calculateCdfFromPmf(double[] aPmf, boolean aNormalize) {
+        final double[] cdf = new double[aPmf.length];
         
         double sum = 0;
-        for (int i = 0; i < aPdf.length; i++) {
-            sum += aPdf[i];
+        for (int i = 0; i < aPmf.length; i++) {
+            sum += aPmf[i];
             cdf[i] = sum;
         }
 
         if (aNormalize) {
-            normalizeCdf(cdf, false);
+            normalizeDiscreteCdf(cdf, false);
         }
         
         return cdf;
@@ -62,7 +62,7 @@ public class StatisticsUtils {
      * @param aGenerateNewContainer - should new container be created or changes should be done "in place"
      * @return normalized CDF
      */
-    public static double[] normalizeCdf(final double[] aCdf,  boolean aGenerateNewContainer) {
+    public static double[] normalizeDiscreteCdf(final double[] aCdf,  boolean aGenerateNewContainer) {
         final double[] result = aGenerateNewContainer ? new double[aCdf.length] : aCdf;
         
         double maximumValue = aCdf[aCdf.length - 1];
@@ -74,22 +74,96 @@ public class StatisticsUtils {
     }
     
     /**
-     * Normalizes PDF distribution to sum/integrate to 1.0
-     * @param aPdf - input distribution 
+     * Normalizes PMF distribution to sum/integrate to 1.0
+     * @param aPmf - input distribution 
      * @param aGenerateNewContainer - should new container be created or changes should be done "in place"
      * @return normalized PDF
      */
-    public static double[] normalizePdf(double[] aPdf, boolean aGenerateNewContainer) {
-        final double[] result = aGenerateNewContainer ? new double[aPdf.length] : aPdf;
+    public static double[] normalizePmf(double[] aPmf, boolean aGenerateNewContainer) {
+        final double[] result = aGenerateNewContainer ? new double[aPmf.length] : aPmf;
         
         double sum = 0;
-        for (double value : aPdf) {
+        for (double value : aPmf) {
             sum += value;
         }
-        for (int i = 0; i < aPdf.length; i++) {
-            result[i] = aPdf[i] / sum;
+        for (int i = 0; i < aPmf.length; i++) {
+            result[i] = aPmf[i] / sum;
         }
         return result;
+    }
+    
+    /**
+     * Calculates interpolated value of Y for provided aXpoint
+     * @param aXmin
+     * @param aXmax
+     * @param aYmin
+     * @param aYmax
+     * @param aXpoint
+     * @return
+     */
+    private static double linearInterpolation(double aXmin, double aXmax, double aYmin, double aYmax, double aXpoint) {
+        final double a = (aYmin - aYmax) / (aXmin - aXmax);
+        final double b = aYmin - a * aXmin;
+        return a * aXpoint + b;
+    }
+    
+    /**
+     * Calculated CDF(aX) for given discretized PDF and its grid values. If aX is out-of boundary then
+     * value is 0 if it's smaller that smallest grid value and 1.0 if larger than maximum of grid values.
+     * @param aX
+     * @param aPdf - discretized continous distribution
+     * @param aGridValues
+     * @return value of CDF(aX)
+     */
+    public static double calculateCdfAtPoint(double aX, double[] aPdf, double[] aGridValues) {
+        double sum = 0.0;
+        if (aX > aGridValues[0]) {
+            for (int i = 0; i < aGridValues.length - 1; ++i) {
+                if (aX < aGridValues[i + 1]) {
+                    double pdfAtX = linearInterpolation(aGridValues[i], aGridValues[i + 1], aPdf[i], aPdf[i + 1], aX);
+                    sum += (aPdf[i] + pdfAtX) / 2 * (aX - aGridValues[i]);
+                    break;
+                }
+                sum += (aPdf[i]  + aPdf[i + 1]) / 2 * (aGridValues[i + 1] - aGridValues[i]);
+            }
+        }
+        return sum;
+    }
+    
+    /**
+     * Normalize discretized PDF on given grid
+     * @param aPdf
+     * @param aGridValues
+     * @param aGenerateNewContainer
+     * @return
+     */
+    public static double[] normalizePdf(double[] aPdf, double[] aGridValues, boolean aGenerateNewContainer) {
+        final double[] result = aGenerateNewContainer ? new double[aPdf.length] : aPdf;
+        
+        double sum = calculateCdfAtPoint(aGridValues[aGridValues.length - 1], aPdf, aGridValues);
+        for (int i = 0; i < result.length; ++i) {
+            result[i] = aPdf[i] / sum;
+        }
+        
+        return result;
+    }
+    
+    
+    /**
+     * Calcualtes CDF from provided PDF and grid on which PDF is defined.
+     * @param aPdf
+     * @param grid
+     * @return
+     */
+    public static double[] calculateCdfFromPdf(double[] aPdf, double[] grid) {
+        final double[] cdf = new double[aPdf.length];
+    
+        cdf[0] = 0;
+        for (int i = 0; i < aPdf.length - 1; ++i) {
+            cdf[i+1] = (aPdf[i]  + aPdf[i + 1]) / 2 * (grid[i + 1] - grid[i]) + cdf[i];
+        }
+        for (int i = 0; i < cdf.length; ++i) cdf[i] /= cdf[cdf.length - 1];
+        return cdf;
     }
     
     /**

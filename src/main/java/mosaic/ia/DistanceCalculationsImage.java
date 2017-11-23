@@ -32,8 +32,12 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
     private final ImagePlus X, Y;
 
-    public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, float[][][] mask, double gridSize, double kernelWeightq, int discretizationSize) {
-        super(mask, gridSize, kernelWeightq, discretizationSize);
+    public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, float[][][] mask, double gridSize, double kernelWeightq, double kernelWeightP) {
+        this(X, Y, mask, gridSize, kernelWeightq, kernelWeightP, NumberOfDistPoints);
+    }
+
+    public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, float[][][] mask, double gridSize, double kernelWeightq, double kernelWeightP, int aNumberOfDistPoints) {
+        super(mask, gridSize, kernelWeightq, kernelWeightP, aNumberOfDistPoints);
         this.X = X;
         this.Y = Y;
         
@@ -42,12 +46,12 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
     private Point3d[] extractParticles(ImagePlus image) {
         final Calibration calibration = image.getCalibration();
-        zscale = calibration.pixelDepth;
-        xscale = calibration.pixelHeight;
-        yscale = calibration.pixelWidth;
-        yscale /= xscale;
-        zscale /= xscale;
-        xscale = 1.0;
+        iZscale = calibration.pixelDepth;
+        iXscale = calibration.pixelHeight;
+        iYscale = calibration.pixelWidth;
+        iYscale /= iXscale;
+        iZscale /= iXscale;
+        iXscale = 1.0;
 
         Vector<Particle> particle = detectParticlesinStack(image);
         System.out.println("Num of detected Particles: " + particle.size());
@@ -59,7 +63,6 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         iParticlesY = extractParticles(Y);
         System.out.println("Num of filtered Particles: (x/y): " + iParticlesX.length + " / " + iParticlesY.length);
         stateDensity(0, X.getWidth() - 1, 0, X.getHeight() - 1, 0, X.getNSlices() - 1);
-        calcDistancesOfXtoY();
     }
     
     /**

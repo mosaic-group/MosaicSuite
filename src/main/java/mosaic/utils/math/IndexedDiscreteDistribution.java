@@ -17,7 +17,7 @@ public class IndexedDiscreteDistribution {
 
     public IndexedDiscreteDistribution(final RandomGenerator rng, double[] pmf) {
         iRng = rng;
-        iCdf = StatisticsUtils.calculateCdf(pmf, true);
+        iCdf = StatisticsUtils.calculateCdfFromPmf(pmf, true);
     }
 
     /**
