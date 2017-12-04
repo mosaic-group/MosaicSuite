@@ -30,7 +30,7 @@ abstract class RegularizationGUI extends SettingsBaseGUI {
     }
 
     public static RegularizationGUI factory(Settings aSettings, String regularization) {
-        final RegularizationType type = RegularizationType.valueOf(regularization);
+        final RegularizationType type = RegularizationType.getEnum(regularization);
         return factory(aSettings, type);
     }
 

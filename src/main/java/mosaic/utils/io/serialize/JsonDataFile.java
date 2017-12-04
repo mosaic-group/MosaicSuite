@@ -57,7 +57,7 @@ public class JsonDataFile<T> implements DataFile<T> {
 
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz) {
-        logger.debug("LoadFromFile [" + aSerializedFileName + "]");
+        logger.debug("Loading from file [" + aSerializedFileName + "]");
 
         final Gson gson = new Gson();
 
@@ -90,7 +90,7 @@ public class JsonDataFile<T> implements DataFile<T> {
         if (temp != null) {
             return temp;
         }
-        
+        logger.debug("Returning default value.");
         return aDefaultValue;
     }
 }

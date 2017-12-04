@@ -170,7 +170,7 @@ public class GuiRC  {
         final EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
         final String[] energyItems = new String[energyValues.length];
         for (int i = 0; i < energyValues.length; ++i) {
-            energyItems[i] = energyValues[i].name();
+            energyItems[i] = energyValues[i].toString();
         }
         gd.addChoice("E_data", energyItems, iSettings.energyFunctional.name());
         Choice choiceEnergy = (Choice) gd.getChoices().lastElement();
@@ -198,7 +198,7 @@ public class GuiRC  {
         final RegularizationType[] regularizationValues = RegularizationType.values();
         final String[] regularizationItems = new String[regularizationValues.length];
         for (int i = 0; i < regularizationValues.length; ++i) {
-            regularizationItems[i] = regularizationValues[i].name();
+            regularizationItems[i] = regularizationValues[i].toString();
         }
         gd.addChoice("E_length", regularizationItems, iSettings.regularizationType.name());
         
@@ -266,14 +266,14 @@ public class GuiRC  {
         if (gd.wasOKed()) {
             // Energy Choice
             final String energy = gd.getNextChoice();
-            iSettings.energyFunctional = EnergyFunctionalType.valueOf(energy);
+            iSettings.energyFunctional = EnergyFunctionalType.getEnum(energy);
             final EnergyGUI eg = EnergyGUI.factory(iSettings, iSettings.energyFunctional);
             eg.createDialog();
             eg.processDialog();
             
             // Regularization Choice
             final String regularization = gd.getNextChoice();
-            iSettings.regularizationType = RegularizationType.valueOf(regularization);
+            iSettings.regularizationType = RegularizationType.getEnum(regularization);
             iSettings.energyContourLengthCoeff = (float) gd.getNextNumber();
             iSettings.maxNumOfIterations = (int) gd.getNextNumber();
             
@@ -282,7 +282,7 @@ public class GuiRC  {
             
             // Initialization
             final String initialization = gd.getNextChoice();
-            final InitializationType type = InitializationType.valueOf(initialization);
+            final InitializationType type = InitializationType.getEnum(initialization);
             iSettings.initType = type;
             final InitializationGUI ig = InitializationGUI.factory(iSettings, iSettings.initType);
             ig.createDialog();

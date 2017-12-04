@@ -38,7 +38,7 @@ abstract class InitializationGUI extends SettingsBaseGUI {
     }
 
     public static InitializationGUI factory(Settings aSettings, String s) {
-        final InitializationType type = InitializationType.valueOf(s);
+        final InitializationType type = InitializationType.getEnum(s);
         final InitializationGUI result = factory(aSettings, type);
         return result;
     }

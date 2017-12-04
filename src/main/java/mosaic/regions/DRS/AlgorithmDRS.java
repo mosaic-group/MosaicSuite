@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import ij.ImagePlus;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.convolution.Convolver;
 import mosaic.core.imageUtils.convolution.Gauss1D;
@@ -1332,7 +1333,7 @@ public class AlgorithmDRS {
      * Creates output probability image with slice for every label.
      * @return 
      */
-    public SegmentationProcessWindow createProbabilityImage() {
+    public ImagePlus createProbabilityImage() {
         // Create output stack image
         int[] dims = iLabelImage.getDimensions();
         SegmentationProcessWindow resultImg = new SegmentationProcessWindow(dims[0], dims[1], true);
@@ -1375,12 +1376,12 @@ public class AlgorithmDRS {
                 img.set(index, (float) ( (double)iterationsInLabel / numOfCountableIterations));
             }
 
-            resultImg.addSliceToStack(img, "label_" + currentLabel);
+            resultImg.addSliceToStack(img, "label_" + currentLabel, false);
         }
         
         resultImg.setImageTitle("Probability");
         
-        return resultImg;
+        return resultImg.getImage();
     }    
     
     /**

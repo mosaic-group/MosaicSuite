@@ -31,7 +31,7 @@ abstract class EnergyGUI extends SettingsBaseGUI {
     }
 
     public static EnergyGUI factory(Settings aSettings, String energy) {
-        final EnergyFunctionalType type = EnergyFunctionalType.valueOf(energy);
+        final EnergyFunctionalType type = EnergyFunctionalType.getEnum(energy);
         return factory(aSettings, type);
     }
 }

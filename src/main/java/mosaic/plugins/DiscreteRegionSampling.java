@@ -2,11 +2,14 @@ package mosaic.plugins;
 
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
+import ij.plugin.frame.Recorder;
 import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
@@ -16,8 +19,7 @@ import mosaic.regions.DRS.AlgorithmDRS;
 import mosaic.regions.DRS.PluginSettingsDRS;
 import mosaic.regions.DRS.SettingsDRS;
 import mosaic.regions.GUI.Controller;
-import mosaic.regions.GUI.GuiDRS;
-import mosaic.regions.GUI.SegmentationProcessWindow;
+import mosaic.regions.GUI.GuiDrs;
 import mosaic.regions.energies.ImageModel;
 import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
@@ -29,6 +31,7 @@ public class DiscreteRegionSampling implements PlugInFilter {
     private static final Logger logger = Logger.getLogger(DiscreteRegionSampling.class);
     
     // Settings
+    private static PluginSettingsDRS iMacroSettings = null;
     private PluginSettingsDRS iSettings = null;
     private boolean iNormalizeInputImg = true;
     private boolean iShowGui = true;
@@ -39,53 +42,58 @@ public class DiscreteRegionSampling implements PlugInFilter {
     private ImagePlus iInputLabelImageChosenByUser;
     
     // User interfaces
-    private GuiDRS iUserGui;
+    private GuiDrs iUserGui;
     private LabelImage iLabelImage;
-    private SegmentationProcessWindow iProbabilityImage;
+    private ImagePlus iOutputLabelImage;
+    private ImagePlus iProbabilityImage;
     
     @Override
     public int setup(String aInputArgs, ImagePlus aInputImg) {
         logger.info("Starting DiscreteRegionSampling");
+        iInputImageChosenByUser = aInputImg;
         
-        // Read settings and macro options
         initSettingsAndParseMacroOptions();
-        iUserGui = new GuiDRS(iSettings, aInputImg);
-        
-        // Get information from user
-        iUserGui.showDialog();
-        if (!iUserGui.configurationValid()) {
-            return DONE;
-        }
-        
-        // Get some more settings and images
-        iShowGui = !(IJ.isMacro() || Interpreter.batchMode);
-        iInputLabelImageChosenByUser = iUserGui.getInputLabelImage();
-        iInputImageChosenByUser = iUserGui.getInputImage();
-        iNormalizeInputImg = iUserGui.getNormalize();
-        
-        logger.info("Input image [" + (iInputImageChosenByUser != null ? iInputImageChosenByUser.getTitle() : "<no file>") + "]");
-        if (iInputImageChosenByUser != null) logger.info(ImgUtils.getImageInfo(iInputImageChosenByUser));
-        logger.info("Label image [" + (iInputLabelImageChosenByUser != null ? iInputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
-        logger.info("showGui: " + iShowGui +
-                    ", normalize: " + iNormalizeInputImg);
-        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
-        
-        // Save new settings from user input.
-        getConfigHandler().SaveToFile(configFilePath(), iSettings);
-        
-        // If there were no input image when plugin was started but user selected it after then return NO_IMAGE_REQUIRED
-        return (iInputImageChosenByUser != null  && aInputImg == null) ? NO_IMAGE_REQUIRED : DOES_ALL + NO_CHANGES;
+
+        return DOES_ALL + NO_CHANGES;
     }
 
     @Override
     public void run(ImageProcessor aIp) {
+        iShowGui = !(IJ.isMacro() || Interpreter.batchMode);
+        logger.info("showGui: " + iShowGui + ", normalize: " + iNormalizeInputImg);
+        
+        if (iShowGui) {
+            iUserGui = new GuiDrs(iSettings, iInputImageChosenByUser);
+            iUserGui.showDialog();
+            if (iUserGui.wasCanceled()) {
+                logger.debug("Execution cancelled");
+                return;
+            }
+            iInputLabelImageChosenByUser = iUserGui.getInputLabelImage();
+        }
+        
+        logger.info("Input image [" + iInputImageChosenByUser.getTitle() + "]");
+        logger.info(ImgUtils.getImageInfo(iInputImageChosenByUser));
+        logger.info("Label image [" + (iInputLabelImageChosenByUser != null ? iInputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.debug("Settings:\n" + Debug.getJsonString(iSettings));
+        
+        // Save new settings from user input.
+        getConfigHandler().SaveToFile(configFilePath(), iSettings);
+        if (Recorder.record) {
+            Recorder.recordString("call('mosaic.plugins.DiscreteRegionSampling.macroSetup', '"+ new Gson().toJson(iSettings) + "');\n");
+        }
+        
         if (runSegmentation()) {
             saveSegmentedImage();
         }
     }
     
     private void initSettingsAndParseMacroOptions() {
-        iSettings = null;
+        iSettings = iMacroSettings;
+        
+        // Set static macro settings to null. This is needed since we would remember old macro settings 
+        // and treat it as a new one at next run. (as happens in unit testing).
+        iMacroSettings = null;
         
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
@@ -94,17 +102,33 @@ public class DiscreteRegionSampling implements PlugInFilter {
             if (normalizeString != null) {
                 iNormalizeInputImg = Boolean.parseBoolean(normalizeString);
             }
-
-            String path = MosaicUtils.parseString("config", options);
-            if (path != null) {
-                iSettings = getConfigHandler().LoadFromFile(path, PluginSettingsDRS.class);
+            
+            if (iSettings == null) {
+                String path = MosaicUtils.parseString("config", options);
+                if (path != null) {
+                    logger.debug("Reading settings from file provided in macro options.");
+                    iSettings = getConfigHandler().LoadFromFile(path, PluginSettingsDRS.class);
+                }
             }
         }
 
         if (iSettings == null) {
-            // load default config file
+            logger.debug("Trying to read config file from default location [" + configFilePath() + "]");
             iSettings = getConfigHandler().LoadFromFile(configFilePath(), PluginSettingsDRS.class, new PluginSettingsDRS());
         }
+    }
+    
+    /**
+     * Static method used in macro mode for providing settings. With all disadvantages of that way, it has one important advantage:
+     * config string in macro looks much better than provided directly to plugin since it does not have to
+     * escape all quote signs and there are a lot of those. So it is easier for user to modify config manually.
+     * @param aSettingsData - data provided in macro in Json format (will be provided by ImageJ which will call this method)
+     */
+    static public void macroSetup(String aSettingsData) {
+        logger.info("macroSetup() run with: [" + aSettingsData + "]");
+        PluginSettingsDRS obj = new Gson().fromJson(aSettingsData, PluginSettingsDRS.class);
+        logger.debug("DRS Settings: ["+obj+"]");
+        iMacroSettings = obj;
     }
     
     /**
@@ -163,11 +187,21 @@ public class DiscreteRegionSampling implements PlugInFilter {
 
         // Do some post process stuff
         iController.close();
+
+        // Produce probability image only if needed        
+        if (iSettings.showProbabilityImage || iSettings.saveProbabilityImage) {
+            iProbabilityImage = algorithm.createProbabilityImage();
+            iProbabilityImage.setStack(ImgUtils.crop(iProbabilityImage.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+        }
         
-        iProbabilityImage = algorithm.createProbabilityImage();
+        // Produce labelImage only if needed
+        if (iSettings.showLabelImage || iSettings.saveLabelImage) {
+            iOutputLabelImage = iLabelImage.convertToImg("Label");
+            iOutputLabelImage.setStack(ImgUtils.crop(iOutputLabelImage.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+        }
         
-        ImagePlus show = iLabelImage.show("LabelDRS");
-        show.setStack(ImgUtils.crop(show.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
+        if (iSettings.showProbabilityImage) iProbabilityImage.show();
+        if (iSettings.showLabelImage) iOutputLabelImage.show();
         
         return true;
     }
@@ -179,14 +213,14 @@ public class DiscreteRegionSampling implements PlugInFilter {
             final String fileNameNoExt = SysOps.removeExtension(iInputImageChosenByUser.getTitle());
             
             // Probability image
-            ImagePlus outImgStack = iProbabilityImage.getImage();
-            outImgStack.setStack(ImgUtils.crop(outImgStack.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
-            saveImage(directory, fileNameNoExt, "_prob_c1.tif", outImgStack);
+            if (iSettings.saveProbabilityImage) {
+                saveImage(directory, fileNameNoExt, "_prob_c1.tif", iProbabilityImage);
+            }
             
             // Label image
-            ImagePlus outImg = iLabelImage.convertToImg("ResultWindow");
-            outImg.setStack(ImgUtils.crop(outImg.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
-            saveImage(directory, fileNameNoExt, "_seg_c1.tif", outImg);
+            if (iSettings.saveLabelImage) {
+                saveImage(directory, fileNameNoExt, "_seg_c1.tif", iOutputLabelImage);
+            }
         }
     }
     

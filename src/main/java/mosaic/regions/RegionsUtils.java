@@ -16,9 +16,9 @@ import mosaic.regions.energies.E_Gamma;
 import mosaic.regions.energies.E_KLMergingCriterion;
 import mosaic.regions.energies.E_PC_Gauss;
 import mosaic.regions.energies.E_PS;
-import mosaic.regions.energies.ImageModel;
 import mosaic.regions.energies.Energy.ExternalEnergy;
 import mosaic.regions.energies.Energy.InternalEnergy;
+import mosaic.regions.energies.ImageModel;
 import mosaic.regions.initializers.BoxInitializer;
 import mosaic.regions.initializers.BubbleInitializer;
 import mosaic.regions.initializers.MaximaBubbles;
@@ -35,15 +35,75 @@ import net.imglib2.type.numeric.real.FloatType;
  */
 public abstract class RegionsUtils {
     public static enum InitializationType {
-        Rectangle, Bubbles, LocalMax, ROI_2D, File
+        Rectangle("Rectangle"), 
+        Bubbles("Bubbles"), 
+        LocalMax("Local Maximum"), 
+        ROI_2D("ROI 2D"), 
+        File("File with regions");
+        
+        private final String iName;
+        private InitializationType(final String aName) {
+            iName = aName;
+        }
+        @Override
+        public String toString() {
+            return iName;
+        }
+        
+        static public InitializationType getEnum(String aString) {
+            for (InitializationType t : InitializationType.values()) {
+                if (t.toString().equals(aString)) return t;
+            }
+            // If a aString is not a descriptive string of enum then try enum name
+            return InitializationType.valueOf(aString);
+        }
     }
 
     public static enum EnergyFunctionalType {
-        e_PC, e_PS, e_DeconvolutionPC, e_PC_Gauss
+        e_PC("PC"), 
+        e_PS("PS"), 
+        e_DeconvolutionPC("Deconvolution PC"), 
+        e_PC_Gauss("PC Gauss");
+        
+        private final String iName;
+        private EnergyFunctionalType(final String aName) {
+            iName = aName;
+        }
+        @Override
+        public String toString() {
+            return iName;
+        }
+        
+        static public EnergyFunctionalType getEnum(String aString) {
+            for (EnergyFunctionalType t : EnergyFunctionalType.values()) {
+                if (t.toString().equals(aString)) return t;
+            }
+            // If a aString is not a descriptive string of enum then try enum name
+            return EnergyFunctionalType.valueOf(aString);
+        }
     }
 
     public static enum RegularizationType {
-        Sphere_Regularization, Approximative, None,
+        Sphere_Regularization("Sphere Reguralization"), 
+        Approximative("Approximative"), 
+        None("None");
+        
+        private final String iName;
+        private RegularizationType(final String aName) {
+            iName = aName;
+        }
+        @Override
+        public String toString() {
+            return iName;
+        }
+        
+        static public RegularizationType getEnum(String aString) {
+            for (RegularizationType t : RegularizationType.values()) {
+                if (t.toString().equals(aString)) return t;
+            }
+            // If a aString is not a descriptive string of enum then try enum name
+            return RegularizationType.valueOf(aString);
+        }
     }
     
     /**

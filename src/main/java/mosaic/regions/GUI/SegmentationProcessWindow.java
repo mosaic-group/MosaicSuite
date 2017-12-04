@@ -63,7 +63,7 @@ public class SegmentationProcessWindow {
      * @param aTitle - title for image
      * @param aBiggestLabelSoFar - maximum label value used so far
      */
-    public void addSliceToStack(IntensityImage aLabelImage, String aTitle) {
+    public void addSliceToStack(IntensityImage aLabelImage, String aTitle, boolean aShowImg) {
         if (iStack == null) {
             // stack was closed by user, don't reopen
             return;
@@ -80,7 +80,7 @@ public class SegmentationProcessWindow {
             // We have first slices in stack so we can add it to image (it is impossible to add empty stack).
             iIsThatFirstPass = false;
             iImage.setStack(iStack);
-            iImage.show();
+            if (aShowImg) iImage.show();
         }
     }
     
@@ -90,7 +90,7 @@ public class SegmentationProcessWindow {
      * @param aTitle - title for image
      * @param aBiggestLabelSoFar - maximum label value used so far
      */
-    public void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
+    public void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar, boolean aShowImg) {
         if (iStack == null) {
             // stack was closed by user, don't reopen
             return;
@@ -107,7 +107,7 @@ public class SegmentationProcessWindow {
             // We have first slices in stack so we can add it to image (it is impossible to add empty stack).
             iIsThatFirstPass = false;
             iImage.setStack(iStack);
-            iImage.show();
+            if (aShowImg) iImage.show();
         }
         
         // Handle new maximum label value and colors of image

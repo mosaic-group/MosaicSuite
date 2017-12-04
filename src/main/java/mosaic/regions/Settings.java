@@ -30,7 +30,7 @@ public class Settings implements Serializable {
 
     // Init Energies ------------------------------------------------------------------------------
     // Curvature Flow Energy (internal)
-    public float energyCurvatureMaskRadius = 8;
+    public int energyCurvatureMaskRadius = 8;
 
     // E_PS Energy (external)
     public int energyPsGaussEnergyRadius = 8;
@@ -38,8 +38,8 @@ public class Settings implements Serializable {
 
     // Other --------------------------------------------------------------------------------------
     // Image Model
-    public EnergyFunctionalType energyFunctional = EnergyFunctionalType.e_PC;
-    public RegularizationType regularizationType = RegularizationType.Sphere_Regularization;
+    public EnergyFunctionalType energyFunctional = EnergyFunctionalType.e_PC_Gauss;
+    public RegularizationType regularizationType = RegularizationType.Approximative;
     public float energyContourLengthCoeff = 0.04f;
     
     // RC and DRS

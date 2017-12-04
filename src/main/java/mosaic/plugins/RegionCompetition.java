@@ -143,9 +143,9 @@ public class RegionCompetition implements PlugInFilter {
         iLabelImageStack = new SegmentationProcessWindow(width, height, iShowAllSteps);
         iLabelImageStack.setImageTitle("Stack_" + (iInputImageChosenByUser.getTitle() == null ? "DRS" : iInputImageChosenByUser.getTitle()));
       
-        iLabelImageStack.addSliceToStack(iLabelImage, "init without contours", 0);
+        iLabelImageStack.addSliceToStack(iLabelImage, "init without contours", 0, true);
         iLabelImage.initBorder();
-        iLabelImageStack.addSliceToStack(iLabelImage, "init with contours", 0);
+        iLabelImageStack.addSliceToStack(iLabelImage, "init with contours", 0, true);
     }
     
     private void saveStatistics(AlgorithmRC algorithm) {
@@ -208,12 +208,12 @@ public class RegionCompetition implements PlugInFilter {
             isDone = iController.hasAborted() ? true : isDone;
 
             // Add slice with iteration output
-            iLabelImageStack.addSliceToStack(iLabelImage, "iteration " + iteration, algorithm.getBiggestLabel());
+            iLabelImageStack.addSliceToStack(iLabelImage, "iteration " + iteration, algorithm.getBiggestLabel(), true);
         }
         IJ.showProgress(iSettings.maxNumOfIterations, iSettings.maxNumOfIterations);
 
         // Do some post process stuff
-        iLabelImageStack.addSliceToStack(iLabelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
+        iLabelImageStack.addSliceToStack(iLabelImage, "final image iteration " + iteration, algorithm.getBiggestLabel(), true);
         
         ImagePlus show = iLabelImage.show("LabelRC");
         show.setStack(ImgUtils.crop(show.getStack(), iPadSize, iLabelImage.getNumOfDimensions() > 2));
