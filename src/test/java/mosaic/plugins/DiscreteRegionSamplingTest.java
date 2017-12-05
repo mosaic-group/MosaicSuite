@@ -7,6 +7,13 @@ import mosaic.test.framework.CommonBase;
 
 public class DiscreteRegionSamplingTest extends CommonBase {
 
+    /**
+     * "useBiasedProposal": false,
+     * "usePairProposal": false,
+     * "allowFusion": false,
+     * "allowFission": true,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs1()  {
         
@@ -32,6 +39,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": false,
+     * "usePairProposal": true,
+     * "allowFusion": false,
+     * "allowFission": false,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs2()  {
         
@@ -57,6 +71,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": false,
+     * "usePairProposal": false,
+     * "allowFusion": true,
+     * "allowFission": true,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs3()  {
         
@@ -82,6 +103,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": false,
+     * "usePairProposal": false,
+     * "allowFusion": true,
+     * "allowFission": true,
+     * "allowHandles": false,
+     */
     @Test
     public void testDrs4()  {
         
@@ -107,6 +135,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": true,
+     * "usePairProposal": false,
+     * "allowFusion": true,
+     * "allowFission": true,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs5()  {
         
@@ -132,6 +167,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": false,
+     * "usePairProposal": true,
+     * "allowFusion": true,
+     * "allowFission": true,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs6()  {
         
@@ -157,6 +199,13 @@ public class DiscreteRegionSamplingTest extends CommonBase {
                    expectedFiles, referenceFiles);
     }
     
+    /**
+     * "useBiasedProposal": true,
+     * "usePairProposal": true,
+     * "allowFusion": true,
+     * "allowFission": true,
+     * "allowHandles": true,
+     */
     @Test
     public void testDrs7()  {
         

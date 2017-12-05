@@ -199,7 +199,13 @@ public abstract class RegionsUtils {
 
         switch (labelImageInitType) {
             case ROI_2D: {
-                initializeRoi(labelImage, inputImageChosenByUser);
+                if (inputImageChosenByUser.getRoi() == null) {
+                    // Can happen only in macro mode since GUI is doing check on existance of ROI
+                    throw new RuntimeException("No ROI found in input image");
+                }
+                labelImage.initLabelsWithRoi(inputImageChosenByUser.getRoi());
+                labelImage.initBorder();
+                labelImage.connectedComponents();
                 break;
             }
             case Rectangle: {
@@ -241,14 +247,5 @@ public abstract class RegionsUtils {
             }
         }
         return labelImage;
-    }
-
-    /**
-     * Initializes labelImage with ROI <br>
-     */
-    private static void initializeRoi(final LabelImage labelImg, ImagePlus inputImageChosenByUser) {
-        labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
-        labelImg.initBorder();
-        labelImg.connectedComponents();
     }
 }

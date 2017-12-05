@@ -601,7 +601,7 @@ public class LabelImage extends BaseImage
 
     /**
      * Add labels (=1) to LabelImage where in aRoi regions.
-     * Works only for 2D and in case of 3D just do nothing.
+     * In case of 3D it maps 2D ROI into all slices in z-direction
      */
     public void initLabelsWithRoi(Roi aRoi) {
         if (getNumOfDimensions() == 2) {
@@ -633,7 +633,7 @@ public class LabelImage extends BaseImage
         }
         return max;
     }
-    
+
     /**
      * Converts LabelImage to ImagePlus (ShortProcessor)
      * @param aTitle - title of created image
