@@ -22,9 +22,8 @@ import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.regions.GUI.SegmentationProcessWindow;
 import mosaic.regions.RC.ContourParticle;
-import mosaic.regions.energies.E_Deconvolution;
-import mosaic.regions.energies.ImageModel;
 import mosaic.regions.energies.Energy.EnergyResult;
+import mosaic.regions.energies.ImageModel;
 import mosaic.regions.topology.TopologicalNumber;
 import mosaic.regions.topology.TopologicalNumber.TopologicalNumberResult;
 import mosaic.regions.utils.LabelStatisticToolbox;
@@ -34,820 +33,7 @@ import mosaic.utils.math.IndexedDiscreteDistribution;
 
 
 public class AlgorithmDRS {
-
     private static final Logger logger = Logger.getLogger(AlgorithmDRS.class);
-
-    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, SettingsDRS aSettings) {
-        logger.debug("DRS algorithm created with settings:" + Debug.getJsonString(aSettings));
-
-        // Save input parameters
-        iLabelImage = aLabelImage;
-        iIntensityImage = aIntensityImage;
-        logger.debug("Generating edge image");
-        iEdgeImage = generateEdgeImage(iIntensityImage);
-        iImageModel = aModel;
-        iSettings = aSettings;
-
-        // Initialize label image
-        iLabelImage.initBorder();
-
-        logger.debug("Initializing conectivities");
-        initConnectivities();
-        logger.debug("Initializing distribution");
-        initEdgeDistribution();
-        logger.debug("Initializing length proposal");
-        initLenghtProposal();
-        logger.debug("Initializing labels");
-        initLabels();
-        logger.debug("Initializing statistics");
-        LabelStatisticToolbox.initStatistics(iLabelImage, iIntensityImage, iLabelStatistics);
-        logger.debug("Initializing energies");
-        initEnergies();
-    }
-
-    public boolean performIteration() {
-        ++iIterationCounter;
-        iAcceptedMoves += runOneIteration() ? 1 : 0;
-        if (iIterationCounter == iSettings.maxNumOfIterations) {
-            logger.info("Overall acceptance rate: " + ((float) iAcceptedMoves / iIterationCounter));
-        }
-        
-        // never finish earlier than wanted number of iterations
-        return false;
-    }
-    
-    private void initEdgeDistribution() {
-        if (iSettings.offBoundarySampleProbability > 0) {
-            iEdgeImageDistr = generateDiscreteDistribution(iEdgeImage, iDistrRng);
-        }
-    }
-    
-    private void initConnectivities() {
-        iFgNeighborsOffsets = iLabelImage.getConnFG().getPointOffsets();
-        iFgNeighborsIndices = new int[iFgNeighborsOffsets.length];
-        for (int i = 0; i < iFgNeighborsOffsets.length; ++i) iFgNeighborsIndices[i] = iLabelImage.pointToIndex(iFgNeighborsOffsets[i]); 
-        
-        iBgNeighborsOffsets = iLabelImage.getConnBG().getPointOffsets();
-        iBgNeighborsIndices = new int[iBgNeighborsOffsets.length];
-        for (int i = 0; i < iBgNeighborsOffsets.length; ++i) iBgNeighborsIndices[i] = iLabelImage.pointToIndex(iBgNeighborsOffsets[i]); 
-
-        iTopoFunction = new TopologicalNumber(iLabelImage);
-    }
-    
-    private void initLenghtProposal() {
-        if (iSettings.useBiasedProposal) {
-            iLengthProposalMask = new float[iBgNeighborsOffsets.length];
-            for (int i = 0; i < iBgNeighborsOffsets.length; ++i) {
-                iLengthProposalMask[i] = (float) (1.0 / iBgNeighborsOffsets[i].length());
-            }
-        }
-    }
-    
-    private void initLabels() {
-        // By default add background
-        iLabels.add(LabelImage.BGLabel);
-        iParentsProposalNormalizer.put(LabelImage.BGLabel, 0f);
-        iChildrenProposalNormalizer.put(LabelImage.BGLabel, 0f);
-        iTotalNormalizer = 0.0f;
-
-        // Register all labels from lableImage
-        Set<Integer> visitedLabels = new HashSet<>();
-        visitedLabels.add(LabelImage.BGLabel);
-        final Iterator<Integer> ri = new SpaceIterator(iLabelImage.getDimensions()).getIndexIterator();
-        while (ri.hasNext()) {
-            final int idx = ri.next();
-            int label = iLabelImage.getLabel(idx);
-            if (iLabelImage.isBorderLabel(label)) continue;
-
-            // Add if not added so far
-            int labelAbs = iLabelImage.labelToAbs(label);
-            if (!visitedLabels.contains(labelAbs)) {
-                visitedLabels.add(labelAbs);
-                iLabels.add(label);
-                iParentsProposalNormalizer.put(labelAbs, 0f);
-                iChildrenProposalNormalizer.put(labelAbs, 0f);
-            }
-            // // Add all regular particles at this spot:
-            ParticleSet regularParticles = getRegularParticles(idx, new ParticleSet());
-
-            for (Particle particle : regularParticles) {
-                if (isParticleTopoValid(particle)) {
-                    insertCandidatesToContainers(particle, label, false);
-                    iLabelImage.setLabel(idx, -labelAbs);
-                }
-            }
-        }
-    }
-    
-    private void prepareEnergyCalculationForEachIteration() {
-        // Same as in RC algorithm
-        if (iSettings.usingDeconvolutionPcEnergy) {
-            ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
-        }
-    }
-
-    private void initEnergies() {
-        // TODO: it is a'la initEnergies from RC
-        if (iSettings.usingDeconvolutionPcEnergy) {
-            // Deconvolution: - Alocate and initialize the 'ideal image'
-            // TODO: This is not OOP, handling energies should be redesigned
-            ((E_Deconvolution) iImageModel.getEdata()).GenerateModelImage(iLabelImage, iLabelStatistics);
-            ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
-        }
-    }
-
-    private boolean runOneIteration() {
-        prepareEnergyCalculationForEachIteration();
-
-        // These list will help to revert the move in case it gets rejected.
-        iParticlesHistory.clear();
-        iFloatingParticlesHistory.clear();
-        iLabelImageHistory.clear();
-        
-        // Cleanup working containers (the rest of them will be overwrite anyway) 
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            vParticle_Ab_IsFloating[i] = false;
-            vParticle_Bb_IsFloating[i] = false;
-            vParticle_A_IsFloating[i] = false;
-        }
-
-        // In the burn-in phase we delete floating particles so it might happen.
-        if (iLabels.size() < 2) {
-            // TODO: Should be handled differently than RuntimeEx?
-            throw new RuntimeException("No active region for MCMC available in iteration: " + iIterationCounter);
-        }
-        
-        // Sample a region label (a FG region number; without BG) and find the corresponding label
-        int sampledIndex = iRng.GetIntegerVariate(iLabels.size() - 2) + 1;
-        int sampledAbsLabel = iLabels.get(sampledIndex);
-        
-        // Off-boundary handling
-        if (iSettings.allowFission && iSettings.allowFusion) {
-            // off-boundary probability decreases to 0 when burn-in phase ends
-            float offBoundaryPerc = iSettings.offBoundarySampleProbability * (1.0f - iIterationCounter / (iSettings.burnInFactor * iSettings.maxNumOfIterations));
-            double rnd = iRng.GetVariate();
-            boolean offBoundarySampling = (offBoundaryPerc > 0) ? rnd < offBoundaryPerc : false;
-            if (offBoundarySampling) {
-                boolean growth = iRng.GetUniformVariate(0, 1) < 0.5;
-                return sampleOffBoundary(growth, sampledAbsLabel);
-            }
-        }
-        
-        // Figure out if Particle A will cause growth, shrink or be floating particle
-        double probabilityOfFloatingParticle = iFloatingParticlesProposalNormalizer / (iTotalNormalizer + iFloatingParticlesProposalNormalizer);
-
-        // Find active candidates
-        boolean vParticleAIsFloating = false;
-        ParticleSet vActiveCandidates = null;
-        double vR = iRng.GetUniformVariate(0.0, 1.0);
-        if (vR < probabilityOfFloatingParticle) {
-            // We will choose one out of the floating particles
-            vActiveCandidates = iFloatingParticles;
-            vParticleAIsFloating = true;
-        }
-        else if (vR < 0.5 * (probabilityOfFloatingParticle + 1)) {
-            // We will grow and hence choose one out of the children list
-            vActiveCandidates = iChildren.get(sampledAbsLabel);
-        }
-        else {
-            vActiveCandidates = iParents.get(sampledAbsLabel);
-        }
-        if (vActiveCandidates == null || vActiveCandidates.size() == 0) {
-            // This is an empty region. Maybe there exists a floating particle with no future for this region. 
-            // But if count == 0, it will not be accepted according to the definition of the energy. We hence cleanup the statistics (kill the region).
-            resetLabelsToParents();
-            return false;
-        }
-
-        // For each particle within the region, calculate the proposal and create a discrete distribution over particles
-        int vIndexOffset = 0;
-        double[] allParticlesFwdProposals = null;
-        boolean vApproxedIndex = false;
-        if (iSettings.useBiasedProposal && !vParticleAIsFloating) {
-            final int NumberOfSamplesForBiasedPropApprox = 30; // must be >= 1
-            if (vActiveCandidates.size() < NumberOfSamplesForBiasedPropApprox) {
-                allParticlesFwdProposals = new double[vActiveCandidates.size()];
-                for (int i = 0; i < vActiveCandidates.size(); ++i) {
-                    allParticlesFwdProposals[i] = vActiveCandidates.get(i).iProposal;
-                }
-            }
-            else {
-                vApproxedIndex = true;
-                vIndexOffset = iRng.GetIntegerVariate(vActiveCandidates.size() - 1);
-                allParticlesFwdProposals = new double[NumberOfSamplesForBiasedPropApprox];
-                for (int i = 0; i < NumberOfSamplesForBiasedPropApprox; ++i) {
-                    int vApproxParticleIndex = (vIndexOffset + i) % vActiveCandidates.size();
-                    allParticlesFwdProposals[i] = vActiveCandidates.get(vApproxParticleIndex).iProposal;
-                }
-            }
-        }
-
-        // Find particle A:
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            int vParticleIndex;
-            if (iSettings.useBiasedProposal && !vParticleAIsFloating && allParticlesFwdProposals != null) {
-                IndexedDiscreteDistribution vDiscreteDistr =  new IndexedDiscreteDistribution(iDistrRng, allParticlesFwdProposals);
-                vParticleIndex = vDiscreteDistr.sample();
-                vq_A[i] = (float) allParticlesFwdProposals[vParticleIndex];
-
-                if (vApproxedIndex) {
-                    vParticleIndex = (vIndexOffset + vParticleIndex) % vActiveCandidates.size();
-                }
-            }
-            else {
-                vParticleIndex = iRng.GetIntegerVariate(vActiveCandidates.size() - 1);
-                vq_A[i] = 1.0f;
-            }
-            Particle vParticle = vActiveCandidates.get(vParticleIndex);
-            if (vParticleAIsFloating) {
-                vParticle_A_IsFloating[i] = true;
-
-                // Immediately accept the move (self transition) if the label at the particular position is the same. Since this is a
-                // self transition we keep the particle in the proposals.
-                if (iLabelImage.getLabelAbs(vParticle.iIndex) == vParticle.iCandidateLabel) {
-                    return false; // reject.
-                }
-                // reject (because the backward prob is 0)
-                if (isRegularParticle(vParticle, iLabelImage.getLabelAbs(vParticle.iIndex))) {
-                    return false;
-                }
-                // if we are here, do the job
-                eraseFloatingParticle(vParticle, true);
-            }
-            // Fill in some properties for this particles:
-            vLabelsBeforeJump_A[i] = iLabelImage.getLabelAbs(vParticle.iIndex);
-            vq_A[i] = (vParticle_A_IsFloating[i]) ?
-                        vq_A[i] / iFloatingParticlesProposalNormalizer :
-                        vq_A[i] / getProposalNormalizer(vLabelsBeforeJump_A[i], vParticle.iCandidateLabel);
-            vCandidateMoveVec[i] = vParticle;
-        }
-
-        // In case of pair proposals, we find a partner for each proposed particle.
-        // We now know A and Q(A). Now it needs to build another (2nd step) discrete proposal distribution. 
-        // We sample from it to determine the partner particle B. Furthermore we calculate the conditional proposal probability Q(B|A). 
-        // In a second step we calculate the conditional Q(A|B). The same then needs to be done for the backward probabilities Qb(A), Qb(B), Qb(A|B) and Qb(B|A).
-        // Notation:
-        // - Q is the forward and Qb the backward probability. 
-        // A is a forward praticle and B' the backward particle.
-        // - Qb always assumes backward particles as its arguments! Hence, Qb_A_B is the probability Qb(A'|B').
-        boolean vSingleParticleMoveForPairProposals = false;
-        if (iSettings.usePairProposal) {
-            // Iterate over particles A:
-            for (int i = 0; i < iMcmcStepSize; ++i) {
-                Particle vPartIt = vCandidateMoveVec[i];
-
-                Particle vA = new Particle(vPartIt);
-                vA.iProposal = calculateProposal(vA.iIndex);
-
-                applyParticle(vPartIt, true);
-
-                // BTW we have to remember if A' is a floating particle in the state x -> A.
-                vParticle_Ab_IsFloating[i] = isParticleFloating(vPartIt.iIndex, vPartIt.iCandidateLabel);
-
-                // Get the particles involved in the second step of the proposal (with updated proposals)
-                ParticleSet vParts_Q_BgivenA = getPartnerParticles(vA, new ParticleSet());
-
-                // Find B:
-                Particle vB;
-
-                // Choose B from Q(B|A) and calculate Q(B|A).
-                if (iSettings.useBiasedProposal) {
-                    double[] vProposalsVector = new double[vParts_Q_BgivenA.size()];
-                    float vNormalizer_Q_B_A = 0;
-                    for (int vPI = 0; vPI < vParts_Q_BgivenA.size(); vPI++) {
-                        Particle vCondParticle = vParts_Q_BgivenA.get(vPI);
-                        vProposalsVector[vPI] = vCondParticle.iProposal;
-                        vNormalizer_Q_B_A += vCondParticle.iProposal;
-                    }
-                    IndexedDiscreteDistribution vQ_B_A = new IndexedDiscreteDistribution(iDistrRng, vProposalsVector);
-                    vB = vParts_Q_BgivenA.get(vQ_B_A.sample());
-                    // The value iProposal of vB is currently equal to Q_B_A.
-                    vq_B_A[i] = vB.iProposal / vNormalizer_Q_B_A;
-                }
-                else {
-                    vB = vParts_Q_BgivenA.get(iRng.GetIntegerVariate(vParts_Q_BgivenA.size() - 1));
-                    vq_B_A[i] = 1.0f / vParts_Q_BgivenA.size();
-                }
-
-                // store B (and its original label).
-                vPartnerMoveVec[i] = vB;
-                vLabelsBeforeJump_B[i] = iLabelImage.getLabelAbs(vB.iIndex);
-                if (vB.iIndex == vA.iIndex && vB.iCandidateLabel == vA.iCandidateLabel) {
-                    vSingleParticleMoveForPairProposals = true;
-                    vLabelsBeforeJump_B[i] = vLabelsBeforeJump_A[i];
-                }
-
-                // Get the reverse particle of A (without proposal update as it is not necessary):
-                Particle vReverseParticleA = new Particle(vPartIt);
-                vReverseParticleA.iCandidateLabel = vLabelsBeforeJump_A[i];
-
-                // In case that vA == vB, we must already undo the simulated move in order to calculate Q'(B'|A') (== Q'(A'|B'))
-                if (vSingleParticleMoveForPairProposals) {
-                    applyParticle(vReverseParticleA, true);
-                }
-
-                // In the current state of the label image and the containers we can calculate qb_A'_B' as well. We assume now
-                // that B' was applied and we calculate the probability for A'.
-                ParticleSet vParts_Qb_AgivenB = getPartnerParticles(vB, new ParticleSet());
-
-                if (iSettings.useBiasedProposal) {
-                    float vNormalizer_Qb_A_B = 0;
-                    for (int vPI = 0; vPI < vParts_Qb_AgivenB.size(); ++vPI) {
-                        vNormalizer_Qb_A_B += vParts_Qb_AgivenB.get(vPI).iProposal;
-                    }
-                    float vqb_A_B_unnorm = calculateProposal(vA.iIndex);
-                    vqb_A_B[i] = vqb_A_B_unnorm / vNormalizer_Qb_A_B;
-                }
-                else {
-                    vqb_A_B[i] = 1.0f / vParts_Qb_AgivenB.size();
-                }
-
-                if (!vSingleParticleMoveForPairProposals) {
-                    // undo the simulated move.
-                    applyParticle(vReverseParticleA, true);
-
-                    // Now we can calculate Q_B (as we now know B and the original state has been recovered).
-                    if (!isRegularParticle(vB, vLabelsBeforeJump_B[i])) {
-                        vq_B[i] = 0f;
-                    }
-                    else {
-                        if (iSettings.useBiasedProposal) {
-                            vq_B[i] = calculateProposal(vB.iIndex) / getProposalNormalizer(vLabelsBeforeJump_B[i], vB.iCandidateLabel);
-                        }
-                        else {
-                            vq_B[i] = 1.0f / getProposalNormalizer(vLabelsBeforeJump_B[i], vB.iCandidateLabel);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Currently it is possible that the same candidate is in the move set.
-        // Hence we store the applied moves to avoid duplicates.
-        ParticleSet vAppliedParticles = new ParticleSet();
-        ArrayList<Integer> vAppliedParticleOrigLabels = new ArrayList<>();
-
-        // Iterate the candidates, calculate the energy and perform the moves.
-        float vTotEnergyDiff = 0;
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            Particle vParticleA = vCandidateMoveVec[i];
-            Particle vParticleB = vPartnerMoveVec[i];
-
-            // apply particle A and B, start with B:
-            int vN = (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) ? 2 : 1;
-            for (; vN > 0; --vN) {
-
-                // it is necessary that we start with particle B as we have
-                // to calculate Q(A|B) and Qb(B|A).
-                Particle vCurrentMinimalParticle = null;
-                int vOriginalLabel;
-                if (vN > 1) {
-                    vCurrentMinimalParticle = vParticleB;
-                    vOriginalLabel = vLabelsBeforeJump_B[i];
-                }
-                else {
-                    vCurrentMinimalParticle = vParticleA;
-                    vOriginalLabel = vLabelsBeforeJump_A[i];
-                }
-
-                // We calculate the energy and apply them move iff
-                // - the move has not been performed beforehand (a particle was sampled twice)
-                // - THE FOLLOWING IS CURRENTLY A NON ISSUE AS B CANNOT BE A':
-                // particle B is not the reverse particle of particle A (in case of m_usePairProposals, i.e. vN > 1). This is important
-                // because the energy update gets corrupted as particle B is not a valid particle before A was applied. To resolve this
-                // we just perform a one particle move (we don't apply B).
-                if (!vAppliedParticles.contains(vCurrentMinimalParticle)) {
-                    // Calculate the energy difference when changing this candidate:
-                    vTotEnergyDiff += calculateEnergyDifference(vCurrentMinimalParticle.iIndex, vOriginalLabel, vCurrentMinimalParticle.iCandidateLabel, iIntensityImage.get(vCurrentMinimalParticle.iIndex));
-                    applyParticle(vCurrentMinimalParticle, false);
-                    vAppliedParticles.insert(vCurrentMinimalParticle);
-                    vAppliedParticleOrigLabels.add(vOriginalLabel);
-                }
-
-                // Calculate Q(A|B) and Qb(B|A) in case we moved B only; this is when vN == 2.
-                if (vN == 2) {
-                    // Get the neighbors (conditional particles) and sum up  their proposal values; this is the normalizer for the discrete probability Q(A|B)
-                    ParticleSet vParts_Q_AgivenB = getRegularParticlesInFgNeighborhood(vParticleB.iIndex, new ParticleSet());
-                    // add particle B as this is always a candidate as well
-                    vParticleB.iProposal = calculateProposal(vParticleB.iIndex);
-                    vParts_Q_AgivenB.insert(vParticleB);
-
-                    if (iSettings.useBiasedProposal) {
-                        float vNormalizer_Q_A_B = 0;
-                        for (int vPI = 0; vPI < vParts_Q_AgivenB.size(); vPI++) {
-                            vNormalizer_Q_A_B += vParts_Q_AgivenB.get(vPI).iProposal;
-                        }
-                        // vParticleA.m_Proposal is not valid anymore. Particle A got a new proposal when applying particle B.
-                        vq_A_B[i] = calculateProposal(vParticleA.iIndex) / vNormalizer_Q_A_B;
-                    }
-                    else {
-                        vq_A_B[i] = 1.0f / vParts_Q_AgivenB.size();
-                    }
-
-                    // create A'
-                    Particle vReverseParticleA = new Particle(vParticleA.iIndex, vLabelsBeforeJump_A[i], calculateProposal(vParticleA.iIndex));
-
-                    // Calculate Qb(B'|A')
-                    ParticleSet vParts_Qb_BgivenA = getRegularParticlesInFgNeighborhood(vParticleA.iIndex, new ParticleSet());
-                    vParts_Qb_BgivenA.insert(vReverseParticleA);
-                    if (iSettings.useBiasedProposal) {
-                        float vNormalizer_Qb_B_A = 0;
-                        for (int vPI = 0; vPI < vParts_Qb_BgivenA.size(); vPI++) {
-                            vNormalizer_Qb_B_A += vParts_Qb_BgivenA.get(vPI).iProposal;
-                        }
-                        // the proposal of the backward particle (given A) is:
-                        float vProposalBb = calculateProposal(vParticleB.iIndex);
-                        vqb_B_A[i] = vProposalBb / vNormalizer_Qb_B_A;
-                    }
-                    else {
-                        vqb_B_A[i] = 1.0f / vParts_Qb_BgivenA.size();
-                    }
-                }
-            }
-        }
-
-        boolean vHardReject = false;
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            // Correct the containers whenever floating particles were involved: The method moveParticles, for simplicity, only works on the regular particle set.
-
-            // First, figure out if A' or B' is floating:
-            Particle vParticleA = vCandidateMoveVec[i];
-            Particle vParticleB = vPartnerMoveVec[i];
-
-            // Figure out if the backward particles are floating:
-            if (iSettings.usePairProposal) {
-                vParticle_Bb_IsFloating[i] = isParticleFloating(vParticleB.iIndex, vLabelsBeforeJump_B[i]);
-            }
-            else {
-                // if we're not in pair proposal mode we did not yet check if A's reverse particle is floating (else we did already):
-                vParticle_Ab_IsFloating[i] = isParticleFloating(vParticleA.iIndex, vLabelsBeforeJump_A[i]);
-            }
-
-            Particle vReverseFloatingP = null;
-            // the first condition is needed when not using pair proposal mode
-            if (vParticle_Ab_IsFloating[i]) {
-                vReverseFloatingP = new Particle(vCandidateMoveVec[i].iIndex, vLabelsBeforeJump_A[i], calculateProposal(vCandidateMoveVec[i].iIndex));
-            }
-            // in pair proposal, if A' is floating, B' is as well (they are (not always) the same particle) - TBI why
-            if (iSettings.usePairProposal && vParticle_Bb_IsFloating[i]) {
-                vReverseFloatingP = new Particle(vPartnerMoveVec[i].iIndex, vLabelsBeforeJump_B[i], calculateProposal(vPartnerMoveVec[i].iIndex));
-            }
-
-            // finally convert the regular particle into a floating particle,  i.e. insert it in the floating DS and remove it from the regular:
-            if (vParticle_Ab_IsFloating[i] || vParticle_Bb_IsFloating[i]) {
-                // insert the reverse particle in the appropriate container. If there is no space, we reject the move.
-                if (!(insertFloatingParticle(vReverseFloatingP, true))) {
-                    vHardReject = true; //TODO: we could end iteration here since it will be rejected anyway
-                }
-            }
-        }
-
-        // We are now in the state x'. Calculate Q'(A) and maybe Q'(B). Note that this has to be done after all particles were applied.
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            Particle vParticleA = vCandidateMoveVec[i];
-            Particle vParticleB = vPartnerMoveVec[i];
-
-            // Calculate vqb_A and vqb_B
-            if (!iSettings.useBiasedProposal) {
-                vqb_A[i] = 1.0f;
-                vqb_B[i] = 1.0f;
-            }
-            else {
-                vqb_A[i] = calculateProposal(vParticleA.iIndex);
-                if (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) {
-                    vqb_B[i] = calculateProposal(vParticleB.iIndex);
-                }
-            }
-            // Normalize vqb_A and vqb_B
-            float vqb_A_normalizer = (vParticle_Ab_IsFloating[i]) ? (iFloatingParticlesProposalNormalizer) : getProposalNormalizer(vParticleA.iCandidateLabel, vLabelsBeforeJump_A[i]);
-            vqb_A[i] = vqb_A[i] / vqb_A_normalizer;
-            if (iSettings.usePairProposal && !vSingleParticleMoveForPairProposals) {
-                float vqb_B_normalizer = vParticle_Bb_IsFloating[i] ? (iFloatingParticlesProposalNormalizer) : getProposalNormalizer(vParticleB.iCandidateLabel, vLabelsBeforeJump_B[i]);
-                vqb_B[i] = vqb_B[i] / vqb_B_normalizer;
-            }
-
-            // Finally, we omit half of the calculations if particle A == B
-            if (vSingleParticleMoveForPairProposals) {
-                vq_B[i] = vq_A[i];
-                vq_A_B[i] = vq_B_A[i];
-                vqb_B_A[i] = vqb_A_B[i];
-                vqb_B[i] = vqb_A[i];
-            }
-        }
-        
-        // Calculate the forward-backward ratio:
-        float vForwardBackwardRatio = 1.0f;
-        for (int i = 0; i < iMcmcStepSize; ++i) {
-            if (iSettings.usePairProposal) {
-                if (vParticle_Ab_IsFloating[i] || vParticle_Bb_IsFloating[i] || vParticle_A_IsFloating[i]) {
-                    vForwardBackwardRatio *= (vqb_B[i] * vqb_A_B[i]) / (vq_A[i] * vq_B_A[i]);
-                }
-                else {
-                    vForwardBackwardRatio *= (vqb_A[i] * vqb_B_A[i] + vqb_B[i] * vqb_A_B[i]) / (vq_A[i] * vq_B_A[i] + vq_B[i] * vq_A_B[i]);
-                }
-            }
-            else {
-                if (vParticle_A_IsFloating[i]) {
-                    // we distroy a floating particle, in the next iteration there will be one floating particle less, hence the probability
-                    // in the x' to sample a floating particle is (note that both normalizers are in state x'):
-                    float vPProposeAFloatInXb = iFloatingParticlesProposalNormalizer / (iFloatingParticlesProposalNormalizer + iTotalNormalizer);
-                    vForwardBackwardRatio *= 0.5f * (1 - vPProposeAFloatInXb) / probabilityOfFloatingParticle;
-                    vForwardBackwardRatio *= vqb_A[i] / vq_A[i];
-                }
-                else if (vParticle_Ab_IsFloating[i]) {
-                    // we create a floating particle, in the next iteration there will be one floating particle more, hence the probability
-                    // in the x' to sample a floating particle is (note that iTotalNormalizer is updated to x'):
-                    float vPProposeAFloatInXb = iFloatingParticlesProposalNormalizer / (iFloatingParticlesProposalNormalizer + iTotalNormalizer);
-                    vForwardBackwardRatio *= vPProposeAFloatInXb / (0.5f * (1 - probabilityOfFloatingParticle));
-                    vForwardBackwardRatio *= vqb_A[i] / vq_A[i];
-                }
-                else {
-                    // Shrink and growth events have the same probability. We hence only need to compare the individual particle ratios.
-                    vForwardBackwardRatio *= vqb_A[i] / vq_A[i];
-                }
-            }
-        }
-        
-        // Should I stay or should I go; the Metropolis-Hastings algorithm:
-        float vHastingsRatio = (float) Math.exp(-vTotEnergyDiff / iMcmcTemperature) * vForwardBackwardRatio;
-        boolean vAccept = (vHastingsRatio >= 1) ?
-                          true :
-                          (vHastingsRatio > iRng.GetUniformVariate(0, 1)) ? true : false;
-        
-        // Register the result (if we accept) or rollback to the previous state.
-        if (vAccept && !vHardReject) {
-            for (int i = 0; i < vAppliedParticles.size(); ++i) {
-                storeResult(vAppliedParticles.get(i).iIndex, vAppliedParticleOrigLabels.get(i), iIterationCounter);
-            }
-        }
-        else {
-            rejectParticles(vAppliedParticles, vAppliedParticleOrigLabels);
-        }
-
-        return vAccept;
-    }
-
-    private void rejectParticles(ParticleSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
-        // First, recover the theoretical state:
-        // - recover the label image
-        // - recover the particle set
-        // As we have some (redundant) speedup statistics we also need to:
-        // - recover the statistics (by simulation of the backward particle)
-        // - recover the proposal normalizers (taken care of within the insertion/deletion methods).
-        for (int i = iParticlesHistory.size() - 1; i >= 0; --i) {
-            ParticleHistoryElement phe = iParticlesHistory.get(i);
-            if (phe.wasAdded) {
-                eraseCandidatesFromContainers(phe.particle, phe.originalLabel, false);
-            }
-            else {
-                insertCandidatesToContainers(phe.particle, phe.originalLabel, false);
-            }
-        }
-
-        for (int i = iFloatingParticlesHistory.size() - 1; i >= 0; --i) {
-            ParticleHistoryElement phe = iFloatingParticlesHistory.get(i);
-            if (phe.wasAdded) {
-                eraseFloatingParticle(phe.particle, false);
-            }
-            else {
-                insertFloatingParticleCumulative(phe.particle, false);
-            }
-        }
-
-        // recover the label image:
-        for (int i = iLabelImageHistory.size() - 1; i >= 0; --i) {
-            LabelImageHistoryEvent lihe = iLabelImageHistory.get(i);
-            iLabelImage.setLabel(lihe.index, lihe.label);
-        }
-
-        // recover the statistics:
-        for (int i = aOrigLabels.size() - 1; i >= 0; --i) {
-            Particle vP = aAppliedParticles.get(i);
-            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(vP.iIndex), vP.iCandidateLabel, aOrigLabels.get(i), iLabelStatistics);
-        }
-    }
-
-    private void insertFloatingParticleCumulative(Particle aParticle, boolean aDoRecord) {
-        int index = iFloatingParticles.getIndex(aParticle);
-
-        Particle vParticleInserted = null;
-        if (index == -1) {
-            // the particle did not yet exist
-            vParticleInserted = aParticle;
-        }
-        else {
-            // TODO: Investigate if this else {... } is ever executed 
-            // The element did already exist. We add up the proposal and insert the element again (in order to overwrite).
-            vParticleInserted = new Particle(iFloatingParticles.get(index));
-            vParticleInserted.iProposal += aParticle.iProposal;
-        }
-
-        iFloatingParticlesProposalNormalizer += aParticle.iProposal;
-        iFloatingParticles.insert(vParticleInserted);
-
-        if (aDoRecord) {
-            iFloatingParticlesHistory.add(new ParticleHistoryElement(aParticle, 0, true));
-        }
-    }
-
-    private void storeResult(int aCandidateIndex, int aLabelBefore, int aIteration) {
-        List<McmcResult> resultsForIndex = iMcmcResults.get(aCandidateIndex);
-        if (resultsForIndex == null) {
-            resultsForIndex = new ArrayList<>();
-            iMcmcResults.put(aCandidateIndex, resultsForIndex);
-        }
-        resultsForIndex.add(new McmcResult(aIteration, aLabelBefore));
-    }
-
-    private float calculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
-        ContourParticle contourCandidate = new ContourParticle(aCurrentLabel, aImgValue);
-        EnergyResult res = iImageModel.calculateDeltaEnergy(iLabelImage.indexToPoint(aIndex), contourCandidate, aToLabel, iLabelStatistics);
-
-        return res.energyDifference.floatValue();
-    }
-
-    private void applyParticle(Particle aCandidateParticle, boolean aDoSimulate) {
-        // Maintain the regular particle container and the label image:
-        addAndRemoveParticlesWhenMove(aCandidateParticle);
-
-        // Update the label image. The new point is either a contour particle or 0,
-        // therefore the negative label value is set.
-        int vFromLabel = iLabelImage.getLabelAbs(aCandidateParticle.iIndex);
-
-        int vSign = -1; // standard sign of the label image of boundary particles
-        if (iLabelImage.isEnclosedByLabelBgConnectivity(aCandidateParticle.iIndex, aCandidateParticle.iCandidateLabel)) {
-            // we created a floating particle.
-            vSign = 1;
-        }
-
-        storeLabelImageHistory(aCandidateParticle.iIndex, iLabelImage.getLabel(aCandidateParticle.iIndex));
-        iLabelImage.setLabel(aCandidateParticle.iIndex, vSign * aCandidateParticle.iCandidateLabel);
-
-        // Update the statistics of the propagating and the loser region.
-        if (!aDoSimulate) {
-            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(aCandidateParticle.iIndex), vFromLabel, aCandidateParticle.iCandidateLabel, iLabelStatistics);
-        }
-
-        // Update the proposals for all particles in the neighborhood (as they might have changed).
-        if (iSettings.useBiasedProposal || (!iSettings.allowFission || !iSettings.allowHandles)) {
-            updateProposalsAndFilterTopologyInNeighborhood(aCandidateParticle);
-        }
-    }
-
-    // Updates the DS (label image and the regular particle containers) when applying a particle. Note that floating particles will not be updated!
-    // The method only ensures that L and the regular particles are correct. The method expects the label image NOT to be updated already. Else the
-    // operations performed will be wrong.
-    private void addAndRemoveParticlesWhenMove(Particle aCandidateParticle) {
-        int candidateIndex = aCandidateParticle.iIndex;
-        int absLabelTo = aCandidateParticle.iCandidateLabel;
-        int absLabelFrom = iLabelImage.getLabelAbs(candidateIndex);
-
-        // We remove the particle and insert the reverse particle: we cannot decide if the reverse particle is indeed.
-        // The solution is that this method only works on the regular particle set. Floating particles will be detected and treated outside of
-        // this method. Here we omit the potential insertion of floating particles.
-        // In order to (maybe) replace the particle with its reverse particle we: Simulate the move, calculate the proposal for the backward particle,
-        // create the backward particle, check if the backward particle is floating, and finally restore the label image:
-        int savedOrigLabel = iLabelImage.getLabel(candidateIndex);
-        iLabelImage.setLabel(candidateIndex, -absLabelTo);
-        Particle reverseParticle = new Particle(candidateIndex, absLabelFrom, calculateProposal(candidateIndex));
-        boolean reverseParticleIsFloating = isParticleFloating(reverseParticle.iIndex, reverseParticle.iCandidateLabel);
-        iLabelImage.setLabel(candidateIndex, savedOrigLabel);
-        if (!reverseParticleIsFloating) {
-            insertCandidatesToContainers(reverseParticle, absLabelTo, true);
-        }
-
-        // erase the currently applied particle (if its floating this will not hurt to call erase here).
-        eraseCandidatesFromContainers(new Particle(candidateIndex, absLabelTo, 0), absLabelFrom, true);
-        
-        // Since we are storing the parents separately for each region, the following patch is needed. 
-        // We need to shift the mother particle into the parents container of each others region.
-        if (absLabelFrom != 0 && absLabelTo != 0) {
-            Particle p = new Particle(candidateIndex, 0, calculateProposal(candidateIndex));
-            eraseCandidatesFromContainers(p, absLabelFrom, true);
-            insertCandidatesToContainers(p, absLabelTo, true);
-        }
-
-        // What particle would be added or removed to the contour lists of the currently shrinking region.
-        // FG region is shrinking:
-        if (absLabelFrom != 0) { 
-            for (int offset : iBgNeighborsIndices) {
-                int index = candidateIndex + offset;
-                int label = iLabelImage.getLabel(index);
-                // Check if new points enter the contour (internal point becomes a parent):
-                // Internal points of this region are positive:
-                if (label > 0 && Math.abs(label) == absLabelFrom) {
-                    boolean notExisted = insertCandidatesToContainers(new Particle(index, 0, calculateProposal(index)), absLabelFrom, true);
-                    if (notExisted) {
-                        iLabelImage.setLabel(index, -absLabelFrom);
-                        storeLabelImageHistory(index, label);
-                    }
-                }
-            }
-
-            for (int i = 0; i < iFgNeighborsOffsets.length; ++i) {
-                int index = candidateIndex + iFgNeighborsIndices[i];
-                int label = iLabelImage.getLabel(index);
-                if (iLabelImage.isBorderLabel(label)) continue;
-
-                // check if there are FG-neighbors with no other mother of the same label --> orphan. we first 'simulate' the move:
-                int savedLabel = iLabelImage.getLabel(candidateIndex);
-                iLabelImage.setLabel(candidateIndex, -absLabelTo);
-
-                if (Math.abs(label) != absLabelFrom) {
-                    // check if this neighbor has other mothers from this label:
-                    boolean hasOtherMother = false;
-                    for (Point vOff2 : iFgNeighborsOffsets) {
-                        int vL2 = iLabelImage.getLabelAbs(candidateIndex + iLabelImage.pointToIndex(vOff2.add(iFgNeighborsOffsets[i])));
-                        if (vL2 == absLabelFrom) {
-                            hasOtherMother = true;
-                            break;
-                        }
-                    }
-                    if (!hasOtherMother) {
-                        // The orphin has label equal to what we read from the label image and has a candidate label of the currently shrinking region.
-                        // The proposal is not important; we delete the value
-                        eraseCandidatesFromContainers(new Particle(index, absLabelFrom, 0), Math.abs(label), true);
-                    }
-                }
-                iLabelImage.setLabel(candidateIndex, savedLabel);
-            }
-        }
-
-        // Growing: figure out the changes of candidates for the expanding region
-        if (absLabelTo != 0) { // we are growing
-            // Neighbors: Figure out what (neighboring)mother points are going to be interior points: simulate the move
-            int vStoreLabel1 = iLabelImage.getLabel(candidateIndex);
-            iLabelImage.setLabel(candidateIndex, -absLabelTo);
-
-            for (int vOff : iBgNeighborsIndices) {
-                int index = candidateIndex + vOff;
-                int vL = iLabelImage.getLabel(index);
-                if (vL == -absLabelTo && iLabelImage.isEnclosedByLabelBgConnectivity(index, absLabelTo)) {
-                    // Remove the parent that got enclosed; it had a the label of the currently expanding region and a candidate label of 0.
-                    eraseCandidatesFromContainers(new Particle(index, 0, 0), absLabelTo, true);
-                    
-                    // update the label image (we're not using the update mechanism of the optimizer anymore):
-                    iLabelImage.setLabel(index, Math.abs(vL));
-
-                    storeLabelImageHistory(index, vL);
-                }
-            }
-            iLabelImage.setLabel(candidateIndex, vStoreLabel1);
-
-            // Figure out if a point renders to a candidate. These are all the FG-neighbors with a different label that are not yet
-            // candidates of the currently expanding region.
-            for (int i = 0; i < iFgNeighborsOffsets.length; ++i) {
-                int index = candidateIndex + iFgNeighborsIndices[i];
-                int label = iLabelImage.getLabel(index);
-                int absLabel = Math.abs(label);
-                if (absLabel != absLabelTo && !iLabelImage.isBorderLabel(absLabel)) {
-                    // check if there is no other mother (hence the particle is not in the container yet). This we could do by checking the
-                    // neighborhood of the label image or by checking the containers.
-                    // Here: we check the (not yet updated!) label image.
-                    boolean vHasOtherMother = false;
-                    for (Point vOff2 : iFgNeighborsOffsets) {
-                        int vL2 = iLabelImage.getLabelAbs(candidateIndex + iLabelImage.pointToIndex(vOff2.add(iFgNeighborsOffsets[i])));
-                        if (vL2 == absLabelTo) {
-                            vHasOtherMother = true;
-                            break;
-                        }
-                    }
-                    if (!vHasOtherMother) {
-                        // This is a new child. It's current label we have to read from the label image, the candidate label is the label of the currently expanding region.
-                        boolean vNotExisted = insertCandidatesToContainers(new Particle(index, absLabelTo, calculateProposal(index)), absLabel, true);
-                        if (vNotExisted) {
-                            iLabelImage.setLabel(index, -absLabel);
-                            storeLabelImageHistory(index, label);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean isParticleFloating(int aIndex, int aCandLabel) {
-        if (aCandLabel > 0) {
-            // This is a daughter. It is floating if there is no mother, i.e. if there is no corresponding region in the FG neighborhood.
-            return iLabelImage.isSingleFgPoint(aIndex, aCandLabel);
-        }
-        // else: this is a potential mother (candidate label is 0). According to the BG connectivity it fulfills the floating property
-        // only if there is no other region in the BG neighborhood. Otherwise this pixel might well go to the BG label without changing the topo.
-        return iLabelImage.isEnclosedByLabelBgConnectivity(aIndex, iLabelImage.getLabelAbs(aIndex));
-    }
-
-    private float getProposalNormalizer(int aCurrentLabel, int aCandidateLabel) {
-        return (aCandidateLabel == 0) ? 
-                    iParentsProposalNormalizer.get(aCurrentLabel) : 
-                    iChildrenProposalNormalizer.get(aCandidateLabel);
-    }
-
-    private boolean isRegularParticle(Particle aParticle, int aCurrentLabel) {
-        return (aParticle.iCandidateLabel == LabelImage.BGLabel) ? 
-                    iParents.get(aCurrentLabel).contains(aParticle) : 
-                    iChildren.get(aParticle.iCandidateLabel).contains(aParticle);
-    }
-
-    // ================================= CLEANED UP ===================================================
     
     // Input for Algorithm
     private final LabelImage iLabelImage;
@@ -927,27 +113,763 @@ public class AlgorithmDRS {
     private List<LabelImageHistoryEvent> iLabelImageHistory = new ArrayList<>();
     
     // Constant Parameters
-    private int iMcmcStepSize = 1; // 32 is maximum value (no reason found yet)
+    private int iMcmcStepSize = 1; // 32 is maximum value (seems that might be at max NumberOfSamplesForBiasedProposalApproximation + 2)
     private float iMcmcTemperature = 1;
     
-    // Working containers needed for each iteration hence created once here.
-    private float[] vq_A = new float[iMcmcStepSize];
-    private float[] vq_B = new float[iMcmcStepSize];
-    private float[] vq_A_B = new float[iMcmcStepSize];
-    private float[] vq_B_A = new float[iMcmcStepSize];
-    private float[] vqb_A = new float[iMcmcStepSize];
-    private float[] vqb_B = new float[iMcmcStepSize];
-    private float[] vqb_A_B = new float[iMcmcStepSize];
-    private float[] vqb_B_A = new float[iMcmcStepSize];
-    private int[] vLabelsBeforeJump_A = new int[iMcmcStepSize];
-    private int[] vLabelsBeforeJump_B = new int[iMcmcStepSize];
-    private boolean[] vParticle_Ab_IsFloating = new boolean[iMcmcStepSize];
-    private boolean[] vParticle_Bb_IsFloating = new boolean[iMcmcStepSize];
-    private boolean[] vParticle_A_IsFloating = new boolean[iMcmcStepSize];
-    private Particle[] vCandidateMoveVec = new Particle[iMcmcStepSize];
-    private Particle[] vPartnerMoveVec = new Particle[iMcmcStepSize];
+    // Working containers (proposals, labels and floting info) needed for each iteration hence created once here.
+    private float[] Q_A = new float[iMcmcStepSize];
+    private int[] currentLabelAtParticleA = new int[iMcmcStepSize];
+    private Particle[] candidateToMoveParticleA = new Particle[iMcmcStepSize];
+    private float[] Q_B = new float[iMcmcStepSize];
+    private int[] currentLabelAtParticleB = new int[iMcmcStepSize];
+    private Particle[] partnerToMoveParticleB = new Particle[iMcmcStepSize];
+    private float[] Q_A_B = new float[iMcmcStepSize];
+    private float[] Q_B_A = new float[iMcmcStepSize];
+    private float[] Qb_A = new float[iMcmcStepSize];
+    private float[] Qb_B = new float[iMcmcStepSize];
+    private float[] Qb_A_B = new float[iMcmcStepSize];
+    private float[] Qb_B_A = new float[iMcmcStepSize];
+    private boolean[] isParticleAfloating = new boolean[iMcmcStepSize];
+    private boolean[] isParticleAbFloating = new boolean[iMcmcStepSize];
+    private boolean[] isParticleBbFloating = new boolean[iMcmcStepSize];
     
-    // ------------------------- methods -------------------------------------------------------------
+    
+    public AlgorithmDRS(IntensityImage aIntensityImage, LabelImage aLabelImage, ImageModel aModel, SettingsDRS aSettings) {
+        logger.debug("DRS algorithm created with settings:" + Debug.getJsonString(aSettings));
+
+        // Save input parameters
+        iLabelImage = aLabelImage;
+        iIntensityImage = aIntensityImage;
+        logger.debug("Generating edge image");
+        iEdgeImage = generateEdgeImage(iIntensityImage);
+        iImageModel = aModel;
+        iSettings = aSettings;
+
+        // Initialize label image
+        iLabelImage.initBorder();
+
+        logger.debug("Initializing conectivities");
+        initConnectivities();
+        logger.debug("Initializing distribution");
+        initEdgeDistribution();
+        logger.debug("Initializing length proposal");
+        initLenghtProposal();
+        logger.debug("Initializing labels");
+        initLabels();
+        logger.debug("Initializing statistics");
+        LabelStatisticToolbox.initStatistics(iLabelImage, iIntensityImage, iLabelStatistics);
+    }
+    
+    /**
+     * Init FG and BG connectivities and topological function
+     */
+    private void initConnectivities() {
+        iFgNeighborsOffsets = iLabelImage.getConnFG().getPointOffsets();
+        iFgNeighborsIndices = new int[iFgNeighborsOffsets.length];
+        for (int i = 0; i < iFgNeighborsOffsets.length; ++i) iFgNeighborsIndices[i] = iLabelImage.pointToIndex(iFgNeighborsOffsets[i]); 
+        
+        iBgNeighborsOffsets = iLabelImage.getConnBG().getPointOffsets();
+        iBgNeighborsIndices = new int[iBgNeighborsOffsets.length];
+        for (int i = 0; i < iBgNeighborsOffsets.length; ++i) iBgNeighborsIndices[i] = iLabelImage.pointToIndex(iBgNeighborsOffsets[i]); 
+
+        iTopoFunction = new TopologicalNumber(iLabelImage);
+    }
+    
+    /**
+     * Init Length Proposal
+     */
+    private void initLenghtProposal() {
+        if (iSettings.useBiasedProposal) {
+            iLengthProposalMask = new float[iBgNeighborsOffsets.length];
+            for (int i = 0; i < iBgNeighborsOffsets.length; ++i) {
+                iLengthProposalMask[i] = (float) (1.0 / iBgNeighborsOffsets[i].length());
+            }
+        }
+    }
+    
+    /**
+     * Init labels and parent/children normalizer from input label image
+     * Marks by -labelValue all places that are topoligaccly valid for change in label image
+     */
+    private void initLabels() {
+        // By default add background
+        iLabels.add(LabelImage.BGLabel);
+        iParentsProposalNormalizer.put(LabelImage.BGLabel, 0f);
+        iChildrenProposalNormalizer.put(LabelImage.BGLabel, 0f);
+        iTotalNormalizer = 0.0f;
+
+        // Register all labels from lableImage
+        Set<Integer> visitedLabels = new HashSet<>();
+        visitedLabels.add(LabelImage.BGLabel);
+        final Iterator<Integer> ri = new SpaceIterator(iLabelImage.getDimensions()).getIndexIterator();
+        while (ri.hasNext()) {
+            final int idx = ri.next();
+            int label = iLabelImage.getLabel(idx);
+            if (iLabelImage.isBorderLabel(label)) continue;
+
+            // Add if not added so far
+            int labelAbs = iLabelImage.labelToAbs(label);
+            if (!visitedLabels.contains(labelAbs)) {
+                visitedLabels.add(labelAbs);
+                iLabels.add(label);
+                iParentsProposalNormalizer.put(labelAbs, 0f);
+                iChildrenProposalNormalizer.put(labelAbs, 0f);
+            }
+            // Add all regular particles at this spot
+            for (Particle particle : getRegularParticles(idx, new ParticleSet())) {
+                if (isParticleTopoValid(particle)) {
+                    insertCandidatesToContainers(particle, label, false);
+                    iLabelImage.setLabel(idx, -labelAbs);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Runs single iteration and counts accepted moves
+     */
+    public void runOneIteration() {
+        ++iIterationCounter;
+        iAcceptedMoves += runIteration() ? 1 : 0;
+        if (iIterationCounter == iSettings.maxNumOfIterations) {
+            logger.info("Overall acceptance rate: " + ((float) iAcceptedMoves / iIterationCounter));
+        }
+    }
+    
+    private boolean runIteration() {
+        // These list will help to revert the move in case it gets rejected.
+        iParticlesHistory.clear();
+        iFloatingParticlesHistory.clear();
+        iLabelImageHistory.clear();
+        
+        // Cleanup working containers (the rest of them will be overwritten anyway) 
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            isParticleAbFloating[i] = false;
+            isParticleBbFloating[i] = false;
+            isParticleAfloating[i] = false;
+        }
+
+        // In the burn-in phase we delete floating particles so it might happen.
+        if (iLabels.size() < 2) {
+            throw new IllegalStateException("No active region for MCMC available in iteration: " + iIterationCounter);
+        }
+        
+        // Sample a region label (a FG region number; without BG) and find the corresponding label
+        int sampledIndex = iRng.GetIntegerVariate(iLabels.size() - 2) + 1;
+        int sampledLabel = iLabels.get(sampledIndex);
+        
+        // --------------------------------------------------- off-boundary handling
+        if (iSettings.allowFission && iSettings.allowFusion && iSettings.offBoundarySampleProbability > 0) {
+            // off-boundary probability decreases to 0 when burn-in phase ends
+            float offBoundaryPerc = iSettings.offBoundarySampleProbability * (1.0f - iIterationCounter / (iSettings.burnInFactor * iSettings.maxNumOfIterations));
+            if ((offBoundaryPerc > 0) && (iRng.GetVariate() < offBoundaryPerc)) {
+                return sampleOffBoundary(sampledLabel);
+            }
+        }
+
+        // --------------------------------------------------- Find active candidates
+        boolean particleAisFloating = false;
+        ParticleSet activeCandidates = null;
+        double rand = iRng.GetUniformVariate(0.0, 1.0);
+        double probabilityOfFloatingParticle = iFloatingParticlesProposalNormalizer / (iTotalNormalizer + iFloatingParticlesProposalNormalizer);
+        if (rand < probabilityOfFloatingParticle) {
+            // We will choose one out of the floating particles
+            activeCandidates = iFloatingParticles;
+            particleAisFloating = true;
+        }
+        else { 
+            // divide range [probabilityOfFloatingParticle - 1] by 2 and decide children (growth) vs parents (shrink)
+            activeCandidates = (rand < (probabilityOfFloatingParticle + 1) / 2) ? iChildren.get(sampledLabel) : iParents.get(sampledLabel);
+        }
+        
+        if (activeCandidates.size() == 0) {
+            // This is an empty region. Maybe there exists a floating particle with no future for this region. 
+            // But if count == 0, it will not be accepted according to the definition of the energy. 
+            // We hence cleanup the statistics (kill the region).
+            resetLabelsToParents();
+            return false;
+        }
+
+        // ------------------------------ For each particle within the region, calculate the proposal and create a discrete distribution over particles
+        int approxedIndexOffset = 0;
+        IndexedDiscreteDistribution candidatesProposalsDistr = null;
+        if (iSettings.useBiasedProposal && !particleAisFloating) {
+            final int NumberOfSamplesForBiasedProposalApproximation = 30; // must be >= 1
+            int size = activeCandidates.size() < NumberOfSamplesForBiasedProposalApproximation ? activeCandidates.size() : NumberOfSamplesForBiasedProposalApproximation;
+            boolean approxedIndex = (size == NumberOfSamplesForBiasedProposalApproximation);
+            if (approxedIndex) approxedIndexOffset = iRng.GetIntegerVariate(activeCandidates.size() - 1);
+            double[] allParticlesProposals = new double[size];
+            for (int k = 0; k < size; ++k) {
+                int idx = (k + approxedIndexOffset) % activeCandidates.size();
+                allParticlesProposals[k] = activeCandidates.get(idx).iProposal;
+            }
+            candidatesProposalsDistr =  new IndexedDiscreteDistribution(iDistrRng, allParticlesProposals);
+        }
+
+        // ------------------------------ Find particle(s) A and udpate its proposals / canndidateToMove / currentLabel containers
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            int particleIndex;
+            if (iSettings.useBiasedProposal && !particleAisFloating && candidatesProposalsDistr != null) {
+                particleIndex = candidatesProposalsDistr.sample();
+                // calculate real index if proposal was calculated from subset of all particles
+                particleIndex = (particleIndex + approxedIndexOffset) % activeCandidates.size();
+                Q_A[i] = activeCandidates.get(particleIndex).iProposal;
+            }
+            else {
+                particleIndex = iRng.GetIntegerVariate(activeCandidates.size() - 1);
+                Q_A[i] = 1.0f;
+            }
+            Particle particleA = activeCandidates.get(particleIndex);
+            int currentAbsLabelAtA = iLabelImage.getLabelAbs(particleA.iIndex);
+            
+            if (particleAisFloating) {
+                isParticleAfloating[i] = true;
+
+                // Immediately accept the move (self transition) if the label at the particular position is the same. 
+                // Since this is a self transition we keep the particle in the proposals.
+                if (currentAbsLabelAtA == particleA.iCandidateLabel) {
+                    return false; // reject.
+                }
+                // reject (because the backward probability is 0)
+                if (isRegularParticle(particleA, currentAbsLabelAtA)) {
+                    return false;
+                }
+                // it will be processed but remove it from container first
+                eraseFloatingParticle(particleA, true);
+            }
+            
+            Q_A[i] /= (isParticleAfloating[i]) ? iFloatingParticlesProposalNormalizer :
+                                                 getProposalNormalizer(currentAbsLabelAtA, particleA.iCandidateLabel);
+            currentLabelAtParticleA[i] = currentAbsLabelAtA;
+            candidateToMoveParticleA[i] = particleA;
+        }
+
+        // In case of pair proposals, we find a partner for each proposed particle. We now know A and Q(A). 
+        // We build another (2nd step) discrete proposal distribution and sample from it to determine the partner particle B. 
+        // Furthermore we calculate the conditional proposal probability Q(B|A). Later we calculate the conditional Q(A|B). 
+        // The same then needs to be done for the backward probabilities Qb(A), Qb(B), Qb(A|B) and Qb(B|A). Notation:
+        // - Q is the forward and Qb the backward probability. 
+        // - A is a forward praticle and B' the backward particle.
+        // - Qb always assumes backward particles as its arguments! Hence, Qb_A_B is the probability Qb(A'|B').
+        boolean singleParticleMoveForPairProposals = false;
+        if (iSettings.usePairProposal) {
+            for (int i = 0; i < iMcmcStepSize; ++i) {
+                Particle particleA = candidateToMoveParticleA[i];
+                Particle vA = new Particle(particleA.iIndex, particleA.iCandidateLabel, calculateProposal(particleA.iIndex));
+                applyParticle(particleA, true);
+
+                // BTW we have to remember if A' is a floating particle in the state x -> A.
+                isParticleAbFloating[i] = isParticleFloating(particleA.iIndex, particleA.iCandidateLabel);
+
+                Particle vB;
+                // Get the particles involved in the second step of the proposal (with updated proposals)
+                ParticleSet particles_Q_B_A = getPartnerParticles(vA);
+                // Choose B from Q(B|A) and calculate Q(B|A).
+                if (iSettings.useBiasedProposal) {
+                    double[] proposals_Q_B_A = new double[particles_Q_B_A.size()];
+                    float normalizer_Q_B_A = 0;
+                    for (int k = 0; k < particles_Q_B_A.size(); ++k) {
+                        proposals_Q_B_A[k] = particles_Q_B_A.get(k).iProposal;
+                        normalizer_Q_B_A += proposals_Q_B_A[k];
+                    }
+                    IndexedDiscreteDistribution vQ_B_A = new IndexedDiscreteDistribution(iDistrRng, proposals_Q_B_A);
+                    vB = particles_Q_B_A.get(vQ_B_A.sample());
+                    Q_B_A[i] = vB.iProposal / normalizer_Q_B_A;
+                }
+                else {
+                    vB = particles_Q_B_A.get(iRng.GetIntegerVariate(particles_Q_B_A.size() - 1));
+                    Q_B_A[i] = 1.0f / particles_Q_B_A.size();
+                }
+
+                // store B (and its original label).
+                partnerToMoveParticleB[i] = vB;
+                currentLabelAtParticleB[i] = iLabelImage.getLabelAbs(vB.iIndex);
+                if (vB.iIndex == vA.iIndex && vB.iCandidateLabel == vA.iCandidateLabel) {
+                    singleParticleMoveForPairProposals = true;
+                    currentLabelAtParticleB[i] = currentLabelAtParticleA[i];
+                }
+
+                // Get the reverse particle of A (without proposal update as it is not necessary):
+                Particle vReverseParticleA = new Particle(particleA.iIndex, currentLabelAtParticleA[i], particleA.iProposal);
+
+                // In case that vA == vB, we must already undo the simulated move in order to calculate Q'(B'|A') (== Q'(A'|B'))
+                if (singleParticleMoveForPairProposals) applyParticle(vReverseParticleA, true);
+
+                // In the current state of the label image and the containers we can calculate Qb_A_B aka Q(A'|B') as well. 
+                // We assume now that B' was applied and we calculate the probability for A'.
+                // TODO: Original comment above claims that B' was applied but ... where? In original code B' is created but not used.
+                ParticleSet particles_Qb_A_B = getPartnerParticles(vB);
+                if (iSettings.useBiasedProposal) {
+                    float normalizer_Qb_A_B = 0;
+                    for (Particle p : particles_Qb_A_B) normalizer_Qb_A_B += p.iProposal;
+                    Qb_A_B[i] = calculateProposal(vA.iIndex) / normalizer_Qb_A_B;
+                }
+                else {
+                    Qb_A_B[i] = 1.0f / particles_Qb_A_B.size();
+                }
+
+                if (!singleParticleMoveForPairProposals) {
+                    applyParticle(vReverseParticleA, true); // undo the simulated move.
+                    // Now we can calculate Q_B (as we now know B and the original state has been recovered).
+                    Q_B[i] = 0f;
+                    if (isRegularParticle(vB, currentLabelAtParticleB[i])) {
+                        Q_B[i] = (iSettings.useBiasedProposal ? calculateProposal(vB.iIndex) : 1.0f) / getProposalNormalizer(currentLabelAtParticleB[i], vB.iCandidateLabel);
+                    }
+                }
+            }
+        }
+
+        // Currently it is possible that the same candidate is in the move set. Hence we store the applied moves to avoid duplicates.
+        ParticleSet appliedParticles = new ParticleSet();
+        ArrayList<Integer> appliedParticleOrigLabels = new ArrayList<>();
+
+        // Iterate the candidates, calculate the energy and perform the moves.
+        float energyDiff = 0;
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            Particle particleA = candidateToMoveParticleA[i];
+            Particle particleB = partnerToMoveParticleB[i];
+
+            // apply particle A and B, start with B - it is necessary that we start with particle B as we have to calculate Q(A|B) and Qb(B|A)
+            int numOfParticlesToApply = (iSettings.usePairProposal && !singleParticleMoveForPairProposals) ? 2 : 1;
+            for (; numOfParticlesToApply > 0; --numOfParticlesToApply) {
+                boolean shouldProcessB = (numOfParticlesToApply > 1);
+                Particle currentMinimalParticle = shouldProcessB ? particleB : particleA;
+                int originalLabel = shouldProcessB ? currentLabelAtParticleB[i] : currentLabelAtParticleA[i];
+
+                // We calculate the energy and apply them move iff
+                // - the move has not been performed beforehand (a particle was sampled twice)
+                // - THE FOLLOWING IS CURRENTLY A NON ISSUE AS B CANNOT BE A':
+                // particle B is not the reverse particle of particle A (in case of m_usePairProposals, i.e. vN > 1). This is important
+                // because the energy update gets corrupted as particle B is not a valid particle before A was applied. To resolve this
+                // we just perform a one particle move (we don't apply B).
+                if (!appliedParticles.contains(currentMinimalParticle)) {
+                    // Calculate the energy difference when changing this candidate:
+                    energyDiff += calculateEnergyDifference(currentMinimalParticle.iIndex, originalLabel, currentMinimalParticle.iCandidateLabel, iIntensityImage.get(currentMinimalParticle.iIndex));
+                    applyParticle(currentMinimalParticle, false);
+                    appliedParticles.insert(currentMinimalParticle);
+                    appliedParticleOrigLabels.add(originalLabel);
+                }
+
+                // Calculate Q(A|B) and Qb(B|A) in case we moved B only; this is when numOfParticlesToApply == 2.
+                if (shouldProcessB) {
+                    // Get the neighbors (conditional particles) and sum up  their proposal values; this is the normalizer for the discrete probability Q(A|B)
+                    ParticleSet particles_Q_A_B = getRegularParticlesInFgNeighborhood(particleB.iIndex);
+                    // add particle B as this is always a candidate as well
+                    particleB.iProposal = calculateProposal(particleB.iIndex);
+                    particles_Q_A_B.insert(particleB);
+                    if (iSettings.useBiasedProposal) {
+                        float normalizer_Q_A_B = 0;
+                        for (Particle p : particles_Q_A_B) normalizer_Q_A_B += p.iProposal;
+                        // vParticleA.m_Proposal is not valid anymore. Particle A got a new proposal when applying particle B.
+                        Q_A_B[i] = calculateProposal(particleA.iIndex) / normalizer_Q_A_B;
+                    }
+                    else {
+                        Q_A_B[i] = 1.0f / particles_Q_A_B.size();
+                    }
+
+                    // create A'
+                    Particle reverseParticleA = new Particle(particleA.iIndex, currentLabelAtParticleA[i], calculateProposal(particleA.iIndex));
+
+                    // Calculate Qb(B'|A')
+                    ParticleSet particles_Qb_B_A = getRegularParticlesInFgNeighborhood(particleA.iIndex);
+                    particles_Qb_B_A.insert(reverseParticleA);
+                    if (iSettings.useBiasedProposal) {
+                        float normalizer_Qb_B_A = 0;
+                        for (Particle p : particles_Qb_B_A) normalizer_Qb_B_A += p.iProposal;
+                        Qb_B_A[i] = calculateProposal(particleB.iIndex) / normalizer_Qb_B_A;
+                    }
+                    else {
+                        Qb_B_A[i] = 1.0f / particles_Qb_B_A.size();
+                    }
+                }
+            }
+        }
+
+        boolean hardReject = false;
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            // Correct the containers whenever floating particles were involved: The method moveParticles, for simplicity, only works on the regular particle set.
+
+            // First, figure out if A' or B' is floating:
+            Particle particleA = candidateToMoveParticleA[i];
+            Particle particleB = partnerToMoveParticleB[i];
+            if (iSettings.usePairProposal) {
+                isParticleBbFloating[i] = isParticleFloating(particleB.iIndex, currentLabelAtParticleB[i]);
+            }
+            else {
+                // if we're not in pair proposal mode we did not yet check if A's reverse particle is floating (else we did already):
+                isParticleAbFloating[i] = isParticleFloating(particleA.iIndex, currentLabelAtParticleA[i]);
+            }
+
+            Particle reverseFloatingParticle = null;
+            // the first condition is needed when not using pair proposal mode
+            if (isParticleAbFloating[i]) {
+                reverseFloatingParticle = new Particle(candidateToMoveParticleA[i].iIndex, currentLabelAtParticleA[i], calculateProposal(candidateToMoveParticleA[i].iIndex));
+            }
+            // in pair proposal, if A' is floating, B' is as well (they are (not always) the same particle) - TBI why
+            if (iSettings.usePairProposal && isParticleBbFloating[i]) {
+                reverseFloatingParticle = new Particle(partnerToMoveParticleB[i].iIndex, currentLabelAtParticleB[i], calculateProposal(partnerToMoveParticleB[i].iIndex));
+            }
+
+            // finally convert the regular particle into a floating particle,  i.e. insert it in the floating DS and remove it from the regular:
+            if (isParticleAbFloating[i] || isParticleBbFloating[i]) {
+                // insert the reverse particle in the appropriate container. If there is no space, we reject the move.
+                if (!(insertFloatingParticle(reverseFloatingParticle, true))) {
+                    hardReject = true;
+                }
+            }
+        }
+
+        // We are now in the state x'. Calculate Q'(A) and maybe Q'(B). Note that this has to be done after all particles were applied.
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            Particle particleA = candidateToMoveParticleA[i];
+            Particle particleB = partnerToMoveParticleB[i];
+
+            // Calculate Qb_A and Qb_B
+            if (!iSettings.useBiasedProposal) {
+                Qb_A[i] = 1.0f;
+                Qb_B[i] = 1.0f;
+            }
+            else {
+                Qb_A[i] = calculateProposal(particleA.iIndex);
+                if (iSettings.usePairProposal && !singleParticleMoveForPairProposals) {
+                    Qb_B[i] = calculateProposal(particleB.iIndex);
+                }
+            }
+            
+            // Normalize Qb_A and Qb_B
+            float normalizer_Qb_A = (isParticleAbFloating[i]) ? (iFloatingParticlesProposalNormalizer) : getProposalNormalizer(particleA.iCandidateLabel, currentLabelAtParticleA[i]);
+            Qb_A[i] /= normalizer_Qb_A;
+            if (iSettings.usePairProposal && !singleParticleMoveForPairProposals) {
+                float normalizer_Qb_B = isParticleBbFloating[i] ? (iFloatingParticlesProposalNormalizer) : getProposalNormalizer(particleB.iCandidateLabel, currentLabelAtParticleB[i]);
+                Qb_B[i] /= normalizer_Qb_B;
+            }
+
+            // Finally, we omit half of the calculations if particle A == B
+            if (singleParticleMoveForPairProposals) {
+                Q_B[i] = Q_A[i];
+                Q_A_B[i] = Q_B_A[i];
+                Qb_B_A[i] = Qb_A_B[i];
+                Qb_B[i] = Qb_A[i];
+            }
+        }
+        
+        // Calculate the forward-backward ratio:
+        float forwardBackwardRatio = 1.0f;
+        for (int i = 0; i < iMcmcStepSize; ++i) {
+            if (iSettings.usePairProposal) {
+                if (isParticleAbFloating[i] || isParticleBbFloating[i] || isParticleAfloating[i]) {
+                    forwardBackwardRatio *= (Qb_B[i] * Qb_A_B[i]) / (Q_A[i] * Q_B_A[i]);
+                }
+                else {
+                    forwardBackwardRatio *= (Qb_A[i] * Qb_B_A[i] + Qb_B[i] * Qb_A_B[i]) / (Q_A[i] * Q_B_A[i] + Q_B[i] * Q_A_B[i]);
+                }
+            }
+            else {
+                if (isParticleAfloating[i]) {
+                    // we distroy a floating particle, in the next iteration there will be one floating particle less, hence the probability
+                    // in the x' to sample a floating particle is (note that both normalizers are in state x'):
+                    float vPProposeAFloatInXb = iFloatingParticlesProposalNormalizer / (iFloatingParticlesProposalNormalizer + iTotalNormalizer);
+                    forwardBackwardRatio *= 0.5f * (1 - vPProposeAFloatInXb) / probabilityOfFloatingParticle;
+                    forwardBackwardRatio *= Qb_A[i] / Q_A[i];
+                }
+                else if (isParticleAbFloating[i]) {
+                    // we create a floating particle, in the next iteration there will be one floating particle more, hence the probability
+                    // in the x' to sample a floating particle is (note that iTotalNormalizer is updated to x'):
+                    float vPProposeAFloatInXb = iFloatingParticlesProposalNormalizer / (iFloatingParticlesProposalNormalizer + iTotalNormalizer);
+                    forwardBackwardRatio *= vPProposeAFloatInXb / (0.5f * (1 - probabilityOfFloatingParticle));
+                    forwardBackwardRatio *= Qb_A[i] / Q_A[i];
+                }
+                else {
+                    // Shrink and growth events have the same probability. We hence only need to compare the individual particle ratios.
+                    forwardBackwardRatio *= Qb_A[i] / Q_A[i];
+                }
+            }
+        }
+        
+        // Should I stay or should I go; the Metropolis-Hastings algorithm:
+        float hastingsRatio = (float) Math.exp(-energyDiff / iMcmcTemperature) * forwardBackwardRatio;
+        boolean accept = (hastingsRatio >= 1) ?
+                          true :
+                          (hastingsRatio > iRng.GetUniformVariate(0, 1)) ? true : false;
+        
+        // Register the result (if we accept) or rollback to the previous state.
+        if (!accept || hardReject) {
+            rejectParticles(appliedParticles, appliedParticleOrigLabels);
+        }
+        else {
+            for (int i = 0; i < appliedParticles.size(); ++i) {
+                storeResult(appliedParticles.get(i).iIndex, appliedParticleOrigLabels.get(i), iIterationCounter);
+            }
+        }
+
+        return accept;
+    }
+    
+    /**
+     * Init Edge distribution only if needed (off-boundary probability > 0)
+     */
+    private void initEdgeDistribution() {
+        if (iSettings.offBoundarySampleProbability > 0) {
+            iEdgeImageDistr = generateDiscreteDistribution(iEdgeImage, iDistrRng);
+        }
+    }
+    
+    /**
+     * Recover label image / particle set / statistics by going backward in history and reverting changes.
+     * @param aAppliedParticles
+     * @param aOrigLabels
+     */
+    private void rejectParticles(ParticleSet aAppliedParticles, ArrayList<Integer> aOrigLabels) {
+        // First, recover the theoretical state:
+        // - recover the label image
+        // - recover the particle set
+        // As we have some (redundant) speedup statistics we also need to:
+        // - recover the statistics (by simulation of the backward particle)
+        // - recover the proposal normalizers (taken care of within the insertion/deletion methods).
+        for (int i = iParticlesHistory.size() - 1; i >= 0; --i) {
+            ParticleHistoryElement phe = iParticlesHistory.get(i);
+            if (phe.wasAdded) {
+                eraseCandidatesFromContainers(phe.particle, phe.originalLabel, false);
+            }
+            else {
+                insertCandidatesToContainers(phe.particle, phe.originalLabel, false);
+            }
+        }
+
+        for (int i = iFloatingParticlesHistory.size() - 1; i >= 0; --i) {
+            ParticleHistoryElement phe = iFloatingParticlesHistory.get(i);
+            if (phe.wasAdded) {
+                eraseFloatingParticle(phe.particle, false);
+            }
+            else {
+                insertFloatingParticle(phe.particle, false);
+            }
+        }
+
+        // recover the label image:
+        for (int i = iLabelImageHistory.size() - 1; i >= 0; --i) {
+            LabelImageHistoryEvent lihe = iLabelImageHistory.get(i);
+            iLabelImage.setLabel(lihe.index, lihe.label);
+        }
+
+        for (int i = aOrigLabels.size() - 1; i >= 0; --i) {
+            Particle p = aAppliedParticles.get(i);
+            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(p.iIndex), p.iCandidateLabel, aOrigLabels.get(i), iLabelStatistics);
+        }
+    }
+    
+    /**
+     * Stores new mcmc result for candidateIndex
+     */
+    private void storeResult(int aCandidateIndex, int aLabelBefore, int aIteration) {
+        List<McmcResult> resultsForIndex = iMcmcResults.get(aCandidateIndex);
+        if (resultsForIndex == null) {
+            resultsForIndex = new ArrayList<>();
+            iMcmcResults.put(aCandidateIndex, resultsForIndex);
+        }
+        resultsForIndex.add(new McmcResult(aIteration, aLabelBefore));
+    }
+
+    /**
+     * @return energy difference when provided particle would change from current to aToLabel
+     */
+    private float calculateEnergyDifference(int aIndex, int aCurrentLabel, int aToLabel, float aImgValue) {
+        ContourParticle contourCandidate = new ContourParticle(aCurrentLabel, aImgValue);
+        EnergyResult res = iImageModel.calculateDeltaEnergy(iLabelImage.indexToPoint(aIndex), contourCandidate, aToLabel, iLabelStatistics);
+
+        return res.energyDifference.floatValue();
+    }
+    
+    /**
+     * Algorithm 7 from Cardinale2013 thesis.
+     */
+    private void applyParticle(Particle aCandidateParticle, boolean aDoSimulate) {
+        // Maintain the regular particle container and the label image
+        addAndRemoveParticlesWhenMove(aCandidateParticle);
+
+        // Remember old value for reverting if needed
+        storeLabelImageHistory(aCandidateParticle.iIndex, iLabelImage.getLabel(aCandidateParticle.iIndex));
+
+        // Set new value
+        int fromLabelOldValue = iLabelImage.getLabelAbs(aCandidateParticle.iIndex);
+        // Update the label image. The new point is either a contour particle or 0, therefore the negative label value is set.
+        int sign = -1; // standard sign of the label image of boundary particles
+        if (iLabelImage.isEnclosedByLabelBgConnectivity(aCandidateParticle.iIndex, aCandidateParticle.iCandidateLabel)) {
+            // we created a floating particle
+            sign = 1;
+        }
+        iLabelImage.setLabel(aCandidateParticle.iIndex, sign * aCandidateParticle.iCandidateLabel);
+
+        // Update the statistics of the propagating and the loser region.
+        if (!aDoSimulate) {
+            LabelStatisticToolbox.updateLabelStatistics(iIntensityImage.get(aCandidateParticle.iIndex), fromLabelOldValue, aCandidateParticle.iCandidateLabel, iLabelStatistics);
+        }
+
+        // Update the proposals for all particles in the neighborhood (as they might have changed).
+        if (iSettings.useBiasedProposal || (!iSettings.allowFission || !iSettings.allowHandles)) {
+            updateProposalsAndFilterTopologyInNeighborhood(aCandidateParticle);
+        }
+    }
+    
+    /** 
+     * Updates the label image and the regular particle containers when applying a particle. Note that floating particles will not be updated!
+     * The method only ensures that L and the regular particles are correct. The method expects the label image NOT to be updated already. 
+     */
+    private void addAndRemoveParticlesWhenMove(Particle aCandidateParticle) {
+        int candidateIndex = aCandidateParticle.iIndex;
+        int labelTo = aCandidateParticle.iCandidateLabel;
+        int origAbsLabelFrom = iLabelImage.getLabelAbs(candidateIndex);
+
+        // We remove the particle and insert the reverse particle: we cannot decide if the reverse particle is indeed.
+        // The solution is that this method only works on the regular particle set. Floating particles will be detected and treated outside of
+        // this method. Here we omit the potential insertion of floating particles.
+        // In order to (maybe) replace the particle with its reverse particle we: Simulate the move, calculate the proposal for the backward particle,
+        // create the backward particle, check if the backward particle is floating, and finally restore the label image:
+        int savedOrigLabel = iLabelImage.getLabel(candidateIndex);
+        iLabelImage.setLabel(candidateIndex, -labelTo);
+        Particle reverseParticle = new Particle(candidateIndex, origAbsLabelFrom, calculateProposal(candidateIndex));
+        boolean reverseParticleIsFloating = isParticleFloating(reverseParticle.iIndex, reverseParticle.iCandidateLabel);
+        iLabelImage.setLabel(candidateIndex, savedOrigLabel); //restore
+        if (!reverseParticleIsFloating) {
+            insertCandidatesToContainers(reverseParticle, labelTo, true);
+        }
+
+        // erase the currently applied particle (if its floating this will not hurt to call erase here).
+        eraseCandidatesFromContainers(aCandidateParticle, origAbsLabelFrom, true);
+        
+        // Since we are storing the parents separately for each region, the following patch is needed. 
+        // We need to shift the parent particle into the parents container of each others region. (see getRegularParticles for more info).
+        if (origAbsLabelFrom != LabelImage.BGLabel && labelTo != LabelImage.BGLabel) {
+            Particle p = new Particle(candidateIndex, LabelImage.BGLabel, calculateProposal(candidateIndex));
+            eraseCandidatesFromContainers(p, origAbsLabelFrom, true);
+            insertCandidatesToContainers(p, labelTo, true);
+        }
+
+        // What particle would be added or removed to the contour lists of the currently shrinking region.
+        // FG region is shrinking:
+        if (origAbsLabelFrom != 0) { 
+            for (int offset : iBgNeighborsIndices) {
+                int index = candidateIndex + offset;
+                int label = iLabelImage.getLabel(index);
+                // Check if new points enter the contour (internal point becomes a parent). Internal points of this region are positive:
+                if (label > 0 && label == origAbsLabelFrom) {
+                    boolean notExisted = insertCandidatesToContainers(new Particle(index, 0, calculateProposal(index)), origAbsLabelFrom, true);
+                    if (notExisted) {
+                        iLabelImage.setLabel(index, -origAbsLabelFrom);
+                        storeLabelImageHistory(index, label);
+                    }
+                }
+            }
+
+            for (int i = 0; i < iFgNeighborsOffsets.length; ++i) {
+                int index = candidateIndex + iFgNeighborsIndices[i];
+                int label = iLabelImage.getLabel(index);
+                if (iLabelImage.isBorderLabel(label)) continue;
+
+                // check if there are FG-neighbors with no other mother of the same label --> orphan. we first 'simulate' the move:
+                int savedOriginalLabel = iLabelImage.getLabel(candidateIndex);
+                iLabelImage.setLabel(candidateIndex, -labelTo);
+                if (Math.abs(label) != origAbsLabelFrom) {
+                    // check if this neighbor has other mothers from this label:
+                    boolean hasOtherMother = false;
+                    for (Point offset : iFgNeighborsOffsets) {
+                        int label2 = iLabelImage.getLabelAbs(candidateIndex + iLabelImage.pointToIndex(offset.add(iFgNeighborsOffsets[i])));
+                        if (label2 == origAbsLabelFrom) {
+                            hasOtherMother = true;
+                            break;
+                        }
+                    }
+                    if (!hasOtherMother) {
+                        // The orphin has label equal to what we read from the label image and has a candidate label of the currently shrinking region.
+                        // The proposal is not important; we delete the value
+                        eraseCandidatesFromContainers(new Particle(index, origAbsLabelFrom, 0), Math.abs(label), true);
+                    }
+                }
+                iLabelImage.setLabel(candidateIndex, savedOriginalLabel); // restore
+            }
+        }
+
+        // Growing: figure out the changes of candidates for the expanding region
+        if (labelTo != 0) { // we are growing
+            // Neighbors: Figure out what (neighboring)mother points are going to be interior points: simulate the move
+            int savedOriginalLabel = iLabelImage.getLabel(candidateIndex);
+            iLabelImage.setLabel(candidateIndex, -labelTo);
+            for (int offset : iBgNeighborsIndices) {
+                int index = candidateIndex + offset;
+                int label = iLabelImage.getLabel(index);
+                if (label == -labelTo && iLabelImage.isEnclosedByLabelBgConnectivity(index, labelTo)) {
+                    // Remove the parent that got enclosed; it had a the label of the currently expanding region and a candidate label of 0.
+                    eraseCandidatesFromContainers(new Particle(index, 0, 0), labelTo, true);
+                    
+                    // update the label image (we're not using the update mechanism of the optimizer anymore):
+                    iLabelImage.setLabel(index, Math.abs(label));
+                    storeLabelImageHistory(index, label);
+                }
+            }
+            iLabelImage.setLabel(candidateIndex, savedOriginalLabel); // restore
+
+            // Figure out if a point renders to a candidate. These are all the FG-neighbors with a different label that are not yet
+            // candidates of the currently expanding region.
+            for (int i = 0; i < iFgNeighborsOffsets.length; ++i) {
+                int index = candidateIndex + iFgNeighborsIndices[i];
+                int label = iLabelImage.getLabel(index);
+                int absLabel = Math.abs(label);
+                if (absLabel != labelTo && !iLabelImage.isBorderLabel(absLabel)) {
+                    // check if there is no other mother (hence the particle is not in the container yet). This we could do by checking the
+                    // neighborhood of the label image or by checking the containers.
+                    // Here: we check the (not yet updated!) label image.
+                    boolean hasOtherMother = false;
+                    for (Point vOff2 : iFgNeighborsOffsets) {
+                        int label2 = iLabelImage.getLabelAbs(candidateIndex + iLabelImage.pointToIndex(vOff2.add(iFgNeighborsOffsets[i])));
+                        if (label2 == labelTo) {
+                            hasOtherMother = true;
+                            break;
+                        }
+                    }
+                    if (!hasOtherMother) {
+                        // This is a new child. It's current label we have to read from the label image, the candidate label is the label of the currently expanding region.
+                        boolean notExisted = insertCandidatesToContainers(new Particle(index, labelTo, calculateProposal(index)), absLabel, true);
+                        if (notExisted) {
+                            iLabelImage.setLabel(index, -absLabel);
+                            storeLabelImageHistory(index, label);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    
+    /**
+     * @return true if particle is floating
+     */
+    private boolean isParticleFloating(int aParticleIndex, int aCandidateLabel) {
+        if (aCandidateLabel > 0) {
+            // This is a child. It is floating if there is no mother, i.e. if there is no corresponding region in the FG neighborhood.
+            return iLabelImage.isSingleFgPoint(aParticleIndex, aCandidateLabel);
+        }
+        // else: this is a potential parent (candidate label is 0). According to the BG connectivity it fulfills the floating property
+        // only if there is no other region in the BG neighborhood. Otherwise this pixel might well go to the BG label without changing the topo.
+        return iLabelImage.isEnclosedByLabelBgConnectivity(aParticleIndex, iLabelImage.getLabelAbs(aParticleIndex));
+    }
+    
+    /**
+     * @return proposal normalizer for given label(s)
+     */
+    private float getProposalNormalizer(int aCurrentLabel, int aCandidateLabel) {
+        return (aCandidateLabel == 0) ? 
+                    iParentsProposalNormalizer.get(aCurrentLabel) : 
+                    iChildrenProposalNormalizer.get(aCandidateLabel);
+    }
+
+    /**
+     * @return true if aParticle is regular particle
+     */
+    private boolean isRegularParticle(Particle aParticle, int aCurrentLabel) {
+        return (aParticle.iCandidateLabel == LabelImage.BGLabel) ? 
+                    iParents.get(aCurrentLabel).contains(aParticle) : 
+                    iChildren.get(aParticle.iCandidateLabel).contains(aParticle);
+    }
     
     /**
      * Set up a vector iLabels (MCMCRegionLabel) that maps natural numbers (index of the vector to the region labels).
@@ -976,15 +898,13 @@ public class AlgorithmDRS {
             // for -1 use 0 offset (position of particle itself)
             int offset = (i >= 0) ? iBgNeighborsIndices[i] : 0;
 
-            ParticleSet particleSet = getRegularParticles(aParticle.iIndex + offset, new ParticleSet());
-
-            for (Particle particle : particleSet) {
+            for (Particle particle : getRegularParticles(aParticle.iIndex + offset, new ParticleSet())) {
                 int label = (particle.iCandidateLabel == 0) ? iLabelImage.getLabelAbs(particle.iIndex) : particle.iCandidateLabel;
 
                 if (isParticleTopoValid(particle)) {
                     // replace the particle with the new proposal
-                    Particle updatedParticle = new Particle(particle.iIndex, particle.iCandidateLabel, calculateProposal(particle.iIndex));
-                    insertCandidatesToContainers(updatedParticle, label, true);
+                    particle.iProposal = calculateProposal(particle.iIndex);
+                    insertCandidatesToContainers(particle, label, true);
                 }
                 else {
                     // remove the particle
@@ -1023,6 +943,8 @@ public class AlgorithmDRS {
             
             // check if numbers are OK
             for (TopologicalNumberResult tnr : iTopoFunction.getTopologicalNumbers(iLabelImage.indexToPoint(aParticle.iIndex), labelsToCheck)) {
+                // if tnr == null there is no same label around and it would create seperate new region 
+                // if both FG and BG numbers are not 1 then changing label would seperate region
                 if (tnr == null || !(tnr.iNumOfConnectedComponentsFG == 1 && tnr.iNumOfConnectedComponentsBG == 1)) {
                     return false;
                 }
@@ -1037,7 +959,8 @@ public class AlgorithmDRS {
      * @param aIndex
      * @param aList
      */
-    private ParticleSet getRegularParticlesInBgNeighborhood(int aIndex, ParticleSet aList) {
+    private ParticleSet getRegularParticlesInBgNeighborhood(int aIndex) {
+        ParticleSet aList = new ParticleSet();
         for (int offset : iBgNeighborsIndices) {
             getRegularParticles(aIndex + offset, aList);
         }
@@ -1049,7 +972,8 @@ public class AlgorithmDRS {
      * @param aIndex
      * @param aList
      */
-    private ParticleSet getRegularParticlesInFgNeighborhood(int aIndex, ParticleSet aList) {
+    private ParticleSet getRegularParticlesInFgNeighborhood(int aIndex) {
+        ParticleSet aList = new ParticleSet();
         for (int offset : iFgNeighborsIndices) {
             getRegularParticles(aIndex + offset, aList);
         }
@@ -1061,9 +985,10 @@ public class AlgorithmDRS {
      * @param aParticle
      * @param aSet
      */
-    private ParticleSet getPartnerParticles(Particle aParticle, ParticleSet aSet) {
+    private ParticleSet getPartnerParticles(Particle aParticle) {
         // Get all correct particles in BG neighborhood
-        ParticleSet conditionalParticles = getRegularParticlesInBgNeighborhood(aParticle.iIndex, new ParticleSet());
+        ParticleSet aSet = new ParticleSet();
+        ParticleSet conditionalParticles = getRegularParticlesInBgNeighborhood(aParticle.iIndex);
         for (Particle p : conditionalParticles) {
             if (p.iCandidateLabel != aParticle.iCandidateLabel) {
                 aSet.insert(p);
@@ -1081,9 +1006,12 @@ public class AlgorithmDRS {
     }
     
     /**
-     * Inserts to a list possible candidates for particle at aIndex
-     * @param aIndex
-     * @param aSet
+     * Inserts to a list possible candidates for particle label at aIndex
+     * For !BGLabel: it adds all different value labels in FG + mandatory BGLabel if anything in FG is found
+     *               when all labels are same then it adds BGLabel only if in BG neighborhood
+     * In case of BGLabel it adds all possible labels != BGLabel
+     * @param aIndex - index of interest
+     * @param aSet - set to be updated
      */
     private ParticleSet getRegularParticles(int aIndex, ParticleSet aSet) {
         int currentLabel = iLabelImage.getLabel(aIndex);
@@ -1097,10 +1025,8 @@ public class AlgorithmDRS {
         for (Integer idx : iLabelImage.iterateNeighbours(aIndex)) {
             int neighborLabel = iLabelImage.getLabel(idx);
             int absNeighborLabel = iLabelImage.labelToAbs(neighborLabel);
-            
             if (!iLabelImage.isBorderLabel(neighborLabel) && absNeighborLabel != absCurrentLabel) {
                 // here should be a particle since two neighboring pixel have a different label.
-
                 if (neighborLabel != LabelImage.BGLabel) {
                     // Insert FG labels have a children placed at this spot.
                     aSet.insert(new Particle(aIndex, absNeighborLabel, proposal));
@@ -1140,47 +1066,37 @@ public class AlgorithmDRS {
     }
     
     /**
-     * Inserts candidate particle into container
+     * Inserts candidate particle into children/parens contianer. 
+     * If candidateLabel == 0 it goes to parent with currentLabel
+     * otherwise to children with candidateLabel
      * @param aParticle - candidate particle
-     * @param aLabel - label for particle
+     * @param aCurrentLabel - current label of particle
      * @param aDoRecord - should record
      * @return true if new particle was added, false if replaced
      */
-    private boolean insertCandidatesToContainers(Particle aParticle, int aLabel, boolean aDoRecord) {
-        Particle replacedParticle = null;
-
-        if (aParticle.iCandidateLabel == 0) {
-            ParticleSet particles = iParents.get(aLabel);
-            if (particles == null) {
-                particles = new ParticleSet();
-                iParents.put(aLabel, particles);
-            }
-            replacedParticle = particles.insert(aParticle);
-
-            float diff = (replacedParticle == null) ? aParticle.iProposal : aParticle.iProposal - replacedParticle.iProposal;
-            iParentsProposalNormalizer.replace(aLabel, iParentsProposalNormalizer.get(aLabel) + diff);
-            iTotalNormalizer += diff;
+    private boolean insertCandidatesToContainers(Particle aParticle, int aCurrentLabel, boolean aDoRecord) {
+        Map<Integer, ParticleSet> container = (aParticle.iCandidateLabel == 0) ? iParents : iChildren;
+        Map<Integer, Float> containerNormalizer = (aParticle.iCandidateLabel == 0) ? iParentsProposalNormalizer : iChildrenProposalNormalizer;
+        int label = (aParticle.iCandidateLabel == 0) ? aCurrentLabel : aParticle.iCandidateLabel;
+        
+        ParticleSet particles = container.get(label);
+        if (particles == null) {
+            particles = new ParticleSet();
+            container.put(label, particles);
         }
-        else {
-            ParticleSet particles = iChildren.get(aParticle.iCandidateLabel);
-            if (particles == null) {
-                particles = new ParticleSet();
-                iChildren.put(aParticle.iCandidateLabel, particles);
-            }
-            replacedParticle = particles.insert(aParticle);
-            
-            float diff = (replacedParticle == null) ? aParticle.iProposal : aParticle.iProposal - replacedParticle.iProposal;
-            iChildrenProposalNormalizer.replace(aParticle.iCandidateLabel, iChildrenProposalNormalizer.getOrDefault(aParticle.iCandidateLabel, 0f) + diff);
-            iTotalNormalizer += diff;
-        }
+        Particle replacedParticle = particles.insert(aParticle);
+
+        float diff = (replacedParticle == null) ? aParticle.iProposal : aParticle.iProposal - replacedParticle.iProposal;
+        containerNormalizer.replace(label, containerNormalizer.getOrDefault(label, 0f) + diff);
+        iTotalNormalizer += diff;
 
         if (aDoRecord) {
             // Note that the order here is important: first insert the particle that gets replaced. 
             // When restoring the state afterwards, the particle history is iterated in reverse order.
             if (replacedParticle != null) {
-                iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
+                iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aCurrentLabel, false));
             }
-            iParticlesHistory.add(new ParticleHistoryElement(aParticle, aLabel, true));
+            iParticlesHistory.add(new ParticleHistoryElement(aParticle, aCurrentLabel, true));
         }
 
         return (replacedParticle == null);
@@ -1193,68 +1109,35 @@ public class AlgorithmDRS {
      * @param aDoRecord - should keep history
      * @return true if particle existed
      */
-    private boolean eraseCandidatesFromContainers(Particle aParticle, int aLabel, boolean aDoRecord) {
-        Particle replacedParticle = null;
+    private boolean eraseCandidatesFromContainers(Particle aParticle, int aCurrentLabel, boolean aDoRecord) {
+        Map<Integer, ParticleSet> container = (aParticle.iCandidateLabel == 0) ? iParents : iChildren;
+        Map<Integer, Float> containerNormalizer = (aParticle.iCandidateLabel == 0) ? iParentsProposalNormalizer : iChildrenProposalNormalizer;
+        int label = (aParticle.iCandidateLabel == 0) ? aCurrentLabel : aParticle.iCandidateLabel;
 
-        if (aParticle.iCandidateLabel == 0) {
-            ParticleSet particles = iParents.get(aLabel);
-            replacedParticle = particles.erase(aParticle);
-            if (replacedParticle != null) {
-                iParentsProposalNormalizer.put(aLabel, iParentsProposalNormalizer.get(aLabel) - replacedParticle.iProposal);
-                iTotalNormalizer -= replacedParticle.iProposal;
-            }
+        ParticleSet particles = container.get(label);
+        Particle replacedParticle = particles.erase(aParticle);
+        if (replacedParticle != null) {
+            containerNormalizer.put(label, containerNormalizer.get(label) - replacedParticle.iProposal);
+            iTotalNormalizer -= replacedParticle.iProposal;
         }
-        else {
-            ParticleSet particles = iChildren.get(aParticle.iCandidateLabel);
-            replacedParticle = particles.erase(aParticle);
-            if (replacedParticle != null) {
-                iChildrenProposalNormalizer.put(aParticle.iCandidateLabel, iChildrenProposalNormalizer.get(aParticle.iCandidateLabel) - replacedParticle.iProposal);
-                iTotalNormalizer -= replacedParticle.iProposal;
-            }
-        }
-        
+
         if (replacedParticle != null && aDoRecord) {
-            iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aLabel, false));
+            iParticlesHistory.add(new ParticleHistoryElement(replacedParticle, aCurrentLabel, false));
         }
 
         return replacedParticle != null;
     }
     
     /**
-     * Insert a floating particle only if it didn't exist. 
-     * @param aParticle
-     * @param aDoRecord - save info in history container
-     * @return If particle existed, the return value will be false.
-     */
-    private boolean insertFloatingParticle(Particle aParticle, boolean aDoRecord) {
-        if (iFloatingParticles.contains(aParticle)) {
-            // the particle already exists
-            return false;
-        }
-
-        iFloatingParticles.insert(aParticle);
-        iFloatingParticlesProposalNormalizer += aParticle.iProposal;
-
-        if (aDoRecord) {
-            iFloatingParticlesHistory.add(new ParticleHistoryElement(aParticle, 0, true));
-        }
-
-        return true;
-    }
-
-    /**
-     * Removes floating particle if exist. In case when proposals diff much then particle is only updated.
+     * Removes floating particle. In case when proposals diff much then particle is only updated.
      * @param aParticle
      * @param aDoRecord
      */
     private void eraseFloatingParticle(Particle aParticle, boolean aDoRecord) {
+        // get from container same a particle with same index/candidateLabel
         int index = iFloatingParticles.getIndex(aParticle);
-        if (index == -1) {
-            // particle does not exist
-            return;
-        }
-        
         Particle updatedParticle = iFloatingParticles.get(index);
+        
         if (updatedParticle.iProposal - aParticle.iProposal > Math.ulp(1.0f) * 10) {
             // the particle has still some proposal left so only update particle in a container without removing it
             iFloatingParticlesProposalNormalizer -= aParticle.iProposal;
@@ -1270,7 +1153,28 @@ public class AlgorithmDRS {
             iFloatingParticlesHistory.add(new ParticleHistoryElement(aParticle, 0, false));
         }
     }
-    
+
+    /**
+     * Insert a floating particle only if it didn't exist. 
+     * @param aParticle
+     * @param aDoRecord - save info in history container
+     * @return If particle existed, the return value will be false.
+     */
+    private boolean insertFloatingParticle(Particle aParticle, boolean aDoRecord) {
+        if (iFloatingParticles.contains(aParticle)) {
+            // the particle already exists
+            return false;
+        }
+
+        iFloatingParticlesProposalNormalizer += aParticle.iProposal;
+        iFloatingParticles.insert(aParticle);
+
+        if (aDoRecord) {
+            iFloatingParticlesHistory.add(new ParticleHistoryElement(aParticle, 0, true));
+        }
+
+        return true;
+    }
     /**
      * Sample off-boundary particle and inserts/removes it from floating particles 
      * depending on if should growth or not.
@@ -1278,18 +1182,24 @@ public class AlgorithmDRS {
      * @param aLabel - wanted label for particle
      * @return false for rejected sample, true otherwise
      */
-    private boolean sampleOffBoundary(boolean aGrowth, int aLabel) {
-        // sample candidate label and location
+    private boolean sampleOffBoundary(int aLabel) {
+        // sample candidate label/location and growth/shrink action
+        boolean shouldGrowth = iRng.GetUniformVariate(0, 1) < 0.5;
         int candidateLabel = (iRng.GetUniformVariate(0, 1) > 0.5) ? aLabel : 0;
         int particleIndex = sampleIndexFromEdgeDensity();
-        Particle particle = new Particle(particleIndex, candidateLabel, 0);
         
+        Particle particle = new Particle(particleIndex, candidateLabel, 0);
         boolean particleExists = iFloatingParticles.contains(particle);
-
-        if (!aGrowth && particleExists) {
+        
+        if (!shouldGrowth && particleExists) {
+            // Calculate fraction of proposal to be removed
+            // NOTE: This part was not existing in C++ code and iProposal was always set to 0
+            //       which was pointless since particle was not removed at all (there were no effect at all)
+            Particle p = iFloatingParticles.get(iFloatingParticles.getIndex(particle));
+            particle.iProposal = (float) (iRng.GetVariate() * p.iProposal);
             eraseFloatingParticle(particle, false);
         }
-        else if (aGrowth && !particleExists) {
+        else if (shouldGrowth && !particleExists) {
             particle.iProposal = calculateProposal(particle.iIndex);
             insertFloatingParticle(particle, false);
         }
@@ -1440,5 +1350,4 @@ public class AlgorithmDRS {
         imgConvolver.getIntensityImage(img);
         return img;
     }
-
 }

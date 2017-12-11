@@ -15,9 +15,6 @@ public class SettingsDRS {
     boolean usePairProposal = false;
     float burnInFactor = 0.3f;
 
-    // TODO: Should be removed when not needed
-    public boolean usingDeconvolutionPcEnergy = false;
-
     public SettingsDRS(boolean aAllowFusion,
                        boolean aAllowFission,
                        boolean aAllowHandles,
@@ -25,8 +22,7 @@ public class SettingsDRS {
                        float aOffBoundarySamplingProbability,
                        boolean aUseBiasedProposal,
                        boolean aUsePairProporsal,
-                       float aBurnInFactor,
-                       boolean aUsingDeconvolutionPcEnergy)
+                       float aBurnInFactor)
     {
         allowFusion = aAllowFusion;
         allowFission = aAllowFission;
@@ -36,6 +32,5 @@ public class SettingsDRS {
         useBiasedProposal = aUseBiasedProposal;
         usePairProposal = aUsePairProporsal;
         burnInFactor = aBurnInFactor;
-        usingDeconvolutionPcEnergy = aUsingDeconvolutionPcEnergy;
     }
 }

@@ -77,9 +77,40 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         //        double R = (aMu1 - vMu12) * (aMu1 - vMu12) *(aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * ((aVar1 + aVar2) / vVar12 - 2.0 - Math.log(aVar2 * aVar1 / vVar12));
         double result = vDKL1 + vDKL2;
         if (Double.isNaN(result)) {
-            mosaic.utils.Debug.print("NaN problem", aMu1,  aMu2, aVar1, aVar2, aN1,  aN2);
+            // TODO: Example line from tests for later investigation (from DRS with maxima init on flower img) with settings:
+            /*
+             * [{
+                  "offBoundarySampleProbability": 0.25,
+                  "useBiasedProposal": false,
+                  "usePairProposal": false,
+                  "burnInFactor": 0.5,
+                  "showLabelImage": false,
+                  "saveLabelImage": false,
+                  "showProbabilityImage": true,
+                  "saveProbabilityImage": false,
+                  "initType": "LocalMax",
+                  "initBoxRatio": 0.4,
+                  "initBubblesRadius": 10,
+                  "initBubblesDisplacement": 100,
+                  "initLocalMaxGaussBlurSigma": 2.0,
+                  "initLocalMaxTolerance": 0.005,
+                  "initLocalMaxMinimumRegionSize": 4,
+                  "initLocalMaxBubblesRadius": 5,
+                  "energyCurvatureMaskRadius": 6,
+                  "energyPsGaussEnergyRadius": 8,
+                  "energyPsBalloonForceCoeff": 0.0,
+                  "energyFunctional": "e_PS",
+                  "regularizationType": "Sphere_Regularization",
+                  "energyContourLengthCoeff": 0.5,
+                  "allowFusion": true,
+                  "allowFission": true,
+                  "allowHandles": false,
+                  "maxNumOfIterations": 120000
+                }] 
+             */
+            // [NaN problem] [0.5505446874433093] [0.03307758006469711] [0.005456976309865315] [7.239539005930498E-4] [0] [0]
+            mosaic.utils.Debug.print("E_KLMergingCriterion.java: NaN problem", aMu1,  aMu2, aVar1, aVar2, aN1,  aN2);
             result = 0;
-//            throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");
         }
         return result;
     }

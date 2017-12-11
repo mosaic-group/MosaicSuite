@@ -70,7 +70,7 @@ public class SegmentationProcessWindow {
         }
         
         if (aLabelImage.getNumOfDimensions() <= 3) {
-            addStack(aTitle, aLabelImage.getFloatStack());
+            addStack(aTitle, aLabelImage.getFloatStack(), aShowImg);
         }
         else {
             throw new RuntimeException("Unsupported dimensions: " + aLabelImage.getNumOfDimensions());
@@ -97,7 +97,7 @@ public class SegmentationProcessWindow {
         }
         
         if (aLabelImage.getNumOfDimensions() <= 3) {
-            addStack(aTitle, aLabelImage.getShortStack(false, false, false));
+            addStack(aTitle, aLabelImage.getShortStack(false, false, false), aShowImg);
         }
         else {
             throw new RuntimeException("Unsupported dimensions: " + aLabelImage.getNumOfDimensions());
@@ -121,7 +121,7 @@ public class SegmentationProcessWindow {
     /**
      * Adds single new stack to existing stack
      */
-    private void addStack(String aTitle, ImageStack aStack) {
+    private void addStack(String aTitle, ImageStack aStack, boolean aShowImg) {
         if (!iShouldKeepAllSlices) {
             // We don't keep hitory - remove old slices
             while (iStack.getSize() > 0) {
@@ -156,7 +156,8 @@ public class SegmentationProcessWindow {
         // convert to hyperstack if necessary (after second frame is added)
         if (iShouldKeepAllSlices && frame == 2) {
             iImage.setOpenAsHyperStack(true);
-            new StackWindow(iImage);
+            // It shows epty frame because of 'show()' in constructor
+            if (aShowImg) new StackWindow(iImage);
         }
 
         // go to mid in first iteration

@@ -17,6 +17,7 @@ import ij.gui.Roi;
 import mosaic.regions.RegionsUtils.EnergyFunctionalType;
 import mosaic.regions.RegionsUtils.InitializationType;
 import mosaic.regions.RegionsUtils.RegularizationType;
+import mosaic.utils.ImgUtils;
 import mosaic.regions.DRS.PluginSettingsDRS;
 
 /**
@@ -267,11 +268,24 @@ public class GuiDrs extends GuiDrsBase {
             iSettings.burnInFactor = (float) getValue(lblBurninFactor.getText(), burnInFactor.getText(), 0, 1, false);
             iSettings.usePairProposal = chckbxPairProposal.isSelected();
             iSettings.useBiasedProposal = chckbxBiasedProposal.isSelected();
-            
+
             iSettings.showLabelImage = chckbxShowLabelImage.isSelected();
             iSettings.saveLabelImage = chckbxSaveLabelImage.isSelected();
+            if (iSettings.saveLabelImage) {
+                final String directory = ImgUtils.getImageDirectory(iImage);
+                if (directory == null) {
+                    throw new IllegalArgumentException("\"" + chckbxSaveLabelImage.getText() +"\" - directory for saving is taken from input image, but it is not saved yet");
+                }
+            }
+            
             iSettings.showProbabilityImage = chckbxShowProbabilityImage.isSelected();
             iSettings.saveProbabilityImage = chckbxSaveProbabilityImage.isSelected();
+            if (iSettings.saveProbabilityImage) {
+                final String directory = ImgUtils.getImageDirectory(iImage);
+                if (directory == null) {
+                    throw new IllegalArgumentException("\"" + chckbxSaveProbabilityImage.getText() +"\" - directory for saving is taken from input image, but it is not saved yet");
+                }
+            }
             
             checkRoi();
             checkFile();

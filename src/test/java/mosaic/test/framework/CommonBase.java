@@ -181,6 +181,7 @@ public class CommonBase extends Info {
         logger.debug("Comparing output of two images:");
         logger.debug("    ref: [" + aReferenceFileName + "]");
         logger.debug("    test:[" + aGeneratedImageWindowName +"]");
+        logger.debug("cp " + tmpPath + aGeneratedImageWindowName + " " + aReferenceFileName);
         final Img<?> referenceImg = loadImage(aReferenceFileName);
         Img<?> processedImg = loadImageByName(aGeneratedImageWindowName);
         if (processedImg == null) {

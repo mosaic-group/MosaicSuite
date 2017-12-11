@@ -224,7 +224,7 @@ public abstract class RegionsUtils {
                 break;
             }
             case File: {
-                if (inputLabelImageChosenByUser != null) {
+                if (inputLabelImageChosenByUser != null && inputLabelImageChosenByUser.getWidth() == inputImageChosenByUser.getWidth() &&  inputLabelImageChosenByUser.getHeight() == inputImageChosenByUser.getHeight()) {
                     ImagePlus labelImg = inputLabelImageChosenByUser;
                     ImageStack padedIs = ImgUtils.pad(inputLabelImageChosenByUser.getStack(), iPadSize, inputLabelImageChosenByUser.getNDimensions() > 2);
                     labelImg = inputLabelImageChosenByUser.duplicate();

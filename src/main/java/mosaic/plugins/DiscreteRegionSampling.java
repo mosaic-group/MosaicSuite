@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
+import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.frame.Recorder;
@@ -70,6 +71,11 @@ public class DiscreteRegionSampling implements PlugInFilter {
                 return;
             }
             iInputLabelImageChosenByUser = iUserGui.getInputLabelImage();
+        }
+        else {
+            if (iSettings.initFileName != null) {
+                iInputLabelImageChosenByUser = WindowManager.getImage(iSettings.initFileName);
+            }
         }
         
         logger.info("Input image [" + iInputImageChosenByUser.getTitle() + "]");
@@ -158,8 +164,7 @@ public class DiscreteRegionSampling implements PlugInFilter {
                                                   iSettings.offBoundarySampleProbability,
                                                   iSettings.useBiasedProposal,
                                                   iSettings.usePairProposal,
-                                                  iSettings.burnInFactor,
-                                                  iSettings.energyFunctional == RegionsUtils.EnergyFunctionalType.e_DeconvolutionPC);
+                                                  iSettings.burnInFactor);
         
         AlgorithmDRS algorithm = new AlgorithmDRS(iIntensityImage, iLabelImage, iImageModel, drsSettings);
         
@@ -169,24 +174,31 @@ public class DiscreteRegionSampling implements PlugInFilter {
         
         boolean isDone = false;
         int iteration = 0;
-        while (iteration < iSettings.maxNumOfIterations && !isDone) {
-            // Perform one iteration of RC
-            ++iteration;
-            if (iteration % modulo == 0) {
-                logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.maxNumOfIterations) + "%");
-                IJ.showStatus("Iteration: " + iteration + "/" + iSettings.maxNumOfIterations);
-                IJ.showProgress(iteration, iSettings.maxNumOfIterations);
-            }
-            isDone = algorithm.performIteration();
-            
-            // Check if we should pause for a moment or if simulation is not aborted by user
-            // If aborted pretend that we have finished segmentation (isDone=true)
-            isDone = iController.hasAborted() ? true : isDone;
-        }
-        IJ.showProgress(iSettings.maxNumOfIterations, iSettings.maxNumOfIterations);
+        try {
+            while (iteration < iSettings.maxNumOfIterations && !isDone) {
+                // Perform one iteration of RC
+                ++iteration;
+                if (iteration % modulo == 0) {
+                    logger.debug("Iteration progress: " + ((iteration * 100) /  iSettings.maxNumOfIterations) + "%");
+                    IJ.showStatus("Iteration: " + iteration + "/" + iSettings.maxNumOfIterations);
+                    IJ.showProgress(iteration, iSettings.maxNumOfIterations);
+                }
+                algorithm.runOneIteration();
 
-        // Do some post process stuff
-        iController.close();
+                // Check if we should pause for a moment or if simulation is not aborted by user
+                // If aborted pretend that we have finished segmentation (isDone=true)
+                isDone = iController.hasAborted();
+            }
+        }
+        catch (IllegalStateException e) {
+            IJ.showMessage("DRS stopped because: " + e.getMessage());
+            return false;
+        }
+        finally {
+            // Do some post process stuff
+            IJ.showProgress(iSettings.maxNumOfIterations, iSettings.maxNumOfIterations);
+            iController.close();
+        }
 
         // Produce probability image only if needed        
         if (iSettings.showProbabilityImage || iSettings.saveProbabilityImage) {
