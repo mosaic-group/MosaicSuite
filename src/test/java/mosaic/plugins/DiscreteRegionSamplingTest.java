@@ -2,7 +2,6 @@ package mosaic.plugins;
 
 import org.junit.Test;
 
-import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 
 
