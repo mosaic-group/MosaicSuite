@@ -57,6 +57,7 @@ public class SobelFilter extends PlugInFloatBase { // NO_UCD
         // Regardless on input output will be always float image, generate one with same geometry.
         setResultDestination(ResultOutput.NEW_BY_PLUGIN);
         iProcessedImg = ImgUtils.createNewEmptyImgPlus(iInputImg, "sobel_" + iInputImg.getTitle(), 1, 1, ImgUtils.OutputType.FLOAT);
+        updateFlags(DOES_ALL);
         return true;
     }
     

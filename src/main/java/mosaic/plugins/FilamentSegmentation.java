@@ -132,7 +132,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         setResultDestination(ResultOutput.NONE);
         iOutputColorImg = new OutputImageWindow(iInputImg, "segmented_" + iInputImg.getTitle());
         iProcessedImg = iOutputColorImg.getImagePlus();
-
+        updateFlags(DOES_8G | DOES_RGB);
+        
         return true;
     }
     

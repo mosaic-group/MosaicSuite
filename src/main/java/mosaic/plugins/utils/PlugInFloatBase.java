@@ -14,7 +14,7 @@ import java.util.List;
  */
 public abstract class PlugInFloatBase extends PlugInBase {
     // ImageJ plugIn flags defined for setup method
-    private int iFlags = DOES_ALL |
+    private int iFlags = 
             DOES_STACKS |
             FINAL_PROCESSING |
             PARALLELIZE_STACKS;
