@@ -2,6 +2,7 @@ package mosaic.ia.gui;
 
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -12,9 +13,12 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -46,6 +50,9 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
     protected JFormattedTextField alphaField;
     protected JButton testHypothesis;
     protected JTabbedPane tabbedPane;
+    
+    JList xRois;
+    JList yRois;
     
     /**
      * Create the application.
@@ -362,6 +369,47 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
                         .addGap(5).addComponent(lblCsvFileY).addComponent(loadCsvY).addComponent(xMax).addComponent(yMax).addComponent(zMax).addComponent(max))
         );
         panelCsvCoordinates.setLayout(glCsvCoordinates);
+        
+        final JPanel panelRoiCoordinates = new JPanel();
+        tabbedPane.addTab("Load ROI", null, panelRoiCoordinates, null);
+        xRois = new JList<>();
+        JScrollPane sp = new JScrollPane(xRois);
+        xRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        xRois.setLayoutOrientation(JList.VERTICAL);
+        xRois.setVisibleRowCount(4);
+        yRois = new JList<>();
+        JScrollPane spY = new JScrollPane(yRois);
+        yRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        yRois.setLayoutOrientation(JList.VERTICAL);
+        yRois.setVisibleRowCount(4);
+        GridBagConstraints gbc_fileInitList = new GridBagConstraints();
+        gbc_fileInitList.fill = GridBagConstraints.BOTH;
+        gbc_fileInitList.gridx = 0;
+        gbc_fileInitList.gridy = 1;
+        JLabel xCol = new JLabel("X");
+        JLabel yCol = new JLabel("Y ref");
+        final GroupLayout glRoi = new GroupLayout(panelRoiCoordinates);
+        glRoi.setHorizontalGroup(glRoi.createSequentialGroup()
+                .addGap(11)
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(xCol)
+                        .addComponent(sp))
+                .addGap(11)
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(yCol)
+                        .addComponent(spY))
+                .addGap(11));
+        glRoi.setVerticalGroup(glRoi.createSequentialGroup()
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(xCol).addGap(5).addComponent(yCol).addGap(5))
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(sp).addGap(5).addComponent(spY).addGap(5))
+        );        
+        panelRoiCoordinates.setLayout(glRoi);
+//        panelRoiCoordinates.add(sp, gbc_fileInitList);
+//        panelRoiCoordinates.add(spY, gbc_fileInitList);
+        
+        
         
         final GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
         groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(

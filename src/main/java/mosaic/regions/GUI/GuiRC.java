@@ -42,11 +42,11 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import mosaic.regions.Settings;
-import mosaic.regions.RC.PluginSettingsRC;
 import mosaic.regions.RegionsUtils.EnergyFunctionalType;
 import mosaic.regions.RegionsUtils.InitializationType;
 import mosaic.regions.RegionsUtils.RegularizationType;
+import mosaic.regions.Settings;
+import mosaic.regions.RC.PluginSettingsRC;
 
 /**
  * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.

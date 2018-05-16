@@ -17,8 +17,8 @@ import ij.gui.Roi;
 import mosaic.regions.RegionsUtils.EnergyFunctionalType;
 import mosaic.regions.RegionsUtils.InitializationType;
 import mosaic.regions.RegionsUtils.RegularizationType;
-import mosaic.utils.ImgUtils;
 import mosaic.regions.DRS.PluginSettingsDRS;
+import mosaic.utils.ImgUtils;
 
 /**
  * This class creates GUI for DRS. 

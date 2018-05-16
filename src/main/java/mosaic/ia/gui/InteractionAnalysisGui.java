@@ -1,34 +1,56 @@
 package mosaic.ia.gui;
 
 
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.ListSelectionModel;
 
 import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.Overlay;
+import ij.gui.Roi;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
+import ij.plugin.OverlayCommands;
+import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
 import mosaic.ia.Analysis.CmaResult;
+import mosaic.ia.FileUtils.Point3dCsvReadWrapper;
 import mosaic.ia.FileUtils;
 import mosaic.ia.Potentials;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
+import mosaic.regions.GUI.GuiDrs;
 
 
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
+    public static void main(String[] args) {
+//        ImagePlus image = IJ.openImage("/Users/gonciarz/4rois.tif");
+        ImagePlus image = IJ.openImage("/Users/gonciarz/imgOverlays.tif");
+        image.show();
+//        image.hide();
+        InteractionAnalysisGui dd = new InteractionAnalysisGui();
+    }
+    
     private Analysis iAnalysis;
     private ImagePlus iImgX;
     private ImagePlus iImgY;
@@ -41,6 +63,43 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     public InteractionAnalysisGui() {
         super(PotentialList);
+        
+        // ===============================
+        final int[] ids = WindowManager.getIDList();
+        System.out.println("DDD " + ids.length);
+        ImagePlus imp = IJ.getImage();
+        System.out.println("IMG: " + imp.getTitle());
+        
+        Overlay overlay = imp.getOverlay();
+        if (overlay==null) {
+            IJ.error("Overlay required");
+            return;
+        }
+        
+//        RoiManager rm = RoiManager.getInstance2();
+//        if (rm==null) rm = new RoiManager();
+        
+//        if (overlay.size()>=4 && overlay.get(3).getPosition()!=0)
+//            Prefs.showAllSliceOnly = true;
+//        rm.runCommand("reset");
+//        rm.setEditMode(imp, false);
+        Set<String> types = new HashSet<>();
+        for (int i=0; i<overlay.size(); i++) {
+            types.add(overlay.get(i).getName());
+//            System.out.println("ROI: " + overlay.get(i).getName() + " " + overlay.get(i));
+        }
+        System.out.println(types);
+        xRois.setListData(types.toArray(new String[] {}));
+        yRois.setListData(types.toArray(new String[] {}));
+        xRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        yRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        rm.setEditMode(imp, true);
+//        rm.runCommand("show all");
+//        imp.setOverlay(null);
+//        Roi[] roIs = rm.getRoisAsArray();
+//        for (Roi r : roIs) {
+//             System.out.println("RR: " + r.getName() + " " + r.getProperties());
+//        }
     }
     
     @Override
@@ -126,14 +185,14 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             rt.show("Results");
         }
     }
-
+    enum Tabs {IMG, COORD, ROI};
     private void calculateDistances() {
         double gridDelta = Double.parseDouble(gridSize.getText());
         double qkernelWeight = Double.parseDouble(kernelWeightQ.getText());
         double pkernelWeight = Double.parseDouble(kernelWeightP.getText());
         float[][][] mask3d = iMaskImg != null ? imageTo3Darray(iMaskImg) : null;
         
-        if (isCoordinatesTab()) {
+        if (isCoordinatesTab() == Tabs.COORD) {
             // coordinates
             double xmin = Double.parseDouble(xMin.getText());
             double ymin = Double.parseDouble(yMin.getText());
@@ -155,7 +214,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 IJ.showMessage("Load X and Y coordinates first.");
             }
         }
-        else {
+        else if (isCoordinatesTab() == Tabs.IMG) {
             // image
             if (iImgY != null && iImgX != null) {
                 if (!checkIfImagesAreSameSize()) {
@@ -170,10 +229,59 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 IJ.showMessage("Load X and Y images first.");
             }
         }
+        else if (isCoordinatesTab() == Tabs.ROI) {
+            System.out.print("TABS..." + xRois.getSelectedValue() + " " + yRois.getSelectedValue());
+            if (xRois.getSelectedIndex() >= 0 && yRois.getSelectedIndex() >= 0 && xRois.getSelectedIndex() != yRois.getSelectedIndex()) {
+                ImagePlus imp = IJ.getImage();
+                System.out.println("IMG: " + imp.getTitle());
+
+                Overlay overlay = imp.getOverlay();
+                List<Point3d> x = new ArrayList<Point3d>();
+                List<Point3d> y = new ArrayList<Point3d>();
+                for (int i=0; i<overlay.size(); i++) {
+                    Roi roi = overlay.get(i);
+                    Rectangle bounds = roi.getBounds();
+                    double xp = bounds.getCenterX();
+                    double yp = bounds.getCenterY();
+                    double zp = roi.getZPosition();
+                    if (roi.getName().equals(xRois.getSelectedValue())) {
+                        x.add(new Point3d(xp, yp, zp));
+                    }
+                    else if (roi.getName().equals(yRois.getSelectedValue())) {
+                        y.add(new Point3d(xp, yp, zp));
+                    }
+                }
+                iCsvX = x.toArray(new Point3d[] {});
+                iCsvY = y.toArray(new Point3d[] {});
+                setMinMaxCoordinates();
+                // coordinates
+                double xmin = Double.parseDouble(xMin.getText());
+                double ymin = Double.parseDouble(yMin.getText());
+                double zmin = Double.parseDouble(zMin.getText());
+                double xmax = Double.parseDouble(xMax.getText());
+                double ymax = Double.parseDouble(yMax.getText());
+                double zmax = Double.parseDouble(zMax.getText());
+                if (xmax < xmin || ymax < ymin || zmax < zmin) {
+                    IJ.showMessage("Error: boundary values are not correct");
+                    return;
+                }
+                System.out.println("X=" + iCsvX.length + " Y=" + iCsvY.length);
+                System.out.println("Boundary (x/y/z): " + xmin + " - " + xmax + "; " + ymin + " - " + ymax + "; " + zmin + " - " + zmax);
+                iAnalysis = new Analysis();
+                iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);                
+                
+                
+            }
+        }
+        else {
+            throw new RuntimeException("Unknown tab chosen in IA GUI");
+        }
     }
 
-    private boolean isCoordinatesTab() {
-        return tabbedPane.getSelectedIndex() == 1;
+    private Tabs isCoordinatesTab() {
+        if (tabbedPane.getSelectedIndex() == 1) return Tabs.COORD;
+        else if (tabbedPane.getSelectedIndex() == 0) return Tabs.IMG;
+        else return Tabs.ROI;
     }
 
     private void setMinMaxCoordinates() {
@@ -227,7 +335,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
     
     private void generateMask() {
-        if (isCoordinatesTab()) {
+        if (isCoordinatesTab() != Tabs.IMG) {
             IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead.");
         }
         else if (iImgY != null) {
