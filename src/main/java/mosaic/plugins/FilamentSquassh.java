@@ -139,6 +139,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
         setResultDestination(ResultOutput.NONE);
         iProcessedImg = iInputImg.duplicate();
         iProcessedImg.setTitle("filaments_" + iInputImg.getTitle());
+        updateFlags(DOES_8G | DOES_RGB);
         
         return true;
     }
