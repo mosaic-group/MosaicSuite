@@ -18,11 +18,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.ListSelectionModel;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * This class contain GUI creation stuff (probably back in time generated in NetBeans or sth).
@@ -51,8 +53,10 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
     protected JButton testHypothesis;
     protected JTabbedPane tabbedPane;
     
-    JList xRois;
-    JList yRois;
+    private String roiTabTitle = "Load ROI";
+    
+    JList<String> xRois;
+    JList<String> yRois;
     
     /**
      * Create the application.
@@ -371,21 +375,25 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         panelCsvCoordinates.setLayout(glCsvCoordinates);
         
         final JPanel panelRoiCoordinates = new JPanel();
-        tabbedPane.addTab("Load ROI", null, panelRoiCoordinates, null);
+        tabbedPane.addTab(roiTabTitle, null, panelRoiCoordinates, null);
+        
         xRois = new JList<>();
         JScrollPane sp = new JScrollPane(xRois);
         xRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         xRois.setLayoutOrientation(JList.VERTICAL);
         xRois.setVisibleRowCount(4);
-        yRois = new JList<>();
+        
+        yRois = new JList<>();        
         JScrollPane spY = new JScrollPane(yRois);
         yRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         yRois.setLayoutOrientation(JList.VERTICAL);
         yRois.setVisibleRowCount(4);
+        
         GridBagConstraints gbc_fileInitList = new GridBagConstraints();
         gbc_fileInitList.fill = GridBagConstraints.BOTH;
         gbc_fileInitList.gridx = 0;
         gbc_fileInitList.gridy = 1;
+        
         JLabel xCol = new JLabel("X");
         JLabel yCol = new JLabel("Y ref");
         final GroupLayout glRoi = new GroupLayout(panelRoiCoordinates);
@@ -406,10 +414,15 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
                         .addGap(5).addComponent(sp).addGap(5).addComponent(spY).addGap(5))
         );        
         panelRoiCoordinates.setLayout(glRoi);
-//        panelRoiCoordinates.add(sp, gbc_fileInitList);
-//        panelRoiCoordinates.add(spY, gbc_fileInitList);
         
-        
+        tabbedPane.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (tabbedPane.getSelectedIndex() == 2) {
+                    roiInitChosen();
+                }
+            }
+        });
         
         final GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
         groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
@@ -462,4 +475,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         smoothnessLabel.setEnabled(aShow);
         numOfsupportPointsLabel.setEnabled(aShow);
     }
+    
+    abstract void roiInitChosen();
+    
 }
