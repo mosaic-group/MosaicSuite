@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import ij.IJ;
 import mosaic.ia.Potentials.Potential;
+import mosaic.ia.gui.Utils;
 
 
 class HypothesisTesting {
@@ -58,7 +59,7 @@ class HypothesisTesting {
         }
         
         logger.debug(s);
-        IJ.showMessage(s);
+        Utils.messageDialog("IA - hypothesis testing result", s);
         
         return new TestResult (
                         i,

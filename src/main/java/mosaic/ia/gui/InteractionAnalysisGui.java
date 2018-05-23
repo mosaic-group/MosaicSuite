@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.swing.JButton;
 
+import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
@@ -36,8 +37,10 @@ import mosaic.ia.Potentials.PotentialType;
 
 
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
-
+    private static final Logger logger = Logger.getLogger(InteractionAnalysisGui.class);
+    
     public static void main(String[] args) {
+//        new ImageJ();
         ImagePlus image = IJ.openImage("/Users/gonciarz/4rois.tif");
         image.show();
 //        OverlayCommands oc = new OverlayCommands();
@@ -105,7 +108,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     
     private void testHypothesis() {
         if (iAnalysis == null) {
-            IJ.showMessage("Error: Calculate distances first!");
+            Utils.messageDialog("IA - test hypothesis", "Error: Calculate distances first!");
             return;
         }
         int monteCarloRunsForTest = Integer.parseInt(monteCarloRuns.getText());
@@ -116,7 +119,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     private void estimatePotential() {
         if (iAnalysis == null) {
-            IJ.showMessage("Error: Calculate distances first!");
+            Utils.messageDialog("IA - estimate potential", "Error: Calculate distances first!");
             return;
         }
         int numOfSupportPointsValue = Integer.parseInt(numOfSupportPoints.getText());
@@ -162,7 +165,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             double ymax = Double.parseDouble(yMax.getText());
             double zmax = Double.parseDouble(zMax.getText());
             if (xmax < xmin || ymax < ymin || zmax < zmin) {
-                IJ.showMessage("Error: boundary values are not correct");
+                Utils.messageDialog("IA - calculate distances", "Error: boundary values are not correct");
                 return;
             }
             
@@ -172,14 +175,14 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }
             else {
-                IJ.showMessage("Load X and Y coordinates first.");
+                Utils.messageDialog("IA - calculate distances", "Load X and Y coordinates first.");
             }
         }
         else if (getTabType() == Tabs.IMG) {
             // image
             if (iImgY != null && iImgX != null) {
                 if (!checkIfImagesAreSameSize()) {
-                    IJ.showMessage("Error: Image sizes/scale/unit do not match");
+                    Utils.messageDialog("IA - calculate distances", "Error: Image sizes/scale/unit do not match");
                 }
                 else {
                     iAnalysis = new Analysis();
@@ -187,7 +190,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 }
             }
             else {
-                IJ.showMessage("Load X and Y images first.");
+                Utils.messageDialog("IA - calculate distances", "Load X and Y coordinates first.");
             }
         }
         else if (getTabType() == Tabs.ROI) {
@@ -203,7 +206,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 double ymax = Double.parseDouble(yMax.getText());
                 double zmax = Double.parseDouble(zMax.getText());
                 if (xmax < xmin || ymax < ymin || zmax < zmin) {
-                    IJ.showMessage("Error: boundary values are not correct");
+                    Utils.messageDialog("IA - calculate distances", "Error: boundary values are not correct");
                     return;
                 }
                 System.out.println("X=" + iCsvX.length + " Y=" + iCsvY.length);
@@ -216,6 +219,12 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         else {
             throw new RuntimeException("Unknown tab chosen in IA GUI");
         }
+        
+        new DistributionsPlot(iAnalysis.iContextQdDistancesGrid, iAnalysis.iContextQdPdf, iAnalysis.iNearestNeighborDistancesXtoYPdf).show();
+        Utils.plotHistogram("ObservedDistances", iAnalysis.iNearestNeighborDistancesXtoY, Analysis.getOptimBins(iAnalysis.iNearestNeighborDistancesXtoY, 8, iAnalysis.iNearestNeighborDistancesXtoY.length / 8));
+        double suggestedKernel = Analysis.calcWekaWeights(iAnalysis.iNearestNeighborDistancesXtoY);
+        Utils.messageDialog("IA - kernel", "Suggested Kernel wt(p): " + suggestedKernel);
+        logger.debug("Suggested kernel wt(p)=" + suggestedKernel);
     }
 
     @Override
@@ -355,7 +364,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     
     private void generateMask() {
         if (getTabType() != Tabs.IMG) {
-            IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead.");
+            Utils.messageDialog("IA - generate mask", "Cannot generate mask for coordinates. Load a mask instead.");
         }
         else if (iImgY != null) {
             iMaskImg = new Duplicator().run(iImgY);
@@ -365,18 +374,18 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             maskPane.setTitleAt(0, "Mask: <generated>");
         }
         else {
-            IJ.showMessage("Image Y is null: Cannot generate mask");
+            Utils.messageDialog("IA - generate mask", "Image Y is null: Cannot generate mask");
         }
     }
 
     private boolean loadMask() {
         ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
-            IJ.showMessage("Filetype not recognized");
+            Utils.messageDialog("IA - load mask", "Filetype not recognized");
             return false;
         }
         else if (tempMask.getType() != ImagePlus.GRAY8) {
-            IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
+            Utils.messageDialog("IA - load mask", "ERROR: Loaded mask not 8 bit gray");
             return false;
         }
         
@@ -390,7 +399,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     private ImagePlus loadImage(String aStatusBarMessage, JButton aLoadImgButton) {
         ImagePlus tempImg = FileUtils.openImage();
         if (tempImg == null) {
-            IJ.showMessage("Cancelled/Filetype not recognized");
+            Utils.messageDialog("IA - load image", "Cancelled/Filetype not recognized");
             return null;
         }
         tempImg.show(aStatusBarMessage);

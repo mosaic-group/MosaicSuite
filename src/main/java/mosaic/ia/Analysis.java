@@ -8,14 +8,13 @@ import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import ij.IJ;
 import ij.ImagePlus;
 import mosaic.ia.HypothesisTesting.TestResult;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
 import mosaic.ia.gui.DistributionsPlot;
 import mosaic.ia.gui.EstimatedPotentialPlot;
-import mosaic.ia.gui.PlotHistogram;
+import mosaic.ia.gui.Utils;
 import mosaic.utils.Debug;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
@@ -25,10 +24,10 @@ public class Analysis {
     
     private Potential iPotential;
     private DistanceCalculations iDistanceCalculations;
-    private double[] iContextQdDistancesGrid;
-    private double[] iContextQdPdf;
-    private double[] iNearestNeighborDistancesXtoY;
-    private double[] iNearestNeighborDistancesXtoYPdf;
+    public double[] iContextQdDistancesGrid;
+    public double[] iContextQdPdf;
+    public double[] iNearestNeighborDistancesXtoY;
+    public double[] iNearestNeighborDistancesXtoYPdf;
     
     private double[][] iBestPointsFound;
     private int iBestPointIndex = -1;
@@ -51,12 +50,6 @@ public class Analysis {
         
         StatisticsUtils.normalizePdf(iContextQdPdf, iContextQdDistancesGrid, false);
         StatisticsUtils.normalizePdf(iNearestNeighborDistancesXtoYPdf, iContextQdDistancesGrid, false);
-
-        new DistributionsPlot(iContextQdDistancesGrid, iContextQdPdf, iNearestNeighborDistancesXtoYPdf).show();
-        PlotHistogram.plot("ObservedDistances", iNearestNeighborDistancesXtoY, getOptimBins(iNearestNeighborDistancesXtoY, 8, iNearestNeighborDistancesXtoY.length / 8));
-        double suggestedKernel = calcWekaWeights(iNearestNeighborDistancesXtoY);
-        IJ.showMessage("Suggested Kernel wt(p): " + suggestedKernel);
-        logger.debug("Suggested kernel wt(p)=" + suggestedKernel);
     }
 
     public static class CmaResult {
@@ -124,7 +117,7 @@ public class Analysis {
         logger.debug("Best Parameters Found:" + Debug.getString(iBestPointsFound[iBestPointIndex]) + " fit function value=" + bestFunctionValue[iBestPointIndex]);
         
         if (diffFitness) {
-            IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
+            Utils.messageDialog("IA - CMA optimization", "Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
         fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
         new EstimatedPotentialPlot(iContextQdDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
@@ -210,11 +203,11 @@ public class Analysis {
     
     public TestResult hypothesisTesting(int monteCarloRunsForTest, double alpha) {
         if (iBestPointsFound == null) {
-            IJ.showMessage("Error: Run estimation first");
+            Utils.messageDialog("IA - hypothesis testing", "Error: Run estimation first");
             return null;
         }
         else if (iPotential.getType() == PotentialType.NONPARAM) {
-            IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
+            Utils.messageDialog("IA - hypothesis testing", "Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
             return null;
         }
         else {
@@ -284,6 +277,6 @@ public class Analysis {
     }
     
     public void setPotentialType(Potential potentialType) {
-        this.iPotential = potentialType;
+        iPotential = potentialType;
     }
 }
