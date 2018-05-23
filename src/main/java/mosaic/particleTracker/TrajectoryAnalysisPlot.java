@@ -14,6 +14,7 @@ import ij.ImagePlus;
 import ij.gui.ImageWindow;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
+import ij.measure.ResultsTable;
 import ij.process.ByteProcessor;
 import mosaic.core.detection.Particle;
 import net.sf.javaml.utils.ArrayUtils;
@@ -30,10 +31,17 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
     // UI stuff
     private final Button iMssButton;
     private final Button iMsdButton;
+    private final Button iGetDataButton;
     private final Checkbox iLogScale;
-
+    
     private final TrajectoryAnalysis iTrajectoryAnalysis;
 
+    private double iX[];
+    private double iY[];
+    private String iXname;
+    private String iYname;
+    private ResultsTable iTable = null;
+    
     // Dimensions of plot
     private static final int WIN_WIDTH = 800;
     private static final int WIN_HEIGHT = 600;
@@ -62,13 +70,16 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         iMssButton.addActionListener(this);
         iMsdButton = new Button(" MSD ");
         iMsdButton.addActionListener(this);
-
+        iGetDataButton = new Button("Get Data");
+        iGetDataButton.addActionListener(this);
+        
         iLogScale = new Checkbox("logarithmic scale", true);
 
-        final Panel panel = new Panel(new GridLayout(3,1));
+        final Panel panel = new Panel(new GridLayout(4,1));
         panel.add(iMssButton);
         panel.add(iMsdButton);
         panel.add(iLogScale);
+        panel.add(iGetDataButton);
 
         add(panel);
 
@@ -150,20 +161,28 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
      */
     private void plotMss() {
         if (iLogScale.getState()) {
-            updatePlot(iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMomentOrders()),
-                    iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getGammasLogarithmic()),
+            iX = iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMomentOrders());
+            iY = iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getGammasLogarithmic());
+            iXname = "log(moment order \u03BD)";
+            iYname = "log(scaling coefficient \u213D)";
+            updatePlot(iX,
+                    iY,
                     iTrajectoryAnalysis.getMSSlogarithmic(),
                     iTrajectoryAnalysis.getMSSlogarithmicY0(),
                     null,
-                    "log(moment order \u03BD)", "log(scaling coefficient \u213D)", "MSS (log)");
+                    iXname, iYname, "MSS (log)");
         }
         else {
-            updatePlot(iTrajectoryAnalysis.toDouble(iTrajectoryAnalysis.getMomentOrders()),
-                    iTrajectoryAnalysis.getGammasLogarithmic(),
+            iX = iTrajectoryAnalysis.toDouble(iTrajectoryAnalysis.getMomentOrders());
+            iY = iTrajectoryAnalysis.getGammasLogarithmic();
+            iXname = "moment order \u03BD";
+            iYname = "scaling coefficient \u213D";
+            updatePlot(iX,
+                    iY,
                     iTrajectoryAnalysis.getMSSlinear(),
                     iTrajectoryAnalysis.getMSSlinearY0(),
                     null,
-                    "moment order \u03BD", "scaling coefficient \u213D", "MSS");
+                    iXname, iYname, "MSS");
 
         }
     }
@@ -179,21 +198,48 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
             timeSteps[i] = iTrajectoryAnalysis.getFrameShifts()[i] * iTrajectoryAnalysis.getTimeInterval();
         }
         if (iLogScale.getState()) {
-            updatePlot(iTrajectoryAnalysis.toLogScale(timeSteps),
-                    iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMSDforMomentIdx(order)),
+            iX = iTrajectoryAnalysis.toLogScale(timeSteps);
+            iY = iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMSDforMomentIdx(order));
+            iXname = "log(\u03B4t)";
+            iYname = "log(\u03BC(\u03B4t))";
+            updatePlot(iX,
+                    iY,
                     iTrajectoryAnalysis.getGammasLogarithmic()[order],
                     iTrajectoryAnalysis.getGammasLogarithmicY0()[order],
                     iTrajectoryAnalysis.getDiffusionCoefficients()[order],
-                    "log(\u03B4t)", "log(\u03BC(\u03B4t))", "MSD (log)");
+                    iXname, iYname, "MSD (log)");
         }
         else {
-            updatePlot(timeSteps,
-                    iTrajectoryAnalysis.getMSDforMomentIdx(order),
+            iX = timeSteps;
+            iY = iTrajectoryAnalysis.getMSDforMomentIdx(order);
+            iXname = "\u03B4t";
+            iYname = "\u03BC(\u03B4t)";
+            updatePlot(iX,
+                    iY,
                     iTrajectoryAnalysis.getGammasLinear()[order],
                     iTrajectoryAnalysis.getGammasLinearY0()[order],
                     null,
-                    "\u03B4t", "\u03BC(\u03B4t)", "MSD");
+                    iXname, iYname, "MSD");
 
+        }
+    }
+    
+    private ResultsTable getResultsTable() {
+        if (iTable == null) iTable = new ResultsTable();
+        iTable.reset();
+        return iTable;
+    }
+    
+    private void getData() {
+        ResultsTable rt = getResultsTable();
+        if (rt != null) {
+            for (int i = 1; i < 3; i++) rt.setDecimalPlaces(i, 8);
+            for(int i = 0; i < iX.length; ++i) {
+                rt.incrementCounter();
+                rt.setValue(iXname, rt.getCounter() - 1, iX[i]);
+                rt.setValue(iYname, rt.getCounter() - 1, iY[i]);
+            }
+            rt.show("MSS/MSD plot data");
         }
     }
 
@@ -207,5 +253,8 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         else if (o == iMsdButton) {
             plotMsd();
         } 
+        else if (o == iGetDataButton) {
+            getData();
+        }
     }
 }
