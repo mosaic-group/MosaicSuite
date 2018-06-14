@@ -6,7 +6,6 @@ import java.util.Random;
 
 import org.apache.log4j.Logger;
 
-import ij.IJ;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.gui.Utils;
 

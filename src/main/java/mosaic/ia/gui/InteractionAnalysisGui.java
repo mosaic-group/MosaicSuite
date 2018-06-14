@@ -130,8 +130,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         int numReRuns = Integer.parseInt(reRuns.getText());
         Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
         iAnalysis.setPotentialType(potential); // for the first time
-        List<CmaResult> results = new ArrayList<CmaResult>();
-        iAnalysis.cmaOptimization(results, numReRuns, false);
+        iAnalysis.cmaOptimization(numReRuns, false);
+        List<CmaResult> results = iAnalysis.getCmaResults();
         mosaic.utils.Debug.print(results);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
@@ -145,6 +145,9 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             }
             rt.updateResults();
             rt.show("Results");
+            
+            new EstimatedPotentialPlot(iAnalysis.getContextQdDistancesGrid(), potential, iAnalysis.getBestPointFound(), iAnalysis.getBestFunctionValue()).show();
+            new DistributionsPlot(iAnalysis.getContextQdDistancesGrid(), iAnalysis.getObservedModelFitPdPdf(), iAnalysis.getContextQdPdf(), iAnalysis.getNearestNeighborDistancesXtoYPdf(), potential, iAnalysis.getBestPointFound(), iAnalysis.getBestFunctionValue()).show();
         }
     }
     
@@ -220,9 +223,10 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             throw new RuntimeException("Unknown tab chosen in IA GUI");
         }
         
-        new DistributionsPlot(iAnalysis.iContextQdDistancesGrid, iAnalysis.iContextQdPdf, iAnalysis.iNearestNeighborDistancesXtoYPdf).show();
-        Utils.plotHistogram("ObservedDistances", iAnalysis.iNearestNeighborDistancesXtoY, Analysis.getOptimBins(iAnalysis.iNearestNeighborDistancesXtoY, 8, iAnalysis.iNearestNeighborDistancesXtoY.length / 8));
-        double suggestedKernel = Analysis.calcWekaWeights(iAnalysis.iNearestNeighborDistancesXtoY);
+        // Generate plots / info for a user
+        new DistributionsPlot(iAnalysis.getContextQdDistancesGrid(), iAnalysis.getContextQdPdf(), iAnalysis.getNearestNeighborDistancesXtoYPdf()).show();
+        Utils.plotHistogram("ObservedDistances", iAnalysis.getNearestNeighborDistancesXtoY(), Analysis.getOptimBins(iAnalysis.getNearestNeighborDistancesXtoY(), 8, iAnalysis.getNearestNeighborDistancesXtoY().length / 8));
+        double suggestedKernel = Analysis.calcWekaWeights(iAnalysis.getNearestNeighborDistancesXtoY());
         Utils.messageDialog("IA - kernel", "Suggested Kernel wt(p): " + suggestedKernel);
         logger.debug("Suggested kernel wt(p)=" + suggestedKernel);
     }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
-import ij.IJ;
 import mosaic.ia.gui.Utils;
 import mosaic.utils.Debug;
 import mosaic.utils.math.NearestNeighborTree;
