@@ -412,7 +412,12 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         return tempImg;
     }
     
-    private void resetMask() {
+    public void setMask(ImagePlus aProvidedMask) {
+        iMaskImg = aProvidedMask;
+        maskPane.setTitleAt(0, "Mask: " + iMaskImg.getTitle());
+    }
+    
+    public void resetMask() {
         iMaskImg = null;
         maskPane.setTitleAt(0, "Mask: <empty>");
     }
@@ -435,17 +440,5 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
         
         return image3d;
-    }
-    
-    
-    
-    static Point3d[] filter(double maxx, double maxy, Point3d[] input) {
-        ArrayList<Point3d> out = new ArrayList<>(input.length);
-        for (Point3d p : input) {
-            if (p.x <= maxx && p.y <= maxy) {
-                out.add(p);
-            }
-        }
-        return out.toArray(new Point3d[0]);
     }
 }
