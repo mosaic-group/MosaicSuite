@@ -43,7 +43,7 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-10;
         assertEquals(0, analysis.getMinDistance(), epsilon);
         assertEquals(2, analysis.getMaxDistance(), epsilon);
-        assertArrayEquals(new double[] {2, 1, 0, 1, 2}, analysis.getDistances(), epsilon);
+        assertArrayEquals(new double[] {2, 1, 0, 1, 2}, analysis.getNearestNeighborDistancesXtoY(), epsilon);
     }
 
     @Test
@@ -53,10 +53,10 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinDistance(), epsilon);
         assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
-        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getNearestNeighborDistancesXtoY()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.HERNQUIST));
-        List<CmaResult> results = new ArrayList<CmaResult>();
-        analysis.cmaOptimization(results, 1, true);
+        analysis.cmaOptimization(1, true);
+        List<CmaResult> results = analysis.getCmaResults();
         
         epsilon = 1e-6;
         assertEquals(36.545593028698356, results.get(0).iStrength, epsilon);
@@ -94,11 +94,11 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinDistance(), epsilon);
         assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
-        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getNearestNeighborDistancesXtoY()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.NONPARAM, analysis.getMinDistance(), analysis.getMaxDistance(), 41, 0.1));
         
-        List<CmaResult> results = new ArrayList<CmaResult>();
-        analysis.cmaOptimization(results, 1, true);
+        analysis.cmaOptimization(1, true);
+        List<CmaResult> results = analysis.getCmaResults();
 
         epsilon = 1e-6;
         assertEquals(0.0, results.get(0).iStrength, epsilon);
@@ -116,11 +116,11 @@ public class AnalysisTest extends CommonBase {
         double epsilon = 1e-6;
         assertEquals(0.418188, analysis.getMinDistance(), epsilon);
         assertEquals(112.924864, analysis.getMaxDistance(), epsilon);
-        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getDistances()), epsilon);
+        assertEquals(77.722986, Analysis.calcWekaWeights(analysis.getNearestNeighborDistancesXtoY()), epsilon);
         analysis.setPotentialType(Potentials.createPotential(PotentialType.STEP));
         
-        List<CmaResult> results = new ArrayList<CmaResult>();
-        analysis.cmaOptimization(results, 1, true);
+        analysis.cmaOptimization(1, true);
+        List<CmaResult> results = analysis.getCmaResults();
         
         epsilon = 1e-6;
         assertEquals(2.4113236274803262, results.get(0).iStrength, epsilon);

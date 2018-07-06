@@ -2,6 +2,7 @@ package mosaic.ia.gui;
 
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -12,13 +13,18 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * This class contain GUI creation stuff (probably back in time generated in NetBeans or sth).
@@ -46,6 +52,11 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
     protected JFormattedTextField alphaField;
     protected JButton testHypothesis;
     protected JTabbedPane tabbedPane;
+    
+    private String roiTabTitle = "Load ROI";
+    
+    JList<String> xRois;
+    JList<String> yRois;
     
     /**
      * Create the application.
@@ -363,6 +374,56 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         );
         panelCsvCoordinates.setLayout(glCsvCoordinates);
         
+        final JPanel panelRoiCoordinates = new JPanel();
+        tabbedPane.addTab(roiTabTitle, null, panelRoiCoordinates, null);
+        
+        xRois = new JList<>();
+        JScrollPane sp = new JScrollPane(xRois);
+        xRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        xRois.setLayoutOrientation(JList.VERTICAL);
+        xRois.setVisibleRowCount(4);
+        
+        yRois = new JList<>();        
+        JScrollPane spY = new JScrollPane(yRois);
+        yRois.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        yRois.setLayoutOrientation(JList.VERTICAL);
+        yRois.setVisibleRowCount(4);
+        
+        GridBagConstraints gbc_fileInitList = new GridBagConstraints();
+        gbc_fileInitList.fill = GridBagConstraints.BOTH;
+        gbc_fileInitList.gridx = 0;
+        gbc_fileInitList.gridy = 1;
+        
+        JLabel xCol = new JLabel("X");
+        JLabel yCol = new JLabel("Y ref");
+        final GroupLayout glRoi = new GroupLayout(panelRoiCoordinates);
+        glRoi.setHorizontalGroup(glRoi.createSequentialGroup()
+                .addGap(11)
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(xCol)
+                        .addComponent(sp))
+                .addGap(11)
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(yCol)
+                        .addComponent(spY))
+                .addGap(11));
+        glRoi.setVerticalGroup(glRoi.createSequentialGroup()
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(xCol).addGap(5).addComponent(yCol).addGap(5))
+                .addGroup(glRoi.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                        .addGap(5).addComponent(sp).addGap(5).addComponent(spY).addGap(5))
+        );        
+        panelRoiCoordinates.setLayout(glRoi);
+        
+        tabbedPane.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (tabbedPane.getSelectedIndex() == 2) {
+                    roiInitChosen();
+                }
+            }
+        });
+        
         final GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
         groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
                 groupLayout
@@ -414,4 +475,7 @@ abstract public class InteractionAnalysisGuiBase implements ActionListener {
         smoothnessLabel.setEnabled(aShow);
         numOfsupportPointsLabel.setEnabled(aShow);
     }
+    
+    abstract void roiInitChosen();
+    
 }

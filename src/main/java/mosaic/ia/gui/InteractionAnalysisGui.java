@@ -1,23 +1,32 @@
 package mosaic.ia.gui;
 
 
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JButton;
 
+import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.Overlay;
+import ij.gui.Roi;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
+import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 import mosaic.ia.Analysis;
 import mosaic.ia.Analysis.CmaResult;
@@ -28,7 +37,17 @@ import mosaic.ia.Potentials.PotentialType;
 
 
 public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
-
+    private static final Logger logger = Logger.getLogger(InteractionAnalysisGui.class);
+    
+    public static void main(String[] args) {
+//        new ImageJ();
+        ImagePlus image = IJ.openImage("/Users/gonciarz/4rois.tif");
+        image.show();
+//        OverlayCommands oc = new OverlayCommands();
+//        oc.run("to");
+        new InteractionAnalysisGui();
+    }
+    
     private Analysis iAnalysis;
     private ImagePlus iImgX;
     private ImagePlus iImgY;
@@ -36,11 +55,13 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     private Point3d[] iCsvY;
     private ImagePlus iMaskImg;
     
+    private List<Roi> iRoiData;
+    
     // Order must be same as declared in PotentialType enum
     private static final String[] PotentialList = { "Step", "Hernquist", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
 
     public InteractionAnalysisGui() {
-        super(PotentialList);
+        super(PotentialList);        
     }
     
     @Override
@@ -84,10 +105,10 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             resetMask();
         }
     }
-
+    
     private void testHypothesis() {
         if (iAnalysis == null) {
-            IJ.showMessage("Error: Calculate distances first!");
+            Utils.messageDialog("IA - test hypothesis", "Error: Calculate distances first!");
             return;
         }
         int monteCarloRunsForTest = Integer.parseInt(monteCarloRuns.getText());
@@ -98,7 +119,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
 
     private void estimatePotential() {
         if (iAnalysis == null) {
-            IJ.showMessage("Error: Calculate distances first!");
+            Utils.messageDialog("IA - estimate potential", "Error: Calculate distances first!");
             return;
         }
         int numOfSupportPointsValue = Integer.parseInt(numOfSupportPoints.getText());
@@ -109,8 +130,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         int numReRuns = Integer.parseInt(reRuns.getText());
         Potential potential = Potentials.createPotential(getPotential(), iAnalysis.getMinDistance(), iAnalysis.getMaxDistance(), numOfSupportPointsValue, smoothnessValue);
         iAnalysis.setPotentialType(potential); // for the first time
-        List<CmaResult> results = new ArrayList<CmaResult>();
-        iAnalysis.cmaOptimization(results, numReRuns, false);
+        iAnalysis.cmaOptimization(numReRuns, false);
+        List<CmaResult> results = iAnalysis.getCmaResults();
         mosaic.utils.Debug.print(results);
         if (!Interpreter.batchMode) {
             final ResultsTable rt = new ResultsTable();
@@ -124,16 +145,21 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             }
             rt.updateResults();
             rt.show("Results");
+            
+            new EstimatedPotentialPlot(iAnalysis.getContextQdDistancesGrid(), potential, iAnalysis.getBestPointFound(), iAnalysis.getBestFunctionValue()).show();
+            new DistributionsPlot(iAnalysis.getContextQdDistancesGrid(), iAnalysis.getObservedModelFitPdPdf(), iAnalysis.getContextQdPdf(), iAnalysis.getNearestNeighborDistancesXtoYPdf(), potential, iAnalysis.getBestPointFound(), iAnalysis.getBestFunctionValue()).show();
         }
     }
-
+    
+    enum Tabs {IMG, COORD, ROI}
+    
     private void calculateDistances() {
         double gridDelta = Double.parseDouble(gridSize.getText());
         double qkernelWeight = Double.parseDouble(kernelWeightQ.getText());
         double pkernelWeight = Double.parseDouble(kernelWeightP.getText());
         float[][][] mask3d = iMaskImg != null ? imageTo3Darray(iMaskImg) : null;
         
-        if (isCoordinatesTab()) {
+        if (getTabType() == Tabs.COORD) {
             // coordinates
             double xmin = Double.parseDouble(xMin.getText());
             double ymin = Double.parseDouble(yMin.getText());
@@ -142,7 +168,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             double ymax = Double.parseDouble(yMax.getText());
             double zmax = Double.parseDouble(zMax.getText());
             if (xmax < xmin || ymax < ymin || zmax < zmin) {
-                IJ.showMessage("Error: boundary values are not correct");
+                Utils.messageDialog("IA - calculate distances", "Error: boundary values are not correct");
                 return;
             }
             
@@ -152,14 +178,14 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);
             }
             else {
-                IJ.showMessage("Load X and Y coordinates first.");
+                Utils.messageDialog("IA - calculate distances", "Load X and Y coordinates first.");
             }
         }
-        else {
+        else if (getTabType() == Tabs.IMG) {
             // image
             if (iImgY != null && iImgX != null) {
                 if (!checkIfImagesAreSameSize()) {
-                    IJ.showMessage("Error: Image sizes/scale/unit do not match");
+                    Utils.messageDialog("IA - calculate distances", "Error: Image sizes/scale/unit do not match");
                 }
                 else {
                     iAnalysis = new Analysis();
@@ -167,13 +193,127 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
                 }
             }
             else {
-                IJ.showMessage("Load X and Y images first.");
+                Utils.messageDialog("IA - calculate distances", "Load X and Y coordinates first.");
+            }
+        }
+        else if (getTabType() == Tabs.ROI) {
+            System.out.println("ROI:" + xRois.getSelectedValue() + " " + yRois.getSelectedValue());
+            if (xRois.getSelectedIndex() >= 0 && yRois.getSelectedIndex() >= 0 && !xRois.getSelectedValue().equals(yRois.getSelectedValue())) {
+                readSelectedRois();
+                
+                // coordinates
+                double xmin = Double.parseDouble(xMin.getText());
+                double ymin = Double.parseDouble(yMin.getText());
+                double zmin = Double.parseDouble(zMin.getText());
+                double xmax = Double.parseDouble(xMax.getText());
+                double ymax = Double.parseDouble(yMax.getText());
+                double zmax = Double.parseDouble(zMax.getText());
+                if (xmax < xmin || ymax < ymin || zmax < zmin) {
+                    Utils.messageDialog("IA - calculate distances", "Error: boundary values are not correct");
+                    return;
+                }
+                System.out.println("X=" + iCsvX.length + " Y=" + iCsvY.length);
+                System.out.println("Boundary (x/y/z): " + xmin + " - " + xmax + "; " + ymin + " - " + ymax + "; " + zmin + " - " + zmax);
+                
+                iAnalysis = new Analysis();
+                iAnalysis.calcDist(gridDelta, qkernelWeight, pkernelWeight, mask3d, iCsvX, iCsvY, xmin, xmax, ymin, ymax, zmin, zmax);                
+            }
+        }
+        else {
+            throw new RuntimeException("Unknown tab chosen in IA GUI");
+        }
+        
+        // Generate plots / info for a user
+        new DistributionsPlot(iAnalysis.getContextQdDistancesGrid(), iAnalysis.getContextQdPdf(), iAnalysis.getNearestNeighborDistancesXtoYPdf()).show();
+        Utils.plotHistogram("ObservedDistances", iAnalysis.getNearestNeighborDistancesXtoY(), Analysis.getOptimBins(iAnalysis.getNearestNeighborDistancesXtoY(), 8, iAnalysis.getNearestNeighborDistancesXtoY().length / 8));
+        double suggestedKernel = Analysis.calcWekaWeights(iAnalysis.getNearestNeighborDistancesXtoY());
+        Utils.messageDialog("IA - kernel", "Suggested Kernel wt(p): " + suggestedKernel);
+        logger.debug("Suggested kernel wt(p)=" + suggestedKernel);
+    }
+
+    @Override
+    public void roiInitChosen() {
+        ImagePlus imp = WindowManager.getCurrentImage();
+        if (imp != null) {
+            xRois.removeAll();
+            yRois.removeAll();
+            
+            Set<String> types = new HashSet<>();
+            
+            // Try get ROIs from overlay
+            Overlay overlay = imp.getOverlay();
+            if (overlay != null) {
+                iRoiData = new ArrayList<>();
+                for (int i=0; i< overlay.size(); ++i) {
+                    types.add(overlay.get(i).getName());
+                    iRoiData.add(overlay.get(i));
+                }
+                xRois.setListData(types.toArray(new String[] {}));
+                yRois.setListData(types.toArray(new String[] {}));
+            }
+            else {
+                // if overlay is empty then try from RoiManager
+                RoiManager rm = RoiManager.getInstance2();
+                if (rm != null) {
+                    iRoiData = new ArrayList<>();
+                    for (int i = 0; i < rm.getCount(); ++i) {
+                        types.add(rm.getRoi(i).getName());
+                        iRoiData.add(rm.getRoi(i));
+                    }
+                    xRois.setListData(types.toArray(new String[] {}));
+                    yRois.setListData(types.toArray(new String[] {}));
+                }
             }
         }
     }
+    
+    /**
+     * Initialiez "LoadROI" tab with data provided by user
+     * @param rois map names of data sets and arrays of points
+     */
+    public void initRoi(Map<String, Point3d[]> rois) {
+        ArrayList<String> names = new ArrayList<>();
+        iRoiData = new ArrayList<>();
+        for (Map.Entry<String, Point3d[]> e : rois.entrySet()) {
+            names.add(e.getKey());
+            for (Point3d p : e.getValue()) {
+                Roi r = new Roi(p.x, p.y, 1, 1);
+                r.setName(e.getKey());
+                iRoiData.add(r);
+            }
+        }
+        xRois.setListData(names.toArray(new String[] {}));
+        yRois.setListData(names.toArray(new String[] {}));
+        
+        tabbedPane.setSelectedIndex(2);      
+    }
+    
+    public void readSelectedRois() {
+        List<Point3d> x = new ArrayList<Point3d>();
+        List<Point3d> y = new ArrayList<Point3d>();
+        
+        for (int i = 0; i<iRoiData.size(); i++) {
+            Roi roi = iRoiData.get(i);
+            Rectangle bounds = roi.getBounds();
+            double xp = bounds.getCenterX();
+            double yp = bounds.getCenterY();
+            double zp = roi.getZPosition();
+            if (roi.getName().equals(xRois.getSelectedValue())) {
+                x.add(new Point3d(xp, yp, zp));
+            }
+            else if (roi.getName().equals(yRois.getSelectedValue())) {
+                y.add(new Point3d(xp, yp, zp));
+            }
+        }
+        iCsvX = x.toArray(new Point3d[] {});
+        iCsvY = y.toArray(new Point3d[] {});
+        setMinMaxCoordinates();
+    }
 
-    private boolean isCoordinatesTab() {
-        return tabbedPane.getSelectedIndex() == 1;
+    private Tabs getTabType() {
+        if (tabbedPane.getSelectedIndex() == 1) return Tabs.COORD;
+        else if (tabbedPane.getSelectedIndex() == 0) return Tabs.IMG;
+        else return Tabs.ROI;
     }
 
     private void setMinMaxCoordinates() {
@@ -227,8 +367,8 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     }
     
     private void generateMask() {
-        if (isCoordinatesTab()) {
-            IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead.");
+        if (getTabType() != Tabs.IMG) {
+            Utils.messageDialog("IA - generate mask", "Cannot generate mask for coordinates. Load a mask instead.");
         }
         else if (iImgY != null) {
             iMaskImg = new Duplicator().run(iImgY);
@@ -238,18 +378,18 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
             maskPane.setTitleAt(0, "Mask: <generated>");
         }
         else {
-            IJ.showMessage("Image Y is null: Cannot generate mask");
+            Utils.messageDialog("IA - generate mask", "Image Y is null: Cannot generate mask");
         }
     }
 
     private boolean loadMask() {
         ImagePlus tempMask = FileUtils.openImage();
         if (tempMask == null) {
-            IJ.showMessage("Filetype not recognized");
+            Utils.messageDialog("IA - load mask", "Filetype not recognized");
             return false;
         }
         else if (tempMask.getType() != ImagePlus.GRAY8) {
-            IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
+            Utils.messageDialog("IA - load mask", "ERROR: Loaded mask not 8 bit gray");
             return false;
         }
         
@@ -263,7 +403,7 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
     private ImagePlus loadImage(String aStatusBarMessage, JButton aLoadImgButton) {
         ImagePlus tempImg = FileUtils.openImage();
         if (tempImg == null) {
-            IJ.showMessage("Cancelled/Filetype not recognized");
+            Utils.messageDialog("IA - load image", "Cancelled/Filetype not recognized");
             return null;
         }
         tempImg.show(aStatusBarMessage);
@@ -272,7 +412,12 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         return tempImg;
     }
     
-    private void resetMask() {
+    public void setMask(ImagePlus aProvidedMask) {
+        iMaskImg = aProvidedMask;
+        maskPane.setTitleAt(0, "Mask: " + iMaskImg.getTitle());
+    }
+    
+    public void resetMask() {
         iMaskImg = null;
         maskPane.setTitleAt(0, "Mask: <empty>");
     }
@@ -295,17 +440,5 @@ public class InteractionAnalysisGui extends InteractionAnalysisGuiBase {
         }
         
         return image3d;
-    }
-    
-    
-    
-    static Point3d[] filter(double maxx, double maxy, Point3d[] input) {
-        ArrayList<Point3d> out = new ArrayList<>(input.length);
-        for (Point3d p : input) {
-            if (p.x <= maxx && p.y <= maxy) {
-                out.add(p);
-            }
-        }
-        return out.toArray(new Point3d[0]);
     }
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
-import ij.IJ;
+import mosaic.ia.gui.Utils;
 import mosaic.utils.Debug;
 import mosaic.utils.math.NearestNeighborTree;
 import mosaic.utils.math.StatisticsUtils;
@@ -84,7 +84,7 @@ public abstract class DistanceCalculations {
         logger.debug("Number of points (X/Y): " + iParticlesX.length + " / " + iParticlesY.length);
         logger.debug("min/max of x: " + aMinX + "/" + aMaxX + " y: " + aMinY + "/" + aMaxY + " z: " + aMinZ + "/" + aMaxZ);
         if (iParticlesX.length == 0 || iParticlesY.length == 0) {
-            IJ.showMessage("Number discaverd (and filtered) particles cannot be 0 for further calculations.\nNumber of particles (x/y): " + iParticlesX.length + " " + iParticlesY.length);
+            Utils.messageDialog("IA - state density", "Number discaverd (and filtered) particles cannot be 0 for further calculations.\nNumber of particles (x/y): " + iParticlesX.length + " " + iParticlesY.length);
             throw new RuntimeException("Not enough particles to perform calculations!");
         }
         
