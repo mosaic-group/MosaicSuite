@@ -5,14 +5,13 @@ import java.io.File;
 import java.util.Vector;
 
 import org.scijava.vecmath.Point3d;
-
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.io.OpenDialog;
 import ij.io.Opener;
+import mosaic.ia.gui.Utils;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
@@ -75,7 +74,7 @@ public class FileUtils {
             file = new File(aFileName);
         }
         if (!file.exists()) {
-            IJ.showMessage("There is no file [" + file.getName() + "]");
+            Utils.messageDialog("IA - open CSV file", "There is no file [" + file.getName() + "]");
             return null;
         }
         
@@ -83,7 +82,7 @@ public class FileUtils {
         CSV<Point3dCsvReadWrapper>csv = new CSV<Point3dCsvReadWrapper>(Point3dCsvReadWrapper.class);
         int numOfCols = csv.setCSVPreferenceFromFile(file.getAbsolutePath());
         if (numOfCols <= 1 || numOfCols > 3) {
-            IJ.showMessage("CSV file should have 2 or 3 columns of data with comma or semicolon delimieters and no header!");
+            Utils.messageDialog("IA - open CSV file", "CSV file should have 2 or 3 columns of data with comma or semicolon delimieters and no header!");
             return null;
         }
         CsvColumnConfig ccc = numOfCols == 2 
@@ -91,7 +90,7 @@ public class FileUtils {
                               : Point3dCsvReadWrapper.getConfig3D();
         final Vector<Point3dCsvReadWrapper> outdst = csv.Read(file.getAbsolutePath(), ccc, true);
         if (outdst.isEmpty()) {
-            IJ.showMessage("Incorrect CSV file chosen [" + file.getName() + "]\nCSV file should have 2 or 3 columns of data with comma or semicolon delimieters and no header!\n");
+            Utils.messageDialog("IA - open CSV file", "Incorrect CSV file chosen [" + file.getName() + "]\nCSV file should have 2 or 3 columns of data with comma or semicolon delimieters and no header!\n");
             return null;
         }
         

@@ -1,6 +1,7 @@
 package mosaic.ia;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -8,14 +9,11 @@ import org.apache.log4j.Logger;
 import org.scijava.vecmath.Point3d;
 
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import ij.IJ;
 import ij.ImagePlus;
 import mosaic.ia.HypothesisTesting.TestResult;
 import mosaic.ia.Potentials.Potential;
 import mosaic.ia.Potentials.PotentialType;
-import mosaic.ia.gui.DistributionsPlot;
-import mosaic.ia.gui.EstimatedPotentialPlot;
-import mosaic.ia.gui.PlotHistogram;
+import mosaic.ia.gui.Utils;
 import mosaic.utils.Debug;
 import mosaic.utils.math.StatisticsUtils;
 import mosaic.utils.math.StatisticsUtils.MinMaxMean;
@@ -25,12 +23,17 @@ public class Analysis {
     
     private Potential iPotential;
     private DistanceCalculations iDistanceCalculations;
+    
     private double[] iContextQdDistancesGrid;
     private double[] iContextQdPdf;
     private double[] iNearestNeighborDistancesXtoY;
     private double[] iNearestNeighborDistancesXtoYPdf;
+    private double[] iObservedModelFitPdPdf;
+    
+    private List<CmaResult> iCmaResults; 
     
     private double[][] iBestPointsFound;
+    private double[] iBestFunctionValue;
     private int iBestPointIndex = -1;
     
     public void calcDist(double gridSize, double kernelWeightq, double kernelWeightp, float[][][] genMask, ImagePlus iImageX, ImagePlus iImageY) {
@@ -51,12 +54,6 @@ public class Analysis {
         
         StatisticsUtils.normalizePdf(iContextQdPdf, iContextQdDistancesGrid, false);
         StatisticsUtils.normalizePdf(iNearestNeighborDistancesXtoYPdf, iContextQdDistancesGrid, false);
-
-        new DistributionsPlot(iContextQdDistancesGrid, iContextQdPdf, iNearestNeighborDistancesXtoYPdf).show();
-        PlotHistogram.plot("ObservedDistances", iNearestNeighborDistancesXtoY, getOptimBins(iNearestNeighborDistancesXtoY, 8, iNearestNeighborDistancesXtoY.length / 8));
-        double suggestedKernel = calcWekaWeights(iNearestNeighborDistancesXtoY);
-        IJ.showMessage("Suggested Kernel wt(p): " + suggestedKernel);
-        logger.debug("Suggested kernel wt(p)=" + suggestedKernel);
     }
 
     public static class CmaResult {
@@ -76,10 +73,11 @@ public class Analysis {
         }
     }
     
-    public void cmaOptimization(List<CmaResult> aResultsOutput, int cmaReRunTimes, boolean aRepetitiveResults) {
+    public void cmaOptimization(int cmaReRunTimes, boolean aRepetitiveResults) {
         final FitFunction fitfun = new FitFunction(iContextQdPdf, iContextQdDistancesGrid, iNearestNeighborDistancesXtoYPdf, iNearestNeighborDistancesXtoY, iPotential);
         iBestPointsFound = new double[cmaReRunTimes][iPotential.numOfDimensions()];
-        double[] bestFunctionValue = new double[cmaReRunTimes];
+        iBestFunctionValue = new double[cmaReRunTimes];
+        iCmaResults = new ArrayList<CmaResult>();
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
         
@@ -108,29 +106,27 @@ public class Analysis {
             cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX()));
             logCmaResultInfo(cma);
 
-            bestFunctionValue[cmaRunNumber] = cma.getBestFunctionValue();
-            if (bestFunctionValue[cmaRunNumber] < bestFitness) {
-                if (cmaRunNumber > 0 && bestFitness - bestFunctionValue[cmaRunNumber] > bestFunctionValue[cmaRunNumber] * 0.00001) {
+            iBestFunctionValue[cmaRunNumber] = cma.getBestFunctionValue();
+            if (iBestFunctionValue[cmaRunNumber] < bestFitness) {
+                if (cmaRunNumber > 0 && bestFitness - iBestFunctionValue[cmaRunNumber] > iBestFunctionValue[cmaRunNumber] * 0.00001) {
                     diffFitness = true;
                 }
-                bestFitness = bestFunctionValue[cmaRunNumber];
+                bestFitness = iBestFunctionValue[cmaRunNumber];
                 iBestPointIndex = cmaRunNumber;
             }
             iBestPointsFound[cmaRunNumber] = cma.getBestX();
             
-            addNewOutputResult(aResultsOutput, bestFunctionValue[cmaRunNumber], iBestPointsFound[cmaRunNumber]);
+            addNewOutputResult(iCmaResults, iBestFunctionValue[cmaRunNumber], iBestPointsFound[cmaRunNumber]);
         }
 
-        logger.debug("Best Parameters Found:" + Debug.getString(iBestPointsFound[iBestPointIndex]) + " fit function value=" + bestFunctionValue[iBestPointIndex]);
+        logger.debug("Best Parameters Found:" + Debug.getString(iBestPointsFound[iBestPointIndex]) + " fit function value=" + iBestFunctionValue[iBestPointIndex]);
         
         if (diffFitness) {
-            IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
+            Utils.messageDialog("IA - CMA optimization", "Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
         fitfun.l2Norm(iBestPointsFound[iBestPointIndex]); // to calc pgrid for best params
-        new EstimatedPotentialPlot(iContextQdDistancesGrid, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
-        double[] observedModelFitPdPdf = fitfun.getObservedModelFitPdPdf() ;
-        StatisticsUtils.normalizePdf(observedModelFitPdPdf, iContextQdDistancesGrid, false);
-        new DistributionsPlot(iContextQdDistancesGrid, observedModelFitPdPdf, iContextQdPdf, iNearestNeighborDistancesXtoYPdf, iPotential, iBestPointsFound[iBestPointIndex], bestFunctionValue[iBestPointIndex]).show();
+        iObservedModelFitPdPdf = fitfun.getObservedModelFitPdPdf() ;
+        StatisticsUtils.normalizePdf(iObservedModelFitPdPdf, iContextQdDistancesGrid, false);
     }
 
     private void addNewOutputResult(List<CmaResult> aResultsOutput, double aBestFunctionValue, double[] aBestPointFound) {
@@ -210,11 +206,11 @@ public class Analysis {
     
     public TestResult hypothesisTesting(int monteCarloRunsForTest, double alpha) {
         if (iBestPointsFound == null) {
-            IJ.showMessage("Error: Run estimation first");
+            Utils.messageDialog("IA - hypothesis testing", "Error: Run estimation first");
             return null;
         }
         else if (iPotential.getType() == PotentialType.NONPARAM) {
-            IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
+            Utils.messageDialog("IA - hypothesis testing", "Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
             return null;
         }
         else {
@@ -279,11 +275,45 @@ public class Analysis {
         return iDistanceCalculations.getMaxXtoYdistance();
     }
 
-    public double[] getDistances() {
+    public double[] getContextQdDistancesGrid() {
+        return iContextQdDistancesGrid;
+    }
+    
+    public double[] getContextQdPdf() {
+        return iContextQdPdf;
+    }
+    
+    public double[] getNearestNeighborDistancesXtoY() {
         return iNearestNeighborDistancesXtoY;
     }
     
+    public double[] getNearestNeighborDistancesXtoYPdf() {
+        return iNearestNeighborDistancesXtoYPdf;
+    }
+
+    public double[] getObservedModelFitPdPdf() {
+        return iObservedModelFitPdPdf;
+    }
+    
+    /**
+     * @return best point coordinates found by CMA optimization
+     */
+    public double[] getBestPointFound() {
+        return iBestPointsFound[iBestPointIndex];
+    }
+
+    /**
+     * @return best function value found by CMA optimization
+     */
+    public double getBestFunctionValue() {
+        return iBestFunctionValue[iBestPointIndex];
+    }
+    
+    public List<CmaResult> getCmaResults() {
+        return iCmaResults;
+    }
+
     public void setPotentialType(Potential potentialType) {
-        this.iPotential = potentialType;
+        iPotential = potentialType;
     }
 }
