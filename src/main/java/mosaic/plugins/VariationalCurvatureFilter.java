@@ -52,6 +52,7 @@ public class VariationalCurvatureFilter extends CurvatureFilterBase {
             setResultDestination(ResultOutput.UPDATE_ORIGINAL);
         }
         setFilePrefix("filtered_");
+        updateFlags(DOES_ALL);
         setSplitMethodMenu(true);
         return true;
     }

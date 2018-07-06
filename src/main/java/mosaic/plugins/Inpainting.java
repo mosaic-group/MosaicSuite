@@ -59,7 +59,8 @@ public class Inpainting extends CurvatureFilterBase {
     @Override
     protected boolean setup(String aArgs) {
         setFilePrefix("inpainting_");
-
+        updateFlags(DOES_ALL);
+        
         final OpenDialog od = new OpenDialog("(Inpainting) Open mask file", "");
         final String directory = od.getDirectory();
         final String name = od.getFileName();

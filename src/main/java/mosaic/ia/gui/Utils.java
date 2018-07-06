@@ -6,6 +6,7 @@ import javax.swing.JOptionPane;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.HistogramWindow;
+import ij.macro.Interpreter;
 import ij.process.FloatProcessor;
 
 
@@ -31,7 +32,7 @@ public class Utils {
      * @param aMessage
      */
     public static void messageDialog(String aTitle, String aMessage) {
-        if (IJ.getInstance() != null) IJ.showMessage(aMessage);
+        if (IJ.getInstance() != null || Interpreter.batchMode == true || IJ.isMacro()) IJ.showMessage(aMessage);
         else JOptionPane.showMessageDialog(null, aMessage, aTitle, JOptionPane.PLAIN_MESSAGE);
     }
 }

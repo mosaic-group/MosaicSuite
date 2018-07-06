@@ -6,6 +6,8 @@ import java.awt.SystemColor;
 import java.awt.TextArea;
 
 import ij.gui.GenericDialog;
+import mosaic.filamentSegmentation.GUI.OutputImageWindow;
+import mosaic.plugins.utils.PlugInBase.ResultOutput;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 import mosaic.variationalCurvatureFilters.FilterKernel;
 import mosaic.variationalCurvatureFilters.FilterKernelBernstein;

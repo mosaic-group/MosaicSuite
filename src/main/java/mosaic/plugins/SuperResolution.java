@@ -83,7 +83,8 @@ public class SuperResolution extends CurvatureFilterBase {
     @Override
     protected boolean setup(String aArgs) {
         setFilePrefix("resized_");
-
+        updateFlags(DOES_ALL);
+        
         // Super resolution will generate 2x bigger image than original one.
         setScaleX(2.0);
         setScaleY(2.0);
