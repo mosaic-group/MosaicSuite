@@ -12,20 +12,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.JLabel;
 
+import ij.*;
+import mosaic.utils.Debug;
 import org.apache.log4j.Logger;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
@@ -420,6 +414,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             return true;
         }
 
+        // text file mode starts here
         if (csv_format == true) {
             IJ.showStatus("Reading CSV Regions data ...");
             final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
@@ -460,7 +455,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
             }
         }
-        else if (one_file_multiple_frame == false) {
+        else if (one_file_multiple_frame == false) { // this mean "multiple files with one frame in each"
             if (text_files_mode) {
                 vFI = new FileInfo();
                 vFI.directory = files_dir;
@@ -545,8 +540,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * </ul>
      * 
      * @return false if cancel button clicked or problem with input
-     * @see #makeKernel(int)
-     * @see #generateBinaryMask(int)
      */
     private boolean getUserDefinedParams() {
 
@@ -569,29 +562,31 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         boolean convert = false;
         if (text_files_mode) {
             if (Csv_region_list == null) {
-                GenericDialog text_mode_gd;
-                text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
-                text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-                text_mode_gd.addCheckbox("multiple frame files", true);
-                text_mode_gd.addCheckbox("CSV File", false);
+                GenericDialog textModeDialog = new GenericDialog("input text files type", IJ.getInstance());
+                String opts[] = {"multiple frame files", "CSV File"};
+                textModeDialog.addRadioButtonGroup("Please specify the info provided for the Particles...", opts, opts.length, 1, opts[0]);
 
-                // text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
-                text_mode_gd.showDialog();
-                if (text_mode_gd.wasCanceled()) {
+                textModeDialog.showDialog();
+                if (textModeDialog.wasCanceled()) {
                     return false;
                 }
+                final String typeOfInputFile = textModeDialog.getNextRadioButton();
+                int idx = Arrays.asList(opts).indexOf(typeOfInputFile);
 
-                one_file_multiple_frame = text_mode_gd.getNextBoolean();
-                csv_format = text_mode_gd.getNextBoolean();
+                if (idx == 0) {
+                    one_file_multiple_frame = true;
+                    csv_format = false;
+                }
+                else {
+                    one_file_multiple_frame = false;
+                    csv_format = true;
+                }
 
                 // This is just a quick fix to not mislead users. one_file_multiple_frame and its functionality
                 // should be removed from code. Unfortunately to load multiples files both checkboxes must have been
                 // unchecked (!) which was not so user friendly.
                 if (one_file_multiple_frame == true && csv_format == false) {
                     one_file_multiple_frame = false;
-                }
-                else if (one_file_multiple_frame == false && csv_format == false || one_file_multiple_frame == true && csv_format == true) {
-                    return false;
                 }
 
                 // gets the input files directory form
@@ -614,6 +609,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                     v.toArray(files_list);
                 }
 
+                // text file mode "multiple frame files"
                 this.resultFilesTitle = "text_files";
                 iNumOfFrames = 0;
                 // EACH!! file in the given directory is considered as a frame
@@ -1158,6 +1154,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     
     private Img<ARGBType> createHyperStackFromFrames(String aBackgroundFilename) {
         int[] vMax = getParticlesRange();
+        Debug.print("vMax", vMax, aBackgroundFilename);
+        Debug.printStack();
         for (int i = 0; i < vMax.length; i++) {
             vMax[i] += 1;
         }
@@ -1872,5 +1870,23 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         results_window.text_panel.appendLine(numOfVisibleTrajs + " trajectories remained after filter");
         
         return true;
-    }    
+    }
+
+    public static void main(String[] args) {
+        // set the plugins.dir property to make the plugin appear in the Plugins menu
+        Class<?> clazz = ParticleTracker3DModular_.class;
+        String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
+        String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
+        System.setProperty("plugins.dir", pluginsDir);
+
+        // start ImageJ
+        new ImageJ();
+
+        // open the Clown sample
+//        ImagePlus image = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
+//        image.show();
+
+        // run the plugin
+        IJ.runPlugIn(clazz.getName(), "");
+    }
 }
