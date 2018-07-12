@@ -124,6 +124,13 @@ public class CSV<E> {
                     setDelimiter(';');
                     numOfColumns = tempNumOfColumns;
                 }
+                else {
+                    tempNumOfColumns = map[0].split("\t").length;
+                    if (tempNumOfColumns > 1) {
+                        setDelimiter('\t');
+                        numOfColumns = tempNumOfColumns;
+                    }
+                }
             }
         }
         catch (final IOException e) {

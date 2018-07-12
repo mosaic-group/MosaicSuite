@@ -371,7 +371,7 @@ public class MosaicUtils {
 
         final Cursor<T> img_c = B.cursor();
         final RandomAccessibleInterval<T> view = Views.hyperSlice(A, B.numDimensions(), fix);
-        final Cursor<T> img_v = Views.iterable(view).cursor();
+        final Cursor<T> img_v = Views.flatIterable(view).cursor();
 
         while (img_c.hasNext()) {
             img_c.fwd();

@@ -4,11 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Vector;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
+import mosaic.core.detection.Particle;
 import mosaic.test.framework.CommonBase;
 
 public class CSVTest extends CommonBase {
@@ -471,5 +474,16 @@ public class CSVTest extends CommonBase {
         expectedData.add(new TestThing(1, 33.3));
         expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
+    }
+    
+    @Test
+    public void removeME() {
+        final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
+
+        P_csv.setCSVPreferenceFromFile("/Volumes/GONCIARZ//Results.xls");
+        final Vector<Particle> p = P_csv.Read("/Volumes/GONCIARZ//Results.xls", null);
+        
+        mosaic.utils.Debug.print(p.size(), p.get(0));
+        
     }
 }
