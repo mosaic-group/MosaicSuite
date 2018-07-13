@@ -316,7 +316,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /* save full report to file */
         if (source == save_report) {
             // show save file user dialog with default file name 'Traj_{title}.txt'
-            final SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "Traj_" + particleTracker3DModular.resultFilesTitle, ".txt");
+            final SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "Traj_" + particleTracker3DModular.iResultFilesBaseTitle, ".txt");
             // if user cancelled the save dialog - return
             if (sd.getDirectory() == null || sd.getFileName() == null) {
                 return;
