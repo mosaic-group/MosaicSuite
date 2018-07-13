@@ -475,15 +475,4 @@ public class CSVTest extends CommonBase {
         expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
     }
-    
-    @Test
-    public void removeME() {
-        final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
-
-        P_csv.setCSVPreferenceFromFile("/Volumes/GONCIARZ//Results.xls");
-        final Vector<Particle> p = P_csv.Read("/Volumes/GONCIARZ//Results.xls", null);
-        
-        mosaic.utils.Debug.print(p.size(), p.get(0));
-        
-    }
 }
