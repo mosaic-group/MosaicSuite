@@ -12,20 +12,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.JLabel;
 
+import ij.*;
+import mosaic.utils.Debug;
 import org.apache.log4j.Logger;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
@@ -272,7 +266,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             }
         }
 
-        if (only_detect && this.iInputImage.getStackSize() == 1) {
+        if (only_detect && iInputImage.getStackSize() == 1) {
             return DOES_ALL + NO_CHANGES;
         }
         
@@ -420,6 +414,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             return true;
         }
 
+        // text file mode starts here
         if (csv_format == true) {
             IJ.showStatus("Reading CSV Regions data ...");
             final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
@@ -460,7 +455,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
             }
         }
-        else if (one_file_multiple_frame == false) {
+        else if (one_file_multiple_frame == false) { // this mean "multiple files with one frame in each"
             if (text_files_mode) {
                 vFI = new FileInfo();
                 vFI.directory = files_dir;
@@ -545,8 +540,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * </ul>
      * 
      * @return false if cancel button clicked or problem with input
-     * @see #makeKernel(int)
-     * @see #generateBinaryMask(int)
      */
     private boolean getUserDefinedParams() {
 
@@ -569,31 +562,37 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         boolean convert = false;
         if (text_files_mode) {
             if (Csv_region_list == null) {
-                GenericDialog text_mode_gd;
-                text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
-                text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-                text_mode_gd.addCheckbox("multiple frame files", true);
-                text_mode_gd.addCheckbox("CSV File", false);
-
-                // text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
-                text_mode_gd.showDialog();
-                if (text_mode_gd.wasCanceled()) {
+                // Create dialog 
+                GenericDialog textModeDialog = new GenericDialog("input text files type", IJ.getInstance());
+                String opts[] = {"multiple frame files", "CSV File"};
+                textModeDialog.addRadioButtonGroup("Please specify the info provided for the Particles...", opts, opts.length, 1, opts[0]);
+                textModeDialog.addCheckbox("Create initial image from read data", true);
+                
+                // Show it
+                textModeDialog.showDialog();
+                
+                // Check what user decided
+                if (textModeDialog.wasCanceled()) {
                     return false;
                 }
-
-                one_file_multiple_frame = text_mode_gd.getNextBoolean();
-                csv_format = text_mode_gd.getNextBoolean();
-
+                final String typeOfInputFile = textModeDialog.getNextRadioButton();
+                int idx = Arrays.asList(opts).indexOf(typeOfInputFile);
+                if (idx == 0) {
+                    one_file_multiple_frame = true;
+                    csv_format = false;
+                }
+                else {
+                    one_file_multiple_frame = false;
+                    csv_format = true;
+                }
                 // This is just a quick fix to not mislead users. one_file_multiple_frame and its functionality
                 // should be removed from code. Unfortunately to load multiples files both checkboxes must have been
                 // unchecked (!) which was not so user friendly.
                 if (one_file_multiple_frame == true && csv_format == false) {
                     one_file_multiple_frame = false;
                 }
-                else if (one_file_multiple_frame == false && csv_format == false || one_file_multiple_frame == true && csv_format == true) {
-                    return false;
-                }
-
+                create_bck_image = textModeDialog.getNextBoolean(); // Should create img?
+                
                 // gets the input files directory form
                 files_list = getFilesList();
                 if (files_list == null) {
@@ -614,7 +613,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                     v.toArray(files_list);
                 }
 
-                this.resultFilesTitle = "text_files";
+                // text file mode "multiple frame files"
+                resultFilesTitle = "text_files";
                 iNumOfFrames = 0;
                 // EACH!! file in the given directory is considered as a frame
                 for (int i = 0; i < files_list.length; i++) {
@@ -634,7 +634,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             gd.addPanel(GUIhelper.makePreviewPanel(this, iInputImage), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
 
             // check if the original images are not GRAY8, 16 or 32
-            if (this.iInputImage.getType() != ImagePlus.GRAY8 && this.iInputImage.getType() != ImagePlus.GRAY16 && this.iInputImage.getType() != ImagePlus.GRAY32) {
+            if (iInputImage.getType() != ImagePlus.GRAY8 && iInputImage.getType() != ImagePlus.GRAY16 && iInputImage.getType() != ImagePlus.GRAY32) {
                 gd.addCheckbox("Convert to Gray8 (recommended)", true);
                 convert = true;
             }
@@ -684,9 +684,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             // even if the frames were already processed (particles detected) but
             // the user changed the detection params then the frames needs to be processed again
             if (changed) {
-                if (this.frames_processed) {
-                    this.iFrames = null;
-                    this.frames_processed = false;
+                if (frames_processed) {
+                    iFrames = null;
+                    frames_processed = false;
                 }
             }
 
@@ -698,22 +698,22 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         if (only_detect) {
             return false;
         }
-        this.iLinkRange = (int) gd.getNextNumber();
-        this.displacement = gd.getNextNumber();
+        iLinkRange = (int) gd.getNextNumber();
+        displacement = gd.getNextNumber();
 
         final String dm = gd.getNextChoice();
 
         if (dm.equals("Brownian")) {
-            this.force = false;
-            this.straight_line = false;
+            force = false;
+            straight_line = false;
         }
         else if (dm.equals("Straight lines")) {
-            this.force = false;
-            this.straight_line = true;
+            force = false;
+            straight_line = true;
         }
         else if (dm.equals("Constant velocity")) {
-            this.force = true;
-            this.straight_line = false;
+            force = true;
+            straight_line = false;
         }
 
         // if user choose to convert reset stack, title, frames number and global min, max
@@ -721,7 +721,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             StackConverter sc = new StackConverter(iInputImage);
             sc.convertToGray8();
             stack = iInputImage.getStack();
-            this.resultFilesTitle = iInputImage.getTitle();
+            resultFilesTitle = iInputImage.getTitle();
             final StackStatistics stack_stats = new StackStatistics(iInputImage);
             detector.setGlobalMax((float) stack_stats.max);
             detector.setGlobalMin((float) stack_stats.min);
@@ -867,7 +867,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      */
     public StringBuffer getConfiguration() {
         final StringBuffer configuration = new StringBuffer("% Configuration:\n");
-        if (!this.text_files_mode) {
+        if (!text_files_mode) {
             configuration.append("% \tKernel radius: ");
             configuration.append(getRadius());
             configuration.append("\n");
@@ -887,10 +887,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
         }
         configuration.append("% \tDisplacement : ");
-        configuration.append(this.displacement);
+        configuration.append(displacement);
         configuration.append("\n");
         configuration.append("% \tLinkrange    : ");
-        configuration.append(this.iLinkRange);
+        configuration.append(iLinkRange);
         configuration.append("\n");
         return configuration;
     }
@@ -908,7 +908,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @return a <code>StringBuffer</code> that holds this information
      */
     public StringBuffer getInputFramesInformation() {
-        if (this.text_files_mode) {
+        if (text_files_mode) {
             return new StringBuffer("Frames info was loaded from text files");
         }
         final StringBuffer info = new StringBuffer("% Frames information:\n");
@@ -1140,8 +1140,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         /* Opens an 'open file' with the default directory as the imageJ 'image' directory */
         final OpenDialog od = new OpenDialog("test", IJ.getDirectory("image"), "");
 
-        this.files_dir = od.getDirectory();
-        this.file_sel = od.getFileName();
+        files_dir = od.getDirectory();
+        file_sel = od.getFileName();
         if (files_dir == null) {
             return null;
         }
@@ -1157,103 +1157,65 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     }
     
     private Img<ARGBType> createHyperStackFromFrames(String aBackgroundFilename) {
-        int[] vMax = getParticlesRange();
-        for (int i = 0; i < vMax.length; i++) {
-            vMax[i] += 1;
-        }
-
-        // Create time Image
-        Img<ARGBType> out_fs = null;
+        int[] maxDims = getParticlesRange();
+        for (int i = 0; i < maxDims.length; i++) { maxDims[i] += 1; }
+        
+        // Create empty image for trajectories visualization
+        Img<ARGBType> outputImg = null;
         if (text_files_mode == true) {
             if (aBackgroundFilename == null) {
-                final long vMaxp1[] = new long[vMax.length + 1];
+                // Create dims with additional "number of frames" dimension
+                final long extendedDims[] = new long[maxDims.length + 1];
+                for (int i = 0; i < maxDims.length; i++) { extendedDims[i] = maxDims[i]; }
+                extendedDims[maxDims.length] = iFrames.length;
 
-                for (int i = 0; i < vMax.length; i++) {
-                    vMaxp1[i] = vMax[i];
-                }
-                vMaxp1[vMax.length] = this.iFrames.length;
-
-                final ImgFactory<ARGBType> imgFactory = new CellImgFactory<ARGBType>();
-                out_fs = imgFactory.create(vMaxp1, new ARGBType());
+                outputImg = new CellImgFactory<ARGBType>().create(extendedDims, new ARGBType());
             }
             else {
-                // Open first background to get the size
-
+                // Open first background to get the original size of tracked data
                 if (iInputImage == null) {
                     final File file = new File(aBackgroundFilename.replace("*", Integer.toString(1)));
-
-                    // open a file with ImageJ
                     iInputImage = new Opener().openImage(file.getAbsolutePath());
+                    
+                    if (iInputImage != null) {
+                        IJ.error("Cannot open the background " + aBackgroundFilename);
+                        creating_traj_image = false;
+                        return null;
+                    }
                 }
 
-                long vMaxp1[] = null;
-
-                if (iInputImage != null) {
-                    ImagePlus imp = null;
-                    if (iInputImage.getNFrames() > 1) {
-                        imp = MosaicUtils.getImageFrame(iInputImage, 1);
-                    }
-                    else {
-                        imp = iInputImage;
-                    }
-
-                    final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(imp);
-
-                    vMaxp1 = new long[backgroundImg.numDimensions() + 1];
-
-                    for (int i = 0; i < backgroundImg.numDimensions(); i++) {
-                        vMaxp1[i] = backgroundImg.dimension(i);
-                    }
-                    vMaxp1[backgroundImg.numDimensions()] = this.iFrames.length;
-                }
-                else {
-                    // Cannot open the background
-
-                    IJ.error("Cannot open the background " + aBackgroundFilename);
-                    creating_traj_image = false;
-                    return null;
-                }
-
-                final ImgFactory<ARGBType> imgFactory = new CellImgFactory<ARGBType>();
-                out_fs = imgFactory.create(vMaxp1, new ARGBType());
+                // Generate extedned dimensions (single frame dims + number of frames)
+                ImagePlus imp = (iInputImage.getNFrames() > 1) ? MosaicUtils.getImageFrame(iInputImage, 1) : iInputImage;
+                final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(imp);
+                long extendedDims[] = new long[backgroundImg.numDimensions() + 1];
+                for (int i = 0; i < backgroundImg.numDimensions(); i++) { extendedDims[i] = backgroundImg.dimension(i); }
+                extendedDims[backgroundImg.numDimensions()] = iFrames.length;
+                
+                outputImg = new CellImgFactory<ARGBType>().create(extendedDims, new ARGBType());
             }
         }
         else {
-            // Open original image
-
+            // Generate extedned dimensions (single frame dims + number of frames) from original image
             final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(iInputImage);
-
-            final long vMaxp1[] = new long[backgroundImg.numDimensions()];
-
-            for (int i = 0; i < backgroundImg.numDimensions(); i++) {
-                vMaxp1[i] = backgroundImg.dimension(i);
-            }
-
-            final ImgFactory<ARGBType> imgFactory = new CellImgFactory<ARGBType>();
-            out_fs = imgFactory.create(vMaxp1, new ARGBType());
+            final long extendedDims[] = new long[backgroundImg.numDimensions()];
+            for (int i = 0; i < backgroundImg.numDimensions(); i++) { extendedDims[i] = backgroundImg.dimension(i); }
+            outputImg = new CellImgFactory<ARGBType>().create(extendedDims, new ARGBType());
         }
 
-        /* for each frame we have to add a stack to the image */
-        Img<ARGBType> out_f = null;
+        // for each frame we have to add a stack to the image
+        Img<ARGBType> frameImg = null;
         for (int i = 0; i < iFrames.length; i++) {
             IJ.showStatus("Creating frame " + (i + 1));
             if (text_files_mode == true) {
-                // Create frame image
-
                 if (aBackgroundFilename != null) {
+                    // Get next frame or channel image
                     ImagePlus imp = null;
-
                     if (iInputImage.getNFrames() > 1 && i < iInputImage.getNFrames()) {
                         imp = MosaicUtils.getImageFrame(iInputImage, i + 1);
                     }
-                    else {
-                        if (iInputImage.getNChannels() >= 1 && i < iInputImage.getNChannels()) {
-                            imp = MosaicUtils.getImageSlice(iInputImage, i + 1);
-                        }
+                    else if (iInputImage.getNChannels() >= 1 && i < iInputImage.getNChannels()) {
+                        imp = MosaicUtils.getImageSlice(iInputImage, i + 1);
                     }
-
-                    final Calibration cal = iInputImage.getCalibration();
-
                     if (imp == null) {
                         IJ.error("Cannot find the background image or wrong format");
                         creating_traj_image = false;
@@ -1262,40 +1224,27 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
                     // wrap it into an ImgLib image (no copying)
                     final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(imp);
-
-                    out_f = iFrames[i].createImage(backgroundImg, iTrajectories, cal, i, DrawType.TRAJECTORY_HISTORY);
-
-                    // It failed end
-                    if (out_f == null) {
-                        break;
-                    }
+                    frameImg = iFrames[i].createImage(backgroundImg, iTrajectories, iInputImage.getCalibration(), i, DrawType.TRAJECTORY_HISTORY);
                 }
                 else {
-                    out_f = iFrames[i].createImage(vMax, iTrajectories, i, DrawType.TRAJECTORY_HISTORY);
-
-                    // It failed end
-                    if (out_f == null) {
-                        break;
-                    }
+                    frameImg = iFrames[i].createImage(maxDims, iTrajectories, i, DrawType.TRAJECTORY_HISTORY);
                 }
             }
             else {
-                final Calibration cal = iInputImage.getCalibration();
-
-                // wrap it into an ImgLib image (no copying)
-
                 final ImagePlus timp = MosaicUtils.getImageFrame(iInputImage, i + 1);
                 final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(timp);
-
                 iFrames[i].setParticleRadius(getRadius());
-                out_f = iFrames[i].createImage(backgroundImg, iTrajectories, cal, i, DrawType.TRAJECTORY_HISTORY);
+                frameImg = iFrames[i].createImage(backgroundImg, iTrajectories, iInputImage.getCalibration(), i, DrawType.TRAJECTORY_HISTORY);
+            }
+            if (frameImg == null) {
+                break;
             }
 
-            MosaicUtils.copyEmbedded(out_fs, out_f, i);
+            MosaicUtils.copyEmbedded(outputImg, frameImg, i);
         }
 
         IJ.showStatus("Done");
-        return out_fs;
+        return outputImg;
     }
 
     /**
@@ -1314,20 +1263,20 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
         /* initial infomation to output */
         final StringBuffer report = new StringBuffer();
-        report.append(this.getConfiguration());
-        report.append(this.getInputFramesInformation());
+        report.append(getConfiguration());
+        report.append(getInputFramesInformation());
         report.append("\n");
 
         /* detected particles infomation per frame */
         report.append("%\tPer frame information (verbose output):\n");
         for (int i = 0; i < iFrames.length; i++) {
-            report.append(this.iFrames[i].getFullFrameInfo());
+            report.append(iFrames[i].getFullFrameInfo());
         }
 
         /* Add linking info */
         report.append("% Trajectory linking (verbose output):\n");
         for (int i = 0; i < iFrames.length; i++) {
-            report.append(this.iFrames[i].toStringBuffer());
+            report.append(iFrames[i].toStringBuffer());
         }
 
         /* all trajectories info */
@@ -1340,9 +1289,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     @Override
     public void preview(ActionEvent e, int zDepth) {
         // set the original_imp window position next to the dialog window
-        this.iInputImage.getWindow().setLocation((int) gd.getLocationOnScreen().getX() + gd.getWidth(), (int) gd.getLocationOnScreen().getY());
+        iInputImage.getWindow().setLocation((int) gd.getLocationOnScreen().getX() + gd.getWidth(), (int) gd.getLocationOnScreen().getY());
         // do preview
-        this.preview(zDepth);
+        preview(zDepth);
         preview_canvas.repaint();
     }
 
@@ -1352,7 +1301,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         GUIhelper.getUserDefinedPreviewParams(gd, detector);
 
         /* detect particles and save to files */
-        if (this.processFrames()) { // process the frames
+        if (processFrames()) { // process the frames
             saveDetected(iFrames);
         }
         preview_canvas.repaint();
@@ -1872,5 +1821,23 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         results_window.text_panel.appendLine(numOfVisibleTrajs + " trajectories remained after filter");
         
         return true;
-    }    
+    }
+
+    public static void main(String[] args) {
+        // set the plugins.dir property to make the plugin appear in the Plugins menu
+        Class<?> clazz = ParticleTracker3DModular_.class;
+        String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
+        String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
+        System.setProperty("plugins.dir", pluginsDir);
+
+        // start ImageJ
+        new ImageJ();
+
+        // open the Clown sample
+//        ImagePlus image = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
+//        image.show();
+
+        // run the plugin
+        IJ.runPlugIn(clazz.getName(), "");
+    }
 }

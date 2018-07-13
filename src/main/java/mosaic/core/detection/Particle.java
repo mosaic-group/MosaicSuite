@@ -26,7 +26,7 @@ public class Particle {
     public float nonParticleDiscriminationScore = 0;
     
     // linking stuff
-    public boolean special = true; // a flag that is used while detecting and linking particles
+    public boolean special = true; // a flag that is pused while detecting and linking particles
     public int[] next = null; // array that holds in position i the next particle number in frame i
     public float distance = -1;
     public float lx, ly, lz; // previous Linking x,y,z
@@ -173,7 +173,42 @@ public class Particle {
     public double getSize() {
         return m0;
     }
-    
+
+    public void setm0(double aM) {
+        m0 = (float) aM;
+    }
+    public double getm0() {
+        return m0;
+    }
+
+    public void setm1(double aM) {
+        m1 = (float) aM;
+    }
+    public double getm1() {
+        return m1;
+    }
+
+    public void setm2(double aM) {
+        m2 = (float) aM;
+    }
+    public double getm2() {
+        return m2;
+    }
+
+    public void setm3(double aM) {
+        m3 = (float) aM;
+    }
+    public double getm3() {
+        return m3;
+    }
+
+    public void setm4(double aM) {
+        m4 = (float) aM;
+    }
+    public double getm4() {
+        return m4;
+    }
+
     // ------------------------------------------------------------------------
     // CSV definitions and setters/getters used when reading Squassh output 
     // TODO: this is terrible solution, it should be handled differently 

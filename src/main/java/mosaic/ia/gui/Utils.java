@@ -21,7 +21,6 @@ public class Utils {
      */
     public static HistogramWindow plotHistogram(String aTitle, double[] aValues, int aNumOfBins) {
         final FloatProcessor hist = new FloatProcessor(aValues.length, 1, aValues);
-        System.out.println("HISTOGRAM..");
         return new ij.gui.HistogramWindow(aTitle, new ImagePlus(aTitle, hist), aNumOfBins);
     }
     

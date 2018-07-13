@@ -195,7 +195,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
         // Define test data
         final String tcDirName           = "ParticleTracker/LoadFromCsv/";
         final String setupString         = "run";
-        final String macroOptions        = "csv test=" + tmpPath + "test.csv link=2 displacement=10 size=0 intensity=-1 dynamics=[Straight lines]";
+        final String macroOptions        = "please=[CSV File] test=" + tmpPath + "test.csv link=2 displacement=10 size=0 intensity=-1 dynamics=[Straight lines]";
         final String inputFile           = null;
         final String[] expectedImgFiles  = {};
         final String[] referenceImgFiles = {};
