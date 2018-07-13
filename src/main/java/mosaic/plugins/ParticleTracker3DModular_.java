@@ -12,14 +12,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.JLabel;
 
-import ij.*;
-import mosaic.utils.Debug;
 import org.apache.log4j.Logger;
 
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
@@ -80,49 +88,32 @@ import net.imglib2.view.Views;
 /**
  * <h2>ParticleTracker</h2>
  * <h3>An ImageJ Plugin for particles detection and tracking from digital videos</h3>
- * <p>
  * This class implements a to 3d extended feature point detection and tracking algorithm as described in: <br>
- * I. F. Sbalzarini and P. Koumoutsakos. <br>
- * Feature point tracking and trajectory analysis for video imaging in cell biology. <br>
+ * I. F. Sbalzarini and P. Koumoutsakos.
+ * "Feature point tracking and trajectory analysis for video imaging in cell biology."
  * J. Struct. Biol., 151(2), 2005.
- * <p>
- * Any privateations that made use of this plugin should cite the above reference. <br>
- * This helps to ensure the financial support of our project at ETH and will
- * enable us to provide further updates and support. <br>
- * Thanks for your help!
- * </p>
- * For more information go <a href="http://weeman.inf.ethz.ch/particletracker/">here</a>
- * <p>
- * <b>Disclaimer</b><br>
- * IN NO EVENT SHALL THE ETH BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL,
- * OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND
- * ITS DOCUMENTATION, EVEN IF THE ETH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * THE ETH SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO
- * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- * <p>
- *
- * @version 1.3, November 2010 (requires: ImageJ 1.36b and Java 5 or higher)
- * @author Guy Levy - Academic guest CBL
- *         2d algorithm and GUI implementation
- * @author Janick Cardinale, PhD Student at Mosaic
- *         <a href="http://www.mosaic.ethz.ch/">Mosaic Group, Inst. of theoretical computer science<a>, ETH Zurich
- *         3D extension, memory efficiency, parallelism, algorithmic speed up, batch processing
- *         feature extension made by:
- * @version 1.6 November 2010 (requires: ImageJ 1.44 or higher)
- * @author Kota Miura - CMCI, EMBL Heidelberg (http://cmci.embl.de)
- *         add functionality to automatically transfer resulting data to result table in ImageJ,
- * @version 1.7 (require: ImgLib2)
- * @author Pietro Incardona
- *         add Dynamic model in the linker, new 3D/2D visualization system, CSV reading format, for Region based tracking
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface {
     private static final Logger logger = Logger.getLogger(ParticleTracker3DModular_.class);
+
+    // General configuration
+    private boolean iIsInGuiMode = false;
+    private boolean iSaveMss = false;
+    
+    // Text files input 
+    private boolean iInputModeTextFile = false;
+    private boolean iInputModeTextFileCsv = false;
+    private boolean iInputModeTextFileFrames = false;
+    private File iInputModeTextFileSegmentationInfo = null;
+    
+    // Input parameters
+    public ImagePlus iInputImage;
+    private FileInfo iInputImageFileInfo = null;
+
+    // ------------ 
     
     public Img<ARGBType> iTrajImg;
-    public ImagePlus iInputImage;
     public String resultFilesTitle;
     public MyFrame[] iFrames;
     public Vector<Trajectory> iTrajectories;
@@ -135,7 +126,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     private float l_s = 1.0f; 
     private float l_f = 1.0f;
     private float l_d = 1.0f;
-    private ParticleLinker iParticleLinker;
+    private ParticleLinker iParticleLinker = new ParticleLinkerGreedy();
     
     /* results display and file */
     public int chosen_traj = -1;
@@ -156,38 +147,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     /* vars for text_files_mode */
     private String files_dir;
     private String[] files_list;
-    private boolean one_file_multiple_frame;
-    private boolean csv_format = false;
-    private File Csv_region_list;
-    private boolean create_bck_image = true;
+    private boolean create_bck_image = false;
     private boolean creating_traj_image = false;
     
-    private FileInfo vFI = null;
-    private boolean isGuiMode = false;
-    private boolean text_files_mode = false;
-    private boolean only_detect = false;
     private boolean frames_processed = false;
-    private boolean saveMss = false;
     
-    /**
-     * Different commands from the plugin menu call the same plugin class with a different argument.
-     * <ul>
-     * <li>"" (empty String) - the plugin will work in regular full default mode
-     * <li>"only_detect" - the plugin will work in detector only mode and unlike the regular mode will allow input of only one image
-     * </ul>
-     * 
-     * @param aInputArgs A string command that determines the mode of this plugin - can be empty
-     * @param aInputImage The ImagePlus that is the original input image sequence -
-     *                    if null then <code>text_files_mode</code> is activated after an OK from the user
-     */
     @Override
     public int setup(String aInputArgs, ImagePlus aInputImage) {
-        isGuiMode = !(IJ.isMacro() || Interpreter.batchMode);
+        iIsInGuiMode = !(IJ.isMacro() || Interpreter.batchMode);
 
-        // Handle input stuff
-        if (aInputArgs.equals("only_detect")) {
-            only_detect = true;
-        }
         iInputImage = aInputImage;
 
         final String options = Macro.getOptions();
@@ -195,81 +163,56 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         if (options != null) {
             if (MosaicUtils.parseCheckbox("saveMss", options)) {
                 logger.info("Save MSS results = true");
-                saveMss = true;
+                iSaveMss = true;
             }
         }
         
-        // Setup detection/linking things
-        iParticleLinker = new ParticleLinkerGreedy();
-
-        if (iInputImage == null && !only_detect) {
+        if (iInputImage == null) {
             if (IJ.showMessageWithCancel("Text Files Mode", "Do you want to load particles positions from text files?")) {
-                text_files_mode = true;
+                iInputModeTextFile = true;
                 return NO_IMAGE_REQUIRED;
             }
             IJ.error("You must load an Image Sequence or Movie first");
             return DONE;
         }
-        if (aInputImage == null) {
-            IJ.error("You must load an Image Sequence or Movie first");
-            return DONE;
-        }
-        vFI = iInputImage.getOriginalFileInfo();
-        create_bck_image = false;
+        
+        iInputImageFileInfo = iInputImage.getOriginalFileInfo();
 
-        // Check if there are segmentation information
-        if (MosaicUtils.checkSegmentationInfo(aInputImage, null)) {
-            boolean shouldProceed = false;
-            if (isGuiMode) {
-                final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
-                if (YN_dialog.yesPressed() == true) shouldProceed = true;
-            }
-            else {
-                // Macro mode
-                shouldProceed = true;
-            }
-            if (shouldProceed) {
+        // Check if there are segmentation information (use it in macro mode or check with user if OK in GUI)
+        if (MosaicUtils.checkSegmentationInfo(iInputImage, null)) {
+            if (!iIsInGuiMode || new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions").yesPressed()) { 
                 SegmentationInfo info = MosaicUtils.getSegmentationInfo(aInputImage);
-                vFI = aInputImage.getOriginalFileInfo();
-                logger.debug("Taking input from segmentation results (file = [" + aInputImage.getTitle() + "], dir = [" + vFI.directory + "]) ");
-                
+                logger.debug("Taking input from segmentation results (file = [" + iInputImage.getTitle() + "], dir = [" + iInputImageFileInfo.directory + "]) ");
+
                 resultFilesTitle = aInputImage.getTitle();
-                text_files_mode = true;
-                csv_format = true;
-                Csv_region_list = info.RegionList;
+                iInputModeTextFile = true;
+                iInputModeTextFileCsv = true;
+                iInputModeTextFileSegmentationInfo = info.RegionList;
                 create_bck_image = false;
 
                 return NO_IMAGE_REQUIRED;
             }
         }
-
+        
         // If you have an image with n slice and one frame is quite suspicious
         // that the time information is stored in the slice data, prompt if the data are 2D or 3D
         if (aInputImage.getStackSize() > 1 && aInputImage.getNFrames() == 1) {
             final GenericDialog gd = new GenericDialog("Data dimension");
-
-            final String ad[] = { "No", "Yes" };
-            gd.addChoice("Are these 3D data ?", ad, "No");
+            gd.addChoice("Are these 3D data ?", new String[] { "No", "Yes" }, "No");
             gd.showDialog();
 
-            String saved_options = null;
-            if (!isGuiMode && Macro.getOptions() != null && !Macro.getOptions().trim().isEmpty()) {
-                saved_options = Macro.getOptions();
-            }
-
             if (!gd.wasCanceled() && gd.getNextChoice().equals("No")) {
+                String saved_options = null;
+                if (!iIsInGuiMode && Macro.getOptions() != null && !Macro.getOptions().trim().isEmpty()) {
+                    saved_options = Macro.getOptions();
+                }
                 IJ.run(aInputImage, "Stack to Hyperstack...", "order=xyczt(default) channels=1 slices=1 frames=" + aInputImage.getNSlices() + " display=Composite");
-            }
-
-            if (saved_options != null) {
-                Macro.setOptions(saved_options);
+                if (saved_options != null) {
+                    Macro.setOptions(saved_options);
+                }
             }
         }
 
-        if (only_detect && iInputImage.getStackSize() == 1) {
-            return DOES_ALL + NO_CHANGES;
-        }
-        
         return DOES_ALL + NO_CHANGES + PARALLELIZE_STACKS;
     }
 
@@ -284,7 +227,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     @Override
     public void run(ImageProcessor ip) {
         initializeMembers();
-        if (!text_files_mode && isGuiMode) {
+        if (!iInputModeTextFile && iIsInGuiMode) {
             preview_canvas = GUIhelper.generatePreviewCanvas(iInputImage);
         }
 
@@ -310,7 +253,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         generateTrajectories();
         assignColorsToTrajectories();
         
-        if (!isGuiMode) {
+        if (!iIsInGuiMode) {
             writeDataToDisk();
         }
         else {
@@ -329,6 +272,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     }
 
     public boolean linkParticles() {
+        logger.debug("Link Particles");
         final LinkerOptions lo = new LinkerOptions();
         lo.linkRange = iLinkRange;
         lo.maxDisplacement = (float) displacement;
@@ -380,7 +324,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * Initializes some members needed before going to previews on the user param dialog.
      */
     private void initializeMembers() {
-        if (!text_files_mode) {
+        if (!iInputModeTextFile) {
             // initialize ImageStack stack
 
             stack = iInputImage.getStack();
@@ -415,16 +359,16 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
 
         // text file mode starts here
-        if (csv_format == true) {
+        if (iInputModeTextFile && iInputModeTextFileCsv == true) {
             IJ.showStatus("Reading CSV Regions data ...");
             final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
             final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, null);
 
-            vFI = new FileInfo();
-            vFI.directory = files_dir;
-            
+            iInputImageFileInfo = new FileInfo();
+            iInputImageFileInfo.directory = files_dir;
+
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
                 return false;
@@ -455,15 +399,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
             }
         }
-        else if (one_file_multiple_frame == false) { // this mean "multiple files with one frame in each"
-            if (text_files_mode) {
-                vFI = new FileInfo();
-                vFI.directory = files_dir;
+        else {
+            if (iInputModeTextFile) {
+                iInputImageFileInfo = new FileInfo();
+                iInputImageFileInfo.directory = files_dir;
             }
             iFrames = new MyFrame[iNumOfFrames];
             for (int frame_i = 0, file_index = 0; frame_i < iNumOfFrames; frame_i++, file_index++) {
                 MyFrame current_frame = null;
-                if (text_files_mode) {
+                if (iInputModeTextFileFrames) {
                     if (files_list[file_index].startsWith(".") || files_list[file_index].endsWith("~")) {
                         frame_i--;
                         continue;
@@ -512,9 +456,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
             }
         }
-        else {
-            throw new RuntimeException("Unsupported input file");
-        }
 
         frames_processed = true;
 
@@ -558,10 +499,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             }
         });
 
-        one_file_multiple_frame = false;
         boolean convert = false;
-        if (text_files_mode) {
-            if (Csv_region_list == null) {
+        logger.debug("TextMODE:"+iInputModeTextFile);
+        if (iInputModeTextFile) {
+            logger.debug("TEXT" +iInputModeTextFileSegmentationInfo);
+            if (iInputModeTextFileSegmentationInfo == null) {
                 // Create dialog 
                 GenericDialog textModeDialog = new GenericDialog("input text files type", IJ.getInstance());
                 String opts[] = {"multiple frame files", "CSV File"};
@@ -578,19 +520,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 final String typeOfInputFile = textModeDialog.getNextRadioButton();
                 int idx = Arrays.asList(opts).indexOf(typeOfInputFile);
                 if (idx == 0) {
-                    one_file_multiple_frame = true;
-                    csv_format = false;
+                    iInputModeTextFileFrames = true;
+                    iInputModeTextFileCsv = false;
                 }
                 else {
-                    one_file_multiple_frame = false;
-                    csv_format = true;
+                    iInputModeTextFileFrames = false;
+                    iInputModeTextFileCsv = true;
                 }
-                // This is just a quick fix to not mislead users. one_file_multiple_frame and its functionality
-                // should be removed from code. Unfortunately to load multiples files both checkboxes must have been
-                // unchecked (!) which was not so user friendly.
-                if (one_file_multiple_frame == true && csv_format == false) {
-                    one_file_multiple_frame = false;
-                }
+
                 create_bck_image = textModeDialog.getNextBoolean(); // Should create img?
                 
                 // gets the input files directory form
@@ -599,7 +536,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                     return false;
                 }
 
-                if (csv_format == true) {
+                if (iInputModeTextFileCsv == true) {
                     final Vector<String> v = new Vector<String>();
 
                     for (int i = 0; i < files_list.length; i++) {
@@ -624,8 +561,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 }
             }
             else {
-                files_dir = Csv_region_list.getParent();
-                file_sel = Csv_region_list.getName();
+                files_dir = iInputModeTextFileSegmentationInfo.getParent();
+                file_sel = iInputModeTextFileSegmentationInfo.getName();
+                logger.debug("Segmentation Mode, output set to: ["+files_dir +"]["+file_sel+"]");
             }
         }
         else {
@@ -640,12 +578,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             }
         }
 
-        if (!only_detect) {
-            gd.addMessage("Particle Linking:\n");
-            // These 2 params are relevant for both working modes
-            gd.addNumericField("Link Range", 2, 0);
-            gd.addNumericField("Displacement", 10.0, 2);
-        }
+        gd.addMessage("Particle Linking:\n");
+        // These 2 params are relevant for both working modes
+        gd.addNumericField("Link Range", 2, 0);
+        gd.addNumericField("Displacement", 10.0, 2);
 
         final String d_pos[] = { "Brownian", "Straight lines", "Constant velocity" };
         gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
@@ -659,7 +595,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                 createLinkFactorDialog();
             }
         });
-        if (!isGuiMode) {
+        if (!iIsInGuiMode) {
             // In no gui mode creating that dialog allows to read parameters from macro arguments
             createLinkFactorDialog();
         }
@@ -679,7 +615,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         }
 
         // retrieve params from user
-        if (!text_files_mode) {
+        if (!iInputModeTextFile) {
             final Boolean changed = GUIhelper.getUserDefinedParameters(gd, detector);
             // even if the frames were already processed (particles detected) but
             // the user changed the detection params then the frames needs to be processed again
@@ -694,9 +630,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             if (convert) {
                 convert = gd.getNextBoolean();
             }
-        }
-        if (only_detect) {
-            return false;
         }
         iLinkRange = (int) gd.getNextNumber();
         displacement = gd.getNextNumber();
@@ -756,7 +689,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         traj_info.append("%%\t 2nd column: x coordinate top-down" + "(pixel)" + "\n");
         traj_info.append("%%\t 3rd column: y coordinate left-right" + "(pixel)" + "\n");
         traj_info.append("%%\t 4th column: z coordinate bottom-top" + "(pixel)" + "\n");
-        if (text_files_mode) {
+        if (iInputModeTextFile) {
             traj_info.append("%%\t next columns: other information provided for each particle in the given order\n");
         }
         else {
@@ -779,22 +712,24 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     }
 
     private void writeDataToDisk() {
-        if (vFI == null) {
+        logger.debug("Writing data to disk");
+        if (iInputImageFileInfo == null) {
             IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
             return;
         }
-        MosaicUtils.write2File(vFI.directory, "Traj_" + resultFilesTitle + ".txt", getFullReport().toString());
-        if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "Traj_" + resultFilesTitle + ".xml").getAbsolutePath(), this);
+        logger.debug("Dir ["+iInputImageFileInfo.directory+"]");
+        MosaicUtils.write2File(iInputImageFileInfo.directory, "Traj_" + resultFilesTitle + ".txt", getFullReport().toString());
+        if (!iInputModeTextFile) new TrajectoriesReportXML(new File(iInputImageFileInfo.directory, "Traj_" + resultFilesTitle + ".xml").getAbsolutePath(), this);
         try {
-            if (saveMss) {
+            if (iSaveMss) {
                 CalibrationData calData = getImageCalibrationData();
                 if (calData.errorMsg == null) {
                     ResultsTable rtMss = mssAllResultsToTable(calData.pixelDimension, calData.timeInterval);
-                    rtMss.saveAs(new File(vFI.directory, "TrajMss_" + resultFilesTitle + ".csv").getAbsolutePath());
+                    rtMss.saveAs(new File(iInputImageFileInfo.directory, "TrajMss_" + resultFilesTitle + ".csv").getAbsolutePath());
                 }
             }
             final ResultsTable rt = generateResultsTableWithTrajectories();
-            rt.saveAs(new File(vFI.directory, "Traj_" + resultFilesTitle + ".csv").getAbsolutePath());
+            rt.saveAs(new File(iInputImageFileInfo.directory, "Traj_" + resultFilesTitle + ".csv").getAbsolutePath());
         }
         catch (final IOException e) {
             e.printStackTrace();
@@ -867,7 +802,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      */
     public StringBuffer getConfiguration() {
         final StringBuffer configuration = new StringBuffer("% Configuration:\n");
-        if (!text_files_mode) {
+        if (!iInputModeTextFile) {
             configuration.append("% \tKernel radius: ");
             configuration.append(getRadius());
             configuration.append("\n");
@@ -908,7 +843,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @return a <code>StringBuffer</code> that holds this information
      */
     public StringBuffer getInputFramesInformation() {
-        if (text_files_mode) {
+        if (iInputModeTextFile) {
             return new StringBuffer("Frames info was loaded from text files");
         }
         final StringBuffer info = new StringBuffer("% Frames information:\n");
@@ -1162,7 +1097,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         
         // Create empty image for trajectories visualization
         Img<ARGBType> outputImg = null;
-        if (text_files_mode == true) {
+        if (iInputModeTextFile == true) {
             if (aBackgroundFilename == null) {
                 // Create dims with additional "number of frames" dimension
                 final long extendedDims[] = new long[maxDims.length + 1];
@@ -1206,7 +1141,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         Img<ARGBType> frameImg = null;
         for (int i = 0; i < iFrames.length; i++) {
             IJ.showStatus("Creating frame " + (i + 1));
-            if (text_files_mode == true) {
+            if (iInputModeTextFile == true) {
                 if (aBackgroundFilename != null) {
                     // Get next frame or channel image
                     ImagePlus imp = null;
@@ -1439,7 +1374,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             for (int i = 4; i < 12; i++) rt.setDecimalPlaces(i, 8);
             computeMssForOneTrajectory(rt, aTrajectory, aPixelDimensions, aTimeInterval);
 
-            if (isGuiMode == true) {
+            if (iIsInGuiMode == true) {
                 rt.show("Results");
             }
         }
@@ -1458,7 +1393,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
             }
             logger.info("Computed MSS for " + rt.getCounter() + " trajectories.");
 
-            if (isGuiMode == true) {
+            if (iIsInGuiMode == true) {
                 rt.show("Results");
             }
         }
@@ -1703,6 +1638,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * Generated trajectories from previously linked particles.
      */
     public void generateTrajectories() {
+        logger.debug("Generate trajectories");
         iTrajectories = new Vector<Trajectory>();
         
         // Preallocate space for building trajectories.
@@ -1833,7 +1769,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         // start ImageJ
         new ImageJ();
 
-        // open the Clown sample
 //        ImagePlus image = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
 //        image.show();
 
