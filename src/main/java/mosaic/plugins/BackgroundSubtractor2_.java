@@ -1,6 +1,13 @@
 package mosaic.plugins;
 
 
+import java.awt.Button;
+import java.awt.GridBagLayout;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -13,13 +20,6 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
-
-import java.awt.Button;
-import java.awt.GridBagLayout;
-import java.awt.Panel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Vector;
 
 
 /**
@@ -77,6 +77,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         mHeight = mOriginalImagePlus.getHeight();
         mWidth = mOriginalImagePlus.getWidth();
         //		mLength = AutoDetectParameters(aImagePlus.getProcessor());
+        
         try {
             mLength = Integer.parseInt(aArgs);
         }catch(final NumberFormatException aE) {
@@ -398,12 +399,19 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         if (mParameterDialog.wasCanceled()) {
             return 0;
         }
+                
         if (mProposeButtonClicked) {
             mProposeButtonClicked = false;
             return 2;
         }
 
         mLength = (int)mParameterDialog.getNextNumber();
+        if (mLength < 0) {
+            // when length is set to -1 then run auto-parameters - this is for macro mode
+            mAPICall = true; // do not pop up any dialogs 
+            mLength = AutoDetectParameters(mOriginalImagePlus.getProcessor());
+        }
+        
         //		mLength = Integer.parseInt(mLengthTextField.getText());
         mShowBackgroundImage = mParameterDialog.getNextBoolean();
 
