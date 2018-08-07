@@ -11,6 +11,7 @@ import java.util.Vector;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.StackWindow;
 import ij.measure.Measurements;
@@ -20,6 +21,9 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
+import mosaic.core.utils.MosaicUtils;
+import org.apache.log4j.Logger;
+import org.scijava.log.LogService;
 
 
 /**
@@ -43,6 +47,7 @@ import ij.process.ShortProcessor;
  * @author Janick Cardinale - Master student at the <a href="http://www.cbl.ethz.ch/">Computational Biophysics Lab<a>, ETH Zurich
  */
 public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
+    private static final Logger logger = Logger.getLogger(BackgroundSubtractor2_.class);
     //
     // parameters
     //
@@ -63,6 +68,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
     private int mHeight = 0;
     private int mWidth = 0;
     private boolean mAPICall = false;
+    private boolean mSkipOnFailure = false; // does not show dialog in case when autoparams fails.
 
     @Override
     public int setup(String aArgs, ImagePlus aImagePlus){
@@ -73,6 +79,16 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             IJ.showMessage("Load an image first.");
             return DONE;
         }
+
+        final String options = Macro.getOptions();
+        logger.info("Macro Options: [" + options + "]");
+        if (options != null) {
+            if (MosaicUtils.parseCheckbox("skipOnFailure", options)) {
+                logger.info("SkipOnFailure = true");
+                mSkipOnFailure = true;
+            }
+        }
+
         mOriginalImagePlus = aImagePlus;
         mHeight = mOriginalImagePlus.getHeight();
         mWidth = mOriginalImagePlus.getWidth();
@@ -406,10 +422,15 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         }
 
         mLength = (int)mParameterDialog.getNextNumber();
+
         if (mLength < 0) {
             // when length is set to -1 then run auto-parameters - this is for macro mode
             mAPICall = true; // do not pop up any dialogs 
             mLength = AutoDetectParameters(mOriginalImagePlus.getProcessor());
+            logger.info("Auto-detected length for image " + mOriginalImagePlus.getTitle() + "=" + mLength);
+            if (mLength < 0) {
+                return 0; // cancel operation -> auto-parameters failed
+            }
         }
         
         //		mLength = Integer.parseInt(mLengthTextField.getText());
@@ -477,6 +498,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         try {
             vAreas = SearchAreasInBitmap(vBitmap);
         }catch (final StackOverflowError aSOE) { //TODO: not that nice solution.
+            if (!mSkipOnFailure)
             IJ.showMessage("The parameter detection failed.\n" +
                     "Try again with the minimum threshold set.\n" +
                     "(Menu Image\\Adjust\\Threshold)");
