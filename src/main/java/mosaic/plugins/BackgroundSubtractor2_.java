@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -22,8 +24,6 @@ import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
 import mosaic.core.utils.MosaicUtils;
-import org.apache.log4j.Logger;
-import org.scijava.log.LogService;
 
 
 /**
@@ -72,14 +72,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 
     @Override
     public int setup(String aArgs, ImagePlus aImagePlus){
-        if (IJ.versionLessThan("1.36x")) {
-            return DONE;
-        }
-        if (aImagePlus == null) {
-            IJ.showMessage("Load an image first.");
-            return DONE;
-        }
-
+        // Read macro options
         final String options = Macro.getOptions();
         logger.info("Macro Options: [" + options + "]");
         if (options != null) {
@@ -103,9 +96,11 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         while (vWhatToDo == 2){
             vWhatToDo = showDialog();
             if (vWhatToDo == 0) {
+                logger.debug("Plugin canceled.");
                 return DONE;
             }
             if (vWhatToDo == 1) {
+                logger.debug("Plugin OKed.");
                 break;
             }
         }
@@ -124,7 +119,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * Subtracts the background for the processor in the argument.
      */
     @Override
-    public void run(ImageProcessor aImageProcessor){
+    public void run(ImageProcessor aImageProcessor) {
         int vType;
         if (aImageProcessor instanceof ByteProcessor) {
             vType = BYTE;
@@ -147,6 +142,9 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
                 return;
             }
         }
+        
+        logger.debug("Running with mOriginalImagePlus="+ mOriginalImagePlus.getTitle() + " lenght=" + mLength +" bins=" + mBins + " api=" + mAPICall + " doAll=" + mDoAll);
+        
         int vStartSlice = 0;
         int vStopSlice = 0;
         if (!mAPICall) {
@@ -288,13 +286,16 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
                 case BYTE:
                     vImageProcessor = vImageProcessor.convertToByte(false);
                     vOrigImageProcessor.insert(vImageProcessor, 0, 0);
+                    logger.debug("Putting back BYTE processor");
                     break;
                 case SHORT:
                     vImageProcessor = vImageProcessor.convertToShort(false);
                     vOrigImageProcessor.insert(vImageProcessor, 0, 0);
+                    logger.debug("Putting back SHORT processor");
                     break;
                 case FLOAT:
                     vOrigImageProcessor.insert(vImageProcessor, 0, 0);
+                    logger.debug("Putting back FLOAT processor");
                     break;
                 default:
                     // Should not happen
