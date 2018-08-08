@@ -139,7 +139,6 @@ public class CommonBase extends Info {
         if (aInputFile != null) {
             logger.debug("Loading image for testing: [" + tmpPath + aInputFile + "]");
             final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
-            ip.show();
             logger.debug("Testing plugin");
             WindowManager.setTempCurrentImage(ip);
         }
