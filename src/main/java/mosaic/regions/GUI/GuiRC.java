@@ -172,7 +172,7 @@ public class GuiRC  {
         for (int i = 0; i < energyValues.length; ++i) {
             energyItems[i] = energyValues[i].toString();
         }
-        gd.addChoice("E_data", energyItems, iSettings.energyFunctional.name());
+        gd.addChoice("E_data", energyItems, iSettings.energyFunctional.toString());
         Choice choiceEnergy = (Choice) gd.getChoices().lastElement();
         {
             Button optionButton = new Button("Options");
@@ -200,7 +200,7 @@ public class GuiRC  {
         for (int i = 0; i < regularizationValues.length; ++i) {
             regularizationItems[i] = regularizationValues[i].toString();
         }
-        gd.addChoice("E_length", regularizationItems, iSettings.regularizationType.name());
+        gd.addChoice("E_length", regularizationItems, iSettings.regularizationType.toString());
         
         Choice choiceRegularization = (Choice) gd.getChoices().lastElement();
         {
@@ -227,9 +227,9 @@ public class GuiRC  {
         final InitializationType[] initTypes = InitializationType.values();
         final String[] initializationItems = new String[initTypes.length];
         for (int i = 0; i < initTypes.length; ++i) {
-            initializationItems[i] = initTypes[i].name();
+            initializationItems[i] = initTypes[i].toString();
         }
-        gd.addChoice("Initialization", initializationItems, iSettings.initType.name());
+        gd.addChoice("Initialization", initializationItems, iSettings.initType.toString());
         
         // save reference to this choice, so we can handle it
         Choice initializationChoice = (Choice) gd.getChoices().lastElement();

@@ -1,7 +1,5 @@
 package mosaic.plugins;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;

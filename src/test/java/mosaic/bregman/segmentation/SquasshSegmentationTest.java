@@ -9,23 +9,40 @@ public class SquasshSegmentationTest extends CommonBase {
 
     @Test
     public void testGenerateSeriesOfSquassh() {
-//        String path = "/Users/gonciarz/Documents/MOSAIC/work/testInputs/Crop_12-12.tif";
+//        String path = "/Users/gonciarz/small.tif";
 //        ImagePlus ip = loadImagePlus(path);
 //        
 //        double[][][] img = ImgUtils.ImgToZXYarray(ip);
 //        short[][] blank = new short[img[0].length][img[0][0].length];
 //        
-//        int numOfSteps = 256;
-//        short[][][] out = new short[numOfSteps][][];
+//        int numOfSteps = 20;
+//        float fromVal = 0;
+//        float toVal = 0.2f;
+//        float fromValInt = 0.2f;
+//        float toValInt = 0.8f;
+//        short[][][] out = new short[numOfSteps *numOfSteps][][];
+//        for (int j = 0; j < numOfSteps; j++) {
 //        for (int i = 0; i < numOfSteps; i++) {
 //            System.out.println(i * (1.0/(numOfSteps)));
-//            SegmentationParameters sp = new SegmentationParameters(4, 1, 0.1, i * (1.0/(numOfSteps-1)), true, SegmentationParameters.IntensityMode.AUTOMATIC, SegmentationParameters.NoiseModel.GAUSS, 1, 1, 0);
+//            SegmentationParameters sp = new SegmentationParameters(
+//                    4, // num threads
+//                    1, // interpolation (multiplication factor)
+//                    i * (toVal - fromVal) / numOfSteps,  // regularization
+//                    j * (toValInt - fromValInt) / numOfSteps, // min obj intensity
+//                    true, // exclude z edges
+//                    SegmentationParameters.IntensityMode.AUTOMATIC, // intensity mode 
+//                    SegmentationParameters.NoiseModel.GAUSS, // noise model
+//                    1, // sigma xy
+//                    1, // sigma z
+//                    0, // min regions intensity
+//                    2); // min region size
 //            SquasshSegmentation ss = new SquasshSegmentation(img, sp, 0, 255);
 //            ss.run();
-//            out[i] = (ss.iRegionsList.size() > 0) ? ss.iLabeledRegions[0] : blank;
-//        }
+//            out[i +j * numOfSteps] = (ss.iRegionsList.size() > 0) ? ss.iLabeledRegions[0] : blank;
+//        }}
 //        ImagePlus outImg = ImgUtils.ZXYarrayToImg(ConvertArray.toDouble(out), "Output");
 //        IJ.saveAsTiff(outImg, "/tmp/out.tif");
+//        System.out.println("Range: " +fromVal +"-"+toVal + "   step: " + (toVal - fromVal) / numOfSteps);
     }
 
     @Test

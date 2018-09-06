@@ -5,6 +5,7 @@ import java.awt.GraphicsEnvironment;
 import org.apache.log4j.Logger;
 
 import ij.IJ;
+import ij.ImageJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.macro.Interpreter;
@@ -243,5 +244,21 @@ public class RegionCompetition implements PlugInFilter {
             final String fileNameNoExt = SysOps.removeExtension(iInputImageChosenByUser.getTitle());
             MosaicUtils.reorganize(iOutputFileNamesSuffixes, fileNameNoExt, directory, 1);
         }
+    }
+    
+    public static void main(String[] args) {
+        // set the plugins.dir property to make the plugin appear in the Plugins menu
+        Class<?> clazz = RegionCompetition.class;
+        String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
+        String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
+        System.setProperty("plugins.dir", pluginsDir);
+
+        new ImageJ();
+
+//        ImagePlus image = IJ.openImage("https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg");
+//        image.show();
+
+        // run the plugin
+        IJ.runPlugIn(clazz.getName(), "");
     }
 }
