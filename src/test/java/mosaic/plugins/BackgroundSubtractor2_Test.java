@@ -9,9 +9,6 @@ public class BackgroundSubtractor2_Test extends CommonBase {
 
     @Test
     public void testFixedLength()  {
-        // run("Background Subtractor", "length=10 show skipOnFailure");
-        
-        
         // Define test data
         final String tcDirName           = "BackgroundSubtractor/fixedLength/";
         final String setupString         = "";
@@ -58,9 +55,6 @@ public class BackgroundSubtractor2_Test extends CommonBase {
     
     @Test
     public void testAutoLength()  {
-        // run("Background Subtractor", "length=10 show skipOnFailure");
-        
-        
         // Define test data
         final String tcDirName           = "BackgroundSubtractor/autoLength/";
         final String setupString         = "";
