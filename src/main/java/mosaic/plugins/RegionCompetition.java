@@ -150,20 +150,20 @@ public class RegionCompetition implements PlugInFilter {
     }
     
     private void saveStatistics(AlgorithmRC algorithm) {
+        algorithm.calculateRegionsCenterOfMass();
+        StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
+        if (iShowGui || IJ.isMacro()) {
+            statisticsTable.show("statistics");
+        }
+        
         String absoluteFileNameNoExt= ImgUtils.getImageAbsolutePath(iInputImageChosenByUser, true);
         if (absoluteFileNameNoExt == null) {
             logger.error("Cannot save segmentation statistics. Filename for saving not available!");
             return;
         }
         String absoluteFileName = absoluteFileNameNoExt + iOutputFileNamesSuffixes[0].replace("*", "");
-
-        algorithm.calculateRegionsCenterOfMass();
-        StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values(), iPadSize);
         logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
         statisticsTable.save(absoluteFileName);
-        if (iShowGui) {
-            statisticsTable.show("statistics");
-        }
     }
     
     /**
