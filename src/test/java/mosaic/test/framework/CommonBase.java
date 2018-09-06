@@ -140,7 +140,8 @@ public class CommonBase extends Info {
             logger.debug("Loading image for testing: [" + tmpPath + aInputFile + "]");
             final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
             logger.debug("Testing plugin");
-            WindowManager.setTempCurrentImage(ip);
+//            WindowManager.setTempCurrentImage(ip);
+            Interpreter.addBatchModeImage(ip);
         }
         // Change name of thread to begin with "Run$_". This is required by IJ to pass later
         new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
