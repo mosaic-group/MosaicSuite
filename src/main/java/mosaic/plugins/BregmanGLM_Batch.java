@@ -69,6 +69,8 @@ public class BregmanGLM_Batch implements Segmentation {
         if (iIsMacro) {
             aArgs = Macro.getOptions();
         }
+        if (aArgs == null) aArgs = "";
+        
         logger.info("Input options: [" + aArgs + "]");
         iParameters = readConfiguration(aArgs);
         iParameters.nthreads = readNumberOfThreads(aArgs);
@@ -294,11 +296,11 @@ public class BregmanGLM_Batch implements Segmentation {
                 RScript.makeRScript(aOutputSavePath, aObjectsDataFile, aObjectsColocFile, aImagesDataFile, aChannelPairs, iParameters.nbimages, iParameters.groupnames, iParameters.ch1, iParameters.ch2);
                 // Try to run the R script
                 try {
-                    logger.debug("================ RSCRIPT BEGIN ====================");
+                    logger.info("================ RSCRIPT BEGIN ====================");
                     String command = "cd " + aOutputSavePath + "; Rscript " + aOutputSavePath + File.separator + RScript.ScriptName;
-                    logger.debug("Command: [" + command + "]");
+                    logger.info("Command: [" + command + "]");
                     ShellCommand.exeCmdString(command);
-                    logger.debug("================ RSCRIPT END ====================");
+                    logger.info("================ RSCRIPT END ====================");
                 }
                 catch (final IOException e) {
                     e.printStackTrace();
