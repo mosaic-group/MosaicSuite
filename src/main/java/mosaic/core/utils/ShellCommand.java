@@ -31,7 +31,7 @@ public class ShellCommand {
             // we can use bash
             return new String[] { "bash", "-c", cmd };
         }
-        return new String[] { "cmd", cmd };
+        return new String[] { "cmd /C", cmd };
     }
 
     /**
