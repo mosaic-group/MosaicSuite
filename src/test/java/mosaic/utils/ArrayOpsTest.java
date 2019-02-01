@@ -1,6 +1,7 @@
 package mosaic.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -188,5 +189,13 @@ public class ArrayOpsTest extends CommonBase {
             for (int j = 0; j < input[0].length; ++j)
                 for (int z = 0; z < input[0][0].length; ++z)
                     assertEquals(1.3, input[i][j][z], 1e-9);
+    }
+    
+    @Test
+    public void testFindMinMax1D() {
+        double input[] = {-1.5, 4, 2, -2.1, 10, 2};
+        MinMax<Double> mm = ArrayOps.findMinMax(input);
+        assertEquals(-2.1, mm.getMin().doubleValue(), 1e-9);
+        assertEquals(10.0, mm.getMax().doubleValue(), 1e-9);
     }
 }

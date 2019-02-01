@@ -5,7 +5,7 @@ import java.awt.Color;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import mosaic.ia.Potentials.Potential;
-import net.sf.javaml.utils.ArrayUtils;
+import mosaic.utils.ArrayOps;
 
 /**
  * Class responsible for plotting calculated distributions
@@ -13,7 +13,7 @@ import net.sf.javaml.utils.ArrayUtils;
  */
 public class DistributionsPlot extends BasePlot {
     public DistributionsPlot(double[] aContextQdDistancesGrid, double[] aContextQdPdf, double[] aNearestNeighborDistancesXtoYPdf) {
-        double max = Math.max(ArrayUtils.max(aContextQdPdf), ArrayUtils.max(aNearestNeighborDistancesXtoYPdf));
+        double max = Math.max(ArrayOps.findMinMax(aContextQdPdf).getMax(), ArrayOps.findMinMax(aNearestNeighborDistancesXtoYPdf).getMax());
         plot = new Plot("Result: Estimated distance distributions", "Distance", "Probability density");
         plot.setLimits(aContextQdDistancesGrid[0], aContextQdDistancesGrid[aContextQdDistancesGrid.length - 1], 0, max);
         
@@ -22,7 +22,7 @@ public class DistributionsPlot extends BasePlot {
     }
     
     public DistributionsPlot(double[] aContextQdDistancesGrid, double[] aObservedModelFitPdPdf, double[] aContextQdPdf, double[] aNearestNeighborDistancesXtoYPdf, Potential aPotential, double[] aBestPointFound, double aBestFunctionValue) {
-        double max = Math.max(ArrayUtils.max(aContextQdPdf), Math.max(ArrayUtils.max(aNearestNeighborDistancesXtoYPdf), ArrayUtils.max(aObservedModelFitPdPdf)));
+        double max = Math.max(ArrayOps.findMinMax(aContextQdPdf).getMax(), Math.max(ArrayOps.findMinMax(aNearestNeighborDistancesXtoYPdf).getMax(), ArrayOps.findMinMax(aObservedModelFitPdPdf).getMax()));
         plot = new Plot("Distance distributions", "Distance", "Probability density");
         plot.setLimits(aContextQdDistancesGrid[0], aContextQdDistancesGrid[aContextQdDistancesGrid.length - 1], 0, max);
         plot.setLineWidth(2);

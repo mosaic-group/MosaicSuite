@@ -17,7 +17,8 @@ import ij.gui.PlotWindow;
 import ij.measure.ResultsTable;
 import ij.process.ByteProcessor;
 import mosaic.core.detection.Particle;
-import net.sf.javaml.utils.ArrayUtils;
+import mosaic.utils.ArrayOps;
+import mosaic.utils.ArrayOps.MinMax;
 
 
 /**
@@ -125,10 +126,14 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         // Calculate X/Y min/max for plot
         final double minX = aX[0];
         final double maxX = aX[aX.length-1];
-        double minY = ArrayUtils.min(aY);
-        double maxY = ArrayUtils.max(aY);
-        minY = Math.min(minY, ArrayUtils.min(slopeLine));
-        maxY = Math.max(maxY, ArrayUtils.max(slopeLine));
+        
+        MinMax<Double> mmY = ArrayOps.findMinMax(aY);
+        double minY = mmY.getMin();
+        double maxY = mmY.getMax();
+        
+        MinMax<Double> mmSlopeLine = ArrayOps.findMinMax(slopeLine);
+        minY = Math.min(minY, mmSlopeLine.getMin());
+        maxY = Math.max(maxY, mmSlopeLine.getMax());
 
         // Create plot with slope line
         PlotWindow.noGridLines = false; // draw grid lines
