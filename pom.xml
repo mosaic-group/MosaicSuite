@@ -233,11 +233,6 @@
             <artifactId>cmaes</artifactId>
             <version>1.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>javaml</groupId>
-            <artifactId>javaml</artifactId>
-            <version>0.1.7</version>
-        </dependency>
     </dependencies>
 
     <build>

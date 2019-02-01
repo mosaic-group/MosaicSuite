@@ -22,12 +22,10 @@ import mosaic.core.psf.psf;
 import mosaic.utils.ArrayOps;
 import mosaic.utils.ArrayOps.MinMax;
 import net.imglib2.type.numeric.real.DoubleType;
-import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.core.DenseInstance;
-import net.sf.javaml.core.Instance;
-import net.sf.javaml.tools.DatasetTools;
+import weka.clusterers.SimpleKMeans;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instances;
 
 
 class AnalysePatch {
@@ -465,44 +463,56 @@ class AnalysePatch {
         cin = RSS.betaMLEin;
     }
 
-    private void estimateIntensityClustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
-        final Dataset data = new DefaultDataset();
-        final double[] pixel = new double[1];
+    void estimateIntensityClustering(double[][][] aValues, int aNumOfClasters, boolean aUpdateCout) {
+        SimpleKMeans kmeans = new SimpleKMeans();
+        ArrayList<Attribute> attr = new ArrayList<>();
+        attr.add(new Attribute("pixelValue"));
+        Instances inst = new Instances("DataPoints", attr, 0);
+        
         Set<Double> distinctPixelValues = new HashSet<Double>();
         for (int z = 0; z < iSizeOverZ; z++) {
             for (int i = 0; i < iSizeOverX; i++) {
                 for (int j = 0; j < iSizeOverY; j++) {
                     if (iRegionMask[z][i][j] == 1) {
-                        pixel[0] = aValues[z][i][j];
-                        data.add(new DenseInstance(pixel));
-                        distinctPixelValues.add(pixel[0]);
+                        double value = aValues[z][i][j];
+                        distinctPixelValues.add(value);
+                        
+                        final DenseInstance iw = new DenseInstance(1, new double[] {value});
+                        iw.setDataset(inst);
+                        inst.add(iw);  
                     }
                 }
             }
         }
-        
-        logger.debug("Data size = " + data.size() + ", number of distinct values in data set = " + distinctPixelValues.size());
-        // KMeans is not working correctly if data size of number of distinct values in data size is smaller than requested
-        // number of clusters.
-        if (data.size() > aNumOfClasters && distinctPixelValues.size() >= aNumOfClasters) {
+                
+        logger.debug("Data size = " + inst.size() + ", number of distinct values in data set = " + distinctPixelValues.size());
+        if (inst.size() >= aNumOfClasters && distinctPixelValues.size() >= aNumOfClasters) {
             logger.debug("Running KMeans");
-            final Dataset[] dataSet = new KMeans(aNumOfClasters, 100).cluster(data);
-    
-            int numOfClustersFound = dataSet.length;
-            final double[] levels = new double[numOfClustersFound];
-            for (int i = 0; i < numOfClustersFound; i++) {
-                final Instance inst = DatasetTools.average(dataSet[i]);
-                levels[i] = inst.value(0);
+            try {
+                kmeans.setNumClusters(aNumOfClasters);
+                kmeans.setMaxIterations(100);
+                kmeans.buildClusterer(inst);
+                
+                Instances centroids = kmeans.getClusterCentroids();
+                int numOfClustersFound = kmeans.numberOfClusters();
+                final double[] levels = new double[numOfClustersFound];
+                for (int i = 0; i < numOfClustersFound; i++) {
+                    levels[i] = centroids.instance(i).value(0);
+                }
+                Arrays.sort(levels);
+                
+                final int inIndex = Math.min(2, numOfClustersFound - 1);
+                cin = Math.max(iNormalizedMinObjectIntensity, levels[inIndex]);
+                final int outFrontIndex = Math.max(inIndex - 1, 0);
+                cout_front = levels[outFrontIndex];
+                cout = (aUpdateCout) ? cout_front : levels[0];
+        
+                logger.debug("Region: " + iInputRegion.iLabel + ", Cluster levels: " + Arrays.toString(levels));
             }
-            Arrays.sort(levels);
-            
-            final int inIndex = Math.min(2, numOfClustersFound - 1);
-            cin = Math.max(iNormalizedMinObjectIntensity, levels[inIndex]);
-            final int outFrontIndex = Math.max(inIndex - 1, 0);
-            cout_front = levels[outFrontIndex];
-            cout = (aUpdateCout) ? cout_front : levels[0];
-    
-            logger.debug("Region: " + iInputRegion.iLabel + ", Cluster levels: " + Arrays.toString(levels));
+            catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Something went wrong with clustering...");
+            }
         }
         else {
             logger.debug("Data set too small or with not enough number of distinct values. Setting default values.");
