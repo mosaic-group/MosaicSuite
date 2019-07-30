@@ -266,6 +266,7 @@ public class SquasshLauncher {
                 processedChannels.add(new ChannelPair(cp.ch2, cp.ch1));
                 ImagePlus img = generateColocImage(cp);
                 // TODO: Coloc image should be handeld in Files and be expected type of FileType.Colocalization, here channels info is added temporarily 
+                // TODO: Add visualization flag in optoions - now colloc images are always shown which might be problem in batch processing
                 updateImages(i, img, Files.createTitleWithExt(FileType.Colocalization, aTitle + "_ch_" + cp.ch1 + "_" + cp.ch2), true, iOutColoc);
             }
         }

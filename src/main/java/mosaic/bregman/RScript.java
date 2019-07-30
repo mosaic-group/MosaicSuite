@@ -6,14 +6,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import mosaic.bregman.ColocalizationAnalysis.ChannelPair;
+import mosaic.utils.Debug;
 
 
 public class RScript {
+    private static final Logger logger = Logger.getLogger(RScript.class);
+    
     public static final String ScriptName = "R_analysis.R";
 
     /*
@@ -41,11 +47,12 @@ public class RScript {
     * -----------------------------------------------------------------------------------------
     */
     public static void makeRScript(String path, String aObjectsDataFile, String aObjectsColocFile, String aImagesColocFile, List<ChannelPair> aChannelPairs, int[] ImagesPerGroup, String[] GroupNames, String Ch1Name, String Ch2Name) {
+        logger.info("Generateing Rscript with path=[" + path + "] aObjectsDataFile=[" + aObjectsDataFile + "] aObjectsColocFile=[" + aObjectsColocFile + "] aImagesColocFile=[" + aImagesColocFile + "] aChannelPairs=[" + aChannelPairs + "] ImagesPerGroup=[" + Debug.getString(ImagesPerGroup) + "] GroupNames=[" + Debug.getString(GroupNames) + "] Ch1Name=[" + Ch1Name + "] Ch2Name=[" + Ch2Name + "]");
+        
         try {
             PrintWriter Script = new PrintWriter(path + File.separator + ScriptName);
             Script.println("#R_analysis v2.0");
             Script.println();
-            
             Script.println("### Input parameters ##########################################################");
             Script.println();
             
@@ -74,6 +81,7 @@ public class RScript {
             Script.println();
             
             List<ChannelPair> filteredPairs = filterChannelPairs(aChannelPairs);
+            System.out.println("HERE");
             
             Script.println("# Channel properties");
             int numOfChannels = findNumOfChannels(filteredPairs);
@@ -143,15 +151,18 @@ public class RScript {
         return max + 1;
     }
     
+    /**
+     * Returns filtered unique pairs of channels (from (a, b), (b, a) it returns only (a, b))
+     * @param aChannelPairs
+     * @return fitered pairs
+     */
     static private List<ChannelPair> filterChannelPairs(List<ChannelPair> aChannelPairs) {
         List<ChannelPair> filteredPairs = new ArrayList<ChannelPair>();
         
-        filteredPairs.addAll(aChannelPairs);
-        for (ChannelPair cp : filteredPairs) {
-            filteredPairs.remove(new ChannelPair(cp.ch2, cp.ch1));
+        for (ChannelPair ch : aChannelPairs) {
+            if (!filteredPairs.contains(new ChannelPair(ch.ch2, ch.ch1))) filteredPairs.add(ch);
         }
         
-        // +1 since channels are numbered from 0
         return filteredPairs;
     }
 }
