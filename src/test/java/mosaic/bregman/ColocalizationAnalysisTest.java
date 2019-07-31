@@ -90,14 +90,14 @@ public class ColocalizationAnalysisTest extends CommonBase {
     }
 
     
-    @Test
-    public void testGUI() {
-        ImagePlus iInputImage = loadImagePlus("/Users/gonciarz/1/3C.tif");
-        Parameters iParameters = new Parameters();
-        iParameters.usecellmaskY=true;
-        iParameters.thresholdcellmasky = 0.5;
-        final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, iParameters);
-        gds.run();
-        System.out.println(iParameters);
-    }
+//    @Test
+//    public void testGUI() {
+//        ImagePlus iInputImage = loadImagePlus("/Users/gonciarz/1/3C.tif");
+//        Parameters iParameters = new Parameters();
+//        iParameters.usecellmaskY=true;
+//        iParameters.thresholdcellmasky = 0.5;
+//        final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, iParameters);
+//        gds.run();
+//        System.out.println(iParameters);
+//    }
 }

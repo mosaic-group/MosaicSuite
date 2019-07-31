@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.sound.midi.Soundbank;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -23,7 +24,6 @@ import ij.gui.GenericDialog;
 import mosaic.bregman.Mask;
 import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps.MinMax;
-import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 
 
@@ -46,19 +46,21 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
     List<TextField> thresholdValues = new ArrayList<>();
     List<JSlider> thresholdSliders = new ArrayList<>();
     List<JSlider> zPositions = new ArrayList<>();
+    
     int zInitialPosition = 0;
-    List<ImagePlus> masks = new ArrayList<>();
-    List<Boolean> masksInit = new ArrayList<>();
-    List<Double> thresholds = new ArrayList<>();
     List<Boolean> enableMask = new ArrayList<>();    
+    List<ImagePlus> masks = new ArrayList<>();
+    
+    List<Double> thresholds = new ArrayList<>(); // TODO: not needed when parameters will be able to handle n-channels config
+    
     int numOfChannels = 0;
     
     
     public ColocalizationGUI(ImagePlus ch1, Parameters aParameters) {
+        System.out.println("COLOC GUI: " + ImgUtils.getImageInfo(ch1));
         // If there is no input image then create dummy one just to let GUI to be created and closed (used for macro mode
         // so in reality GUI is even not shown).
         iInputImage = ch1 == null ? new ImagePlus() : ch1;
-        
         iParameters = aParameters;
         numOfChannels = iInputImage.getNChannels();
     }
@@ -79,6 +81,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
         zInitialPosition = iInputImage.getSlice();
         
+        // TODO: Disable handling more than 2 channels for now - the rest of squassh must be also updated to handle this
+        if (numOfChannels > 2) numOfChannels = 2;
+        
         for (int channel = 1; channel <= numOfChannels; ++channel) {
             Checkbox cb = new Checkbox("Cell_mask_channel_" + channel, enableMask.get(channel - 1)); 
             checkboxes.add(cb);
@@ -87,7 +92,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             gd.addPanel(p);
             cb.addItemListener(this);
             
-            // TODO iParameters should handle multiple channels
             gd.addNumericField("Threshold_channel_" + channel + " (0 to 1)", thresholds.get(channel - 1), 4);
             TextField t = (TextField) gd.getNumericFields().lastElement();
             thresholdValues.add(t);
@@ -125,11 +129,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
                 ImagePlus mask = new ImagePlus();
                 masks.add(mask);
                 previewBinaryCellMask(new Double((t.getText())), iInputImage, mask, channel);
-                masksInit.add(true);
             }
             else {
                 masks.add(null);
-                masksInit.add(false);
             }
         }
         
@@ -145,7 +147,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
         // Set values in parameters
         // TODO: Make parameters able to handle n-channels
-        Debug.print(enableMask);
         iParameters.usecellmaskX = enableMask.get(0);
         iParameters.usecellmaskY = enableMask.get(1);
         iParameters.thresholdcellmask = new Double((thresholdValues.get(0).getText()));
@@ -162,29 +163,21 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        final Object source = e.getSource(); // Identify checkbox that was clicked
+        final Object source = e.getSource();
 
         int channelIdx = -1;
         for (int i = 0; i < numOfChannels; ++i) {
             if (source == checkboxes.get(i)) {channelIdx = i; break;}
         }
-        
+
         if (channelIdx >= 0) {
-            final boolean b = checkboxes.get(channelIdx).getState();
-            if (b) {
-                if (masks.get(channelIdx) == null) {
-                    masks.set(channelIdx, new ImagePlus());
-                }
+            if (checkboxes.get(channelIdx).getState()) {
+                if (masks.get(channelIdx) == null) masks.set(channelIdx, new ImagePlus());
                 previewBinaryCellMask(new Double((thresholdValues.get(channelIdx).getText())), iInputImage, masks.get(channelIdx), channelIdx + 1);
-                masksInit.set(channelIdx, true);
                 enableMask.set(channelIdx, true);
             }
             else {
-                // hide and clean
-                if (masks.get(channelIdx) != null) {
-                    masks.get(channelIdx).hide();
-                }
-                masksInit.set(channelIdx, false);
+                if (masks.get(channelIdx) != null) masks.get(channelIdx).hide();
                 enableMask.set(channelIdx, false);
             }
         }
@@ -211,7 +204,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             }
             final int vv = (int) (logvalue(v));
             JSlider ths = thresholdSliders.get(channelIdx);
-            if (masksInit.get(channelIdx)) {
+            if (enableMask.get(channelIdx)) {
                 if (!sliderval && !refreshing) {
                     previewBinaryCellMask(v, iInputImage, masks.get(channelIdx), channelIdx + 1);
                     ths.setValue(vv);
@@ -237,10 +230,11 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             if (origin == thresholdSliders.get(i)) {channelIdx = i; break;}
         }
         if (channelIdx >= 0) {
+            System.out.println("--__>" + fieldval);
             if (!fieldval) {// prevents looped calls
                 
                 JSlider th = thresholdSliders.get(channelIdx);
-                boolean initialized = masksInit.get(channelIdx);
+                boolean initialized = enableMask.get(channelIdx);
                 
                 if (initialized && !th.getValueIsAdjusting()) {
                     final double value = th.getValue();
@@ -269,7 +263,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         for (int i = 0; i < numOfChannels && thresholdSliders.size() > i; ++i) {
             if (origin == zPositions.get(i)) {channelIdx = i; break;}
         }
-        if (channelIdx >= 0 && masksInit.get(channelIdx)) {
+        if (channelIdx >= 0 && enableMask.get(channelIdx)) {
             JSlider z = zPositions.get(channelIdx);
             masks.get(channelIdx).setZ(z.getValue());
             iInputImage.setZ(z.getValue());
