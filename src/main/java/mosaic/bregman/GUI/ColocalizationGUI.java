@@ -148,9 +148,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         // Set values in parameters
         // TODO: Make parameters able to handle n-channels
         iParameters.usecellmaskX = enableMask.get(0);
-        iParameters.usecellmaskY = enableMask.get(1);
+        if (numOfChannels == 2) iParameters.usecellmaskY = enableMask.get(1);
         iParameters.thresholdcellmask = new Double((thresholdValues.get(0).getText()));
-        iParameters.thresholdcellmasky =  new Double((thresholdValues.get(1).getText()));
+        if (numOfChannels == 2) iParameters.thresholdcellmasky =  new Double((thresholdValues.get(1).getText()));
     }
 
     private double expvalue(double slidervalue) {

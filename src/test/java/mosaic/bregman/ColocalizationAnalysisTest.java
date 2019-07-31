@@ -10,11 +10,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import ij.ImagePlus;
 import mosaic.bregman.ColocalizationAnalysis.ChannelPair;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.ColocalizationAnalysis.RegionColoc;
-import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
 import mosaic.test.framework.CommonBase;

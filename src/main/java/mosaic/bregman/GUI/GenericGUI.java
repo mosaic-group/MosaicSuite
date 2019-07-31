@@ -48,7 +48,7 @@ public class GenericGUI {
     public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters, boolean aIsConfigReadFromArguments) {
         iParameters = aParameters;
         iInputImage = aInputImg;
-        logger.info("GUI input image: " + ImgUtils.getImageInfo(aInputImg));
+        logger.info("GUI input image: " + (aInputImg == null ? "<nullImg>" : ImgUtils.getImageInfo(aInputImg)));
         iUseGui = aUseGui;
         iIsConfigReadFromArguments = aIsConfigReadFromArguments;
     }
