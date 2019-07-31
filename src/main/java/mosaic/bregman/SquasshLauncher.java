@@ -387,7 +387,7 @@ public class SquasshLauncher {
         double max = iGlobalNormalizationMax;
         logger.info("Global min/max: " + min + "/" + max);
         if (iGlobalNormalizationMax == 0) {
-            MinMax<Double> mm = ImgUtils.findMinMax(img);
+            MinMax<Double> mm = ImgUtils.findMinMax(img, 1, 1);
             min = mm.getMin();
             max = mm.getMax();
             logger.info("Global min/max from image: " + min + "/" + max);

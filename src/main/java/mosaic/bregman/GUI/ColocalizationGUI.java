@@ -9,6 +9,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JLabel;
@@ -21,322 +23,206 @@ import ij.gui.GenericDialog;
 import mosaic.bregman.Mask;
 import mosaic.bregman.Parameters;
 import mosaic.utils.ArrayOps.MinMax;
+import mosaic.utils.Debug;
 import mosaic.utils.ImgUtils;
 
 
-class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
+public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
-    private ImagePlus imgch1;
-    private ImagePlus imgch2;
-
-    private JSlider t1, t2;
-    private JSlider tz1, tz2;// slider for z stack preview
-
-    private JLabel l1, lz1, l2, lz2;
-    private TextField v1, v2;
-    private Checkbox m1, m2;
-
-    private boolean init1 = false;
-    private boolean init2 = false;
-    private ImagePlus maska_im1, maska_im2;
-
-    // max and min intensity values in channel 1 and 2
-    private double max = 0;
-    private double min = Double.POSITIVE_INFINITY;
-    private double max2 = 0;
-    private double min2 = Double.POSITIVE_INFINITY;
-
-    private double val1, val2;
+    private ImagePlus iInputImage;
+    private final Parameters iParameters;
 
     private boolean fieldval = false;
     private boolean sliderval = false;
-    private boolean boxval = false;
     private boolean refreshing = false;
 
-    private final double minrange = 0.001;
-    private final double maxrange = 1;
-    private final double logmin = Math.log10(minrange);
-    private final double logspan = Math.log10(maxrange) - Math.log10(minrange);
-    private final int maxslider = 1000;
-
-    private final JLabel warning = new JLabel("");
-    private int ns1, ns2; // slices position of imgaes whenlaunched
-
-    private final Parameters iParameters;
+    private final double MinSLiderRange = 0.001;
+    private final double MaxSliderRange = 1;
+    private final double LogMinSliderRange = Math.log10(MinSLiderRange);
+    private final double LogSliderSpan = Math.log10(MaxSliderRange) - Math.log10(MinSLiderRange);
+    private final int MaxSliderSteps = 1000;
     
-    ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, Parameters aParameters) {
-        imgch1 = ch1;
-        imgch2 = ch2;
+    List<Checkbox> checkboxes = new ArrayList<>();
+    List<TextField> thresholdValues = new ArrayList<>();
+    List<JSlider> thresholdSliders = new ArrayList<>();
+    List<JSlider> zPositions = new ArrayList<>();
+    int zInitialPosition = 0;
+    List<ImagePlus> masks = new ArrayList<>();
+    List<Boolean> masksInit = new ArrayList<>();
+    List<Double> thresholds = new ArrayList<>();
+    List<Boolean> enableMask = new ArrayList<>();    
+    int numOfChannels = 0;
+    
+    
+    public ColocalizationGUI(ImagePlus ch1, Parameters aParameters) {
+        // If there is no input image then create dummy one just to let GUI to be created and closed (used for macro mode
+        // so in reality GUI is even not shown).
+        iInputImage = ch1 == null ? new ImagePlus() : ch1;
+        
         iParameters = aParameters;
+        numOfChannels = iInputImage.getNChannels();
     }
 
     public void run() {
         final Font bf = new Font(null, Font.BOLD, 12);
-
         final GenericDialog gd = new GenericDialog("Cell masks");
-
         gd.setInsets(-10, 0, 3);
-        gd.addMessage("Cell masks (two channels images)", bf);
+        gd.addMessage("Cell masks (two channels images)", bf);        
 
-        final String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
-        final boolean bgroup3[] = { false, false };
+        // TODO: parameters holds only values for two channels - here we update it for multichannle use, update parameters to hold any number of channels
+        thresholds.add(iParameters.thresholdcellmask);
+        thresholds.add(iParameters.thresholdcellmasky);
+        for (int c = 2; c < numOfChannels; ++c) thresholds.add(0.0);
+        enableMask.add(iParameters.usecellmaskX);
+        enableMask.add(iParameters.usecellmaskY);
+        for (int c = 2; c < numOfChannels; ++c) enableMask.add(false);
 
-        bgroup3[0] = iParameters.usecellmaskX;
-        bgroup3[1] = iParameters.usecellmaskY;
-
-        t1 = new JSlider();
-        t2 = new JSlider();
-
-        tz1 = new JSlider();
-        tz2 = new JSlider();
-
-        l1 = new JLabel("threshold value   ");
-        l2 = new JLabel("threshold value   ");
-
-        lz1 = new JLabel("z position preview");
-        lz2 = new JLabel("z position preview");
-
-        gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
-
-        gd.addNumericField("Threshold_channel_1 (0 to 1)", iParameters.thresholdcellmask, 4);
-        final Panel p1 = new Panel();
-        p1.add(l1);
-        p1.add(t1);
-        gd.addPanel(p1);
-
-        final Panel pz1 = new Panel();
-        pz1.add(lz1);
-        pz1.add(tz1);
-        gd.addPanel(pz1);
-
-        gd.addNumericField("Threshold_channel_2 (0 to 1)", iParameters.thresholdcellmasky, 4);
-
-        final Panel p2 = new Panel();
-        p2.add(l2);
-        p2.add(t2);
-        gd.addPanel(p2);
-
-        final Panel pz2 = new Panel();
-        pz2.add(lz2);
-        pz2.add(tz2);
-        gd.addPanel(pz2);
-
-        v1 = (TextField) gd.getNumericFields().elementAt(0);
-        v2 = (TextField) gd.getNumericFields().elementAt(1);
-
-        m1 = (Checkbox) gd.getCheckboxes().elementAt(0);
-        m2 = (Checkbox) gd.getCheckboxes().elementAt(1);
-
-        t1.addChangeListener(this);
-        t2.addChangeListener(this);
-
-        v1.addTextListener(this);
-        v2.addTextListener(this);
-
-        m1.addItemListener(this);
-        m2.addItemListener(this);
-
-        t1.setMinimum(0);
-        t1.setMaximum(maxslider);
-
-        t2.setMinimum(0);
-        t2.setMaximum(maxslider);
-
-        t1.setValue((int) logvalue(iParameters.thresholdcellmask));
-        t2.setValue((int) logvalue(iParameters.thresholdcellmasky));
-
-        val1 = new Double((v1.getText()));
-        val2 = new Double((v2.getText()));
-
-        if (imgch1 != null) {
-            final int nslices = imgch1.getNSlices();
+        zInitialPosition = iInputImage.getSlice();
+        
+        for (int channel = 1; channel <= numOfChannels; ++channel) {
+            Checkbox cb = new Checkbox("Cell_mask_channel_" + channel, enableMask.get(channel - 1)); 
+            checkboxes.add(cb);
+            Panel p = new Panel();
+            p.add(cb);
+            gd.addPanel(p);
+            cb.addItemListener(this);
+            
+            // TODO iParameters should handle multiple channels
+            gd.addNumericField("Threshold_channel_" + channel + " (0 to 1)", thresholds.get(channel - 1), 4);
+            TextField t = (TextField) gd.getNumericFields().lastElement();
+            thresholdValues.add(t);
+            t.addTextListener(this);
+            
+            p = new Panel();
+            p.add(new JLabel("threshold value   "));
+            JSlider s = new JSlider();
+            p.add(s);
+            gd.addPanel(p);
+            thresholdSliders.add(s);
+            s.setMinimum(0);
+            s.setMaximum(MaxSliderSteps);
+            s.setValue((int) logvalue(thresholds.get(channel - 1)));
+            s.addChangeListener(this);
+            
+            p = new Panel();
+            p.add(new JLabel("z position preview"));
+            JSlider z = new JSlider();
+            p.add(z);
+            gd.addPanel(p);
+            zPositions.add(z);
+            final int nslices = iInputImage.getNSlices();
             if (nslices > 1) {
-                ns1 = imgch1.getSlice();
-                tz1.setMinimum(1);
-                tz1.setMaximum(nslices);
-                tz1.setValue(1);
-                tz1.addChangeListener(this);
+                z.setMinimum(1);
+                z.setMaximum(nslices);
+                z.setValue(1);
+                z.addChangeListener(this);
             }
             else {
-                tz1.setEnabled(false);
+                z.setEnabled(false);
             }
-        }
-        else {
-            tz1.setEnabled(false);
-        }
-
-        if (imgch2 != null) {
-            final int nslices = imgch2.getNSlices();
-            if (nslices > 1) {
-                ns2 = imgch2.getSlice();
-                tz2.setMinimum(1);
-                tz2.setMaximum(nslices);
-                tz2.setValue(1);
-                tz2.addChangeListener(this);
+            
+            if (enableMask.get(channel - 1)) {
+                ImagePlus mask = new ImagePlus();
+                masks.add(mask);
+                previewBinaryCellMask(new Double((t.getText())), iInputImage, mask, channel);
+                masksInit.add(true);
             }
             else {
-                tz2.setEnabled(false);
+                masks.add(null);
+                masksInit.add(false);
             }
         }
-        else {
-            tz2.setEnabled(false);
-        }
-
-        if (iParameters.usecellmaskX && imgch1 != null) {
-            maska_im1 = new ImagePlus();
-            initpreviewch1(imgch1);
-            previewBinaryCellMask(new Double((v1.getText())), imgch1, maska_im1, 1);
-            init1 = true;
-
-        }
-
-        if (iParameters.usecellmaskY && imgch2 != null) {
-            maska_im2 = new ImagePlus();
-            initpreviewch2(imgch2);
-            previewBinaryCellMask(new Double((v2.getText())), imgch2, maska_im2, 2);
-            init2 = true;
-        }
-
+        
         gd.showDialog();
-
-        if (maska_im1 != null) {
-            maska_im1.close();
+            
+        // Cleanup
+        for (ImagePlus ip : masks) {
+            if (ip != null) ip.close();
         }
-        if (maska_im2 != null) {
-            maska_im2.close();
-        }
+        iInputImage.setSlice(zInitialPosition);
 
-        if (imgch1 != null) {
-            imgch1.setSlice(ns1);
-            imgch1 = null;
-        }
+        if (gd.wasCanceled()) return;
 
-        if (imgch2 != null) {
-            imgch2.setSlice(ns2);
-            imgch2 = null;
-        }
-
-        if (gd.wasCanceled()) {
-            return;
-        }
-
-        iParameters.usecellmaskX = gd.getNextBoolean();
-        iParameters.usecellmaskY = gd.getNextBoolean();
-        iParameters.thresholdcellmask = gd.getNextNumber();
-        iParameters.thresholdcellmasky = gd.getNextNumber();
+        // Set values in parameters
+        // TODO: Make parameters able to handle n-channels
+        Debug.print(enableMask);
+        iParameters.usecellmaskX = enableMask.get(0);
+        iParameters.usecellmaskY = enableMask.get(1);
+        iParameters.thresholdcellmask = new Double((thresholdValues.get(0).getText()));
+        iParameters.thresholdcellmasky =  new Double((thresholdValues.get(1).getText()));
     }
 
     private double expvalue(double slidervalue) {
-        return (Math.pow(10, (slidervalue / maxslider) * logspan + logmin));
+        return (Math.pow(10, (slidervalue / MaxSliderSteps) * LogSliderSpan + LogMinSliderRange));
     }
 
     private double logvalue(double tvalue) {
-        return (maxslider * (Math.log10(tvalue) - logmin) / logspan);
+        return (MaxSliderSteps * (Math.log10(tvalue) - LogMinSliderRange) / LogSliderSpan);
     }
 
     @Override
     public void itemStateChanged(ItemEvent e) {
         final Object source = e.getSource(); // Identify checkbox that was clicked
 
-        boxval = true;
-        if (source == m1) {
-            final boolean b = m1.getState();
+        int channelIdx = -1;
+        for (int i = 0; i < numOfChannels; ++i) {
+            if (source == checkboxes.get(i)) {channelIdx = i; break;}
+        }
+        
+        if (channelIdx >= 0) {
+            final boolean b = checkboxes.get(channelIdx).getState();
             if (b) {
-                if (imgch1 != null) {
-                    if (maska_im1 == null) {
-                        maska_im1 = new ImagePlus();
-                    }
-                    initpreviewch1(imgch1);
-                    previewBinaryCellMask(new Double((v1.getText())), imgch1, maska_im1, 1);
-                    init1 = true;
+                if (masks.get(channelIdx) == null) {
+                    masks.set(channelIdx, new ImagePlus());
                 }
-                else {
-                    warning.setText("Please open an image first.");
-                }// not used anymore, needed ?
+                previewBinaryCellMask(new Double((thresholdValues.get(channelIdx).getText())), iInputImage, masks.get(channelIdx), channelIdx + 1);
+                masksInit.set(channelIdx, true);
+                enableMask.set(channelIdx, true);
             }
             else {
                 // hide and clean
-                if (maska_im1 != null) {
-                    maska_im1.hide();
+                if (masks.get(channelIdx) != null) {
+                    masks.get(channelIdx).hide();
                 }
-                // maska_im1=null;
-                init1 = false;
+                masksInit.set(channelIdx, false);
+                enableMask.set(channelIdx, false);
             }
         }
-
-        if (source == m2) {
-            final boolean b = m2.getState();
-            if (b) {
-                if (imgch2 != null) {
-                    if (maska_im2 == null) {
-                        maska_im2 = new ImagePlus();
-                    }
-                    initpreviewch2(imgch2);
-                    previewBinaryCellMask(new Double((v2.getText())), imgch2, maska_im2, 2);
-                    init2 = true;
-                }
-                else {
-                    warning.setText("Please open an image with two channels first.");// not used anymore
-                }
-            }
-            else {
-                // close and clean
-                if (maska_im2 != null) {
-                    maska_im2.hide();
-                }
-                init2 = false;
-            }
-
-        }
-        boxval = false;
     }
 
     @Override
     public void textValueChanged(TextEvent e) {
         final Object source = e.getSource();
 
-        if (!boxval && !sliderval) {// prevents looped calls
+        int channelIdx = -1;
+        for (int i = 0; i < numOfChannels; ++i) {
+            if (source == thresholdValues.get(i)) {channelIdx = i; break;}
+        }
+        if (channelIdx >= 0 && !sliderval) {// prevents looped calls
             fieldval = true;
-            if (source == v1 && init1) {
-                final double v = new Double((v1.getText()));
-                if (!sliderval && val1 != v && !refreshing) {
-                    val1 = v;
-                    previewBinaryCellMask(v, imgch1, maska_im1, 1);
-                    final int vv = (int) (logvalue(v));
-                    t1.setValue(vv);
-
-                }
-
+            TextField t = thresholdValues.get(channelIdx);
+            
+            double v = 0.0;
+            try {
+                v = new Double((t.getText()));
             }
-            else if (source == v2 && init2) {
-                final double v = new Double((v2.getText()));
-                if (!sliderval && val2 != v && !refreshing) {
-                    val2 = v;
-                    previewBinaryCellMask(v, imgch2, maska_im2, 2);
-                    final int vv = (int) (logvalue(v));
-                    t2.setValue(vv);
-
+            catch(Exception ex) {
+                return;
+            }
+            final int vv = (int) (logvalue(v));
+            JSlider ths = thresholdSliders.get(channelIdx);
+            if (masksInit.get(channelIdx)) {
+                if (!sliderval && !refreshing) {
+                    previewBinaryCellMask(v, iInputImage, masks.get(channelIdx), channelIdx + 1);
+                    ths.setValue(vv);
                 }
             }
-            else if (source == v1 && !init1) {
-                final double v = new Double((v1.getText()));
+            else {
                 if (!sliderval) {
-
-                    final int vv = (int) (logvalue(v));
-                    t1.setValue(vv);
-
-                }
-
-            }
-            else if (source == v2 && !init2) {
-                final double v = new Double((v2.getText()));
-                if (!sliderval) {
-
-                    final int vv = (int) (logvalue(v));
-                    t2.setValue(vv);
-
+                    ths.setValue(vv);
                 }
             }
+            
             fieldval = false;
         }
     }
@@ -344,86 +230,63 @@ class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
     @Override
     public void stateChanged(ChangeEvent e) {
         final Object origin = e.getSource();
+        sliderval = true;
 
-        if (origin == tz1 && maska_im1 != null) {
-            maska_im1.setZ(tz1.getValue());
-            imgch1.setZ(tz1.getValue());
-            return;
+        int channelIdx = -1;
+        for (int i = 0; i < numOfChannels && thresholdSliders.size() > i; ++i) {
+            if (origin == thresholdSliders.get(i)) {channelIdx = i; break;}
         }
+        if (channelIdx >= 0) {
+            if (!fieldval) {// prevents looped calls
+                
+                JSlider th = thresholdSliders.get(channelIdx);
+                boolean initialized = masksInit.get(channelIdx);
+                
+                if (initialized && !th.getValueIsAdjusting()) {
+                    final double value = th.getValue();
+                    final double vv = expvalue(value);
 
-        if (origin == tz2 && maska_im2 != null) {
-            maska_im2.setZ(tz2.getValue());
-            imgch2.setZ(tz2.getValue());
-            return;
+                    if (!fieldval) {
+                        thresholdValues.get(channelIdx).setText(String.format(Locale.US, "%.4f", vv));
+                        previewBinaryCellMask(vv, iInputImage, masks.get(channelIdx), channelIdx + 1);
+                    }
+                    refreshing = false;
+                }
+
+                if ((initialized && th.getValueIsAdjusting()) || (!initialized)) {
+                    final double value = th.getValue();
+                    final double vv = expvalue(value);
+                    if (!fieldval) {
+                        thresholdValues.get(channelIdx).setText(String.format(Locale.US, "%.4f", vv));
+                    }
+                    refreshing = true;
+                }
+                
+            }
         }
-
-        if (!boxval && !fieldval) {// prevents looped calls
-            sliderval = true;
-            if (origin == t1 && init1 && !t1.getValueIsAdjusting()) {
-                final double value = t1.getValue();
-                final double vv = expvalue(value);
-
-                if (!fieldval && val1 != vv) {
-                    v1.setText(String.format(Locale.US, "%.4f", vv));
-                    val1 = vv;
-                    previewBinaryCellMask(vv, imgch1, maska_im1, 1);
-                }
-                refreshing = false;
-            }
-
-            if ((origin == t1 && init1 && t1.getValueIsAdjusting()) || (origin == t1 && !init1)) {
-                final double value = t1.getValue();
-                final double vv = expvalue(value);
-                if (!fieldval) {
-                    v1.setText(String.format(Locale.US, "%.4f", vv));
-                }
-                refreshing = true;
-            }
-
-            if (origin == t2 && init2 && !t2.getValueIsAdjusting()) {
-                final double value = t2.getValue();
-                final double vv = expvalue(value);
-                if (!fieldval && val2 != vv) {
-                    v2.setText(String.format(Locale.US, "%.4f", vv));
-                    previewBinaryCellMask(vv, imgch2, maska_im2, 2);
-                    val2 = vv;
-                }
-                refreshing = false;
-            }
-
-            if ((origin == t2 && init2 && t2.getValueIsAdjusting()) || (origin == t2 && !init2)) {
-                final double value = t2.getValue();
-                final double vv = expvalue(value);
-                if (!fieldval) {
-                    v2.setText(String.format(Locale.US, "%.4f", vv));
-                }
-                refreshing = true;
-            }
-
-            sliderval = false;
+        
+        channelIdx = -1;
+        for (int i = 0; i < numOfChannels && thresholdSliders.size() > i; ++i) {
+            if (origin == zPositions.get(i)) {channelIdx = i; break;}
         }
-    }
-
-    // find min and max values in channel 1
-    private void initpreviewch1(ImagePlus img) {
-        MinMax<Double> mm = ImgUtils.findMinMax(img);
-        min = mm.getMin();
-        max = mm.getMax();
-    }
-
-    // find min and max values in channel 2
-    private void initpreviewch2(ImagePlus img) {
-        MinMax<Double> mm = ImgUtils.findMinMax(img);
-        max2 = mm.getMax();
-        min2 = mm.getMin();
+        if (channelIdx >= 0 && masksInit.get(channelIdx)) {
+            JSlider z = zPositions.get(channelIdx);
+            masks.get(channelIdx).setZ(z.getValue());
+            iInputImage.setZ(z.getValue());
+        }
+        sliderval = false;
     }
 
     // compute and display cell mask
     private void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel) {
         int currentSlice = img.getSlice();
         
-        double threshold = threshold_i * ((channel == 1) ? (max - min) + min : (max2 - min2) + min2);
-        ImagePlus mask = Mask.createBinaryCellMask(img, "Cell mask channel " + channel, threshold);
+        MinMax<Double> mm = ImgUtils.findMinMax(img, channel, 1);
+        double min = mm.getMin();
+        double max = mm.getMax();
+        
+        double threshold = threshold_i * (max - min) + min;
+        ImagePlus mask = Mask.createBinaryCellMask(img, "Cell mask channel " + channel, threshold, channel);
         maska_im.setStack(mask.getStack());
         maska_im.setTitle(mask.getTitle());
         maska_im.updateAndDraw();

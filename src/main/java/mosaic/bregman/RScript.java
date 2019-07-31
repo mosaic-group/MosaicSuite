@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -47,7 +46,7 @@ public class RScript {
     * -----------------------------------------------------------------------------------------
     */
     public static void makeRScript(String path, String aObjectsDataFile, String aObjectsColocFile, String aImagesColocFile, List<ChannelPair> aChannelPairs, int[] ImagesPerGroup, String[] GroupNames, String Ch1Name, String Ch2Name) {
-        logger.info("Generateing Rscript with path=[" + path + "] aObjectsDataFile=[" + aObjectsDataFile + "] aObjectsColocFile=[" + aObjectsColocFile + "] aImagesColocFile=[" + aImagesColocFile + "] aChannelPairs=[" + aChannelPairs + "] ImagesPerGroup=[" + Debug.getString(ImagesPerGroup) + "] GroupNames=[" + Debug.getString(GroupNames) + "] Ch1Name=[" + Ch1Name + "] Ch2Name=[" + Ch2Name + "]");
+        logger.info("Generateing Rscript with path=[" + path + "] aObjectsDataFile=[" + aObjectsDataFile + "] aObjectsColocFile=[" + aObjectsColocFile + "] aImagesColocFile=[" + aImagesColocFile + "] aChannelPairs=[" + aChannelPairs + "] ImagesPerGroup=[" + Debug.getString(ImagesPerGroup) + "] GroupNames=[" + Debug.getString((Object[])GroupNames) + "] Ch1Name=[" + Ch1Name + "] Ch2Name=[" + Ch2Name + "]");
         
         try {
             PrintWriter Script = new PrintWriter(path + File.separator + ScriptName);

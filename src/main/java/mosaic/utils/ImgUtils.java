@@ -402,7 +402,7 @@ public class ImgUtils {
         return aImg.factory().create(dims, aImg.firstElement().copy());
     }
     
-    public static MinMax<Double> findMinMax(ImagePlus img) {
+    public static MinMax<Double> findMinMax(ImagePlus img, int channel, int frame) {
         int ni = img.getWidth();
         int nj = img.getHeight();
         int nz = img.getNSlices();
@@ -410,7 +410,7 @@ public class ImgUtils {
         double max = -Double.MAX_VALUE;
         
         for (int z = 0; z < nz; z++) {
-            img.setSlice(z + 1);
+            img.setPosition(channel, z + 1, frame);
             ImageProcessor imp = img.getProcessor();
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {

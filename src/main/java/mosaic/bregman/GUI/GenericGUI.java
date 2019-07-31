@@ -23,15 +23,20 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mosaic.bregman.Parameters;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.plugins.BregmanGLM_Batch.RunMode;
+import mosaic.utils.ImgUtils;
 
 
 public class GenericGUI {
+    private static final Logger logger = Logger.getLogger(GenericGUI.class);
+    
     // Input params
     protected final Parameters iParameters;
     protected ImagePlus iInputImage;
@@ -39,11 +44,11 @@ public class GenericGUI {
     private boolean iIsConfigReadFromArguments;
 
     private String iInputField = "";
-    protected ImagePlus imgch2; // TODO: it is not used currently (never assigned)
     
     public GenericGUI(ImagePlus aInputImg, boolean aUseGui, Parameters aParameters, boolean aIsConfigReadFromArguments) {
         iParameters = aParameters;
         iInputImage = aInputImg;
+        logger.info("GUI input image: " + ImgUtils.getImageInfo(aInputImg));
         iUseGui = aUseGui;
         iIsConfigReadFromArguments = aIsConfigReadFromArguments;
     }
@@ -95,7 +100,7 @@ public class GenericGUI {
         addButton(p, "Options", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, imgch2, iParameters);
+                final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, iParameters);
                 gds.run();
             }
         });  
@@ -128,7 +133,7 @@ public class GenericGUI {
         if (!iUseGui && !iIsConfigReadFromArguments) {
             BackgroundSubGUI.getParameters(iParameters);
             SegmentationGUI.getParameters(iParameters);
-            new ColocalizationGUI(iInputImage, imgch2, iParameters).run();
+            new ColocalizationGUI(iInputImage, iParameters).run();
             VisualizationGUI.getParameters(iParameters);
         }
         iInputField = gd.getNextString();
@@ -176,14 +181,11 @@ public class GenericGUI {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            // close previosuly opened images
             if (iInputImage != null) {
                 iInputImage.close();
                 iInputImage = null;
             }
-            if (imgch2 != null) {
-                imgch2.close();
-                imgch2 = null;
-            }// close previosuly opened images
 
             final JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);

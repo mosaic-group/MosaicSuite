@@ -39,7 +39,7 @@ public class Mask {
         double minNorm = iGlobalMin;
         double maxNorm = iGlobalMax;
         if (iGlobalMax == 0) {
-            MinMax<Double> mm = ImgUtils.findMinMax(aImage);
+            MinMax<Double> mm = ImgUtils.findMinMax(aImage, 1, 1);
             minNorm = mm.getMin();
             maxNorm = mm.getMax();
         }
@@ -47,7 +47,7 @@ public class Mask {
     }
     
     private boolean[][][] generateMask(final ImagePlus aImage, double aNormalizationMin, double aNormalizationMax, double aMaskThreshold) {
-        ImagePlus mask = Mask.createBinaryCellMask(aImage, "Cell mask", aMaskThreshold * (aNormalizationMax - aNormalizationMin) + aNormalizationMin);
+        ImagePlus mask = Mask.createBinaryCellMask(aImage, "Cell mask", aMaskThreshold * (aNormalizationMax - aNormalizationMin) + aNormalizationMin, 1);
         return ImgUtils.imgToZXYbinaryArray(mask);
     }
     
@@ -97,13 +97,13 @@ public class Mask {
         return ((inside / size) > InsideThreshold);
     }
 
-    public static ImagePlus createBinaryCellMask(ImagePlus aInputImage, String aTitle, double aThreshold) {
+    public static ImagePlus createBinaryCellMask(ImagePlus aInputImage, String aTitle, double aThreshold, int aChannel) {
         int ni = aInputImage.getWidth();
         int nj = aInputImage.getHeight();
         int nz = aInputImage.getNSlices();
         final ImageStack maskStack = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
-            aInputImage.setSlice(z + 1);
+            aInputImage.setPosition(aChannel, z, 1);
             ImageProcessor ip = aInputImage.getProcessor();
             final byte[] mask = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {

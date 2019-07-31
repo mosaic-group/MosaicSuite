@@ -1,6 +1,7 @@
 package mosaic.bregman;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,13 +10,16 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import ij.ImagePlus;
 import mosaic.bregman.ColocalizationAnalysis.ChannelPair;
 import mosaic.bregman.ColocalizationAnalysis.ColocResult;
 import mosaic.bregman.ColocalizationAnalysis.RegionColoc;
+import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.segmentation.Pix;
 import mosaic.bregman.segmentation.Region;
+import mosaic.test.framework.CommonBase;
 
-public class ColocalizationAnalysisTest {
+public class ColocalizationAnalysisTest extends CommonBase {
 
     @Test
     public void testSimpleTwoRegions() {
@@ -85,4 +89,15 @@ public class ColocalizationAnalysisTest {
         assertEquals(true, rc10.singleRegionColoc);
     }
 
+    
+    @Test
+    public void testGUI() {
+        ImagePlus iInputImage = loadImagePlus("/Users/gonciarz/1/3C.tif");
+        Parameters iParameters = new Parameters();
+        iParameters.usecellmaskY=true;
+        iParameters.thresholdcellmasky = 0.5;
+        final ColocalizationGUI gds = new ColocalizationGUI(iInputImage, iParameters);
+        gds.run();
+        System.out.println(iParameters);
+    }
 }
