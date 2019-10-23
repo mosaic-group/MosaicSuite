@@ -35,6 +35,7 @@ public class SegmentationParameters {
     final double sigmaGaussianZ;
     final double minRegionIntensity;
     final int minRegionSize;
+    final String mask;
     
     public SegmentationParameters(  int aNumOfThreads,
                                     int aInterpolation,
@@ -46,7 +47,8 @@ public class SegmentationParameters {
                                     double aSigmaGaussianXY,
                                     double aSigmaGaussianZ,
                                     double aMinRegionIntensity,
-                                    int aMinRegionSize)
+                                    int aMinRegionSize,
+                                    String aMask)
     {
         numOfThreads = aNumOfThreads;
         interpolation = aInterpolation;
@@ -60,6 +62,7 @@ public class SegmentationParameters {
         sigmaGaussianZ = aSigmaGaussianZ;
         minRegionIntensity = aMinRegionIntensity;
         minRegionSize = aMinRegionSize;
+        mask = aMask;
     }
     
     @Override

@@ -592,7 +592,7 @@ public class FilamentSquassh extends PlugInFloatBase { // NO_UCD
 
     private ImagePlus runSquassh(ImagePlus aImage) {
         double[][][] img = ImgUtils.ImgToZXYarray(aImage);
-        SegmentationParameters sp = new SegmentationParameters(2, 1, iRegularization, iMinIntensity, true, SegmentationParameters.IntensityMode.AUTOMATIC, iNoiseModel, iPsfSize, iPsfSize, 0, 5);
+        SegmentationParameters sp = new SegmentationParameters(2, 1, iRegularization, iMinIntensity, true, SegmentationParameters.IntensityMode.AUTOMATIC, iNoiseModel, iPsfSize, iPsfSize, 0, 5, null);
         ImageStatistics statistics = aImage.getStatistics();
         SquasshSegmentation ss = new SquasshSegmentation(img, sp, statistics.histMin, statistics.histMax);
         ss.run();

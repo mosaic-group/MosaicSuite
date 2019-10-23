@@ -26,7 +26,8 @@ public class Parameters implements Serializable {
     public double min_region_filter_intensities = 0.0;
     public int min_region_filter_size = 2;
     public String patches_from_file;
-
+    public String mask_from_file;
+    
     // Background subtracter
     public boolean removebackground = false;
     public int size_rollingball = 10;
@@ -72,7 +73,8 @@ public class Parameters implements Serializable {
         min_region_filter_intensities = s.min_region_filter_intensities;
         min_region_filter_size = s.min_region_filter_size;
         patches_from_file = s.patches_from_file;
-
+        mask_from_file = s.mask_from_file;
+        
         // Background subtracter
         removebackground = s.removebackground;
         size_rollingball = s.size_rollingball;

@@ -409,7 +409,8 @@ public class SquasshLauncher {
                 iParameters.sigma_gaussian,
                 iParameters.sigma_gaussian / iParameters.zcorrec,
                 iParameters.min_region_filter_intensities, 
-                iParameters.min_region_filter_size);
+                iParameters.min_region_filter_size,
+                iParameters.mask_from_file);
         
         //  ============== SEGMENTATION
         SquasshSegmentation rg = new SquasshSegmentation(image, sp, min, max);

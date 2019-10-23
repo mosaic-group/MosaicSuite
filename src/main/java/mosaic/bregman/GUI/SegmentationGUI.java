@@ -60,10 +60,25 @@ class SegmentationGUI {
                 final String directory = od.getDirectory();
                 final String name = od.getFileName();
                 if (directory != null && name != null) aParameters.patches_from_file = directory + name;
+                else aParameters.patches_from_file = null;
             }
 
         });
         gd.addPanel(p);
+        
+        Panel p2 = new Panel();
+        GenericGUI.addButton(p2, "Objects Mask (2D)", new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                final OpenDialog od = new OpenDialog("(Mask file", "");
+                final String directory = od.getDirectory();
+                final String name = od.getFileName();
+                if (directory != null && name != null) aParameters.mask_from_file = directory + name;
+                else aParameters.mask_from_file = null;
+            }
+
+        });
+        gd.addPanel(p2);
 
         p = new Panel();
         GenericGUI.addButton(p, "Estimate PSF from objective properties", new PSFOpenerActionListener(gd));

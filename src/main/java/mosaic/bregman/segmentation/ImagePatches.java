@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 import ij.IJ;
+import ij.ImagePlus;
+import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
@@ -173,14 +175,26 @@ class ImagePatches {
         }
 
         // --------------------------------------------------------------------
-        // - Filter regions - remove these with small intensity
+        // - Filter regions - remove these with small intensity and masked
         // --------------------------------------------------------------------
+        ImagePlus ip = iParameters.mask != null ? IJ.openImage(iParameters.mask) : null;
+        
         final ArrayList<Region> regionsListFiltered = new ArrayList<Region>();
         for (final Region r : iOutputRegionsList) {
             // Rescale the intensity to the original one
             r.intensity = r.intensity * (iGlobalMax - iGlobalMin) + iGlobalMin;
-
-            if (r.intensity >= iParameters.minRegionIntensity) {
+            
+            boolean maskOK = true;
+            if (ip != null) {
+                ImageProcessor pixels = ip.getProcessor();
+                for (Pix p : r.iPixels) {
+                    if (pixels.get(p.px, p.py) == 0) {
+                        maskOK = false;
+                        break;
+                    }
+                }
+            }
+            if (maskOK && r.intensity >= iParameters.minRegionIntensity) {
                 regionsListFiltered.add(r);
             }
         }
