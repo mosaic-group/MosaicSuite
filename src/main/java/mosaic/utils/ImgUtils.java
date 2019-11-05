@@ -497,7 +497,7 @@ public class ImgUtils {
      * @return String with information of provided image (dimensions/channels/frames)
      */
     public static String getImageInfo(ImagePlus aImage) {
-        
+        if (aImage == null) return "<null img provided>";
         return "Image title: [" + aImage.getTitle() + "]" +
                " Path: [" + getImageAbsolutePath(aImage) + "] " +
                " Type: " + Type.values()[aImage.getType()] +

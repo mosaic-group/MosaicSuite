@@ -380,6 +380,11 @@ public class BregmanGLM_Batch implements Segmentation {
         } else {
             logger.info(ConfigPrefix + "Setting config to hardcoded default.");
             parameters = new Parameters();
+            String maskFile = MosaicUtils.parseString("mask", aArgs);
+            if (maskFile != null) {
+                parameters.mask_from_file = maskFile;
+                logger.info(ConfigPrefix + "Setting mask file to [" + maskFile + "]");
+            }
         }
         
         return parameters;
