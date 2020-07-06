@@ -243,6 +243,7 @@ Dynamic models of particle linker
 =============================================
 
 Particle Tracker after detection of particles in individual frames tries to connect them using one of dynamic models:
+
 * **Brownian**: The Brownian model assume a brownian-like motion, so the linking cost is only based on the square of the movement between frames
 * **Constant velocity**: Constant velocity, penalize links that change the velocity of a particle
 * **Straight lines**: Straight lines penalize links that change direction of the particles but not their module, so they can arbitrarily accelerate. (We anyway suggest to start from constant velocity)
