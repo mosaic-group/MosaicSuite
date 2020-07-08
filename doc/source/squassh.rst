@@ -31,13 +31,21 @@ Nice introduction to work with Squassh can be found in following documents:
 
 Video Tutorial
 --------------
+    Video tutorial explaining step by step how to install MosaicSuite in Fiji and how to use Squassh.
 
-Video tutorial explaining step by step how to install MosaicSuite in Fiji and how to use Squassh.
+.. only:: html
 
- .. raw:: html
+     .. raw:: html
 
-    <video controls src="http://mosaic.mpi-cbg.de/Downloads/Squassh_video.m4v" width="720" height="540"></video>
+        <video controls src="http://mosaic.mpi-cbg.de/Downloads/Squassh_video.m4v" width="720" height="540"></video>
 
+.. only:: latex
+
+    `Squassh video tutorial <http://mosaic.mpi-cbg.de/Downloads/Squassh_video.m4v>`__
+
+Developer Resources
+===================
+Source code and helpful information about MosaicSuite development can be found in :ref:`mosaicsuite-development` section.
 
 Citation
 ========

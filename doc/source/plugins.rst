@@ -2,8 +2,14 @@
 Plugins
 =======
 
+List of plugins delivered in MosaicSuite:
+
 .. toctree::
 
-   particleTracker
-   squassh
-   regionCompetition
+    particleTracker
+    squassh
+    regionCompetition
+    interactionAnalysis
+    backgroundSubtraction
+    discreteRegionSampling
+

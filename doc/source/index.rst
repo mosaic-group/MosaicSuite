@@ -25,6 +25,7 @@ The first plugin which is now part of MosaicSuite was a popular 2D/3D single-par
    plugins
    development
    changelog
+   macros
 
 Indices and tables
 ==================

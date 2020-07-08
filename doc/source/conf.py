@@ -71,6 +71,9 @@ html_static_path = ['_static']
 #     'image/jpeg'
 # ]
 
+# Change the order of searching img files
+# Thanks to that html will prefere (animated) gifs over png that are used
+# in latexpdf target (without that change png was on the first place).
 from sphinx.builders.html import StandaloneHTMLBuilder
 StandaloneHTMLBuilder.    supported_image_types = [
     'image/svg+xml',
@@ -78,3 +81,11 @@ StandaloneHTMLBuilder.    supported_image_types = [
     'image/png',
     'image/jpeg'
 ]
+
+
+# It will change alignemnt so images and text are always in order as it is in source
+# doc files. Without it sometimes figures are moved to next page if not fitting in current.
+latex_elements = {
+#Figure placement within LaTeX paper
+'figure_align': 'H'
+}
