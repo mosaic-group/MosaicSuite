@@ -164,24 +164,24 @@ Other options
 Examples
 ========
 
-    .. |e1| image:: resources/regionCompetition/nucleis.jpg
+    .. |e1| image:: resources/regionCompetition/nucleisInput.jpg
             :width: 45%
-    .. |e2| image:: resources/regionCompetition/nucleis.gif
+    .. |e2| image:: resources/regionCompetition/nucleis.*
             :width: 45%
 
     .. |e3| image:: resources/regionCompetition/icecream5_410x410.jpg
             :width: 45%
-    .. |e4| image:: resources/regionCompetition/icecream5_rs.gif
+    .. |e4| image:: resources/regionCompetition/icecream5_rs.*
             :width: 45%
 
-    .. |e5| image:: resources/regionCompetition/endo.jpg
+    .. |e5| image:: resources/regionCompetition/endoInput.jpg
             :width: 45%
-    .. |e6| image:: resources/regionCompetition/endo.gif
+    .. |e6| image:: resources/regionCompetition/endo.*
             :width: 45%
 
     .. |e7| image:: resources/regionCompetition/uc_data.jpg
             :width: 45%
-    .. |e8| image:: resources/regionCompetition/Dev_res_rs.gif
+    .. |e8| image:: resources/regionCompetition/Dev_res_rs.*
             :width: 45%
 
     |e1| |e2|

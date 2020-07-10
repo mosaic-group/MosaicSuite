@@ -12,4 +12,6 @@ List of plugins delivered in MosaicSuite:
     interactionAnalysis
     backgroundSubtraction
     discreteRegionSampling
-
+    psfMeasurement
+    poissonNoise
+    convolutionBesselPSF

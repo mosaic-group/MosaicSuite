@@ -62,14 +62,8 @@ html_theme_options = {
 html_static_path = ['_static']
 
 
-#
-# from sphinx.builders.latex import LaTeXBuilder
-# LaTeXBuilder.supported_image_types = [
-#     'image/svg+xml',
-#     'image/tif',
-#     'image/png',
-#     'image/jpeg'
-# ]
+
+# s
 
 # Change the order of searching img files
 # Thanks to that html will prefere (animated) gifs over png that are used

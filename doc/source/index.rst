@@ -26,10 +26,3 @@ The first plugin which is now part of MosaicSuite was a popular 2D/3D single-par
    development
    changelog
    macros
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
