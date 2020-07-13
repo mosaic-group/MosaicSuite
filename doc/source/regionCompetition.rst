@@ -33,6 +33,7 @@ Output of a plugin:
 - **Animated iteration sequence**  Is the evolution of the segmentation produced by the algorithm, can be saved in all imageJ supported formats.
 - **Statistics** Information about found regions like size, coordinates, mean intensity, label etc.
 
+.. _regionCompetition-energy-parameters:
 
 Energy function parameters
 --------------------------
