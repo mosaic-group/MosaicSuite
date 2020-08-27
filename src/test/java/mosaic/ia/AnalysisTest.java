@@ -122,7 +122,7 @@ public class AnalysisTest extends CommonBase {
         analysis.cmaOptimization(1, true);
         List<CmaResult> results = analysis.getCmaResults();
         
-        epsilon = 1e-6;
+        epsilon = 2e-5;
         assertEquals(2.4113236274803262, results.get(0).iStrength, epsilon);
         assertEquals(6.450512767074827, results.get(0).iThresholdScale, epsilon);
         assertEquals(0.03679266785699289, results.get(0).iResidual, epsilon);
