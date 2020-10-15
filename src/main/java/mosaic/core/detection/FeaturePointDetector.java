@@ -34,6 +34,7 @@ public class FeaturePointDetector {
     private int iRadius;
     private float iAbsIntensityThreshold;
     private Mode iThresholdMode = Mode.PERCENTILE_MODE;
+    private boolean iUseCLIJ = false;
 
     // Internal stuff
     private Vector<Particle> iParticles;
@@ -47,7 +48,7 @@ public class FeaturePointDetector {
     public FeaturePointDetector(float aGlobalMax, float aGlobalMin) {
         iGlobalMax = aGlobalMax;
         iGlobalMin = aGlobalMin;
-        setDetectionParameters(0.001f, 0.005f, 3, 0.0f, false);
+        setDetectionParameters(0.001f, 0.005f, 3, 0.0f, false, false);
     }
 
     /**
@@ -97,7 +98,7 @@ public class FeaturePointDetector {
      * According to the pre determend global min and max pixel value in the movie. <br>
      * All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
      * 
-     * @param ip ImageProcessor to be normalized
+     * @param is ImageProcessor to be normalized
      * @param global_min
      * @param global_max
      */
@@ -116,7 +117,7 @@ public class FeaturePointDetector {
      * If not, the threshold is set to its absolute (normalized) value. There is only one parameter
      * used, either percent or aIntensityThreshold depending on the threshold mode.
      * 
-     * @param ip ImageProcessor after conversion, normalization and restoration
+     * @param ips ImageProcessor after conversion, normalization and restoration
      * @param percent the upper rth percentile to be considered as candidate Particles
      * @param absIntensityThreshold2 a intensity value which defines a threshold.
      * @return 
@@ -188,12 +189,12 @@ public class FeaturePointDetector {
      * Adds each found <code>Particle</code> to the <code>particles</code> array. <br>
      * Mostly adapted from Ingo Oppermann implementation
      * 
-     * @param ip ImageProcessor, should be after conversion, normalization and restoration
+     * @param ips ImageProcessor, should be after conversion, normalization and restoration
      */
     private void pointLocationsEstimation(ImageStack ips) {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
-        final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4);
+        final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4, iUseCLIJ);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
         iParticles = new Vector<Particle>();
         /* loop over all pixels */
@@ -617,7 +618,7 @@ public class FeaturePointDetector {
      * 
      * @see #generateDilationMasks(int)
      */
-    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
+    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseCLIJ) {
         final boolean changed = (radius != iRadius || cutoff != iCutoff || (percentile != iPercentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         
         iCutoff = cutoff;
@@ -630,8 +631,10 @@ public class FeaturePointDetector {
         else {
             iThresholdMode = Mode.PERCENTILE_MODE;
         }
-        
-        logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE"));
+
+        iUseCLIJ = aUseCLIJ;
+
+        logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
 
         // create Mask for Dilation with the user defined radius
         generateDilationMasks(iRadius);

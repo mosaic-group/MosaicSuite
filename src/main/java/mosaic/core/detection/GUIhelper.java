@@ -36,8 +36,9 @@ public class GUIhelper {
         final float per = ((float) gd.getNextNumber()) / 100;
         final float intThreshold = per * 100;
         final boolean absolute = gd.getNextBoolean();
+        final boolean useCLIJ = gd.getNextBoolean();
 
-        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute, useCLIJ);
     }
 
     /**
@@ -56,8 +57,9 @@ public class GUIhelper {
         final float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
         final float intThreshold = per * 100;
         final boolean absolute = vecb.elementAt(0).getState();
+        final boolean useCLIJ = vecb.elementAt(1).getState();
 
-        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute, useCLIJ);
     }
     
     public static void addUserDefinedParametersDialog(GenericDialog gd, FeaturePointDetector fpd) {
@@ -68,6 +70,7 @@ public class GUIhelper {
         gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 3, 7, null);
 
         gd.addCheckbox("Absolute", fpd.getThresholdMode() == FeaturePointDetector.Mode.ABS_THRESHOLD_MODE);
+        gd.addCheckbox("Accelerate_with_CLIJ2 (experimental)", false);
     }
     
     
