@@ -87,7 +87,7 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version> 16.1.0</version>
+        <version>27.0.1</version>
         <relativePath />
     </parent>
 
@@ -107,6 +107,11 @@
             <name>repo</name>
             <url>file://${project.basedir}/repo</url>
         </repository>
+        <repository>
+            <id>clij</id>
+            <url>http://dl.bintray.com/haesleinhuepf/clij</url>
+        </repository>
+
     </repositories>
 
     <dependencies>
@@ -125,7 +130,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <!--<scope>compile</scope>-->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.scif</groupId>
@@ -173,15 +178,16 @@
             <artifactId>jsch</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.sf.jgrapht</groupId>
-            <artifactId>jgrapht</artifactId>
-        </dependency>
-        <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>Skeletonize3D_</artifactId>
         </dependency>
 
         <!-- 3rd party stuff -->
+        <dependency>
+            <groupId>net.sf.jgrapht</groupId>
+            <artifactId>jgrapht</artifactId>
+            <version>0.8.3</version>
+        </dependency>
         <dependency>
             <groupId>com.googlecode.efficient-java-matrix-library</groupId>
             <artifactId>ejml</artifactId>
@@ -221,6 +227,20 @@
             <artifactId>jtransforms</artifactId>
             <version>2.4.0</version>
         </dependency>
+
+        <!-- Exclude com.google.android.tools since it conflicts with same symbols from junit  -->
+        <dependency>
+            <groupId>net.haesleinhuepf</groupId>
+            <artifactId>clij2_</artifactId>
+            <version>2.1.4.10</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.android.tools</groupId>
+                    <artifactId>dx</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
 
         <!-- These dependencies are temporarily kept in mosaic maven -->
         <dependency>
@@ -272,7 +292,7 @@
                                 <resource>
                                     <directory>target</directory>
                                     <includes>
-                                        <include>${project.artifactId}-${project.version}_Full.jar</include>
+                                        <include>${project.artifactId}-${project.version}.jar</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
