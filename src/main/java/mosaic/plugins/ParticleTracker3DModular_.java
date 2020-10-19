@@ -666,8 +666,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * Detects particles in the current displayed frame according to the parameters currently set
      * Draws dots on the positions of the detected partciles on the frame and circles them
      * 
-     * @see #getUserDefinedPreviewParams()
-     * @see MyFrame#featurePointDetection()
      * @see PreviewCanvas
      */
     private synchronized void preview(int zDepth) {
@@ -802,7 +800,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * The trajectories are drawn on <code>TrajectoryCanvas</code> when it's constructed and not on the image
      * 
      * @param duplicated_imp the image upon which the view will be updated - can be null
-     * @see TrajectoryStackWindow
      */
     public void generateView(ImagePlus duplicated_imp, Img<ARGBType> out) {
         if (iTrajectories.size() == 0) {
@@ -900,11 +897,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * The new Stack will be made of RGB ImageProcessors upon which the trajectory will be drawn
      * 
      * @param trajectory_index the trajectory index in the <code>trajectories</code> Vector (starts with 0)
-     * @param magnification the scale factor to use for rescaling the original image
      * @see IJ#run(java.lang.String, java.lang.String)
      * @see ImagePlus#getRoi()
      * @see StackConverter#convertToRGB()
-     * @see Trajectory#animate(int)
      */
     public void generateTrajFocusView(int trajectory_index) {
         int magnification = results_window.magnification_factor;
@@ -959,7 +954,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @see IJ#run(java.lang.String, java.lang.String)
      * @see ImagePlus#getRoi()
      * @see StackConverter#convertToRGB()
-     * @see Trajectory#animate(int)
      */
     public void generateAreaFocusView(int magnification) {
 
@@ -1464,8 +1458,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
     
     /**
      * Rescale and filter particles
-     * @param aCalibration
-     * @param aParticles 
+     * @param aParticles
      */
     private void filterParticles(Vector<Particle> aParticles) {
         int size = 0;

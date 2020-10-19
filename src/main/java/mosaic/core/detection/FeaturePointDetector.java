@@ -35,7 +35,6 @@ public class FeaturePointDetector {
     private float iAbsIntensityThreshold;
     private Mode iThresholdMode = Mode.PERCENTILE_MODE;
     private boolean iUseCLIJ = false;
-    private boolean iIsCLIJavailable = false;
 
     // Internal stuff
     private Vector<Particle> iParticles;
@@ -196,7 +195,7 @@ public class FeaturePointDetector {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
 
-        final ImageStack dilated_ips = (iIsCLIJavailable && iUseCLIJ) ?
+        final ImageStack dilated_ips = iUseCLIJ ?
                 DilateImageClij.dilate(ips, iRadius) :
                 DilateImage.dilate(ips, iRadius, 4);
 
@@ -624,7 +623,7 @@ public class FeaturePointDetector {
      * 
      * @see #generateDilationMasks(int)
      */
-    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseCLIJ) {
+    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseClij) {
         final boolean changed = (radius != iRadius || cutoff != iCutoff || (percentile != iPercentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         
         iCutoff = cutoff;
@@ -638,18 +637,10 @@ public class FeaturePointDetector {
             iThresholdMode = Mode.PERCENTILE_MODE;
         }
 
-        iUseCLIJ = aUseCLIJ;
+        iUseCLIJ = aUseClij;
 
-        try {
-            net.haesleinhuepf.clij2.CLIJ2.getInstance();
-            iIsCLIJavailable = true;
-        }
-        catch (final NoClassDefFoundError err) {
-            iIsCLIJavailable = false;
-        }
-
-        logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ + " clijAvailabe=" + iIsCLIJavailable);
-        System.out.println("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ + " clijAvailabe=" + iIsCLIJavailable);
+        logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
+        System.out.println("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
 
         // create Mask for Dilation with the user defined radius
         generateDilationMasks(iRadius);

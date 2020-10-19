@@ -26,10 +26,16 @@ public class DilateImageClij {
         ClearCLBuffer outBuffer = clij2.create(imgBuffer);
 
         // Run kernel
-        logger.debug("maximum2dSphere before");
-        clij2.maximum2DSphere(imgBuffer, outBuffer, radius, radius);
-        logger.debug("maximum2dSphere after");
-
+        if (ips.getSize() == 1) {
+            logger.debug("maximum2dSphere before");
+            clij2.maximum2DSphere(imgBuffer, outBuffer, radius, radius);
+            logger.debug("maximum2dSphere after");
+        }
+        else {
+            logger.debug("maximum3dSphere before");
+            clij2.maximum3DSphere(imgBuffer, outBuffer, radius, radius, radius);
+            logger.debug("maximum3dSphere after");
+        }
         // Get output and clear CLIJ2 buffers
         ImagePlus imgRes = clij2.pull(outBuffer);
         clij2.clear();
