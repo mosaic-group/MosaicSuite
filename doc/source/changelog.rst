@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.20
+    - ParticleTracker plugin now can use GPU acceleartion provided by CLIJ2
+
 * 1.0.19
     - Discrete region sampling (DRS) is finally available in official release
 

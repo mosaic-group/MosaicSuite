@@ -48,6 +48,7 @@ The dialog showing now has 2 parts: Particle Detection and Particle Linking.
 The parameters relevant for detection are:
 
 * **Radius**: Approximate radius of the particles in the images in units of pixels. The value should be slightly larger than the visible particle radius, but smaller than the smallest inter-particle separation.
+* **Accelerate with CLIJ2 (experimental)**: Use CLIJ2 to utilize GPU for detection of particles. Especially good for large radius (>10) setting. IMPORTANT: This option is visible only when CLIJ2 is installed (enable 'clij' and 'clij2' in update sites of your Fiji to download and install it).
 * **Cutoff**: The score cut-off for the non-particle discrimination
 * **Per/Abs**: The percentile (r) (or absolute intensity value) that determines which bright pixels are accepted as Particles. All local maxima in the upper rth percentile of the image intensity distribution ( or absolute intensity value ) are considered candidate Particles. Unit: percent (%) (or absolute intensity value)
 * **Absolute**: when enable it read the Per/Abs parameter as absolute intensity value

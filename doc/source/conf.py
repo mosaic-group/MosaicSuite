@@ -22,7 +22,7 @@ copyright = '2020, MOSAIC Group, Sbalzarini Lab, mosaic.mpi-cbg.de'
 author = 'MOSAIC Group, Sbalzarini Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.19'
+release = '1.0.20'
 
 
 # -- General configuration ---------------------------------------------------
