@@ -23,6 +23,16 @@ import ij.gui.StackWindow;
  * TODO: Obviously it must be refactored by moving into much more proper places.
  */
 public class GUIhelper {
+    private static boolean isClijAvailable() {
+        try {
+            net.haesleinhuepf.clij2.CLIJ2.getInstance();
+            return true;
+        }
+        catch (final NoClassDefFoundError err) {
+            return false;
+        }
+    }
+
     /**
      * gd has to be shown with showDialog and handles the fields added to the dialog
      * with addUserDefinedParamtersDialog(gd).
@@ -30,13 +40,13 @@ public class GUIhelper {
      * @param gd <code>GenericDialog</code> at which the UserDefinedParameter fields where added.
      * @return true if user changed the parameters and false if the user didn't changed them.
      */
-    public static Boolean getUserDefinedParameters(GenericDialog gd, FeaturePointDetector fpd) {
+    public static boolean getUserDefinedParameters(GenericDialog gd, FeaturePointDetector fpd) {
         final int rad = (int) gd.getNextNumber();
         final double cut = gd.getNextNumber();
         final float per = ((float) gd.getNextNumber()) / 100;
         final float intThreshold = per * 100;
         final boolean absolute = gd.getNextBoolean();
-        final boolean useCLIJ = gd.getNextBoolean();
+        final boolean useCLIJ = isClijAvailable() && gd.getNextBoolean();
 
         return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute, useCLIJ);
     }
@@ -57,9 +67,9 @@ public class GUIhelper {
         final float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
         final float intThreshold = per * 100;
         final boolean absolute = vecb.elementAt(0).getState();
-        final boolean useCLIJ = vecb.elementAt(1).getState();
+        final boolean useClij = isClijAvailable() && vecb.elementAt(1).getState();
 
-        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute, useCLIJ);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute, useClij);
     }
     
     public static void addUserDefinedParametersDialog(GenericDialog gd, FeaturePointDetector fpd) {
@@ -70,7 +80,9 @@ public class GUIhelper {
         gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 3, 7, null);
 
         gd.addCheckbox("Absolute", fpd.getThresholdMode() == FeaturePointDetector.Mode.ABS_THRESHOLD_MODE);
-        gd.addCheckbox("Accelerate_with_CLIJ2 (experimental)", false);
+        if (isClijAvailable()) {
+            gd.addCheckbox("Accelerate_with_CLIJ2 (experimental)", false);
+        }
     }
     
     

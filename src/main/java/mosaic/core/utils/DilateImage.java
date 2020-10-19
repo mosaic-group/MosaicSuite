@@ -2,12 +2,9 @@ package mosaic.core.utils;
 
 
 import ij.IJ;
-import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import net.haesleinhuepf.clij2.CLIJ2;
-import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import org.apache.log4j.Logger;
 
 import java.util.Vector;
@@ -25,52 +22,33 @@ public class DilateImage {
      * @param ips ImageProcessor to do the dilation with
      * @return the dilated copy of the given <code>ImageProcessor</code>
      */
-    public static ImageStack dilate(ImageStack ips, int radius, int number_of_threads, boolean aUseCLIJ) {
-        if (!aUseCLIJ) {
-            logger.debug("dilate start");
-            final FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
-            final AtomicInteger z = new AtomicInteger(-1);
-            final Vector<Thread> threadsVector = new Vector<Thread>(number_of_threads);
-            for (int thread_counter = 0; thread_counter < number_of_threads; thread_counter++) {
-                threadsVector.add(new DilateThread(ips, radius, dilated_procs, z));
-            }
-            for (final Thread t : threadsVector) {
-                t.start();
-            }
-            logger.debug("Threads started");
-            for (final Thread t : threadsVector) {
-                try {
-                    t.join();
-                } catch (final InterruptedException ie) {
-                    IJ.showMessage("Calculation interrupted. An error occured in parallel dilation:\n" + ie.getMessage());
-                }
-            }
-            logger.debug("dilate threads done");
-            final ImageStack dilated_ips = new ImageStack(ips.getWidth(), ips.getHeight());
-            for (int s = 0; s < ips.getSize(); s++) {
-                dilated_ips.addSlice(null, dilated_procs[s]);
-            }
-            logger.debug("dilate stop");
-
-            return dilated_ips;
+    public static ImageStack dilate(ImageStack ips, int radius, int number_of_threads) {
+        logger.debug("dilate start");
+        final FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
+        final AtomicInteger z = new AtomicInteger(-1);
+        final Vector<Thread> threadsVector = new Vector<Thread>(number_of_threads);
+        for (int thread_counter = 0; thread_counter < number_of_threads; thread_counter++) {
+            threadsVector.add(new DilateThread(ips, radius, dilated_procs, z));
         }
+        for (final Thread t : threadsVector) {
+            t.start();
+        }
+        logger.debug("Threads started");
+        for (final Thread t : threadsVector) {
+            try {
+                t.join();
+            } catch (final InterruptedException ie) {
+                IJ.showMessage("Calculation interrupted. An error occured in parallel dilation:\n" + ie.getMessage());
+            }
+        }
+        logger.debug("dilate threads done");
+        final ImageStack dilated_ips = new ImageStack(ips.getWidth(), ips.getHeight());
+        for (int s = 0; s < ips.getSize(); s++) {
+            dilated_ips.addSlice(null, dilated_procs[s]);
+        }
+        logger.debug("dilate stop");
 
-        // get CLIJ2 instance with default device
-        CLIJ2 clij2 = CLIJ2.getInstance();
-        // push image and create empty one for result (with same parameters as input image)
-        ClearCLBuffer imgBuffer = clij2.push(new ImagePlus("", ips));
-        ClearCLBuffer outBuffer = clij2.create(imgBuffer);
-
-        // Run kernel
-        logger.debug("maximum2dSphere before");
-        clij2.maximum2DSphere(imgBuffer, outBuffer, radius, radius);
-        logger.debug("maximum2dSphere after");
-
-        // Get output and clear CLIJ2 buffers
-        ImagePlus imgRes = clij2.pull(outBuffer);
-        clij2.clear();
-
-        return imgRes.getImageStack();
+        return dilated_ips;
     }
 
     /**

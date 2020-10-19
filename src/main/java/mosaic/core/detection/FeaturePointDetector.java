@@ -16,7 +16,7 @@ import mosaic.core.imageUtils.convolution.Kernel1D;
 import mosaic.core.imageUtils.convolution.Kernel2D;
 import mosaic.core.imageUtils.convolution.Kernel3D;
 import mosaic.core.utils.DilateImage;
-
+import mosaic.core.utils.DilateImageClij;
 
 /**
  * FeaturePointDetector detects the "real" particles in provided frames.
@@ -194,8 +194,13 @@ public class FeaturePointDetector {
     private void pointLocationsEstimation(ImageStack ips) {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
-        final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4, iUseCLIJ);
+
+        final ImageStack dilated_ips = iUseCLIJ ?
+                DilateImageClij.dilate(ips, iRadius) :
+                DilateImage.dilate(ips, iRadius, 4);
+
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
+
         iParticles = new Vector<Particle>();
         /* loop over all pixels */
         final int height = ips.getHeight();
@@ -618,7 +623,7 @@ public class FeaturePointDetector {
      * 
      * @see #generateDilationMasks(int)
      */
-    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseCLIJ) {
+    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseClij) {
         final boolean changed = (radius != iRadius || cutoff != iCutoff || (percentile != iPercentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         
         iCutoff = cutoff;
@@ -632,9 +637,10 @@ public class FeaturePointDetector {
             iThresholdMode = Mode.PERCENTILE_MODE;
         }
 
-        iUseCLIJ = aUseCLIJ;
+        iUseCLIJ = aUseClij;
 
         logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
+        System.out.println("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
 
         // create Mask for Dilation with the user defined radius
         generateDilationMasks(iRadius);
