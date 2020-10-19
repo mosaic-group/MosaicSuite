@@ -70,7 +70,7 @@ public class GUIhelper {
         gd.addNumericField("Per/Abs", fpd.getPercentile() * 100, 3, 7, null);
 
         gd.addCheckbox("Absolute", fpd.getThresholdMode() == FeaturePointDetector.Mode.ABS_THRESHOLD_MODE);
-        gd.addCheckbox("Accelerate_with_CLIJ2 (experimental)", false);
+        gd.addCheckbox("Accelerate_with_CLIJ2 (experimental 2D only)", false);
     }
     
     
