@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.21
+    - Fix for Interaction Analysis plugin
+
 * 1.0.20
     - ParticleTracker plugin now can use GPU acceleartion provided by CLIJ2
 
