@@ -17,8 +17,20 @@ by S.Steinberg (1983).
 
     Background Subtraction in action
 
+
+Running Background Subtractor plugin in ImageJ macro.
+-----------------------------------------------------
+
+Very often there is a need to process multiple TIFF files. This process can be
+simplify by using following macro.
+
+.. literalinclude:: resources/macros/runBgSubtracktor.ijm
+    :language: java
+    :linenos:
+
+
 Algorithm Description
-=====================
+---------------------
 
 For better algorithm understanding please refer to `Histogram-based background subtractor forImageJ <http://mosaic.mpi-cbg.de/Downloads/BGS_manual.pdf>`_ document.
 
