@@ -20,4 +20,4 @@ Changelog
 
 .. important::
 
-    For information about previous developments not listed here please refere to `old MosaicSuite site <http://mosaic.mpi-cbg.de/?q=downloads/imageJ>`_.
+    For information about previous developments not listed here please refere to `old MosaicSuite site <http://sbalzarini-lab.org/?q=downloads/imageJ>`_.

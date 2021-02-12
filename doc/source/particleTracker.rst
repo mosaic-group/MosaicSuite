@@ -48,7 +48,7 @@ Citation
 
     | *I. F. Sbalzarini and P. Koumoutsakos*
     | Feature point tracking and trajectory analysis for video imaging in cell biology. J. Struct. Biol., 151(2): 182-195, 2005.
-    | `PDF <http://mosaic.mpi-cbg.de/docs/Sbalzarini2005a.pdf>`__
+    | `PDF <http://sbalzarini-lab.org/docs/Sbalzarini2005a.pdf>`__
 
 *In order to ensure financial support for our project and allow further development of
 this software, please cite above publications in all your documents and manuscripts that

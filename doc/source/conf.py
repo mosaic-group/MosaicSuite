@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'MosaicSuite'
-copyright = '2020, MOSAIC Group, Sbalzarini Lab, mosaic.mpi-cbg.de'
+copyright = '2020, MOSAIC Group, Sbalzarini Lab, sbalzarini-lab.org'
 author = 'MOSAIC Group, Sbalzarini Lab'
 
 # The full version, including alpha/beta/rc tags

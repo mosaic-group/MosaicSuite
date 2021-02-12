@@ -15,5 +15,5 @@ distribution parameter *λ* is set to the original intensity value.
 Algorithm Description and Manual
 ================================
 
-For better algorithm understanding please refer to `PDF <http://mosaic.mpi-cbg.de/Downloads/PoissonNoise_manual.pdf>`__.
+For better algorithm understanding please refer to `PDF <http://sbalzarini-lab.org/Downloads/PoissonNoise_manual.pdf>`__.
 

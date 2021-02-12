@@ -8,5 +8,5 @@ point spread function (PSF).
 Algorithm Description and Manual
 ================================
 
-For better algorithm understanding please refer to `PDF <https://mosaic.mpi-cbg.de/Downloads/BesselPSFConvolver_manual.pdf>`__.
+For better algorithm understanding please refer to `PDF <https://sbalzarini-lab.org/Downloads/BesselPSFConvolver_manual.pdf>`__.
 

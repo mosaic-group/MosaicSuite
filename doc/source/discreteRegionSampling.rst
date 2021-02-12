@@ -33,7 +33,7 @@ Options specific for DRS
 - **biased proposal**
     enables biased-proposal mode in which in order to propose smoothed shapes
 
-For detail explanation of these parameters please refere to `PHD thesis <http://mosaic.mpi-cbg.de/docs/Cardinale2013.pdf>`__ desribing theory behind DRS.
+For detail explanation of these parameters please refere to `PHD thesis <http://sbalzarini-lab.org/docs/Cardinale2013.pdf>`__ desribing theory behind DRS.
 
 Developer Resources
 ===================
@@ -46,7 +46,7 @@ Citation
 
     | *J. Cardinale*
     | Unsupervised Segmentation and Shape Posterior Estimation under Bayesian Image Models. PhD thesis, Diss. ETH No. 21026, MOSAIC Group, ETH Zurich, 2013.
-    | `PDF <http://mosaic.mpi-cbg.de/docs/Cardinale2013.pdf>`__
+    | `PDF <http://sbalzarini-lab.org/docs/Cardinale2013.pdf>`__
 
 
 *In order to ensure financial support for our project and allow further development of

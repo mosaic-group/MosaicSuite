@@ -32,5 +32,5 @@ simplify by using following macro.
 Algorithm Description
 ---------------------
 
-For better algorithm understanding please refer to `Histogram-based background subtractor forImageJ <http://mosaic.mpi-cbg.de/Downloads/BGS_manual.pdf>`_ document.
+For better algorithm understanding please refer to `Histogram-based background subtractor forImageJ <http://sbalzarini-lab.org/Downloads/BGS_manual.pdf>`_ document.
 

@@ -9,7 +9,7 @@ inputDirectory = "/home/gonciarz/1/testImages/"
 outputDirectory="/home/gonciarz/1/results/"
 
 // provide lenght of the sliding window, if set to -1 then plugin will auto-detect
-bgSubtractorSlidingWindowLength=-1
+bgSubtractorSlidingWindowLength=20
 
 // If auto-detection is ON it might happen that plugin is not able to calculate proper length
 // If skipOnFailure is 'false' then popup window will show in such a case (good for interactive operations), 

@@ -10,7 +10,7 @@ News
 
         | *J. Cardinale*
         | Unsupervised Segmentation and Shape Posterior Estimation under Bayesian Image Models. PhD thesis, Diss. ETH No. 21026, MOSAIC Group, ETH Zurich, 2013.
-        | `PDF <https://mosaic.mpi-cbg.de/docs/Cardinale2013.pdf>`__
+        | `PDF <https://sbalzarini-lab.org/docs/Cardinale2013.pdf>`__
 
     *In order to ensure financial support for our project and allow further development of
     this software, please cite above publications in all your documents and manuscripts that
@@ -28,7 +28,7 @@ News
 
         | *X. Xiao, V. F. Geyer, H. Bowne-Anderson, J. Howard, and I. F. Sbalzarini.*
         | Automatic optimal filament segmentation with sub-pixel accuracy using generalized linear models and B-spline level-sets. Med. Image Anal., 32:157–172, 2016.
-        | `PDF <https://mosaic.mpi-cbg.de/docs/Xiao2016.pdf>`__
+        | `PDF <https://sbalzarini-lab.org/docs/Xiao2016.pdf>`__
 
     *In order to ensure financial support for our project and allow further development of
     this software, please cite above publications in all your documents and manuscripts that
@@ -42,7 +42,7 @@ News
     Currently, we implement Gauss curvature, Mean curvature, and Total Variation (TV) filters.
     The only parameters is the number of iterations, i.e., how many passes of the filter should
     be applied to the image. Else the filters are parameter free.
-    A C++ implementation of these filters is also available `here <https://mosaic.mpi-cbg.de/?q=downloads/curvaturefilters>`__.
+    A C++ implementation of these filters is also available `here <https://sbalzarini-lab.org/?q=downloads/curvaturefilters>`__.
 
     The algorithms implemented in this plug-in are described in:
 
@@ -50,7 +50,7 @@ News
 
         | Y. Gong and I. F. Sbalzarini.
         | Curvature filters efficiently reduce certain variational energies. IEEE Trans. Image Process., 26(4):1786–1798, 2017.
-        | `PDF <https://mosaic.mpi-cbg.de/docs/Gong2017.pdf>`__
+        | `PDF <https://sbalzarini-lab.org/docs/Gong2017.pdf>`__
 
     *In order to ensure financial support for our project and allow further development of
     this software, please cite above publications in all your documents and manuscripts that
@@ -72,7 +72,7 @@ News
 
         | Y. Gong and I. F. Sbalzarini.
         | Image enhancement by gradient distribution specification. In Proc. ACCV, 12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration, pages w7–p3, Singapore, November 2014.
-        | `PDF <https://mosaic.mpi-cbg.de/docs/Gong2014.pdf>`__
+        | `PDF <https://sbalzarini-lab.org/docs/Gong2014.pdf>`__
 
     *In order to ensure financial support for our project and allow further development of
     this software, please cite above publications in all your documents and manuscripts that
@@ -80,4 +80,4 @@ News
 
 .. important::
 
-    For information about previous news not listed here please refere to `old MosaicSuite site <https://mosaic.mpi-cbg.de/?q=downloads/imageJ>`_.
+    For information about previous news not listed here please refere to `old MosaicSuite site <https://sbalzarini-lab.org/?q=downloads/imageJ>`_.

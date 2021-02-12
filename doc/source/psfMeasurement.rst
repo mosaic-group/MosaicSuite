@@ -13,5 +13,5 @@ Algorithm Description and Manual
 
 For better algorithm understanding please refer to:
 
-- **2D** `PDF <https://mosaic.mpi-cbg.de/Downloads/PSFtool.pdf>`__
-- **3D** `PDF <https://mosaic.mpi-cbg.de/Downloads/PSF_measurement_3D.pdf>`__
+- **2D** `PDF <https://sbalzarini-lab.org/Downloads/PSFtool.pdf>`__
+- **3D** `PDF <https://sbalzarini-lab.org/Downloads/PSF_measurement_3D.pdf>`__
