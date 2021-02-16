@@ -1,17 +1,12 @@
 package mosaic.ia;
 
 
-import java.util.List;
-import java.util.Vector;
-
-import org.scijava.vecmath.Point3d;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.measure.Calibration;
-import ij.process.ImageStatistics;
+import ij.process.StackStatistics;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
@@ -26,6 +21,10 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import org.scijava.vecmath.Point3d;
+
+import java.util.List;
+import java.util.Vector;
 
 
 public class DistanceCalculationsImage extends DistanceCalculations {
@@ -100,8 +99,8 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         aInputImg.show();
 
         // Get parameters from user
-        final ImageStatistics imageStat = aInputImg.getStatistics();
-        final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imageStat.max, (float) imageStat.min);
+        final StackStatistics imgStatistics = new StackStatistics(aInputImg);
+        final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imgStatistics.max, (float) imgStatistics.min);
         final GenericDialog gd = new GenericDialog("Particle Detection...", IJ.getInstance());
         GUIhelper.addUserDefinedParametersDialog(gd, featurePointDetector);
         gd.showDialog();

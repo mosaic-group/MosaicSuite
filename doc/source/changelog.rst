@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.22
+    - Interaction Analysis fix for 3D images 
+ 
 * 1.0.21
     - Fix for Interaction Analysis plugin
 

@@ -1,11 +1,6 @@
 package mosaic.core.detection;
 
 
-import java.util.Arrays;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
-
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Measurements;
@@ -17,6 +12,10 @@ import mosaic.core.imageUtils.convolution.Kernel2D;
 import mosaic.core.imageUtils.convolution.Kernel3D;
 import mosaic.core.utils.DilateImage;
 import mosaic.core.utils.DilateImageClij;
+import org.apache.log4j.Logger;
+
+import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * FeaturePointDetector detects the "real" particles in provided frames.
@@ -59,6 +58,8 @@ public class FeaturePointDetector {
      * @return container with disovered particles
      */
     public Vector<Particle> featurePointDetection(ImageStack original_ips) {
+        logger.debug("Input stack dims(x/y/z): " + original_ips.getWidth() + "/" + original_ips.getHeight() + "/" + original_ips.getSize() + " " + iGlobalMin + "-" + iGlobalMax);
+
         /*
          * Converting the original imageProcessor to float
          * This is a constraint caused by the lack of floating point precision of pixels
@@ -625,7 +626,7 @@ public class FeaturePointDetector {
      */
     public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute, boolean aUseClij) {
         final boolean changed = (radius != iRadius || cutoff != iCutoff || (percentile != iPercentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-        
+
         iCutoff = cutoff;
         iPercentile = percentile;
         iAbsIntensityThreshold = Threshold;

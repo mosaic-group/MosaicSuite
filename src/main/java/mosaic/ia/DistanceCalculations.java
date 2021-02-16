@@ -84,7 +84,7 @@ public abstract class DistanceCalculations {
         logger.debug("Number of points (X/Y): " + iParticlesX.length + " / " + iParticlesY.length);
         logger.debug("min/max of x: " + aMinX + "/" + aMaxX + " y: " + aMinY + "/" + aMaxY + " z: " + aMinZ + "/" + aMaxZ);
         if (iParticlesX.length == 0 || iParticlesY.length == 0) {
-            Utils.messageDialog("IA - state density", "Number discaverd (and filtered) particles cannot be 0 for further calculations.\nNumber of particles (x/y): " + iParticlesX.length + " " + iParticlesY.length);
+            Utils.messageDialog("IA - state density", "Number of discovered particles in must be greater than 0. \nNumber of particles in image X/Y: " + iParticlesX.length + "/" + iParticlesY.length);
             throw new RuntimeException("Not enough particles to perform calculations!");
         }
         
