@@ -16,7 +16,7 @@ each other, and the absenceof this means they are independent of each other.
 Tutorial
 ========
 
-Nice introduction to Interaction Analysis Plugin can be found in this `PDF <http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf>`_.
+Nice introduction to Interaction Analysis Plugin can be found in this `PDF <http://sbalzarini-lab.org/Downloads/IAPManual.pdf>`_.
 For better understanding of output please refer to :ref:`ia-citation` papers.
 
 .. _ia-citation:

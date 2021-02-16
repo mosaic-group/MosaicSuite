@@ -28,4 +28,4 @@ Installation of MosaicSuite plugin
 .. important::
 
     If you are using very old Java 6 or because any reason you need to install MosaicSuite manually
-    please refere for detailed instructions `old MosaicSuite site <http://mosaic.mpi-cbg.de/?q=downloads/imageJ>`_.
+    please refere for detailed instructions `old MosaicSuite site <http://sbalzarini-lab.org/?q=downloads/imageJ>`_.

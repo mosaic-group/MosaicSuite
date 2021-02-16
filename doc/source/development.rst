@@ -121,3 +121,49 @@ Running single test within a given test suite:
 .. code:: bash
 
     mvn test -Dtest=CSVTest#testWriteAppend
+
+Documentation
+=============
+
+MosaicSuite documentation is using `Sphinx <https://www.sphinx-doc.org/>`__ documentation generator.
+Documentation is written using reStructuredText markup language (.rxt files) and with Sphinx magic it is easy to convert to HTML or PDF version.
+
+
+Software needed to generate documentation
+-----------------------------------------
+Sphinx requires *make* command, *python* and several libraries. Here are needed steps to install all needed packages using *conda*:
+
+- Create and activate new conda environment:
+
+.. code:: bash
+
+   conda create -n MosaicSuiteDoc
+   conda activate MosaicSuiteDoc
+
+- Install needed libraries:
+
+.. code:: bash
+
+   conda install sphinx
+   conda install recommonmark
+   conda install sphinx_rtd_theme
+
+Generating documentation
+------------------------
+
+Generating documentation is as easy as running *make* command.
+To see all possible targets go to ``doc/`` directory of your cloned MosaicSuite code and run:
+
+.. code:: bash
+
+   make
+
+To generate HTML pages run:
+
+.. code:: bash
+
+   make html
+
+After command is finished in directory ``build/html/`` will be documentation in HTML format ready to deploy server.
+And that's it!
+

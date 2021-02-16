@@ -200,7 +200,7 @@ Citation
 
     | *J. Cardinale, G. Paul, and I. F. Sbalzarini*
     | Discrete region competition for unknown numbers of connected regions. IEEE Trans. Image Process., 21(8):3531–3545, 2012.
-    | `PDF <http://mosaic.mpi-cbg.de/docs/Cardinale2012.pdf>`__
+    | `PDF <http://sbalzarini-lab.org/docs/Cardinale2012.pdf>`__
 
 *In order to ensure financial support for our project and allow further development of
 this software, please cite above publications in all your documents and manuscripts that
