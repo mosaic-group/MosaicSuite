@@ -98,9 +98,11 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         // Show input image
         aInputImg.show();
 
-        // Get parameters from user
+        // Create point detector with set range of values
         final StackStatistics imgStatistics = new StackStatistics(aInputImg);
         final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imgStatistics.max, (float) imgStatistics.min);
+
+        // Get parameters from user
         final GenericDialog gd = new GenericDialog("Particle Detection...", IJ.getInstance());
         GUIhelper.addUserDefinedParametersDialog(gd, featurePointDetector);
         gd.showDialog();
@@ -118,7 +120,8 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         
         // Draw dots on the positions of the detected particles on the frame and shows it
         final Img<T> background = ImagePlusAdapter.wrap(aInputImg);
-        final Img<ARGBType> detected = frame.createImage(background, aInputImg.getCalibration());
+        // Do not use calibration since we detect particles based on image pixel positions and not a real values.
+        final Img<ARGBType> detected = frame.createImage(background, null /* no calibration */);
         ImageJFunctions.show(detected);
 
         return frame.getParticles();

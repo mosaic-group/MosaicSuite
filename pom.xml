@@ -87,25 +87,20 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>27.0.1</version>
+        <version>29.2.1</version>
         <relativePath />
     </parent>
 
     <repositories>
-        <repository>
-            <id>imagej.public</id>
-            <url>http://maven.imagej.net/content/groups/public</url>
-        </repository>
-        <!--  temporary (but remotely accessible repository for not available otherwise jars -->
-<!--         <repository>
-            <id>mosaic.public</id>
-            <url>http://mosaic.mpi-cbg.de/maven/</url>
-         </repository> -->
-         <!-- use instead above mosaic repository local one embedded in source tree -->
+         <!-- local repository with jars which are not available online -->
         <repository>
             <id>local-repo</id>
             <name>repo</name>
             <url>file://${project.basedir}/repo</url>
+        </repository>
+        <repository>
+            <id>scijava.public</id>
+            <url>https://maven.scijava.org/content/groups/public</url>
         </repository>
         <repository>
             <id>clij</id>
@@ -117,7 +112,11 @@
     <dependencies>
         <dependency>
             <groupId>net.imagej</groupId>
-            <artifactId>ij</artifactId>
+            <artifactId>imagej</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej-deprecated</artifactId>
         </dependency>
         <dependency>
             <groupId>net.imglib2</groupId>
@@ -199,10 +198,6 @@
             <version>2.4</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
@@ -216,6 +211,12 @@
             <groupId>net.sf.dozer</groupId>
             <artifactId>dozer</artifactId>
             <version>5.5.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>net.sf.supercsv</groupId>
@@ -223,11 +224,11 @@
             <version>2.4.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.rwl</groupId>
+            <groupId>edu.emory.mathcs</groupId>
             <artifactId>jtransforms</artifactId>
-            <version>2.4.0</version>
+            <version>2.4</version>
+<!--            <scope>runtime</scope>-->
         </dependency>
-
         <!-- Exclude com.google.android.tools since it conflicts with same symbols from junit  -->
         <dependency>
             <groupId>net.haesleinhuepf</groupId>
@@ -257,26 +258,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
-                <executions>
-                    <execution>
-                        <id>generate-allIn1-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <outputFile>target/${project.artifactId}-${project.version}_Full.jar</outputFile>
-                            <!-- Intentionally not 'true' - removes too much 
-                                from destination jar (like org.apache.commons.beanutils.ConvertUtils) -->
-                            <minimizeJar>false</minimizeJar>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>

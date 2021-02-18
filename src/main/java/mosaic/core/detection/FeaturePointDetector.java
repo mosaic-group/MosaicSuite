@@ -641,7 +641,6 @@ public class FeaturePointDetector {
         iUseCLIJ = aUseClij;
 
         logger.info("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
-        System.out.println("Detection options: radius=" + iRadius + " cutoff=" + iCutoff + " percentile=" + iPercentile + " threshold=" + iAbsIntensityThreshold + " mode=" + (absolute ? "THRESHOLD" : "PERCENTILE") + " useCLIJ=" + iUseCLIJ);
 
         // create Mask for Dilation with the user defined radius
         generateDilationMasks(iRadius);
