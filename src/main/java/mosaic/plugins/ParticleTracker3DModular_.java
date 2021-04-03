@@ -318,10 +318,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
 
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
             final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, null);
-
+            logger.debug("Loaded from CSV " + p.size() + " particles.");
             iInputImageFileInfo = new FileInfo();
             iInputImageFileInfo.directory = files_dir;
-
+            Collections.sort(p, (d1, d2) -> {
+                return d1.getFrame() - d2.getFrame();
+            });
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
                 return false;
