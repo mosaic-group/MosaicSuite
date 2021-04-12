@@ -903,14 +903,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @see ImagePlus#getRoi()
      * @see StackConverter#convertToRGB()
      */
-    public void generateTrajFocusView(int trajectory_index) {
+    public void generateTrajFocusView(int trajectory_index, Roi area) {
         int magnification = results_window.magnification_factor;
         // create a title
         final String new_title = "[Trajectory number " + (trajectory_index + 1) + "]";
 
         // get the trajectory at the given index
         final Trajectory traj = (iTrajectories.elementAt(trajectory_index));
-        final Rectangle r = traj.focus_area.getBounds();
+        final Rectangle r = area.getBounds();
 
         // Create a cropped rescaled image
         final Img<UnsignedByteType> img = ImagePlusAdapter.wrap(iInputImage);
@@ -936,7 +936,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         final Vector<Trajectory> vt = new Vector<Trajectory>();
         vt.add(traj);
         final Calibration cal = iInputImage.getCalibration();
-        MyFrame.updateImage(focus_view, traj.focus_area.getBounds(), traj.getStartFrame(), vt, cal, DrawType.TRAJECTORY_HISTORY, getRadius());
+        MyFrame.updateImage(focus_view, area.getBounds(), traj.getStartFrame(), vt, cal, DrawType.TRAJECTORY_HISTORY, getRadius());
 
         final ImagePlus imp = ImageJFunctions.show(focus_view);
         imp.setTitle(new_title);
@@ -1336,6 +1336,22 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
      * @return array with [pixelDimensions, timeInterval] - if null there was some error getting cal. data.
      */
     public CalibrationData getImageCalibrationData() {
+
+        logger.debug("iInputImage = " + iInputImage);
+        if (iInputImage == null) {
+            IJ.showStatus("Creating image from particles and trajectories ...");
+
+            final Img<ARGBType> iw = createHyperStackFromFrames();
+            if (iw != null) {
+                iInputImage = ImageJFunctions.wrap(iw, "Video");
+            }
+            else {
+                return new CalibrationData(0.0, 0.0, "Could not create image from provided particle data! MMS/MSD calculation not possible.");
+            }
+        }
+        logger.debug("iInputImage = " + iInputImage);
+
+
         // Get all calibration data from image
         final double width = iInputImage.getCalibration().pixelWidth;
         final double height = iInputImage.getCalibration().pixelHeight;
@@ -1598,9 +1614,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
                     }
 
                     // Create the current trajectory
-                    iTrajectories.add(new Trajectory(currTrajectory.toArray(new Particle[0]), 
-                                                     iTrajectories.size() + 1, // serial number
-                                                     iInputImage));
+                    iTrajectories.add(new Trajectory(currTrajectory.toArray(new Particle[0]), iTrajectories.size() + 1));
                 }
             }
         }

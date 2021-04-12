@@ -1,13 +1,7 @@
 package mosaic.particleTracker;
 
 
-import java.awt.Button;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.Point;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -17,6 +11,7 @@ import java.util.Vector;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
+import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.measure.Calibration;
 import mosaic.core.detection.MyFrame;
@@ -157,6 +152,19 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         particleTracker3DModular.generateView(this.imp, this.out);
     }
 
+    static public Roi getBiggerROI(Roi r, ImagePlus img, int size) {
+        Rectangle bounds = r.getBounds();
+        int newX = Math.max(0, bounds.x - size);
+        int newY = Math.max(0, bounds.y - size);
+
+        int newWidth = bounds.width + 2*size;
+        if (newX + newWidth > img.getWidth()) newWidth = img.getWidth() - newX;
+        int newHeight = bounds.height + 2*size;
+        if (newY + newHeight > img.getHeight()) newHeight = img.getHeight() - newY;
+
+        return new Roi(newX, newY, newWidth, newHeight);
+    }
+
     /**
      * Defines the action taken upon an <code>MouseEvent</code> triggered by left-clicking the mouse anywhere in this <code>TrajectoryStackWindow</code>
      * 
@@ -170,7 +178,8 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
             final Vector<Trajectory> v = new Vector<Trajectory>();
             v.add(particleTracker3DModular.iTrajectories.get(particleTracker3DModular.chosen_traj));
 
-            final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
+            // If input is taken from csv files then iInputImage might not be there
+            final Calibration cal = particleTracker3DModular.iInputImage == null ? null : particleTracker3DModular.iInputImage.getCalibration();
 
             MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 
@@ -183,7 +192,6 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         /* covert them to offScreen coordinates using the ImageCanvas of this window */
         final int offscreenX = this.ic.offScreenX(x);
         final int offscreenY = this.ic.offScreenY(y);
-
         boolean trajectory_clicked = false;
         final Iterator<Trajectory> iter = particleTracker3DModular.iTrajectories.iterator();
 
@@ -207,10 +215,10 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
                 final Vector<Trajectory> v = new Vector<Trajectory>();
                 v.add(curr_traj);
 
-                final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
+                // If input is taken from csv files then iInputImage might not be there
+                final Calibration cal = particleTracker3DModular.iInputImage == null ? null : particleTracker3DModular.iInputImage.getCalibration();
 
                 MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
-
                 trajectory_clicked = true;
                 particleTracker3DModular.chosen_traj = ct;
                 break;
@@ -229,14 +237,18 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
             if (e.getClickCount() == 2) {
                 // "double-click"
                 // Set the ROI to the trajectory focus_area
-                IJ.getImage().setRoi((particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).focus_area);
+                Roi mouse_selection_area = (particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).trajectoryArea;
+                Roi roi = getBiggerROI(mouse_selection_area, imp, 8);
+                IJ.getImage().setRoi(roi);
                 // focus on Trajectory (ROI)
-                particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj);
+                particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj, roi);
             }
             else {
                 // single-click - mark the selected trajectory by setting the ROI to the
                 // trajectory mouse_selection_area
-                this.imp.setRoi((particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj)).mouse_selection_area);
+                Trajectory traj = particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj);
+                Roi roi = getBiggerROI(traj.trajectoryArea, imp, 2);
+                this.imp.setRoi(roi);
             }
         }
         else {

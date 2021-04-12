@@ -307,6 +307,9 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             else {
                 IJ.error(calData.errorMsg);
                 // error msg is printed by getImageCalibrationData() method
+
+                // Image should be visible and active to run "properties..." command
+                particleTracker3DModular.iInputImage.show();
                 WindowManager.setCurrentWindow(particleTracker3DModular.iInputImage.getWindow());
                 IJ.run("Properties...");
                 return;
@@ -385,7 +388,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == trajectory_focus) {
             // user selects trajectory according to serial number (starts with 1)
             // but all_traj Vector starts from 0 so (chosen_traj-1)
-            particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj);
+            particleTracker3DModular.generateTrajFocusView(particleTracker3DModular.chosen_traj, particleTracker3DModular.iTrajectories.elementAt(particleTracker3DModular.chosen_traj).trajectoryArea);
             return;
         }
         /* display (on the text_panel) info about the selected Trajectory */
