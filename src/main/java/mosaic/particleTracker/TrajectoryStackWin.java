@@ -158,9 +158,9 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener  {
         int newY = Math.max(0, bounds.y - size);
 
         int newWidth = bounds.width + 2*size;
-        if (newX + newWidth > img.getWidth()) newWidth = img.getWidth() - newX;
+        if (newX + newWidth >= img.getWidth()) newWidth = img.getWidth() - newX;
         int newHeight = bounds.height + 2*size;
-        if (newY + newHeight > img.getHeight()) newHeight = img.getHeight() - newY;
+        if (newY + newHeight >= img.getHeight()) newHeight = img.getHeight() - newY;
 
         return new Roi(newX, newY, newWidth, newHeight);
     }

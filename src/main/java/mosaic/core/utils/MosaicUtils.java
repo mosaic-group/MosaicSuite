@@ -131,13 +131,16 @@ public class MosaicUtils {
 
         crs.next();
 
-        // Get the min and max
-        T min = crs.get().createVariable();
-        T max = crs.get().createVariable();
-        getMinMax(crs, min, max);
+        // min/max values has not much sense with RGB types
+        if (!(data instanceof ARGBType)) {
+            // Get the min and max
+            T min = crs.get().createVariable();
+            T max = crs.get().createVariable();
+            getMinMax(crs, min, max);
 
-        // get conversion;
-        conv.setMinMax(min.getRealDouble(), max.getRealDouble());
+            // get conversion;
+            conv.setMinMax(min.getRealDouble(), max.getRealDouble());
+        }
 
         return conv;
     }

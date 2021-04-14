@@ -14,7 +14,10 @@ import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
 import mosaic.utils.ArrayOps.MinMax;
 import mosaic.utils.math.Matrix;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 
 public class ImgUtils {
@@ -143,7 +146,7 @@ public class ImgUtils {
 
     /**
      * Creates 3D [z][x][y] binary (boolean) array from provided ImagePlus
-     * @param aImage input image
+     * @param aInputImage input image
      * @return generated array with false for values == 0 and true otherwise
      */
     public static boolean[][][] imgToZXYbinaryArray(ImagePlus aInputImage) {
@@ -271,7 +274,7 @@ public class ImgUtils {
      * bottom row(s)) are padded with neighbors values.
      *
      * @param aInputImg      Original image array
-     * @param aNewImgArray   Resized image array (must be created by user)
+     * @param aOutputImg   Resized image array (must be created by user)
      */
     static void imgResize(float[][] aInputImg, float[][] aOutputImg) {
         final int w = aInputImg[0].length;
@@ -300,7 +303,7 @@ public class ImgUtils {
      * bottom row(s)) are padded with neighbors values.
      *
      * @param aInputImg      Original image array
-     * @param aNewImgArray   Resized image array (must be created by user)
+     * @param aOutputImg   Resized image array (must be created by user)
      */
     static public void imgResize(double[][] aInputImg, double[][] aOutputImg) {
         final int w = aInputImg[0].length;
@@ -331,7 +334,7 @@ public class ImgUtils {
      * @param aTitle - title for newly generated image
      * @param aXscale - scale for x dim
      * @param aYscale - scale for y dim
-     * @param convertToRgb - should output ImagePlus be RGB regardless of input?
+     * @param aType - should output ImagePlus be RGB regardless of input?
      * @return
      */
     static public ImagePlus createNewEmptyImgPlus(final ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, OutputType aType) {
@@ -520,7 +523,22 @@ public class ImgUtils {
             str += img1.dimension(i) + ((i == numDimensions - 1) ? "" : "/");
         return str;
     }
-    
+
+    /**
+     * @return String with information of provided image (dimensions/type/bitdepth)
+     */
+    public static <T extends NumericType< T >> String getImageInfo(RandomAccessibleInterval<T> img1) {
+        long[] dims = img1.dimensionsAsLongArray();
+        for (int i = 0; i < dims.length; ++i) dims[i] = 0;
+
+        String str = "Type: " + img1.getAt(dims).getClass().getName();
+        str += " ElementString: " + img1.getAt(dims).toString();
+        str += " Dims:";
+        int numDimensions = img1.numDimensions();
+        for (int i = 0; i < numDimensions; ++i)
+            str += img1.dimension(i) + ((i == numDimensions - 1) ? "" : "/");
+        return str;
+    }
     /**
      * Runs distance transform on provided image (this image will be changed)
      * @param aImage input image

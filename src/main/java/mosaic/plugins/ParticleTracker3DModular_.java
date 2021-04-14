@@ -21,6 +21,7 @@ import java.util.Vector;
 
 import javax.swing.JLabel;
 
+import mosaic.utils.ImgUtils;
 import org.apache.log4j.Logger;
 
 import ij.IJ;
@@ -912,15 +913,24 @@ public class ParticleTracker3DModular_ implements PlugInFilter, PreviewInterface
         final Trajectory traj = (iTrajectories.elementAt(trajectory_index));
         final Rectangle r = area.getBounds();
 
+        if (iInputImage == null) {
+            IJ.showStatus("Creating image from particles and trajectories ...");
+
+            final Img<ARGBType> iw = createHyperStackFromFrames();
+            if (iw != null) {
+                iInputImage = ImageJFunctions.wrap(iw, "Video");
+            }
+        }
+
         // Create a cropped rescaled image
         final Img<UnsignedByteType> img = ImagePlusAdapter.wrap(iInputImage);
         final long min[] = new long[img.numDimensions()];
         final long max[] = new long[img.numDimensions()];
 
         min[0] = r.x;
-        max[0] = r.x + r.width;
+        max[0] = r.x + r.width - 1;
         min[1] = r.y;
-        max[1] = r.y + r.height;
+        max[1] = r.y + r.height - 1;
         for (int i = 2; i < img.numDimensions() - 1; i++) {
             min[i] = 0;
             max[i] = img.dimension(i);
