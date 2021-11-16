@@ -325,3 +325,71 @@ Click on the View all Trajectories button and compare the view to the one create
 Focus on the blue trajectory.
 The previously 2 separate trajectories are now 1 and in frame 71, were the particle was not detected, a red line is drawn to indicate a "Gap" in the trajectory - meaning a part in the trajectory that was interpolated by the algorithm to handle occlusion, exit and entry of the particle.
 
+Tracking data from text files
+=============================
+
+Very often detection of points in frame sequences has been already done by other software (like Squassh).
+Particle Tracker support loading such a data (namely positions of particles) from files and then performs linking of that data to generate trajectories.
+
+To run Particle Tracker in "text file mode" run it **without** any other images opened in Fiji/ImageJ.
+
+Particle Tracker supports two types of input files:
+
+**multiple frame files** - as name suggest we need to provide directory with text files, each text file contains particle positions for one frame only, and format of one of such files is:
+
+.. code-block:: guess
+
+    frame 0
+    217.598572 22.053776 0.000000
+    99.648430 40.569447 0.000000
+    143.359039 50.349560 0.000000
+    59.281284 68.385857 0.000000
+    140.416275 72.708656 0.000000
+    225.348801 91.429047 0.000000
+
+so the first line is a frame number, and next lines are positions of particles (x/y/z) in that frame. Each file in provided directory is considered to be in a above format.
+
+**CSV file** - as name suggest PT expects particles in a 'CSV' format. In such a case we can provide not only particle positions but also m0, m1... . Format of such file should look like 'result' table from PT when you click 'Segmented Particles to Table' (the very first 'empty' column is added by ImageJ):
+
+
+.. code-block:: guess
+
+    Frame x y z m0 m1 m2 m3 m4 NPscore
+    1 0 217.599 22.054 0 6.213 1.485 2.724 5.503 11.975 0
+    2 0 99.648 40.569 0 7.123 1.787 3.786 8.714 21.269 0
+    3 0 143.359 50.350 0 14.609 1.760 3.667 8.296 19.901 0
+
+So above we have 'tab' delimited CSV file but also it can be comma or semicolon delimited like:
+
+
+.. code-block:: guess
+
+    ;Frame;x;y;z;m0;m1;m2;m3;m4;NPscore
+    1;0;217.599;22.054;0;6.213;1.485;2.724;5.503;11.975;0
+    2;0;99.648;40.569;0;7.123;1.787;3.786;8.714;21.269;0
+    3;0;143.359;50.350;0;14.609;1.760;3.667;8.296;19.901;0
+
+The expected columns are only: Frame, x, y, z. Optionally provided columns m0 and m2 are treated as particle size and intensity, this was used for compatibility with Squassh for tracking segmented earlier objects. The rest of the columns is ignored.
+
+
+Macros
+======
+
+Postprocess "All Trajectories to Table"
+---------------------------------------
+
+Here is example macro in python that reads output of Particle Tracker and
+generates additional table with calculated speed of particles, trajectory lenght and std dev. of velocity.
+The script can be easily modified since the most important lines are 65-102 where
+all lines and data of one trajectory are read and can be used to produce another calculations.
+
+To use this example script folow these instructinos:
+
+1. Run ParticleTracker on your input file.
+2. After tracking click on "All Trajectories to Table" - it will open a table called "Results" with trajetory data.
+3. Open ptSpeed.py in Fiji (just by File->Open)
+4. Run it by clicking "Run" button.
+
+.. literalinclude:: resources/macros/ptSpeed.py
+    :language: python
+    :linenos:

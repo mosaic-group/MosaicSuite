@@ -13,16 +13,17 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
+from datetime import datetime
 
 # -- Project information -----------------------------------------------------
 
 project = 'MosaicSuite'
-copyright = '2020, MOSAIC Group, Sbalzarini Lab, sbalzarini-lab.org'
+# copyright = '2020, MOSAIC Group, Sbalzarini Lab, sbalzarini-lab.org'
+copyright = u'2006–{}, MOSAIC Group, Sbalzarini Lab, sbalzarini-lab.org'.format(datetime.now().year)
 author = 'MOSAIC Group, Sbalzarini Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.20'
+release = '1.0.23'
 
 
 # -- General configuration ---------------------------------------------------
@@ -53,7 +54,7 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
-    'navigation_depth': 6
+    'navigation_depth': 7
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

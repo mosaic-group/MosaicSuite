@@ -2,6 +2,16 @@
 Changelog
 ================
 
+* 1.0.24
+    - Numerous updates of documentation.
+    - Updated documentation link to new website (sbalzarini-lab.org)
+
+* 1.0.23
+    - Small fixes in Particle Tracker
+        - Loading particle positions from CSV files (PT does not require sorted frame number anymore)
+        - Selecting trajectories in output window
+    - Fix for wrongly used calibration for input images for Interaction Analysis
+
 * 1.0.22
     - Interaction Analysis fix for 3D images 
  
