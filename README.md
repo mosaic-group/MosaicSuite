@@ -14,7 +14,7 @@ All information about MosaicSuite like:
 - useful macros
 - and more!
 
-is now available in newly created [MosaicSuite Online Documentation](https://sbalzarini-lab.org/docs/MosaicSuiteDoc/index.html)
+is now available in newly created [MosaicSuite Online Documentation](https://sbalzarini-lab.org/MosaicSuiteDoc/index.html)
 
 It is also accessible directly from ImageJ/Fiji menu:
 
