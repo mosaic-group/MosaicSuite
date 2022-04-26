@@ -383,13 +383,34 @@ generates additional table with calculated speed of particles, trajectory lenght
 The script can be easily modified since the most important lines are 65-102 where
 all lines and data of one trajectory are read and can be used to produce another calculations.
 
-To use this example script folow these instructinos:
+To use this example script folow these instructions:
 
 1. Run ParticleTracker on your input file.
-2. After tracking click on "All Trajectories to Table" - it will open a table called "Results" with trajetory data.
+2. After tracking click on "All Trajectories to Table" - it will open a table called "Results" with trajectory data.
 3. Open ptSpeed.py in Fiji (just by File->Open)
 4. Run it by clicking "Run" button.
 
 .. literalinclude:: resources/macros/ptSpeed.py
     :language: python
     :linenos:
+
+Get intensities of particles original image
+-------------------------------------------
+
+Originally plugin calculates m0 value (sum of intensities of all particle pixels) from already restored image (normilized and filtered).
+Sometimes it is quite useful to have this value and average value of found particle calculated from original image. Here is a macro that
+calculates this taking as an input original image and output table with trajectories.
+
+To use this example script follow these instructions:
+
+1. Run ParticleTracker on your input file.
+2. After tracking click on "all Trajectories to Table" - it will open a table called "results" with trajectory data.
+3. Open ptIntensities.py in Fiji (just by File->Open)
+4. Update radius and outputTableName if necessary (beginning of the script). Provided radius should be same as used for particle tracking but
+   in some cases might be different.
+5. Run it by clicking "Run" button. It will generate another table  with m0, size of the particle and average intensity of particle (average value of all pixels of the particle).
+
+.. literalinclude:: resources/macros/ptIntensities.py
+    :language: python
+    :linenos:
+
