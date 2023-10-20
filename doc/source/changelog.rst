@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.25
+    - Minor updates of documentation
+
 * 1.0.24
     - Numerous updates of documentation.
     - Updated documentation link to new website (sbalzarini-lab.org)
