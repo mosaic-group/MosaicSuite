@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.26
+    - Minor updates of documentation
+
 * 1.0.25
     - Minor updates of documentation
 
