@@ -375,6 +375,24 @@ The expected columns are only: Frame, x, y, z. Optionally provided columns m0 an
 Macros
 ======
 
+How to run Particle Tracker from ImageJ macro
+---------------------------------------------
+
+Here are examples of run commands for Particle Tracker
+
+.. code-block:: guess
+
+    run("Particle Tracker 2D/3D", "radius=3 cutoff=0.001 per/abs=0.501 link=2 displacement=10 dynamics=Brownian");
+    run("Particle Tracker 2D/3D", "radius=3 cutoff=0.001 per/abs=0.500 link=2 displacement=10 dynamics=Brownian saveMss");
+    run("Particle Tracker 2D/3D", "radius=3 cutoff=0.001 per/abs=50 absolute link=2 displacement=10 dynamics=Brownian");
+
+While most parameters is self describing (same names as in Particle Trakcer dialog) here are exceptions:
+
+1. **absolute** - add this argument to have 'Absolute' cutoff rather than percentile ('Absolute' checkbox)
+#. **saveMss** - add this argument to save MSS to file (table that is accessible via "All MSS/MSD to Table' in GUI mode)
+
+After running in macro mode ParticleTracker will save output files in same directory as input image file.
+
 Postprocess "All Trajectories to Table"
 ---------------------------------------
 
