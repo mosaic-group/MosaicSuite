@@ -28,4 +28,14 @@ Installation of MosaicSuite plugin
 .. important::
 
     If you are using very old Java 6 or because any reason you need to install MosaicSuite manually
-    please refere for detailed instructions `old MosaicSuite site <http://sbalzarini-lab.org/?q=downloads/imageJ>`_.
+    please refer for detailed instructions `old MosaicSuite site <http://sbalzarini-lab.org/?q=downloads/imageJ>`_.
+
+Hints
+=====
+
+If you are working with large images - both 2D and 3D - please consider
+increasing amount of memory (and number of threads) accessible for ImageJ/Fiji via
+```" Edit > Options > Memory and Threads..."```.
+
+Default values are good for regular machines (like laptops with 8/16 GB of RAM) but if you are using a machine
+with 32GB+ of memory you can increase this value a lot (just leave few GB of RAM for operating system and other running applications).
