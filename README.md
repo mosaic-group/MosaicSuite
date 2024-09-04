@@ -4,6 +4,8 @@
 Several of the image-processing algorithms developed at the [MOSAIC Group](https://sbalzarini-lab.org) for fluorescence microscopy are available as plugins for the popular free image processing software ImageJ2 or Fiji.
 The first plugin which is now part of MosaicSuite was a popular 2D/3D single-particle tracking tool which can be used to track bright spots in 2D/3D movies over time. As more plugins have been added, we decided to provide them in a single, coherent package, which will also group them under a common menu point `Plugins->Mosaic` in ImageJ2 and Fiji.
 
+NOTE: MosaicSuite is still maintained to be bug free but it is not anymore under development so new features or plugins will not be added anymore.
+
 
 ## Documentation
 All information about MosaicSuite like:
