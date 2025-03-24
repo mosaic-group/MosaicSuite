@@ -2,6 +2,9 @@
 Changelog
 ================
 
+* 1.0.27
+	- Fix for Particle Tracker 2D/3D
+
 * 1.0.26
     - Minor updates of documentation
 
