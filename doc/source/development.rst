@@ -18,6 +18,13 @@ Code can be downloaded by following git command:
 
 If you'd like to contribute bug fixes or new functions to any of the plugins, or are interested in using the source code in your own projects, please make sure to first download the latest version. The code is constantly evolving. If you think your additions could be useful also for other users, please send them to us and we will include them in future releases. Your contributions are highly appreciated!
 
+When adding new official version to git repository please tag this version and follow notation:
+
+.. code:: bash
+
+    git commit "Version 1.0.27"
+    git tag -a 1.0.27 -m "Version 1.0.27"
+
 
 How to build
 ============
