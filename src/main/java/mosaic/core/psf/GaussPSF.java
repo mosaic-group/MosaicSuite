@@ -25,7 +25,6 @@ import net.imglib2.view.Views;
  * Class that produce Gaussian images
  *
  * @author Pietro Incardona
- * @param <T> Type of image to produce FloatType, Short .......
  */
 
 class GaussPSFSettings implements Serializable {
@@ -95,6 +94,11 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     @Override
     public RandomAccess<T> copyRandomAccess() {
         return this;
+    }
+
+    @Override
+    public RandomAccess<T> copy() {
+        return null;
     }
 
     @Override
@@ -215,11 +219,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     @Override
     public void setPosition(long i, int j) {
         pos[(int) i].setReal(j);
-    }
-
-    @Override
-    public Sampler<T> copy() {
-        return this;
     }
 
     @Override

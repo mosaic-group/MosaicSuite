@@ -1,8 +1,7 @@
 package mosaic.utils.math;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-
+import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.data.DMatrixRMaj;
 import mosaic.utils.ConvertArray;
 
 /**
@@ -27,14 +26,14 @@ public class Matrix {
         double f(double aElement, int aRow, int aCol);
     }
 
-    private DenseMatrix64F iMatrix;
+    private DMatrixRMaj iMatrix;
 
     /**
      * Only for private use. Keeps provided matrix reference (not copy!).
      *
      * @param aDM
      */
-    private Matrix(DenseMatrix64F aDM) {
+    private Matrix(DMatrixRMaj aDM) {
         iMatrix = aDM;
     }
 
@@ -45,7 +44,7 @@ public class Matrix {
      * @param aCols
      */
     public Matrix(int aRows, int aCols) {
-        iMatrix = new DenseMatrix64F(aRows, aCols);
+        iMatrix = new DMatrixRMaj(aRows, aCols);
     }
 
     /**
@@ -54,7 +53,7 @@ public class Matrix {
      * @param aM
      */
     public Matrix(Matrix aM) {
-        iMatrix = new DenseMatrix64F(aM.iMatrix);
+        iMatrix = new DMatrixRMaj(aM.iMatrix);
     }
 
     /**
@@ -66,7 +65,7 @@ public class Matrix {
      * @param aValues
      */
     public Matrix(int aNumOfRows, int aNumOfCols, double... aValues) {
-        iMatrix = new DenseMatrix64F(aNumOfRows, aNumOfCols, true, aValues);
+        iMatrix = new DMatrixRMaj(aNumOfRows, aNumOfCols, true, aValues);
     }
     
     /**
@@ -76,7 +75,7 @@ public class Matrix {
      * @param aArray
      */
     public Matrix(double[][] aArray) {
-        iMatrix = new DenseMatrix64F(aArray);
+        iMatrix = new DMatrixRMaj(aArray);
     }
 
     /**
@@ -86,7 +85,7 @@ public class Matrix {
      * @param aArray
      */
     public Matrix(float[][] aArray) {
-        iMatrix = new DenseMatrix64F(ConvertArray.toDouble(aArray));
+        iMatrix = new DMatrixRMaj(ConvertArray.toDouble(aArray));
     }
 
     /**
@@ -124,7 +123,7 @@ public class Matrix {
     /**
      * Creates row vector (Matrix 1xN) from given array. Most inner dimension is iterated first so
      * in case of [z][y][x] it will iterate first x then y...
-     * @param aInput
+     * @param aInputArray
      */
     public static Matrix mkRowVector(double[][][] aInputArray) {
         int zl = aInputArray.length;
@@ -147,7 +146,7 @@ public class Matrix {
     /**
      * Creates row vector (Matrix 1xN) from given array. Most inner dimension is iterated first so
      * in case of [y][x] it will iterate first x then y...
-     * @param aInput
+     * @param aInputArray
      */
     public static Matrix mkRowVector(double[][] aInputArray) {
         int yl = aInputArray.length;
@@ -172,7 +171,7 @@ public class Matrix {
      * @return
      */
     public static Matrix mkRowVector(double... aInput) {
-        final DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
+        final DMatrixRMaj result = new DMatrixRMaj(1, aInput.length);
         result.setData(aInput);
 
         return new Matrix(result);
@@ -186,7 +185,7 @@ public class Matrix {
      * @return
      */
     public static Matrix mkColVector(double... aInput) {
-        final DenseMatrix64F result = new DenseMatrix64F(aInput.length, 1);
+        final DMatrixRMaj result = new DMatrixRMaj(aInput.length, 1);
         result.setData(aInput);
 
         return new Matrix(result);
@@ -451,7 +450,7 @@ public class Matrix {
      * @return
      */
     public Matrix elementMult(Matrix aM) {
-        CommonOps.elementMult(this.iMatrix, aM.iMatrix);
+        CommonOps_DDRM.elementMult(this.iMatrix, aM.iMatrix);
         return this;
     }
 
@@ -463,7 +462,7 @@ public class Matrix {
      */
     public Matrix mult(Matrix aM) {
         final Matrix result = new Matrix(this.numRows(), aM.numCols());
-        CommonOps.mult(this.iMatrix, aM.iMatrix, result.iMatrix);
+        CommonOps_DDRM.mult(this.iMatrix, aM.iMatrix, result.iMatrix);
         this.iMatrix = result.iMatrix;
         return this;
     }
@@ -475,7 +474,7 @@ public class Matrix {
      * @return
      */
     public Matrix elementDiv(Matrix aM) {
-        CommonOps.elementDiv(this.iMatrix, aM.iMatrix);
+        CommonOps_DDRM.elementDiv(this.iMatrix, aM.iMatrix);
         return this;
     }
 
@@ -486,18 +485,18 @@ public class Matrix {
      * @return
      */
     public Matrix add(Matrix aM) {
-        CommonOps.add(this.iMatrix, aM.iMatrix, this.iMatrix);
+        CommonOps_DDRM.add(this.iMatrix, aM.iMatrix, this.iMatrix);
         return this;
     }
 
     /**
      * Adds scalar to every element of Matrix
      *
-     * @param aM
+     * @param aVal
      * @return
      */
     public Matrix add(double aVal) {
-        CommonOps.add(this.iMatrix, aVal);
+        CommonOps_DDRM.add(this.iMatrix, aVal);
         return this;
     }
 
@@ -508,18 +507,18 @@ public class Matrix {
      * @return
      */
     public Matrix sub(Matrix aM) {
-        CommonOps.sub(this.iMatrix, aM.iMatrix, this.iMatrix);
+        CommonOps_DDRM.subtract(this.iMatrix, aM.iMatrix, this.iMatrix);
         return this;
     }
     
     /**
      * Adds scalar to every element of Matrix
      *
-     * @param aM
+     * @param aVal
      * @return
      */
     public Matrix sub(double aVal) {
-        CommonOps.add(this.iMatrix, -aVal);
+        CommonOps_DDRM.add(this.iMatrix, -aVal);
         return this;
     }
 
@@ -530,7 +529,7 @@ public class Matrix {
      * @return
      */
     public Matrix scale(double aVal) {
-        CommonOps.scale(aVal, this.iMatrix);
+        CommonOps_DDRM.scale(aVal, this.iMatrix);
         return this;
     }
 
@@ -572,7 +571,7 @@ public class Matrix {
     /**
      * Sets value of element at given index (Matlab style)
      *
-     * @param aIdx
+     * @param idx
      * @param aVal
      *            value to be set
      * @return
@@ -588,7 +587,7 @@ public class Matrix {
      * @return
      */
     public Matrix transpose() {
-        CommonOps.transpose(this.iMatrix);
+        CommonOps_DDRM.transpose(this.iMatrix);
         return this;
     }
 
@@ -691,7 +690,7 @@ public class Matrix {
      * @return
      */
     public double sum() {
-        return CommonOps.elementSum(this.iMatrix);
+        return CommonOps_DDRM.elementSum(this.iMatrix);
     }
 
     /**
@@ -748,7 +747,7 @@ public class Matrix {
      * @return
      */
     public Matrix insert(Matrix aMatrix, int aRow, int aCol) {
-        CommonOps.insert(aMatrix.iMatrix, this.iMatrix, aRow, aCol);
+        CommonOps_DDRM.insert(aMatrix.iMatrix, this.iMatrix, aRow, aCol);
         return this;
     }
 
@@ -773,7 +772,7 @@ public class Matrix {
         final int newCols = (cols + 1 - aStartCol) / aStepCol;
         final int newRows = (rows + 1 - aStartRow) / aStepRow;
 
-        final DenseMatrix64F result = new DenseMatrix64F(newRows, newCols);
+        final DMatrixRMaj result = new DMatrixRMaj(newRows, newCols);
         for (int r = aStartRow, rn = 0; r < rows; r += aStepRow, ++rn) {
             for (int c = aStartCol, cn = 0; c < cols; c += aStepCol, ++cn) {
                 result.set(rn, cn, iMatrix.get(r, c));
@@ -794,7 +793,7 @@ public class Matrix {
         if (aRowMatrix.numCols() != iMatrix.numCols) {
             throw new IllegalArgumentException("Dimensions of row vector must match matrix");
         }
-        CommonOps.insert(aRowMatrix.iMatrix, iMatrix, aRowNum, 0);
+        CommonOps_DDRM.insert(aRowMatrix.iMatrix, iMatrix, aRowNum, 0);
         return this;
     }
 
@@ -808,7 +807,7 @@ public class Matrix {
         if (aColMatrix.numRows() != iMatrix.numRows) {
             throw new IllegalArgumentException("Dimensions of row vector must match matrix");
         }
-        CommonOps.insert(aColMatrix.iMatrix, iMatrix, 0, aColNum);
+        CommonOps_DDRM.insert(aColMatrix.iMatrix, iMatrix, 0, aColNum);
         return this;
     }
 

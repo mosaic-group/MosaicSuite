@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.ejml.MatrixDimensionException;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
@@ -329,7 +330,7 @@ public class MatrixTest extends CommonBase {
                 m1.copy().add(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
             }
-            catch (final IllegalArgumentException e) {
+            catch (final MatrixDimensionException e) {
                 // It is OK to be here
             }
         }
@@ -362,7 +363,7 @@ public class MatrixTest extends CommonBase {
                 m1.copy().elementMult(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
             }
-            catch (final IllegalArgumentException e) {
+            catch (final MatrixDimensionException e) {
                 // It is OK to be here
             }
         }
@@ -413,7 +414,7 @@ public class MatrixTest extends CommonBase {
                 m1.copy().elementDiv(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
             }
-            catch (final IllegalArgumentException e) {
+            catch (final MatrixDimensionException e) {
                 // It is OK to be here
             }
         }
@@ -471,7 +472,7 @@ public class MatrixTest extends CommonBase {
                 m1.copy().sub(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
             }
-            catch (final IllegalArgumentException e) {
+            catch (final MatrixDimensionException e) {
                 // It is OK to be here
             }
         }
@@ -504,7 +505,7 @@ public class MatrixTest extends CommonBase {
                 m1.copy().sub(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
             }
-            catch (final IllegalArgumentException e) {
+            catch (final MatrixDimensionException e) {
                 // It is OK to be here
             }
         }

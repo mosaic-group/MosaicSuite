@@ -87,7 +87,7 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>29.2.1</version>
+        <version>39.0.0</version>
         <relativePath />
     </parent>
 
@@ -158,6 +158,7 @@
         <dependency>
             <groupId>org.scijava</groupId>
             <artifactId>vecmath</artifactId>
+            <version>1.6.0-scijava-2</version>
         </dependency>
         <dependency>
             <groupId>org.scijava</groupId>
@@ -188,9 +189,8 @@
             <version>0.8.3</version>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.efficient-java-matrix-library</groupId>
-            <artifactId>ejml</artifactId>
-            <version>0.24</version>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-all</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

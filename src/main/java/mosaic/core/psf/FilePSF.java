@@ -76,7 +76,6 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
      *
      * @see psf<T>
      * @see PSFGui
-     * @param dim dimension
      * @param cl give the class of the parameter T
      */
 
@@ -88,6 +87,11 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
     @Override
     public RandomAccess<T> copyRandomAccess() {
         return rd;
+    }
+
+    @Override
+    public RandomAccess<T> copy() {
+        return null;
     }
 
     @Override
@@ -188,11 +192,6 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
     @Override
     public void setPosition(long i, int j) {
         rd.setPosition(i, j);
-    }
-
-    @Override
-    public Sampler<T> copy() {
-        return rd.copy();
     }
 
     @Override
